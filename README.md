@@ -8,6 +8,7 @@ one to compare implementations.
 
 - [OBDD Benchmark](#obdd-benchmark)
     - [Implementations](#implementations)
+    - [Installation](#installation)
     - [Benchmarks](#benchmarks)
         - [N-Queens](#n-queens)
         - [Tic-Tac-Toe](#tic-tac-toe)
@@ -42,9 +43,15 @@ libraries. For comparability, we will set them up to only utilise a single core.
   A parallel (multi-core) implementation using a _unique node table_, complement
   edges, automated garbage collection, and much more. We will *not* make use of
   the multi-core aspect to make sure the results are comparable.
-  
-  Installation is merely done by use of CMake after having initialised the
-  subrepository.
+
+
+## Installation
+All packages interface with CMake, which makes installation very simple after
+having initialised all submodules using the following command.
+
+```
+git submodule update --init --recursive
+```
 
 
 ## Benchmarks

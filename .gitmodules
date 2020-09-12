@@ -1,0 +1,9 @@
+[submodule "external/cudd"]
+	path = external/cudd
+	url = ../../mballance/cudd
+[submodule "external/BuDDy"]
+	path = external/BuDDy
+	url = ../../jgcoded/BuDDy
+[submodule "external/sylvan"]
+	path = external/sylvan
+	url = ../../trolando/sylvan
