@@ -53,6 +53,24 @@ having initialised all submodules using the following command.
 git submodule update --init --recursive
 ```
 
+This also requires _CMake_ and a _C++_ compiler of your choice.
+
+### Sylvan
+Sylvan also needs to following other dependencies, which we merely will write up
+as the ubuntu apt command.
+```
+apt install libgmp-dev
+```
+
+Furthermore, Sylvan cannot simply be built by CMake, but one has to first
+_install_ it as follows (see [issue #10](https://github.com/trolando/sylvan/issues/10)
+on the Sylvan project)
+```
+mkdir external/sylvan/build && cd external/sylvan/build
+cmake ..
+sudo make
+sudo make install
+```
 
 ## Benchmarks
 
