@@ -19,7 +19,8 @@ using namespace sylvan;
 int main(int argc, char** argv)
 {
   size_t N = 8;
-  parse_input(argc, argv, N);
+  size_t M = 128;
+  parse_input(argc, argv, N, M);
 
   size_t largest_bdd = 0;
 
@@ -40,6 +41,7 @@ int main(int argc, char** argv)
   // With 2^20 nodes and 2^18 cache entries, that's 33 MB
   // With 2^24 nodes and 2^22 cache entries, that's 528 MB
   sylvan_set_sizes(1LL<<20, 1LL<<24, 1LL<<18, 1LL<<22);
+  sylvan_set_limits(M * 1024 * 1024, 1, 5);
   sylvan_init_package();
   sylvan_set_granularity(3); // granularity 3 is decent value for this small problem - 1 means "use cache for every operation"
   sylvan_init_bdd();
@@ -53,9 +55,9 @@ int main(int argc, char** argv)
   //
   //                           x_ij /\ !threats(i,j)
   BDD board[N*N];
-  for (size_t i=0; i<N*N; i++) {
+  for (size_t i = 0; i < N*N; i++) {
     board[i] = sylvan_true;
-    sylvan_protect(board+i);
+    sylvan_protect(board + i);
   }
 
   for (size_t i = 0; i < N; i++) {
@@ -134,11 +136,11 @@ int main(int argc, char** argv)
   // Count number of solutions
 
   // Old satcount function still requires a silly variables cube
+  auto t3 = get_timestamp();
+
   BDD vars = sylvan_true;
   sylvan_protect(&vars);
   for (size_t i=0; i < N*N; i++) vars = sylvan_and(vars, sylvan_ithvar(i));
-
-  auto t3 = get_timestamp();
 
   double solutions = sylvan_satcount(res, vars);
 

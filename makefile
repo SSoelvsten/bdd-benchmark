@@ -10,7 +10,7 @@ MAKE_FLAGS=-j $$(nproc)
 V:=sylvan
 
 # Memory
-M:=1
+M:=128
 
 # Input variable
 N:=0
@@ -31,4 +31,4 @@ clean:
 # ============================================================================ #
 queens: N := 8
 queens: | build
-	@$(subst VARIANT,$(V),./build/src/VARIANT_queens) $(N)
+	@$(subst VARIANT,$(V),./build/src/VARIANT_queens) $(N) $(M)

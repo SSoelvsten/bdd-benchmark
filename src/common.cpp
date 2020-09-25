@@ -24,15 +24,20 @@ inline unsigned long int duration_of(std::chrono::high_resolution_clock::time_po
 #include <iostream>       // std::cerr
 #include <stdexcept>      // std::invalid_argument
 
-void parse_input(int &argc, char* argv[], size_t &N)
+void parse_input(int &argc, char* argv[], size_t &N, size_t &M)
 {
   try {
-    if (argc == 1) {
-      return;
-    } else {
+    if (argc > 1) {
       N = std::atoi(argv[1]);
       if (N < 0) {
         Abort("N (first argument) should be nonnegative\n");
+      }
+    }
+
+    if (argc > 2) {
+      M = std::atoi(argv[2]);
+      if (N < 0) {
+        Abort("M (second argument) should be positive\n");
       }
     }
   } catch (std::invalid_argument const &ex) {
