@@ -1,309 +1,162 @@
 /**
  * N-queens example.
- * Based on work by Robert Meolic, released by him into the public domain.
+ *
+ * Created from the original example for Sylvan based on the work by Robert
+ * Meolic, released by him into the public domain. Further modified based on a
+ * paper of Daniel Kunkle, Vlad Slavici, and Gene Cooperman to improve
+ * performance manyfold.
  */
-
-#include <argp.h>
-#include <inttypes.h>
-#include <locale.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/time.h>
 
 #include <sylvan.h>
 #include <sylvan_table.h>
 
+#include "common.cpp"
+#include "queens.cpp"
+
 using namespace sylvan;
 
-/* Configuration */
-static int report_minterms = 0; // report minterms at every major step
-static int report_minor = 0; // report minor steps
-static int report_stats = 0; // report stats at end
-static int workers = 0; // autodetect number of workers by default
-static size_t size = 0; // will be set by caller
-
-/* argp configuration */
-static struct argp_option options[] =
+// =============================================================================
+int main(int argc, char** argv)
 {
-    {"workers", 'w', "<workers>", 0, "Number of workers (default=0: autodetect)", 0},
-    {"report-minterms", 1, 0, 0, "Report #minterms at every major step", 1},
-    {"report-minor", 2, 0, 0, "Report minor steps", 1},
-    {"report-stats", 3, 0, 0, "Report statistics at end", 1},
-    {0, 0, 0, 0, 0, 0}
-};
-static error_t
-parse_opt(int key, char *arg, struct argp_state *state)
-{
-    switch (key) {
-    case 'w':
-        workers = atoi(arg);
-        break;
-    case 1:
-        report_minterms = 1;
-        break;
-    case 2:
-        report_minor = 1;
-        break;
-    case 3:
-        report_stats = 1;
-        break;
-    case ARGP_KEY_ARG:
-        if (state->arg_num >= 1) argp_usage(state);
-        size = atoi(arg);
-        break;
-    case ARGP_KEY_END:
-        if (state->arg_num < 1) argp_usage(state);
-        break;
-    default:
-        return ARGP_ERR_UNKNOWN;
-    }
-    return 0;
-}
-static struct argp argp = { options, parse_opt, "<size>", 0, 0, 0, 0 };
+  size_t N = 8;
+  parse_input(argc, argv, N);
 
-/* Obtain current wallclock time */
-static double
-wctime()
-{
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return (tv.tv_sec + 1E-6 * tv.tv_usec);
-}
+  size_t largest_bdd = 0;
 
-static double t_start;
-#define INFO(s, ...) fprintf(stdout, "[% 8.2f] " s, wctime()-t_start, ##__VA_ARGS__)
-#define Abort(...) { fprintf(stderr, __VA_ARGS__); exit(-1); }
+  // =========================================================================
+  // Init Lace
+  lace_init(0, 1000000); // auto-detect number of workers, use a 1,000,000 size task queue
+  lace_startup(0, NULL, NULL); // auto-detect program stack, do not use a callback for startup
 
-VOID_TASK_0(gc_start)
-{
-    if (report_minor) {
-        printf("\n");
-    }
-    INFO("(GC) Starting garbage collection...\n");
-}
+  // Lace is initialized, now set local variables
+  LACE_ME;
 
-VOID_TASK_0(gc_end)
-{
-    INFO("(GC) Garbage collection done.\n");
-}
+  // =========================================================================
+  // Init Sylvan
+  // Nodes table size of 1LL<<20 is 1048576 entries
+  // Cache size of 1LL<<18 is 262144 entries
+  // Nodes table size: 24 bytes * nodes
+  // Cache table size: 36 bytes * cache entries
+  // With 2^20 nodes and 2^18 cache entries, that's 33 MB
+  // With 2^24 nodes and 2^22 cache entries, that's 528 MB
+  sylvan_set_sizes(1LL<<20, 1LL<<24, 1LL<<18, 1LL<<22);
+  sylvan_init_package();
+  sylvan_set_granularity(3); // granularity 3 is decent value for this small problem - 1 means "use cache for every operation"
+  sylvan_init_bdd();
 
-int
-main(int argc, char** argv)
-{
-    argp_parse(&argp, argc, argv, 0, 0, 0);
-    setlocale(LC_NUMERIC, "en_US.utf-8");
-    t_start = wctime();
+  // =========================================================================
+  // Setup for N Queens
+  auto t1 = get_timestamp();
 
-    // Init Lace
-    lace_init(workers, 1000000); // auto-detect number of workers, use a 1,000,000 size task queue
-    lace_startup(0, NULL, NULL); // auto-detect program stack, do not use a callback for startup
+  // =========================================================================
+  // Encode the constraint for each field bottom-up.
+  //
+  //                           x_ij /\ !threats(i,j)
+  BDD board[N*N];
+  for (size_t i=0; i<N*N; i++) {
+    board[i] = sylvan_true;
+    sylvan_protect(board+i);
+  }
 
-    // Lace is initialized, now set local variables
-    LACE_ME;
+  for (size_t i = 0; i < N; i++) {
+    for (size_t j = 0; j < N; j++) {
+      size_t row = N - 1;
 
-    // Init Sylvan
-    // Nodes table size of 1LL<<20 is 1048576 entries
-    // Cache size of 1LL<<18 is 262144 entries
-    // Nodes table size: 24 bytes * nodes
-    // Cache table size: 36 bytes * cache entries
-    // With 2^20 nodes and 2^18 cache entries, that's 33 MB
-    // With 2^24 nodes and 2^22 cache entries, that's 528 MB
-    sylvan_set_sizes(1LL<<20, 1LL<<24, 1LL<<18, 1LL<<22);
-    sylvan_init_package();
-    sylvan_set_granularity(3); // granularity 3 is decent value for this small problem - 1 means "use cache for every operation"
-    sylvan_init_bdd();
+      size_t ij_label = label_of_position(N, i, j);
 
-    // Before and after garbage collection, call gc_start and gc_end
-    sylvan_gc_hook_pregc(TASK(gc_start));
-    sylvan_gc_hook_postgc(TASK(gc_end));
+      do {
+        size_t row_diff = std::max(row, i) - std::min(row, i);
 
-    double t1 = wctime();
+        if (row_diff == 0) {
+          size_t column = N - 1;
 
-    BDD zero = sylvan_false;
-    BDD one = sylvan_true;
+          do {
+            size_t label = label_of_position(N, row, column);
 
-    // Variables 0 ... (SIZE*SIZE-1)
-
-    BDD board[size*size];
-    for (size_t i=0; i<size*size; i++) {
-        board[i] = sylvan_ithvar(i);
-        sylvan_protect(board+i);
-    }
-
-    BDD res = one, temp = one;
-
-    // we use sylvan's "protect" marking mechanism...
-    // that means we hardly need to do manual ref/deref when the variables change
-    sylvan_protect(&res);
-    sylvan_protect(&temp);
-
-    // Old satcount function still requires a silly variables cube
-    BDD vars = one;
-    sylvan_protect(&vars);
-    for (size_t i=0; i<size*size; i++) vars = sylvan_and(vars, board[i]);
-
-    INFO("Initialisation complete!\n");
-
-    if (report_minor) {
-        INFO("Encoding rows... ");
-    } else {
-        INFO("Encoding rows...\n");
-    }
-
-    for (size_t i=0; i<size; i++) {
-        if (report_minor) {
-            printf("%zu... ", i);
-            fflush(stdout);
-        }
-
-        for (size_t j=0; j<size; j++) {
-            // compute "\BigAnd (!board[i][k]) \or !board[i][j]" with k != j
-            temp = one;
-            for (size_t k=0; k<size; k++) {
-                if (j==k) continue;
-                temp = sylvan_and(temp, sylvan_not(board[i*size+k]));
+            if (column == j) {
+              board[ij_label] = sylvan_and(board[ij_label],
+                                           sylvan_ithvar(ij_label));
+            } else {
+              board[ij_label] = sylvan_and(board[ij_label],
+                                           sylvan_not(sylvan_ithvar(label)));
             }
-            temp = sylvan_or(temp, sylvan_not(board[i*size+j]));
-            // add cube to "res"
-            res = sylvan_and(res, temp);
+          } while (column-- > 0);
+        } else {
+          if (j + row_diff < N) {
+            size_t label = label_of_position(N, row, j + row_diff);
+            board[ij_label] = sylvan_and(board[ij_label],
+                                         sylvan_not(sylvan_ithvar(label)));
+          }
+
+          size_t label = label_of_position(N, row, j);
+          board[ij_label] = sylvan_and(board[ij_label],
+                                       sylvan_not(sylvan_ithvar(label)));
+
+          if (row_diff <= j) {
+            size_t label = label_of_position(N, row, j - row_diff);
+            board[ij_label] = sylvan_and(board[ij_label],
+                                         sylvan_not(sylvan_ithvar(label)));
+          }
         }
+      } while (row-- > 0);
+
+      largest_bdd = std::max(largest_bdd, sylvan_nodecount(board[ij_label]));
+    }
+  }
+
+  // =========================================================================
+  // Accumulate fields into rows and then accumulte rows
+  //
+  //      Row i:  Field i,1 \/ Field i,2 \/ ... \/ Field i,N
+  //
+  //      Total:  Row 1 /\ Row 2 /\ ... /\ Row N
+  BDD res = sylvan_true, temp = sylvan_true;
+  sylvan_protect(&res);
+  sylvan_protect(&temp);
+
+  for (size_t i = 0; i < N; i++) {
+    temp = board[label_of_position(N, i, 0)];
+    largest_bdd = std::max(largest_bdd, sylvan_nodecount(temp));
+
+    for (size_t j = 1; j < N; j++) {
+      size_t label = label_of_position(N, i, j);
+      temp = sylvan_or(temp, board[label]);
+      largest_bdd = std::max(largest_bdd, sylvan_nodecount(temp));
     }
 
-    if (report_minor) {
-        printf("\n");
-    }
-    if (report_minterms) {
-        INFO("We have %.0f minterms\n", sylvan_satcount(res, vars));
-    }
-    if (report_minor) {
-        INFO("Encoding columns... ");
-    } else {
-        INFO("Encoding columns...\n");
-    }
+    res = i == 0 ? temp : sylvan_and(res, temp);
+    largest_bdd = std::max(largest_bdd, sylvan_nodecount(res));
+  }
 
-    for (size_t j=0; j<size; j++) {
-        if (report_minor) {
-            printf("%zu... ", j);
-            fflush(stdout);
-        }
+  auto t2 = get_timestamp();
 
-        for (size_t i=0; i<size; i++) {
-            // compute "\BigAnd (!board[k][j]) \or !board[i][j]" with k != i
-            temp = one;
-            for (size_t k=0; k<size; k++) {
-                if (i==k) continue;
-                temp = sylvan_and(temp, sylvan_not(board[k*size+j]));
-            }
-            temp = sylvan_or(temp, sylvan_not(board[i*size+j]));
-            // add cube to "res"
-            res = sylvan_and(res, temp);
-        }
-    }
+  // =========================================================================
+  // Count number of solutions
 
-    if (report_minor) {
-        printf("\n");
-    }
-    if (report_minterms) {
-        INFO("We have %.0f minterms\n", sylvan_satcount(res, vars));
-    }
-    if (report_minor) {
-        INFO("Encoding rising diagonals... ");
-    } else {
-        INFO("Encoding rising diagonals...\n");
-    }
+  // Old satcount function still requires a silly variables cube
+  BDD vars = sylvan_true;
+  sylvan_protect(&vars);
+  for (size_t i=0; i < N*N; i++) vars = sylvan_and(vars, sylvan_ithvar(i));
 
-    for (size_t i=0; i<size; i++) {
-        if (report_minor) {
-            printf("%zu... ", i);
-            fflush(stdout);
-        }
+  auto t3 = get_timestamp();
 
-        for (size_t j=0; j<size; j++) {
-            temp = one;
-            for (size_t k=0; k<size; k++) {
-                // if (j+k-i >= 0 && j+k-i < size && k != i)
-                if (j+k >= i && j+k < size+i && k != i) {
-                    temp = sylvan_and(temp, sylvan_not(board[k*size + (j+k-i)]));
-                }
-            }
-            temp = sylvan_or(temp, sylvan_not(board[i*size+j]));
-            // add cube to "res"
-            res = sylvan_and(res, temp);
-        }
-    }
+  double solutions = sylvan_satcount(res, vars);
 
-    if (report_minor) {
-        printf("\n");
-    }
-    if (report_minterms) {
-        INFO("We have %.0f minterms\n", sylvan_satcount(res, vars));
-    }
-    if (report_minor) {
-        INFO("Encoding falling diagonals... ");
-    } else {
-        INFO("Encoding falling diagonals...\n");
-    }
+  auto t4 = get_timestamp();
 
-    for (size_t i=0; i<size; i++) {
-        if (report_minor) {
-            printf("%zu... ", i);
-            fflush(stdout);
-        }
+  // =========================================================================
+  INFO("%zu-Queens (Sylvan):\n", N);
+  INFO(" | number of solutions: %.0f\n", solutions);
+  INFO(" | size (nodes):\n");
+  INFO(" | | largest size:      %zu\n", largest_bdd);
+  INFO(" | | final size:        %zu\n", sylvan_nodecount(res));
+  INFO(" | time (ms):\n");
+  INFO(" | | construction:      %zu\n", duration_of(t1,t2));
+  INFO(" | | counting:          %zu\n", duration_of(t3,t4));
+  INFO(" | | total:             %zu\n", duration_of(t1,t4));
 
-        for (size_t j=0; j<size; j++) {
-            temp = one;
-            for (size_t k=0; k<size; k++) {
-                // if (j+i-k >= 0 && j+i-k < size && k != i)
-                if (j+i >= k && j+i < size+k && k != i) {
-                    temp = sylvan_and(temp, sylvan_not(board[k*size + (j+i-k)]));
-                }
-            }
-            temp = sylvan_or(temp, sylvan_not(board[i*size + j]));
-            // add cube to "res"
-            res = sylvan_and(res, temp);
-        }
-    }
-
-    if (report_minor) {
-        printf("\n");
-    }
-    if (report_minterms) {
-        INFO("We have %.0f minterms\n", sylvan_satcount(res, vars));
-    }
-    if (report_minor) {
-        INFO("Final computation to place a queen on every row... ");
-    } else {
-        INFO("Final computation to place a queen on every row...\n");
-    }
-
-    for (size_t i=0; i<size; i++) {
-        if (report_minor) {
-            printf("%zu... ", i);
-            fflush(stdout);
-        }
-
-        temp = zero;
-        for (size_t j=0; j<size; j++) {
-            temp = sylvan_or(temp, board[i*size+j]);
-        }
-        res = sylvan_and(res, temp);
-    }
-
-    if (report_minor) {
-        printf("\n");
-    }
-
-    double t2 = wctime();
-
-    INFO("Result: NQueens(%zu) has %.0f solutions.\n", size, sylvan_satcount(res, vars));
-    INFO("Result BDD has %zu nodes.\n", sylvan_nodecount(res));
-    INFO("Computation time: %f sec.\n", t2-t1);
-
-    if (report_stats) {
-        sylvan_stats_report(stdout);
-    }
-
-    sylvan_quit();
-    lace_exit();
+  // =========================================================================
+  // Sylvan and LACE deinit
+  sylvan_quit();
+  lace_exit();
 }
