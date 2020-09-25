@@ -3,25 +3,32 @@
 MAKE_FLAGS=-j $$(nproc)
 
 # ============================================================================ #
+#  VARIABLE DEFAULTS
+# ============================================================================ #
+
+# Variant (sylvan, coom, buddy)
+V:=sylvan
+
+# Memory
+M:=1
+
+# Input variable
+N:=0
+
+# ============================================================================ #
 #  BUILD
 # ============================================================================ #
 build:
 	@mkdir -p build/ && cd build/ && cmake ..
-	@cd build/ && make ${MAKE_FLAGS} sylvan_queens
+	@cd build/ && make ${MAKE_FLAGS} ${V}_queens
 
 clean:
 	@rm -rf build/
 
-# ============================================================================ #
-#  VARIABLE DEFAULTS
-# ============================================================================ #
-V = sylvan # Variant (sylvan, coom, buddy)
-M = 1      # Memory
-N = 0      # Input variable
 
 # ============================================================================ #
 #  EXAMPLES
 # ============================================================================ #
 queens: N := 8
 queens: | build
-	@./build/src/sylvan_queens ${N}
+	@$(subst VARIANT,$(V),./build/src/VARIANT_queens) $(N)
