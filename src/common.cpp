@@ -1,3 +1,5 @@
+#include <algorithm>
+
 // =============================================================================
 // A few chrono wrappers to improve readability
 #include <chrono>

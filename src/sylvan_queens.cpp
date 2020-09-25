@@ -159,4 +159,8 @@ int main(int argc, char** argv)
   // Sylvan and LACE deinit
   sylvan_quit();
   lace_exit();
+
+  if (solutions != expected_result[N]) {
+    exit(-1);
+  }
 }
