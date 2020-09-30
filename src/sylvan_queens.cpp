@@ -26,7 +26,7 @@ int main(int argc, char** argv)
 
   // =========================================================================
   // Init Lace
-  lace_init(0, 1000000); // auto-detect number of workers, use a 1,000,000 size task queue
+  lace_init(1, 1000000); // force it to be single-threaded and use a 1,000,000 size task queue
   lace_startup(0, NULL, NULL); // auto-detect program stack, do not use a callback for startup
 
   // Lace is initialized, now set local variables
