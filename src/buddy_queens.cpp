@@ -101,7 +101,6 @@ int main(int argc, char** argv)
   // =========================================================================
   // Count number of solutions
 
-  // Old satcount function still requires a silly variables cube
   auto t3 = get_timestamp();
 
   double solutions = bdd_satcount(res);
@@ -120,7 +119,7 @@ int main(int argc, char** argv)
   INFO(" | | total:             %zu\n", duration_of(t1,t4));
 
   // =========================================================================
-  // Sylvan and LACE deinit
+  // BuDDy dinit
   bdd_done();
 
   if (solutions != expected_result[N]) {
