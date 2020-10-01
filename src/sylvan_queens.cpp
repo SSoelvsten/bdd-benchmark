@@ -118,7 +118,6 @@ int main(int argc, char** argv)
 
   for (size_t i = 0; i < N; i++) {
     temp = board[label_of_position(N, i, 0)];
-    largest_bdd = std::max(largest_bdd, sylvan_nodecount(temp));
 
     for (size_t j = 1; j < N; j++) {
       size_t label = label_of_position(N, i, j);
