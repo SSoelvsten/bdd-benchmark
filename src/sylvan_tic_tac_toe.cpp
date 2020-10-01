@@ -74,8 +74,6 @@ int main(int argc, char** argv)
   BDD res = init_parts[0];
   sylvan_protect(&res);
 
-  //  sylvan_printdot(res, "");
-
   initial_bdd = sylvan_nodecount(res);
 
   auto t2 = get_timestamp();
