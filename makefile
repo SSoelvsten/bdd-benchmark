@@ -20,7 +20,12 @@ N:=0
 # ============================================================================ #
 build:
 	@mkdir -p build/ && cd build/ && cmake ..
+
+build-queens: | build
 	@cd build/ && make ${MAKE_FLAGS} ${V}_queens
+
+build-tic_tac_toe: | build
+	@mkdir -p build/ && cd build/ && cmake ..
 	@cd build/ && make ${MAKE_FLAGS} ${V}_tic_tac_toe
 
 clean:
@@ -31,10 +36,10 @@ clean:
 #  EXAMPLES
 # ============================================================================ #
 queens: N := 8
-queens: | build
+queens: | build-queens
 	@$(subst VARIANT,$(V),./build/src/VARIANT_queens) $(N) $(M)
 
 tic_tac_toe: N := 20
-tic_tac_toe: | build
+tic_tac_toe: | build-tic_tac_toe
 	@$(subst VARIANT,$(V),./build/src/VARIANT_tic_tac_toe) $(N) $(M)
 
