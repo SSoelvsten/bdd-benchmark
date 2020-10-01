@@ -14,7 +14,7 @@ set(CMAKE_CXX_FLAGS "-O3 ${CMAKE_CXX_FLAGS}")
 # ============================================================================ #
 # External
 # ============================================================================ #
-add_subdirectory (external/BuDDy buddy)
+add_subdirectory (external/BuDDy bdd)
 add_subdirectory (external/cudd cudd)
 add_subdirectory (external/sylvan sylvan)
 
