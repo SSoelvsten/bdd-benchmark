@@ -1,4 +1,4 @@
-#include <bdd.h>
+#include "buddy_init.cpp"
 
 #include "common.cpp"
 #include "tic_tac_toe.cpp"
@@ -13,13 +13,7 @@ int main(int argc, char** argv)
   int largest_bdd = 0;
 
   // =========================================================================
-  // Init BuDDy
-  bdd_init(M*47100,10000);
-  bdd_setmaxincrease(0);
-
-  bdd_setvarnum(64);
-
-  bdd_setcacheratio(64);
+  BUDDY_INIT(64, M)
 
   // =========================================================================
   // Construct is_equal_N
@@ -66,8 +60,7 @@ int main(int argc, char** argv)
     }
 
     // Add constraint to result
-    temp_A &= temp_B;
-    res &= temp_A;
+    res &= temp_A & temp_B;
     largest_bdd = std::max(largest_bdd, bdd_nodecount(res));
 
     // Reset temp_A and temp_B for the next iteration
@@ -87,7 +80,7 @@ int main(int argc, char** argv)
   auto t6 = get_timestamp();
 
   // =========================================================================
-  INFO("Tic-Tac-Toe with %zu crosses (BuDDy):\n", N);
+  INFO("Tic-Tac-Toe with %zu crosses (BuDDy %zu MB):\n", N, M);
   INFO(" | number of solutions:    %.0f\n", solutions);
   INFO(" | size (nodes):\n");
   INFO(" | | initial:              %i\n",  initial_bdd);
@@ -100,8 +93,7 @@ int main(int argc, char** argv)
   INFO(" | | total:                %zu\n", duration_of(t1,t2) + duration_of(t3,t6));
 
   // =========================================================================
-  // BuDDy dinit
-  bdd_done();
+  BUDDY_DEINIT
 
   if (solutions != expected_result[N]) {
     exit(-1);
