@@ -1,4 +1,4 @@
-#include <bdd.h>
+#include "buddy_init.cpp"
 
 #include "common.cpp"
 #include "queens.cpp"
@@ -13,13 +13,7 @@ int main(int argc, char** argv)
   int largest_bdd = 0;
 
   // =========================================================================
-  // Init BuDDy
-  bdd_init(M*47100,10000);
-  bdd_setmaxincrease(0);
-
-  bdd_setvarnum(N*N);
-
-  bdd_setcacheratio(64);
+  BUDDY_INIT(N*N, M)
 
   // =========================================================================
   // Setup for N Queens
@@ -108,7 +102,7 @@ int main(int argc, char** argv)
   auto t4 = get_timestamp();
 
   // =========================================================================
-  INFO("%zu-Queens (BuDDy):\n", N);
+  INFO("%zu-Queens (BuDDy %zu MB):\n", N, M);
   INFO(" | number of solutions: %.0f\n", solutions);
   INFO(" | size (nodes):\n");
   INFO(" | | largest size:      %i\n", largest_bdd);
@@ -119,8 +113,7 @@ int main(int argc, char** argv)
   INFO(" | | total:             %zu\n", duration_of(t1,t4));
 
   // =========================================================================
-  // BuDDy dinit
-  bdd_done();
+  BUDDY_DEINIT
 
   if (solutions != expected_result[N]) {
     exit(-1);

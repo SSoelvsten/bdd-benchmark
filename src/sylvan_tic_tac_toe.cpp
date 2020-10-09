@@ -7,8 +7,7 @@
  * performance manyfold.
  */
 
-#include <sylvan.h>
-#include <sylvan_table.h>
+#include "sylvan_init.cpp"
 
 #include "common.cpp"
 #include "tic_tac_toe.cpp"
@@ -26,26 +25,7 @@ int main(int argc, char** argv)
   size_t initial_bdd = 0;
 
   // =========================================================================
-  // Init Lace
-  lace_init(1, 1000000); // force it to be single-threaded and use a 1,000,000 size task queue
-  lace_startup(0, NULL, NULL); // auto-detect program stack, do not use a callback for startup
-
-  // Lace is initialized, now set local variables
-  LACE_ME;
-
-  // =========================================================================
-  // Init Sylvan
-  // Nodes table size of 1LL<<20 is 1048576 entries
-  // Cache size of 1LL<<18 is 262144 entries
-  // Nodes table size: 24 bytes * nodes
-  // Cache table size: 36 bytes * cache entries
-  // With 2^20 nodes and 2^18 cache entries, that's 33 MB
-  // With 2^24 nodes and 2^22 cache entries, that's 528 MB
-  sylvan_set_sizes(1LL<<20, 1LL<<24, 1LL<<18, 1LL<<22);
-  sylvan_set_limits(M * 1024 * 1024, 1, 16);
-  sylvan_init_package();
-  sylvan_set_granularity(3); // granularity 3 is decent value for this small problem - 1 means "use cache for every operation"
-  sylvan_init_bdd();
+  SYLVAN_INIT(M)
 
   // =========================================================================
   // Construct is_equal_N
@@ -122,7 +102,7 @@ int main(int argc, char** argv)
   auto t6 = get_timestamp();
 
   // =========================================================================
-  INFO("Tic-Tac-Toe with %zu crosses (Sylvan):\n", N);
+  INFO("Tic-Tac-Toe with %zu crosses (Sylvan %zu MB):\n", N, M);
   INFO(" | number of solutions:    %.0f\n", solutions);
   INFO(" | size (nodes):\n");
   INFO(" | | initial:              %zu\n", initial_bdd);
@@ -135,9 +115,7 @@ int main(int argc, char** argv)
   INFO(" | | total:                %zu\n", duration_of(t1,t2) + duration_of(t3,t6));
 
   // =========================================================================
-  // Sylvan and LACE deinit
-  sylvan_quit();
-  lace_exit();
+  SYLVAN_DEINIT
 
   if (solutions != expected_result[N]) {
     exit(-1);
