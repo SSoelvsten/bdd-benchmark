@@ -58,8 +58,7 @@ git submodule update --init --recursive
 This also requires _CMake_ and a _C++_ compiler of your choice.
 
 ### Sylvan
-Sylvan also needs to following other dependencies, which we merely will write up
-as the ubuntu apt command.
+Sylvan also needs the following other dependencies, which can be installed as follows
 ```
 apt install libgmp-dev
 ```
@@ -86,13 +85,12 @@ Our implementation of these benchmarks are based on the description of
 [[Kunkle10](#references)]. We construct an OBDD row-by-row that represents
 whether the row is in a legal state: is at least one queen placed on each row
 and is it also in no conflicts with any other? On the accumulated OBDD we then
-counts the number of satisfying assignments.
+count the number of satisfying assignments.
 
 **Notice**: This is a pretty simple example and has all of the normal
 shortcomings for OBDDs trying to solve the N-Queens problem. At around N = 14
-the intermediate sizes explodes a lot. One can with about 100 GB of disk space
-or memory available to compute the 15-Queens problem. Presumably, one needs
-around 1 TB for the 16-Queens problem.
+the intermediate sizes explodes, and for N = 15 one needs about 100 GB of disk
+space or memory. Presumably, one needs around 1 TB for the 16-Queens problem.
 
 **Statistics:**
 
@@ -106,7 +104,7 @@ around 1 TB for the 16-Queens problem.
 Solves the following problem:
 
 > Given N, then in how many ways can Player 1 place N crosses in a 3D 4x4x4 cube
-> and have a tie, when Player 2 places noughts on all remaining
+> and have a tie, when Player 2 places noughts in all remaining positions?
 
 This benchmark stems from [[Kunkle10](#references)]. Here we keep an accumulated
 OBDD on which we add one of the 76 constraints of at least one cross and one
@@ -124,17 +122,18 @@ intermediate result.
 
 
 ### Pigeonhole Principle
-Proves the following is not true
+Computes that the following is false
 
 > Given N, does there exist an isomorphism between the sets { 1, 2, ..., N + 1}
 > (pigeons) and { 1, 2, ..., N } (holes)?
 
 Based on [[Tveretina10](#references)], this is disproven by use of variables
-_P<sub>i,j</sub>_ saying that pigeon _i_ is mapped to the _j_'th hole. These are
-rewritten into a CNF formula, which is then solved in a simple way as described
-in [[Pan04](#references)]: sort all clauses by the maximal occuring literal into
-clusters and then interchangably accumulate clauses and existentially quantify
-variables.
+_P<sub>i,j</sub>_ saying that the _i_'th pigeon is mapped to the _j_'th hole.
+These are written as a CNF formula with at-least-one and at-most-one
+constraints. This CNF is then solved in a as described in [[Pan04; Section
+2](#references)]: sort all clauses by the maximal occuring literal into clusters
+and then interchangably accumulate the conjunction of clauses and existentially
+quantify the variables.
 
 **Statistics:**
 
