@@ -39,7 +39,7 @@ queens: N := 8
 queens: | build-queens
 	@$(subst VARIANT,$(V),./build/src/VARIANT_queens) $(N) $(M)
 
-tic_tac_toe: N := 20
+tic_tac_toe: N := 19
 tic_tac_toe: | build-tic_tac_toe
 	@$(subst VARIANT,$(V),./build/src/VARIANT_tic_tac_toe) $(N) $(M)
 
