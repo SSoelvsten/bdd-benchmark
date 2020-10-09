@@ -9,9 +9,11 @@ one to compare implementations.
 - [OBDD Benchmark](#obdd-benchmark)
     - [Implementations](#implementations)
     - [Installation](#installation)
+        - [Sylvan](#sylvan)
     - [Benchmarks](#benchmarks)
         - [N-Queens](#n-queens)
         - [Tic-Tac-Toe](#tic-tac-toe)
+        - [Pigeonhole Principle](#pigeonhole-principle)
     - [License](#license)
     - [References](#references)
 
@@ -114,10 +116,35 @@ intermediate result.
 
 **Statistics:**
 
-| Variable         | Value |
-|------------------|-------|
-| Labels           |    64 |
-| Apply operations |    76 |
+| Variable          |           Value |
+|-------------------|-----------------|
+| Labels            |              64 |
+| Apply operations  |              76 |
+| Initial OBDD size | (64-N+1)(N+1)-1 |
+
+
+### Pigeonhole Principle
+Proves the following is not true
+
+> Given N, does there exist an isomorphism between the sets { 1, 2, ..., N + 1}
+> (pigeons) and { 1, 2, ..., N } (holes)?
+
+Based on [[Tveretina10](#references)], this is disproven by use of variables
+_P<sub>i,j</sub>_ saying that pigeon _i_ is mapped to the _j_'th hole. These are
+rewritten into a CNF formula, which is then solved in a simple way as described
+in [[Pan04](#references)]: sort all clauses by the maximal occuring literal into
+clusters and then interchangably accumulate clauses and existentially quantify
+variables.
+
+**Statistics:**
+
+| Variable | Value       |
+|----------|-------------|
+| Labels   | N(N+1)      |
+| Clauses  | N³ + N(N+1) |
+
+Which makes for _N(N+1)_ existential quantifications and _N³ + N(N+1)_ apply
+operations.
 
 
 ## License
@@ -129,5 +156,15 @@ The software files in this repository are provided under the
 
 - [[Kunkle10](https://dl.acm.org/doi/abs/10.1145/1837210.1837222)] Daniel
   Kunkle, Vlad Slavici, Gene Cooperman. “_Parallel Disk-Based Computation for
-  Large, Monolithic Binary Decision Diagrams_”. In: _ PASCO '10: Proceedings of
+  Large, Monolithic Binary Decision Diagrams_”. In: _PASCO '10: Proceedings of
   the 4th International Workshop on Parallel and Symbolic Computation_. 2010
+
+- [[Pan04](https://link.springer.com/chapter/10.1007/11527695_19)] Guoqiang
+  Pan and Moshe Y. Vardi. “_Search vs. Symbolic Techniques in Satisfiability
+  Solving_”. In: _SAT 2004: Theory and Applications of Satisfiability Testing_.
+  2004
+
+- [[Tveretina10](https://dl.acm.org/doi/abs/10.1145/1837210.1837222)] Olga
+  Tveretina, Carsten Sinz and Hans Zantema. “_Ordered Binary Decision Diagrams,
+  Pigeonhole Formulas and Beyond_”. In: _Journal on Satisfiability, Boolean
+  Modeling and Computation 1_. 2010

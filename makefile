@@ -21,12 +21,15 @@ N:=0
 build:
 	@mkdir -p build/ && cd build/ && cmake ..
 
+build-pigeonhole_principle: | build
+	@cd build/ && make ${MAKE_FLAGS} ${V}_pigeonhole_principle
+
 build-queens: | build
 	@cd build/ && make ${MAKE_FLAGS} ${V}_queens
 
 build-tic_tac_toe: | build
-	@mkdir -p build/ && cd build/ && cmake ..
 	@cd build/ && make ${MAKE_FLAGS} ${V}_tic_tac_toe
+
 
 clean:
 	@rm -rf build/
@@ -35,6 +38,10 @@ clean:
 # ============================================================================ #
 #  EXAMPLES
 # ============================================================================ #
+pigeonhole_principle: N := 10
+pigeonhole_principle: | build-pigeonhole_principle
+	@$(subst VARIANT,$(V),./build/src/VARIANT_pigeonhole_principle) $(N) $(M)
+
 queens: N := 8
 queens: | build-queens
 	@$(subst VARIANT,$(V),./build/src/VARIANT_queens) $(N) $(M)
