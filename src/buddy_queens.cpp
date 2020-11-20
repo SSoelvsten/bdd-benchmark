@@ -3,6 +3,76 @@
 #include "common.cpp"
 #include "queens.cpp"
 
+int largest_bdd = 0;
+
+bdd n_queens_S(uint64_t N, uint64_t i, uint64_t j)
+{
+  size_t row = N - 1;
+
+  bdd out = bddtrue;
+
+  do {
+    size_t row_diff = std::max(row, i) - std::min(row, i);
+
+    if (row_diff == 0) {
+      size_t column = N - 1;
+
+      do {
+        size_t label = label_of_position(N, row, column);
+
+        if (column == j) {
+          out &= bdd_ithvar(label);
+        } else {
+          out &= bdd_nithvar(label);
+        }
+      } while (column-- > 0);
+    } else {
+      if (j + row_diff < N) {
+        size_t label = label_of_position(N, row, j + row_diff);
+        out &= bdd_nithvar(label);
+      }
+
+      size_t label = label_of_position(N, row, j);
+      out &= bdd_nithvar(label);
+
+      if (row_diff <= j) {
+        size_t label = label_of_position(N, row, j - row_diff);
+        out &= bdd_nithvar(label);
+      }
+    }
+  } while (row-- > 0);
+
+  largest_bdd = std::max(largest_bdd, bdd_nodecount(out));
+
+  return out;
+}
+
+bdd n_queens_R(uint64_t N, uint64_t row)
+{
+  bdd out = n_queens_S(N, row, 0);
+
+  for (uint64_t j = 1; j < N; j++) {
+    out |= n_queens_S(N, row, j);
+    largest_bdd = std::max(largest_bdd, bdd_nodecount(out));
+  }
+  return out;
+}
+
+bdd n_queens_B(uint64_t N)
+{
+  if (N == 1) {
+    return n_queens_S(N, 0, 0);
+  }
+
+  bdd out = n_queens_R(N, 0);
+
+  for (uint64_t i = 1; i < N; i++) {
+    out &= n_queens_R(N, i);
+    largest_bdd = std::max(largest_bdd, bdd_nodecount(out));
+  }
+  return out;
+}
+
 // =============================================================================
 int main(int argc, char** argv)
 {
@@ -10,107 +80,34 @@ int main(int argc, char** argv)
   size_t M = 128;
   parse_input(argc, argv, N, M);
 
-  int largest_bdd = 0;
-
   // =========================================================================
+  INFO("%zu-Queens (BuDDy %zu MB):\n", N, M);
   BUDDY_INIT(N*N, M)
 
   // =========================================================================
-  // Setup for N Queens
+  // Compute board
+
   auto t1 = get_timestamp();
-
-  // =========================================================================
-  // Encode the constraint for each field bottom-up.
-  //
-  //                           x_ij /\ !threats(i,j)
-  bdd board[N*N];
-  for (size_t i = 0; i < N*N; i++) {
-    board[i] = bddtrue;
-  }
-
-  for (size_t i = 0; i < N; i++) {
-    for (size_t j = 0; j < N; j++) {
-      size_t row = N - 1;
-
-      size_t ij_label = label_of_position(N, i, j);
-
-      do {
-        size_t row_diff = std::max(row, i) - std::min(row, i);
-
-        if (row_diff == 0) {
-          size_t column = N - 1;
-
-          do {
-            size_t label = label_of_position(N, row, column);
-
-            if (column == j) {
-              board[ij_label] &= bdd_ithvar(ij_label);
-            } else {
-              board[ij_label] &= bdd_nithvar(label);
-            }
-          } while (column-- > 0);
-        } else {
-          if (j + row_diff < N) {
-            size_t label = label_of_position(N, row, j + row_diff);
-            board[ij_label] &= bdd_nithvar(label);
-          }
-
-          size_t label = label_of_position(N, row, j);
-          board[ij_label] &= bdd_nithvar(label);
-
-          if (row_diff <= j) {
-            size_t label = label_of_position(N, row, j - row_diff);
-            board[ij_label] &= bdd_nithvar(label);
-          }
-        }
-      } while (row-- > 0);
-
-      largest_bdd = std::max(largest_bdd, bdd_nodecount(board[ij_label]));
-    }
-  }
-
-  // =========================================================================
-  // Accumulate fields into rows and then accumulte rows
-  //
-  //      Row i:  Field i,1 \/ Field i,2 \/ ... \/ Field i,N
-  //
-  //      Total:  Row 1 /\ Row 2 /\ ... /\ Row N
-  bdd res = bddtrue, temp = bddtrue;
-
-  for (size_t i = 0; i < N; i++) {
-    temp = board[label_of_position(N, i, 0)];
-
-    for (size_t j = 1; j < N; j++) {
-      size_t label = label_of_position(N, i, j);
-      temp |= board[label];
-      largest_bdd = std::max(largest_bdd, bdd_nodecount(temp));
-    }
-
-    res = i == 0 ? temp : res & temp;
-    largest_bdd = std::max(largest_bdd, bdd_nodecount(res));
-  }
-
+  bdd res = n_queens_B(N);
   auto t2 = get_timestamp();
+
+  INFO(" | construction:\n");
+  INFO(" | | largest size (nodes): %i\n", largest_bdd);
+  INFO(" | | final size (nodes):   %i\n", bdd_nodecount(res));
+  INFO(" | | time (ms):            %zu\n", duration_of(t1,t2));
 
   // =========================================================================
   // Count number of solutions
 
   auto t3 = get_timestamp();
-
   double solutions = bdd_satcount(res);
-
   auto t4 = get_timestamp();
 
-  // =========================================================================
-  INFO("%zu-Queens (BuDDy %zu MB):\n", N, M);
-  INFO(" | number of solutions: %.0f\n", solutions);
-  INFO(" | size (nodes):\n");
-  INFO(" | | largest size:      %i\n", largest_bdd);
-  INFO(" | | final size:        %i\n", bdd_nodecount(res));
-  INFO(" | time (ms):\n");
-  INFO(" | | construction:      %zu\n", duration_of(t1,t2));
-  INFO(" | | counting:          %zu\n", duration_of(t3,t4));
-  INFO(" | | total:             %zu\n", duration_of(t1,t4));
+  INFO(" | counting solutions:\n");
+  INFO(" | | counting:             %zu\n", duration_of(t3,t4));
+  INFO(" | | number of solutions:  %.0f\n", solutions);
+
+  INFO(" | total time (ms):        %zu\n", duration_of(t1,t4));
 
   // =========================================================================
   BUDDY_DEINIT

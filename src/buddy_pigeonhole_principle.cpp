@@ -13,6 +13,7 @@ int main(int argc, char** argv)
   int largest_bdd = 0;
 
   // =========================================================================
+  INFO("Pigeonhole Principle for %zu : %zu (BuDDy %zu MB):\n", N+1, N, M);
   BUDDY_INIT(label_of_Pij(N+1, N, N)+1, M)
 
   // =========================================================================
@@ -44,6 +45,8 @@ int main(int argc, char** argv)
   };
 
   // =========================================================================
+  INFO(" | CNF:\n");
+
   auto t1 = get_timestamp();
 
   sat_solver solver;
@@ -51,30 +54,27 @@ int main(int argc, char** argv)
 
   auto t2 = get_timestamp();
 
-  // =========================================================================
-  auto t3 = get_timestamp();
+  INFO(" | | variables:         %zu\n", label_of_Pij(N+1, N, N));
+  INFO(" | | clauses:           %zu\n", solver.cnf_size());
+  INFO(" | | time (ms):         %zu\n", duration_of(t1,t2));
 
+  // =========================================================================
+  INFO(" | BDD Solving:\n");
+
+  auto t3 = get_timestamp();
   bool satisfiable = solver.is_satisfiable(sat_and_clause,
                                            sat_quantify_variable,
                                            sat_is_false);
-
   auto t4 = get_timestamp();
 
   // =========================================================================
-  INFO("Pigeonhole Principle for %zu : %zu (BuDDy %zu MB):\n", N+1, N, M);
-  INFO(" | solution:            %s\n", satisfiable ? "SATISFIABLE" : "UNSATISFIABLE");
-  INFO(" | CNF:\n");
-  INFO(" | | variables:         %zu\n", label_of_Pij(N+1, N, N));
-  INFO(" | | clauses:           %zu\n", solver.cnf_size());
-  INFO(" | OBDD size (nodes):\n");
   INFO(" | | largest size:      %i\n", largest_bdd);
   INFO(" | | final size:        %i\n", bdd_nodecount(sat_acc));
-  INFO(" | time (ms):\n");
-  INFO(" | | CNF construction:  %zu\n", duration_of(t1,t2));
-  INFO(" | | OBDD solving:      %zu\n", duration_of(t3,t4));
-
+  INFO(" | | time (ms):         %zu\n", duration_of(t3,t4));
 
   // =========================================================================
+  INFO(" | solution:            %s\n", satisfiable ? "SATISFIABLE" : "UNSATISFIABLE");
+
   BUDDY_DEINIT
 
   exit(satisfiable ? -1 : 0);
