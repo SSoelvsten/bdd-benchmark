@@ -17,6 +17,24 @@ add_executable(buddy_pigeonhole_principle buddy_pigeonhole_principle.cpp)
 target_include_directories(buddy_pigeonhole_principle PRIVATE ../external/BuDDy/src)
 target_link_libraries(buddy_pigeonhole_principle bdd)
 
+# ============================================================================ #
+# COOM
+# ============================================================================ #
+
+# -- N Queens --
+add_executable(coom_queens coom_queens.cpp)
+target_link_libraries(coom_queens coom)
+set_target_properties(coom_queens PROPERTIES CXX_STANDARD 17)
+
+# -- Tic-Tac-Toe --
+add_executable(coom_tic_tac_toe coom_tic_tac_toe.cpp)
+target_link_libraries(coom_tic_tac_toe coom)
+set_target_properties(coom_tic_tac_toe PROPERTIES CXX_STANDARD 17)
+
+# -- Pigeonhole Principle --
+add_executable(coom_pigeonhole_principle coom_pigeonhole_principle.cpp)
+target_link_libraries(coom_pigeonhole_principle coom)
+set_target_properties(coom_pigeonhole_principle PROPERTIES CXX_STANDARD 17)
 
 # ============================================================================ #
 # Sylvan

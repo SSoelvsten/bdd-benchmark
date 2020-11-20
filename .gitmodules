@@ -8,3 +8,6 @@
 	path = external/cudd
 	url = ../../rakhimov/cudd.git
 	branch = cmake
+[submodule "external/coom"]
+	path = external/coom
+	url = ../../SSoelvsten/coom

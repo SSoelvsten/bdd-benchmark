@@ -23,13 +23,11 @@ one to compare implementations.
 We aim to provide all the benchmarks described below for the following
 libraries. For comparability, we will set them up to only utilise a single core.
 
-- **CUDD**
-  A popular implementation using a _unique node table_. For speedup it uses
-  a memoization table, and it also provides (automatic) dynamic variable
-  reordering.
 
-  We use the version from [here](https://github.com/mballance/cudd) that is set
-  up for building with CMake.
+- [**COOM**](https://github.com/ssoelvsten/coom):
+  A cache-oblivious (I/O Efficient) implementation using priority queues to
+  exploit a special sorting of nodes on disk. This allows it to be capable of
+  handling BDDs that vastly outgrow the available memory.
 
 
 - [**BuDDy**](http://vlsicad.eecs.umich.edu/BK/Slots/cache/www.itu.dk/research/buddy/):
