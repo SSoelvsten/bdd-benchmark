@@ -1,6 +1,8 @@
 #include <sylvan.h>
 #include <sylvan_table.h>
 
+#include <sylvan_obj.hpp>
+
 ////////////////////////////////////////////////////////////////////////////////
 /// Macro to initialise Sylvan with M megabytes of memory.
 ///
