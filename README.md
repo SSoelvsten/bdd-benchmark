@@ -1,14 +1,15 @@
-# OBDD Benchmark
-This repository contains multiple examples for use of OBDDs to solve various
+# BDD Benchmark
+This repository contains multiple examples for use of BDDs to solve various
 problems. These are all implemented in exactly the same way, thereby allowing
 one to compare implementations.
 
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 **Table of Contents**
 
-- [OBDD Benchmark](#obdd-benchmark)
+- [BDD Benchmark](#bdd-benchmark)
     - [Implementations](#implementations)
     - [Installation](#installation)
+        - [COOM](#coom)
         - [Sylvan](#sylvan)
     - [Benchmarks](#benchmarks)
         - [N-Queens](#n-queens)
@@ -24,12 +25,6 @@ We aim to provide all the benchmarks described below for the following
 libraries. For comparability, we will set them up to only utilise a single core.
 
 
-- [**COOM**](https://github.com/ssoelvsten/coom):
-  A cache-oblivious (I/O Efficient) implementation using priority queues to
-  exploit a special sorting of nodes on disk. This allows it to be capable of
-  handling BDDs that vastly outgrow the available memory.
-
-
 - [**BuDDy**](http://vlsicad.eecs.umich.edu/BK/Slots/cache/www.itu.dk/research/buddy/):
   An easy-to-use yet extensive implementation build on a _unique node table_. It
   uses a memoization table for speedup, and it provides automated garbage
@@ -38,6 +33,12 @@ libraries. For comparability, we will set them up to only utilise a single core.
   We use the version from [here](https://github.com/jgcoded/BuDDy) that is set
   up for building with CMake.
 
+
+- [**COOM**](https://github.com/ssoelvsten/coom):
+  A cache-oblivious (I/O Efficient) implementation using priority queues to
+  exploit a special sorting of nodes on disk. This allows it to be capable of
+  handling BDDs that vastly outgrow the available memory.
+  
 
 - [**Sylvan**](https://github.com/trolando/sylvan):
   A parallel (multi-core) implementation using a _unique node table_, complement
@@ -54,6 +55,12 @@ git submodule update --init --recursive
 ```
 
 This also requires _CMake_ and a _C++_ compiler of your choice.
+
+### COOM
+COOM also has a few dependencies, which can be installed as follows
+```
+apt install g++ cmake libboost-all-dev aptitude
+```
 
 ### Sylvan
 Sylvan also needs the following other dependencies, which can be installed as follows
@@ -80,13 +87,13 @@ Solves the following problem:
 > without threatening eachother?
 
 Our implementation of these benchmarks are based on the description of
-[[Kunkle10](#references)]. We construct an OBDD row-by-row that represents
+[[Kunkle10](#references)]. We construct an BDD row-by-row that represents
 whether the row is in a legal state: is at least one queen placed on each row
-and is it also in no conflicts with any other? On the accumulated OBDD we then
+and is it also in no conflicts with any other? On the accumulated BDD we then
 count the number of satisfying assignments.
 
 **Notice**: This is a pretty simple example and has all of the normal
-shortcomings for OBDDs trying to solve the N-Queens problem. At around N = 14
+shortcomings for BDDs trying to solve the N-Queens problem. At around N = 14
 the intermediate sizes explodes, and for N = 15 one needs about 100 GB of disk
 space or memory. Presumably, one needs around 1 TB for the 16-Queens problem.
 
@@ -105,7 +112,7 @@ Solves the following problem:
 > and have a tie, when Player 2 places noughts in all remaining positions?
 
 This benchmark stems from [[Kunkle10](#references)]. Here we keep an accumulated
-OBDD on which we add one of the 76 constraints of at least one cross and one
+BDD on which we add one of the 76 constraints of at least one cross and one
 nought after the other. We add these constraints in a different order than
 [[Kunkle10](#references)], which does result in an up to 100 times smaller largest
 intermediate result.
@@ -116,7 +123,7 @@ intermediate result.
 |-------------------|-----------------|
 | Labels            |              64 |
 | Apply operations  |              76 |
-| Initial OBDD size | (64-N+1)(N+1)-1 |
+| Initial BDD size  | (64-N+1)(N+1)-1 |
 
 
 ### Pigeonhole Principle
