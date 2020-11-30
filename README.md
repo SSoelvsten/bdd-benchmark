@@ -14,7 +14,9 @@ one to compare implementations.
     - [Benchmarks](#benchmarks)
         - [N-Queens](#n-queens)
         - [Tic-Tac-Toe](#tic-tac-toe)
-        - [Pigeonhole Principle](#pigeonhole-principle)
+        - [SAT Solver](#sat-solver)
+            - [N-Queens (SAT)](#n-queens-sat)
+            - [Pigeonhole Principle](#pigeonhole-principle)
     - [License](#license)
     - [References](#references)
 
@@ -126,7 +128,28 @@ intermediate result.
 | Initial BDD size  | (64-N+1)(N+1)-1 |
 
 
-### Pigeonhole Principle
+### SAT Solver
+We have a few benchmarks using a simple SAT Solver based on the description in
+[[Pan04; Section 2](#references)]. 
+
+The SAT solver works in two modes:
+
+- **Counting**:
+  Accumulates all clauses together using _apply_ with the _and_ operator and
+  then counts the number of solutions
+
+- **Satisfiability**:
+  Also accumulates the clauses, but the accumulation is intermixed with
+  existential quantification variables, that are not present in any yet-to-be
+  accumulated clauses.
+
+
+#### N-Queens (SAT)
+Computes for the same problem as for [N-Queens](#n-queens) above, but does so
+based on a CNF of _at-least-one_ (alo) and _at-most-one_ (amo) constraints.
+
+
+#### Pigeonhole Principle
 Computes that the following is false
 
 > Given N, does there exist an isomorphism between the sets { 1, 2, ..., N + 1}
@@ -134,11 +157,6 @@ Computes that the following is false
 
 Based on [[Tveretina10](#references)], this is disproven by use of variables
 _P<sub>i,j</sub>_ saying that the _i_'th pigeon is mapped to the _j_'th hole.
-These are written as a CNF formula with at-least-one and at-most-one
-constraints. This CNF is then solved in a as described in [[Pan04; Section
-2](#references)]: sort all clauses by the maximal occuring literal into clusters
-and then interchangably accumulate the conjunction of clauses and existentially
-quantify the variables.
 
 **Statistics:**
 
@@ -146,9 +164,6 @@ quantify the variables.
 |----------|-------------|
 | Labels   | N(N+1)      |
 | Clauses  | N³ + N(N+1) |
-
-Which makes for _N(N+1)_ existential quantifications and _N³ + N(N+1)_ apply
-operations.
 
 
 ## License

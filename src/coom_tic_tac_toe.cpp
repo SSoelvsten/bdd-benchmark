@@ -3,8 +3,6 @@
 
 #include "coom_init.cpp"
 
-using namespace coom;
-
 bdd construct_is_not_winning(std::array<uint64_t, 4>& line)
 {
   size_t idx = 4 - 1;

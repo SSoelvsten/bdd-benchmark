@@ -3,16 +3,12 @@
 
 #include "coom_init.cpp"
 
-using namespace coom;
-
 // =============================================================================
 int main(int argc, char** argv)
 {
   size_t N = 8;
   size_t M = 128;
   parse_input(argc, argv, N, M);
-
-  size_t largest_bdd = 0;
 
   // =========================================================================
   INFO("Pigeonhole Principle for %zu : %zu (COOM %zu MB):\n", N+1, N, M);

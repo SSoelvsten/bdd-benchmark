@@ -3,8 +3,6 @@
 
 #include "coom_init.cpp"
 
-using namespace coom;
-
 size_t largest_bdd = 0;
 
 bdd n_queens_S(uint64_t N, uint64_t i, uint64_t j)

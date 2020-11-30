@@ -1,7 +1,7 @@
-#include "buddy_init.cpp"
-
 #include "common.cpp"
 #include "queens.cpp"
+
+#include "buddy_init.cpp"
 
 int largest_bdd = 0;
 
@@ -82,7 +82,7 @@ int main(int argc, char** argv)
 
   // =========================================================================
   INFO("%zu-Queens (BuDDy %zu MB):\n", N, M);
-  BUDDY_INIT(N*N, M)
+  BUDDY_INIT(N*N, M);
 
   // =========================================================================
   // Compute board
@@ -110,7 +110,7 @@ int main(int argc, char** argv)
   INFO(" | total time (ms):        %zu\n", duration_of(t1,t4));
 
   // =========================================================================
-  BUDDY_DEINIT
+  BUDDY_DEINIT;
 
   if (solutions != expected_result[N]) {
     exit(-1);
