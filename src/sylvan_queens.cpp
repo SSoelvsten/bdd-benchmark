@@ -20,7 +20,6 @@ size_t largest_bdd = 0;
 Bdd n_queens_S(uint64_t N, uint64_t i, uint64_t j)
 {
   size_t row = N - 1;
-
   Bdd out = sylvan_true;
 
   do {
@@ -94,7 +93,7 @@ int main(int argc, char** argv)
 
   // =========================================================================
   INFO("%zu-Queens (Sylvan %zu MB):\n", N, M);
-  SYLVAN_INIT(M)
+  SYLVAN_INIT(M);
 
   // =========================================================================
   // Compute board
@@ -122,7 +121,7 @@ int main(int argc, char** argv)
   INFO(" | total time (ms):        %zu\n", duration_of(t1,t4));
 
   // =========================================================================
-  SYLVAN_DEINIT
+  SYLVAN_DEINIT;
 
   if (solutions != expected_result[N]) {
     exit(-1);
