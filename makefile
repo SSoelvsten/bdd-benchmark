@@ -27,6 +27,9 @@ build-pigeonhole_principle: | build
 build-queens: | build
 	@cd build/ && make ${MAKE_FLAGS} ${V}_queens
 
+build-queens-sat: | build
+	@cd build/ && make ${MAKE_FLAGS} ${V}_queens_sat
+
 build-tic_tac_toe: | build
 	@cd build/ && make ${MAKE_FLAGS} ${V}_tic_tac_toe
 
@@ -45,6 +48,10 @@ pigeonhole_principle: | build-pigeonhole_principle
 queens: N := 8
 queens: | build-queens
 	@$(subst VARIANT,$(V),./build/src/VARIANT_queens) $(N) $(M)
+
+queens-sat: N := 8
+queens-sat: | build-queens-sat
+	@$(subst VARIANT,$(V),./build/src/VARIANT_queens_sat) $(N) $(M)
 
 tic_tac_toe: N := 20
 tic_tac_toe: | build-tic_tac_toe

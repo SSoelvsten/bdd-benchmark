@@ -3,6 +3,8 @@
 
 #include <sylvan_obj.hpp>
 
+using namespace sylvan;
+
 ////////////////////////////////////////////////////////////////////////////////
 /// Macro to initialise Sylvan with M megabytes of memory.
 ///
@@ -42,16 +44,26 @@
   BDD sat_acc = sylvan_true;                                      \
   sylvan_protect(&sat_acc);                                       \
                                                                   \
+  const auto on_reset = [&]() -> void                             \
+  {                                                               \
+    sat_acc = sylvan_true;                                        \
+  };                                                              \
+                                                                  \
   const auto on_and_clause = [&](clause_t &clause) -> void        \
   {                                                               \
     BDD c = sylvan_false;                                         \
     sylvan_protect(&c);                                           \
                                                                   \
+    uint64_t label = UINT64_MAX;                                  \
+                                                                  \
     for (auto it = clause.rbegin(); it != clause.rend(); it++) {  \
-    literal_t v = *it;                                            \
-    c = sylvan_makenode(v.first,                                  \
-                        v.second ? sylvan_true : c,               \
-                        v.second ? c : sylvan_true);              \
+      assert((*it).first < label);                                \
+      label = (*it).first;                                        \
+      bool negated = (*it).second;                                \
+                                                                  \
+      c = sylvan_makenode(label,                                  \
+                          negated ? sylvan_true : c,              \
+                          negated ? c : sylvan_true);             \
     }                                                             \
                                                                   \
     sat_acc = sylvan_and(sat_acc, c);                             \
@@ -70,7 +82,7 @@
                                                                   \
   const auto on_satcount = [&](uint64_t varcount) -> uint64_t     \
   {                                                               \
-    return sylvan_satcount(sat_acc, varcount);                    \
+    return mtbdd_satcount(sat_acc, varcount);                     \
   };                                                              \
                                                                   \
   const auto on_size = [&]() -> uint64_t                          \
@@ -78,7 +90,8 @@
     return sylvan_nodecount(sat_acc);                             \
   };                                                              \
                                                                   \
-  sat_solver<bdd_policy> solver(on_and_clause,                    \
+  sat_solver<bdd_policy> solver(on_reset,                         \
+                                on_and_clause,                    \
                                 on_exists,                        \
                                 on_is_false,                      \
                                 on_satcount,                      \

@@ -103,8 +103,8 @@ int main(int argc, char** argv)
   auto t2 = get_timestamp();
 
   INFO(" | construction:\n");
-  INFO(" | | largest size (nodes): %i\n", largest_bdd);
-  INFO(" | | final size (nodes):   %i\n", res.NodeCount());
+  INFO(" | | largest size (nodes): %zu\n", largest_bdd);
+  INFO(" | | final size (nodes):   %zu\n", res.NodeCount());
   INFO(" | | time (ms):            %zu\n", duration_of(t1,t2));
 
   // =========================================================================

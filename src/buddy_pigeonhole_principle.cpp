@@ -11,7 +11,7 @@ int main(int argc, char** argv)
   parse_input(argc, argv, N, M);
 
   // =========================================================================
-  BUDDY_INIT(label_of_Pij(N+1, N, N)+1, M)
+  BUDDY_INIT(label_of_Pij(N+1, N, N)+1, M);
   INFO("Pigeonhole Principle for %zu : %zu (BuDDy %zu MB):\n", N+1, N, M);
 
   // =========================================================================
@@ -44,7 +44,7 @@ int main(int argc, char** argv)
   INFO(" | | BDD solving:       %zu\n", duration_of(t3,t4));
 
   // =========================================================================
-  BUDDY_DEINIT
+  BUDDY_DEINIT;
 
   exit(satisfiable ? -1 : 0);
 }

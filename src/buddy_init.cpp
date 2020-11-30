@@ -24,10 +24,10 @@
   bdd_init(M*47100,10000);\
   bdd_setmaxincrease(0);\
   bdd_setcacheratio(64);\
-  bdd_setvarnum(N);
+  bdd_setvarnum(N)
 
 #define BUDDY_DEINIT\
-  bdd_done();
+  bdd_done()
 
 ////////////////////////////////////////////////////////////////////////////////
 class buddy_sat_policy
@@ -36,13 +36,24 @@ private:
   bdd sat_acc = bddtrue;
 
 public:
+  void reset()
+  {
+    sat_acc = bddtrue;
+  }
+
   void and_clause(clause_t &clause)
   {
     bdd c = bddfalse;
 
+    uint64_t label = UINT64_MAX;
+
     for (auto it = clause.rbegin(); it != clause.rend(); it++)
       {
-        bdd v = (*it).second ? bdd_nithvar((*it).first) : bdd_ithvar((*it).first);
+        assert((*it).first < label);
+        label = (*it).first;
+        bool negated = (*it).second;
+
+        bdd v = negated ? bdd_nithvar(label) : bdd_ithvar(label);
         c = bdd_ite(v, bddtrue, c);
       }
     sat_acc &= c;
@@ -60,7 +71,7 @@ public:
 
   uint64_t satcount(uint64_t)
   {
-    return bdd_satcount(sat_acc);
+    return static_cast<uint64_t>(bdd_satcount(sat_acc));
   }
 
   uint64_t size()

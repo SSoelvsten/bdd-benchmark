@@ -1,10 +1,6 @@
 #include <stdint.h>
 #include <utility>
 
-#include <assert.h>
-
-// #include "common.cpp"
-
 ////////////////////////////////////////////////////////////////////////////////
 uint64_t label_of_Pij(uint64_t i, uint64_t j, int N)
 {

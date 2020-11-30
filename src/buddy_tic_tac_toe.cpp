@@ -1,9 +1,7 @@
-#include "buddy_init.cpp"
-
 #include "common.cpp"
 #include "tic_tac_toe.cpp"
 
-#include <assert.h>
+#include "buddy_init.cpp"
 
 bdd construct_is_not_winning(std::array<uint64_t, 4>& line)
 {
@@ -36,7 +34,7 @@ int main(int argc, char** argv)
 
   // =========================================================================
   INFO("Tic-Tac-Toe with %zu crosses (BuDDy %zu MB):\n", N, M);
-  BUDDY_INIT(64, M)
+  BUDDY_INIT(64, M);
 
   // =========================================================================
   // Construct is_equal_N
@@ -111,7 +109,7 @@ int main(int argc, char** argv)
   // =========================================================================
   INFO(" | total time (ms):        %zu\n", duration_of(t1,t2) + duration_of(t3,t6));
 
-  BUDDY_DEINIT
+  BUDDY_DEINIT;
 
   if (solutions != expected_result[N]) {
     exit(-1);
