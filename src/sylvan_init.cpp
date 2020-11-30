@@ -32,8 +32,56 @@
   sylvan_set_limits(M * 1024 * 1024, 2, 0);\
   sylvan_init_package();\
   sylvan_set_granularity(1);\
-  sylvan_init_bdd();
+  sylvan_init_bdd()
 
 #define SYLVAN_DEINIT\
   sylvan_quit();\
-  lace_exit();
+  lace_exit()
+
+#define SYLVAN_SOLVER_INIT(solver_name, varcount)                 \
+  BDD sat_acc = sylvan_true;                                      \
+  sylvan_protect(&sat_acc);                                       \
+                                                                  \
+  const auto on_and_clause = [&](clause_t &clause) -> void        \
+  {                                                               \
+    BDD c = sylvan_false;                                         \
+    sylvan_protect(&c);                                           \
+                                                                  \
+    for (auto it = clause.rbegin(); it != clause.rend(); it++) {  \
+    literal_t v = *it;                                            \
+    c = sylvan_makenode(v.first,                                  \
+                        v.second ? sylvan_true : c,               \
+                        v.second ? c : sylvan_true);              \
+    }                                                             \
+                                                                  \
+    sat_acc = sylvan_and(sat_acc, c);                             \
+    sylvan_unprotect(&c);                                         \
+  };                                                              \
+                                                                  \
+  const auto on_exists = [&](uint64_t var) -> void                \
+  {                                                               \
+    sat_acc = sylvan_exists(sat_acc, sylvan_ithvar(var));         \
+  };                                                              \
+                                                                  \
+  const auto on_is_false = [&]() -> bool                          \
+  {                                                               \
+      return sat_acc == sylvan_false;                             \
+  };                                                              \
+                                                                  \
+  const auto on_satcount = [&](uint64_t varcount) -> uint64_t     \
+  {                                                               \
+    return sylvan_satcount(sat_acc, varcount);                    \
+  };                                                              \
+                                                                  \
+  const auto on_size = [&]() -> uint64_t                          \
+  {                                                               \
+    return sylvan_nodecount(sat_acc);                             \
+  };                                                              \
+                                                                  \
+  sat_solver<bdd_policy> solver(on_and_clause,                    \
+                                on_exists,                        \
+                                on_is_false,                      \
+                                on_satcount,                      \
+                                on_size,                          \
+                                varcount)
+

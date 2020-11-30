@@ -1,7 +1,7 @@
-#include <coom/coom.h>
-
 #include "common.cpp"
 #include "tic_tac_toe.cpp"
+
+#include "coom_init.cpp"
 
 using namespace coom;
 

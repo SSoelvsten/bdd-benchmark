@@ -41,7 +41,7 @@ int main(int argc, char** argv)
 
   // =========================================================================
   INFO("Tic-Tac-Toe with %zu crosses (Sylvan %zu MB):\n", N, M);
-  SYLVAN_INIT(M)
+  SYLVAN_INIT(M);
 
   // =========================================================================
   // Construct is_equal_N
@@ -113,8 +113,7 @@ int main(int argc, char** argv)
 
   // =========================================================================
   INFO(" | total time (ms):        %zu\n", duration_of(t1,t2) + duration_of(t3,t6));
-
-  SYLVAN_DEINIT
+  SYLVAN_DEINIT;
 
   if (solutions != expected_result[N]) {
     exit(-1);
