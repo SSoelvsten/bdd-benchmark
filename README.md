@@ -59,7 +59,7 @@ This also requires _CMake_ and a _C++_ compiler of your choice.
 ### COOM
 COOM also has a few dependencies, which can be installed as follows
 ```
-apt install g++ cmake libboost-all-dev aptitude
+apt install libboost-all-dev aptitude
 ```
 
 ### Sylvan
