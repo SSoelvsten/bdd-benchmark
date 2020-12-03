@@ -15,7 +15,7 @@ one to compare implementations.
         - [N-Queens](#n-queens)
         - [Tic-Tac-Toe](#tic-tac-toe)
         - [SAT Solver](#sat-solver)
-            - [N-Queens (SAT)](#n-queens-sat)
+            - [N-Queens](#n-queens-1)
             - [Pigeonhole Principle](#pigeonhole-principle)
     - [License](#license)
     - [References](#references)
@@ -94,11 +94,6 @@ whether the row is in a legal state: is at least one queen placed on each row
 and is it also in no conflicts with any other? On the accumulated BDD we then
 count the number of satisfying assignments.
 
-**Notice**: This is a pretty simple example and has all of the normal
-shortcomings for BDDs trying to solve the N-Queens problem. At around N = 14
-the intermediate sizes explodes, and for N = 15 one needs about 100 GB of disk
-space or memory. Presumably, one needs around 1 TB for the 16-Queens problem.
-
 **Statistics:**
 
 | Variable         | Value  |
@@ -144,9 +139,11 @@ The SAT solver works in two modes:
   accumulated clauses.
 
 
-#### N-Queens (SAT)
+#### N-Queens
 Computes for the same problem as for [N-Queens](#n-queens) above, but does so
 based on a CNF of _at-least-one_ (alo) and _at-most-one_ (amo) constraints.
+The number of clauses is some order of O(N³) which also is reflected in the
+much worse performance compared to BDD oriented solution above.
 
 
 #### Pigeonhole Principle
@@ -157,13 +154,7 @@ Computes that the following is false
 
 Based on [[Tveretina10](#references)], this is disproven by use of variables
 _P<sub>i,j</sub>_ saying that the _i_'th pigeon is mapped to the _j_'th hole.
-
-**Statistics:**
-
-| Variable | Value       |
-|----------|-------------|
-| Labels   | N(N+1)      |
-| Clauses  | N³ + N(N+1) |
+This makes for N(N+1) labels and N³ + N(N+1) clauses.
 
 
 ## License
