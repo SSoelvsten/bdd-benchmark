@@ -59,13 +59,13 @@ git submodule update --init --recursive
 This also requires _CMake_ and a _C++_ compiler of your choice.
 
 ### COOM
-COOM also has a few dependencies, which can be installed as follows
+COOM also has dependencies on the _Boost Library_, which can be installed as follows
 ```
-apt install libboost-all-dev aptitude
+apt install libboost-all-dev
 ```
 
 ### Sylvan
-Sylvan also needs the following other dependencies, which can be installed as follows
+Sylvan also needs the _The GNU Multiple Precision Arithmetic Library_, which can be installed as follows
 ```
 apt install libgmp-dev
 ```
