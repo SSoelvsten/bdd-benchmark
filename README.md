@@ -65,9 +65,10 @@ apt install libboost-all-dev
 ```
 
 ### Sylvan
-Sylvan also needs the _The GNU Multiple Precision Arithmetic Library_, which can be installed as follows
+Sylvan also needs the _The GNU Multiple Precision Arithmetic_ and _Portable
+Hardware Locality_ libraries, which can be installed as follows
 ```
-apt install libgmp-dev
+apt install libgmp-dev libhwloc-dev
 ```
 
 Furthermore, Sylvan cannot simply be built by CMake, but one has to first
