@@ -23,29 +23,38 @@ one to compare implementations.
 <!-- markdown-toc end -->
 
 ## Implementations
-We aim to provide all the benchmarks described below for the following
+We provide all the benchmarks described further below for the following
 libraries. For comparability, we will set them up to only utilise a single core.
 
 
 - [**BuDDy**](http://vlsicad.eecs.umich.edu/BK/Slots/cache/www.itu.dk/research/buddy/):
-  An easy-to-use yet extensive implementation build on a _unique node table_. It
-  uses a memoization table for speedup, and it provides automated garbage
-  collection and dynamic variable reordering.
+  An easy-to-use yet extensive implementation with depth-first algorithms using
+  a unique node table to share nodes. It uses a memoization table, automated
+  garbage collection, and dynamic variable reordering.
 
   We use the version from [here](https://github.com/jgcoded/BuDDy) that is set
   up for building with CMake.
 
 
 - [**COOM**](https://github.com/ssoelvsten/coom):
-  A cache-oblivious (I/O Efficient) implementation using priority queues to
-  exploit a special sorting of nodes on disk. This allows it to be capable of
-  handling BDDs that vastly outgrow the available memory.
+  A cache-oblivious (I/O Efficient) implementation with iterative algorithms
+  using priority queues to exploit a special sorting of nodes on disk. These
+  algorithms have no need for memoization or garbage collection, but, on the
+  other hand, nodes are also not shareable between BDDs.
   
 
 - [**Sylvan**](https://github.com/trolando/sylvan):
-  A parallel (multi-core) implementation using a _unique node table_, complement
-  edges, automated garbage collection, and much more. We will *not* make use of
-  the multi-core aspect to make sure the results are comparable.
+  A parallel (multi-core) implementation with depth-first algorithms using a
+  unique node table to share nodes. It also provides a memoization table,
+  complement edges, automated garbage collection, and much more.
+  
+  We will _not_ make use of the multi-core aspect to make the results
+  comparable.
+
+We hope to extend the number of packages. See
+[issue #12](https://github.com/SSoelvsten/bdd-benchmark/issues/12) for a list
+of BDD packages we would like to have added to this set of benchmarks. Any
+help to do so is very much appreciated.
 
 
 ## Installation
