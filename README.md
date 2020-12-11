@@ -80,16 +80,6 @@ Hardware Locality_ libraries, which can be installed as follows
 apt install libgmp-dev libhwloc-dev
 ```
 
-Furthermore, Sylvan cannot simply be built by CMake, but one has to first
-_install_ it as follows (see [issue #10](https://github.com/trolando/sylvan/issues/10)
-on the Sylvan project)
-```
-mkdir external/sylvan/build && cd external/sylvan/build
-cmake ..
-sudo make
-sudo make install
-```
-
 ## Benchmarks
 
 ### N-Queens

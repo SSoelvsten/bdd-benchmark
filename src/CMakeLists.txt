@@ -52,16 +52,20 @@ set_target_properties(coom_pigeonhole_principle PROPERTIES CXX_STANDARD 17)
 
 # -- N Queens --
 add_executable(sylvan_queens sylvan_queens.cpp)
+target_include_directories(sylvan_queens PRIVATE "${SYLVAN_INCLUDE_DIR}")
 target_link_libraries(sylvan_queens sylvan)
 
 # -- N Queens (SAT) --
 add_executable(sylvan_queens_sat sylvan_queens_sat.cpp)
+target_include_directories(sylvan_queens_sat PRIVATE "${SYLVAN_INCLUDE_DIR}")
 target_link_libraries(sylvan_queens_sat sylvan)
 
 # -- Tic-Tac-Toe --
 add_executable(sylvan_tic_tac_toe sylvan_tic_tac_toe.cpp)
+target_include_directories(sylvan_tic_tac_toe PRIVATE "${SYLVAN_INCLUDE_DIR}")
 target_link_libraries(sylvan_tic_tac_toe sylvan)
 
 # -- Pigeonhole Principle --
 add_executable(sylvan_pigeonhole_principle sylvan_pigeonhole_principle.cpp)
+target_include_directories(sylvan_pigeonhole_principle PRIVATE "${SYLVAN_INCLUDE_DIR}")
 target_link_libraries(sylvan_pigeonhole_principle sylvan)

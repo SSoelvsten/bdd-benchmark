@@ -19,6 +19,7 @@ add_subdirectory (external/coom coom)
 
 # Sylvan Package (University of Twente, Netherlands)
 add_subdirectory (external/sylvan sylvan)
+set(SYLVAN_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/build/sylvan/usr/local/include")
 
 # ============================================================================ #
 # Examples

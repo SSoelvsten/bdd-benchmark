@@ -19,7 +19,13 @@ N:=0
 #  BUILD
 # ============================================================================ #
 build:
+  # Primary build
+	@echo "\nBuild"
 	@mkdir -p build/ && cd build/ && cmake ..
+
+  # Installation of sylvan
+	@echo "\n\nInstall Sylvan"
+	@cd build/sylvan && make DESTDIR=./ && make install DESTDIR=./
 
 build-pigeonhole_principle: | build
 	@cd build/ && make ${MAKE_FLAGS} ${V}_pigeonhole_principle
