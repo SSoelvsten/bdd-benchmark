@@ -6,8 +6,8 @@ MAKE_FLAGS=-j $$(nproc)
 #  VARIABLE DEFAULTS
 # ============================================================================ #
 
-# Variant (sylvan, coom, buddy)
-V:=sylvan
+# Variant (buddy, coom, sylvan)
+V:=buddy
 
 # Memory
 M:=128
