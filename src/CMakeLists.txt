@@ -4,22 +4,22 @@
 
 # -- N Queens --
 add_executable(buddy_queens buddy_queens.cpp)
-target_include_directories(buddy_queens PRIVATE ../external/BuDDy/src)
+target_include_directories(buddy_queens PRIVATE "${BDD_SOURCE_DIR}")
 target_link_libraries(buddy_queens bdd)
 
 # -- N Queens (SAT) --
 add_executable(buddy_queens_sat buddy_queens_sat.cpp)
-target_include_directories(buddy_queens_sat PRIVATE ../external/BuDDy/src)
+target_include_directories(buddy_queens_sat PRIVATE "${BDD_SOURCE_DIR}")
 target_link_libraries(buddy_queens_sat bdd)
 
 # -- Tic-Tac-Toe --
 add_executable(buddy_tic_tac_toe buddy_tic_tac_toe.cpp)
-target_include_directories(buddy_tic_tac_toe PRIVATE ../external/BuDDy/src)
+target_include_directories(buddy_tic_tac_toe PRIVATE "${BDD_SOURCE_DIR}")
 target_link_libraries(buddy_tic_tac_toe bdd)
 
 # -- Pigeonhole Principle --
 add_executable(buddy_pigeonhole_principle buddy_pigeonhole_principle.cpp)
-target_include_directories(buddy_pigeonhole_principle PRIVATE ../external/BuDDy/src)
+target_include_directories(buddy_pigeonhole_principle PRIVATE "${BDD_SOURCE_DIR}")
 target_link_libraries(buddy_pigeonhole_principle bdd)
 
 # ============================================================================ #
