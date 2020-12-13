@@ -1,4 +1,4 @@
-.PHONY: clean build test
+.PHONY: clean build test grendel
 
 MAKE_FLAGS=-j $$(nproc)
 
@@ -72,3 +72,11 @@ sat_queens: build-sat_queens run-sat_queens
 sat_pigeonhole_principle: build-sat_pigeonhole_principle run-sat_pigeonhole_principle
 
 tic_tac_toe: build-tic_tac_toe run-tic_tac_toe
+
+# ============================================================================ #
+#  GRENDEL
+# ============================================================================ #
+grendel:
+	@rm -f grendel/*_*_*.sh
+	@cd grendel && python3 grendel_gen.py
+	@chmod a+x grendel/*.sh

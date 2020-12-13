@@ -3,14 +3,14 @@ using namespace adiar;
 
 #ifndef GRENDEL
 #    define ADIAR_INIT(M)                       \
-  coom_init(M)
+  adiar_init(M)
 #else
 #    define ADIAR_INIT(M)                       \
-  coom_init(M,"/scratch")
+  adiar_init(M,argv[3])
 #endif
 
 #define ADIAR_DEINIT                            \
-  coom_deinit()                                 \
+  adiar_deinit()                                \
 
 ////////////////////////////////////////////////////////////////////////////////
 class adiar_sat_policy
