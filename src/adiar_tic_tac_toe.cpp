@@ -53,7 +53,7 @@ int main(int argc, char** argv)
   // =========================================================================
   INFO("Tic-Tac-Toe with %zu crosses (Adiar %zu MB):\n", N, M);
   auto t_init_before = get_timestamp();
-  adiar_init(M);
+  ADIAR_INIT(M);
   auto t_init_after = get_timestamp();
   INFO(" | init time (ms):           %zu\n", duration_of(t_init_before, t_init_after));
 
@@ -107,7 +107,7 @@ int main(int argc, char** argv)
     // =========================================================================
     INFO(" | total time (ms):        %zu\n", duration_of(t1,t2) + duration_of(t3,t6));
   }
-  adiar_deinit();
+  ADIAR_DEINIT;
 
   if (solutions != expected_result[N]) {
     exit(-1);

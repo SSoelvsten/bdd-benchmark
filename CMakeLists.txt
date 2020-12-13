@@ -4,7 +4,12 @@ cmake_minimum_required(VERSION 3.10)
 # Compiler settings
 # ============================================================================ #
 set(CMAKE_C_FLAGS "-O3 ${CMAKE_C_FLAGS}")
-set(CMAKE_CXX_FLAGS "-O3 ${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "-O3 ${CMAKE_CXX_FLAGS}")  
+
+option(GRENDEL "Build for Grendel-S cluster" OFF)
+if (GRENDEL)
+  add_definitions(-DGRENDEL)
+endif()
 
 # ============================================================================ #
 # External

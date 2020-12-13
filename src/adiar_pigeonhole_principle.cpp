@@ -13,7 +13,7 @@ int main(int argc, char** argv)
   // =========================================================================
   INFO("Pigeonhole Principle for %zu : %zu (Adiar %zu MB):\n", N+1, N, M);
   auto t_init_before = get_timestamp();
-  adiar_init(M);
+  ADIAR_INIT(M);
   auto t_init_after = get_timestamp();
   INFO(" | init time (ms):      %zu\n", duration_of(t_init_before, t_init_after));
 
@@ -46,7 +46,7 @@ int main(int argc, char** argv)
   // =========================================================================
   INFO(" | solution:            %s\n", satisfiable ? "SATISFIABLE" : "UNSATISFIABLE");
 
-  adiar_deinit();
+  ADIAR_DEINIT;
 
   exit(satisfiable ? -1 : 0);
 }

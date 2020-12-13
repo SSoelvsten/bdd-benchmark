@@ -12,11 +12,11 @@ V:=buddy
 # Memory
 M:=128
 
-# Input variable
+# Instance size variable (custom default for every target below)
 N:=0
 
 # ============================================================================ #
-#  BUILD
+#  BUILD TARGETS
 # ============================================================================ #
 build:
   # Primary build
@@ -33,7 +33,7 @@ build-pigeonhole_principle: | build
 build-queens: | build
 	@cd build/ && make ${MAKE_FLAGS} ${V}_queens
 
-build-queens-sat: | build
+build-queens_sat: | build
 	@cd build/ && make ${MAKE_FLAGS} ${V}_queens_sat
 
 build-tic_tac_toe: | build
@@ -45,21 +45,29 @@ clean:
 
 
 # ============================================================================ #
-#  EXAMPLES
+#  RUN TARGETS
 # ============================================================================ #
-pigeonhole_principle: N := 10
-pigeonhole_principle: | build-pigeonhole_principle
+run-pigeonhole_principle: N := 10
+run-pigeonhole_principle:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_pigeonhole_principle) $(N) $(M)
 
-queens: N := 8
-queens: | build-queens
+run-queens: N := 8
+run-queens:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_queens) $(N) $(M)
 
-queens-sat: N := 8
-queens-sat: | build-queens-sat
+run-queens_sat: N := 8
+run-queens_sat:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_queens_sat) $(N) $(M)
 
-tic_tac_toe: N := 20
-tic_tac_toe: | build-tic_tac_toe
+run-tic_tac_toe: N := 20
+run-tic_tac_toe:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_tic_tac_toe) $(N) $(M)
+
+# ============================================================================ #
+#  ALL-IN-ONE TARGETS
+# ============================================================================ #
+pigeonhole_principle: build-pigeonhole_principle run-pigeonhole_principle
+queens: build-queens run-queens
+queens_sat: build-queens_sat run-queens_sat
+tic_tac_toe: build-tic_tac_toe run-tic_tac_toe
 
