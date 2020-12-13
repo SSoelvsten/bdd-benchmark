@@ -1,6 +1,17 @@
 #include <adiar/adiar.h>
 using namespace adiar;
 
+#ifndef GRENDEL
+#    define ADIAR_INIT(M)                       \
+  coom_init(M)
+#else
+#    define ADIAR_INIT(M)                       \
+  coom_init(M,"/scratch")
+#endif
+
+#define ADIAR_DEINIT                            \
+  coom_deinit()                                 \
+
 ////////////////////////////////////////////////////////////////////////////////
 class adiar_sat_policy
 {

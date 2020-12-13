@@ -108,7 +108,7 @@ int main(int argc, char** argv)
   // =========================================================================
   INFO("%zu-Queens (Adiar %zu MB):\n", N, M);
   auto t_init_before = get_timestamp();
-  adiar_init(M);
+  ADIAR_INIT(M);
   auto t_init_after = get_timestamp();
   INFO(" | init time (ms):       %zu\n", duration_of(t_init_before, t_init_after));
 
@@ -141,7 +141,7 @@ int main(int argc, char** argv)
   // =========================================================================
   INFO(" | number of solutions: %.0f\n", solutions);
 
-  adiar_deinit();
+  ADIAR_DEINIT;
 
   if (solutions != expected_result[N]) {
     exit(-1);
