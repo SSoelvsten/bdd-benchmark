@@ -20,13 +20,30 @@
 /// - bdd_setvarnum:
 ///     Declare the number of variables to expect to be used.
 ////////////////////////////////////////////////////////////////////////////////
-#define BUDDY_INIT(N, M)\
-  bdd_init(M*47100,10000);\
-  bdd_setmaxincrease(0);\
-  bdd_setcacheratio(64);\
+size_t buddy_nodetotal_from_mb(size_t M)
+{
+  return M * 47862;
+}
+
+size_t buddy_nodesize_from_mb(size_t M)
+{
+  size_t node_total = buddy_nodetotal_from_mb(M);
+  return (64 * node_total) / 65;
+}
+
+size_t buddy_cachesize_from_mb(size_t M)
+{
+  return buddy_nodetotal_from_mb(M) / 65;
+}
+
+
+#define BUDDY_INIT(N, M)                          \
+  bdd_init(buddy_nodesize_from_mb(M),             \
+           buddy_cachesize_from_mb(M));           \
+  bdd_setmaxincrease(0);                          \
   bdd_setvarnum(N)
 
-#define BUDDY_DEINIT\
+#define BUDDY_DEINIT                            \
   bdd_done()
 
 ////////////////////////////////////////////////////////////////////////////////
