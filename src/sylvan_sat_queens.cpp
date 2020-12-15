@@ -11,7 +11,7 @@ int main(int argc, char** argv)
   parse_input(argc, argv, N, M);
 
   // =========================================================================
-  INFO("%zu-Queens SAT (BuDDy %zu MB):\n", N, M);
+  INFO("%zu-Queens SAT (Sylvan %zu MB):\n", N, M);
   auto t_init_before = get_timestamp();
   SYLVAN_INIT(M);
   auto t_init_after = get_timestamp();
