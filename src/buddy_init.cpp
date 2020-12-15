@@ -20,30 +20,45 @@
 /// - bdd_setvarnum:
 ///     Declare the number of variables to expect to be used.
 ////////////////////////////////////////////////////////////////////////////////
+#define MAX_INT 2147483647
+#define CACHE_RATIO 16
+
 size_t buddy_nodetotal_from_mb(size_t M)
 {
-  return M * 47862;
+  // Magic constant found by experimentation. Works very well in the [4; 8]GB
+  // range and is about 1MB below at 16GB and 2MB below 20GB. It's about 0.2MB
+  // above for 512MB.
+  return M * 38415;
 }
 
-size_t buddy_nodesize_from_mb(size_t M)
+int buddy_nodesize_from_mb(size_t M)
 {
-  size_t node_total = buddy_nodetotal_from_mb(M);
-  return (64 * node_total) / 65;
+#ifndef GRENDEL
+  size_t nodes = (CACHE_RATIO * buddy_nodetotal_from_mb(M)) / (CACHE_RATIO+1);
+  return std::min((int) nodes,MAX_INT);
+#else
+  return MAX_INT;
+#endif
 }
 
-size_t buddy_cachesize_from_mb(size_t M)
+int buddy_cachesize_from_mb(size_t M)
 {
-  return buddy_nodetotal_from_mb(M) / 65;
+#ifndef GRENDEL
+  if (buddy_nodesize_from_mb(M) == MAX_INT) {
+    return MAX_INT / CACHE_RATIO;
+  }
+  return buddy_nodetotal_from_mb(M) / (CACHE_RATIO+1);
+#else
+  return MAX_INT / CACHE_RATIO;
+#endif
 }
 
-
-#define BUDDY_INIT(N, M)                          \
-  bdd_init(buddy_nodesize_from_mb(M),             \
-           buddy_cachesize_from_mb(M));           \
-  bdd_setmaxincrease(0);                          \
+#define BUDDY_INIT(N, M)                                                       \
+  bdd_init(buddy_nodesize_from_mb(M),  buddy_cachesize_from_mb(M));            \
+  bdd_setmaxincrease(0);                                                       \
   bdd_setvarnum(N)
 
-#define BUDDY_DEINIT                            \
+#define BUDDY_DEINIT                                                           \
   bdd_done()
 
 ////////////////////////////////////////////////////////////////////////////////
