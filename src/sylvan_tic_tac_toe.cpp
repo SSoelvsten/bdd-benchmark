@@ -118,7 +118,7 @@ int main(int argc, char** argv)
   INFO(" | total time (ms):        %zu\n", duration_of(t1,t2) + duration_of(t3,t6));
   SYLVAN_DEINIT;
 
-  if (solutions != expected_result[N]) {
+  if (N < size(expected_result) && solutions != expected_result[N]) {
     exit(-1);
   }
 }

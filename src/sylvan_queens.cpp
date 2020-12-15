@@ -126,7 +126,7 @@ int main(int argc, char** argv)
   // =========================================================================
   SYLVAN_DEINIT;
 
-  if (solutions != expected_result[N]) {
+  if (N < size(expected_result) && solutions != expected_result[N]) {
     exit(-1);
   }
 }
