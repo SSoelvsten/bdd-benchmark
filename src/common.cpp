@@ -52,6 +52,13 @@ void parse_input(int &argc, char* argv[], size_t &N, size_t &M)
 }
 
 // =============================================================================
+template <class T, size_t N>
+constexpr size_t size(const T (&array)[N]) noexcept
+{
+  return N;
+}
+
+// =============================================================================
 // SAT Solver
 #include <functional>
 

@@ -15,7 +15,8 @@ PROBLEMS = [
       [13, "02:00"],
       [14, "02:30"],
       [15, "03:00"],
-      [16, "48:00"],
+      [16, "20:00"],
+      [17, "200:00"],
      ]
     ],
 
@@ -37,7 +38,8 @@ PROBLEMS = [
      [[7,  "00:10"],
       [8,  "00:10"],
       [9,  "00:30"],
-      [10, "03:30"],
+      [10, "03:00"],
+      [11, "48:00"],
      ]
     ],
 
@@ -51,7 +53,8 @@ PROBLEMS = [
       [22, "01:00"],
       [23, "03:00"],
       [24, "12:00"],
-      [25, "48:00"],
+      [25, "32:00"],
+      [26, "96:00"],
      ]
     ],
 
@@ -63,7 +66,7 @@ def script_str(variant, problem_name, N, time):
     return f'''#!/bin/bash
 #SBATCH --job-name={variant}_{problem_name}_{N}
 #SBATCH --partition=q48
-#SBATCH --mem=156G
+#SBATCH --mem=300G
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
@@ -81,7 +84,7 @@ export CXX=/comm/swstack/core/gcc/10.1.0/bin/c++
 export LC_ALL=C
 
 cd $SLURM_SUBMIT_DIR/build/src/
-./{variant}_{problem_name} {N} 126976 /scratch/$SLURM_JOB_ID 2>&1 | tee -a {output_file}
+./{variant}_{problem_name} {N} 262144 /scratch/$SLURM_JOB_ID 2>&1 | tee -a {output_file}
 
 echo "\n========= Finished `date` ==========\n" | tee -a {output_file}
 '''
