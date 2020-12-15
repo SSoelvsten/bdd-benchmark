@@ -31,7 +31,7 @@ using namespace sylvan;
   lace_init(1, 1000000);\
   lace_startup(0, NULL, NULL);\
   LACE_ME;\
-  sylvan_set_limits(M * 1024 * 1024, 6, 0);\
+  sylvan_set_limits(M * 1024 * 1024, 4, 0);\
   sylvan_init_package();\
   sylvan_set_granularity(1);\
   sylvan_init_bdd()

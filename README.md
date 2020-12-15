@@ -8,6 +8,7 @@ one to compare implementations.
 
 - [BDD Benchmark](#bdd-benchmark)
     - [Implementations](#implementations)
+        - [Enforcing comparability](#enforcing-comparability)
     - [Installation](#installation)
         - [Adiar](#adiar)
         - [Sylvan](#sylvan)
@@ -24,7 +25,7 @@ one to compare implementations.
 
 ## Implementations
 We provide all the benchmarks described further below for the following
-libraries. For comparability, we will set them up to only utilise a single core.
+libraries.
 
 
 - [**Adiar**](https://github.com/ssoelvsten/adiar):
@@ -55,6 +56,14 @@ We hope to extend the number of packages. See
 [issue #12](https://github.com/SSoelvsten/bdd-benchmark/issues/12) for a list
 of BDD packages we would like to have added to this set of benchmarks. Any
 help to do so is very much appreciated.
+
+### Enforcing comparability
+For comparability, we will enforce all packages to follow the same settings.
+
+- Only use a single core
+
+- Packages with a unique node table and a memoization table will have a ratio
+  between the two of 16:1.
 
 
 ## Installation
