@@ -80,6 +80,9 @@ touch {output_file}
 
 echo "\n=========  Started `date`  ==========\n" | tee -a {output_file}
 
+lscpu | tee -a {output_file}
+echo "\n"
+
 module load cmake gcc gpm boost gmp
 export CC=/comm/swstack/core/gcc/10.1.0/bin/gcc
 export CXX=/comm/swstack/core/gcc/10.1.0/bin/c++
