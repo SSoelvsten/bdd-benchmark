@@ -121,11 +121,10 @@ int main(int argc, char** argv)
     bdd res = n_queens_B(N);
     auto t2 = get_timestamp();
 
-    INFO(" | size (nodes):\n");
-    INFO(" | | largest size:      %zu\n", largest_bdd);
-    INFO(" | | final size:        %zu\n", bdd_nodecount(res));
-    INFO(" | time (ms):\n");
-    INFO(" | | construction:      %zu\n", duration_of(t1,t2));
+    INFO(" | construction:\n");
+    INFO(" | | largest size (nodes): %i\n", largest_bdd);
+    INFO(" | | final size (nodes):   %i\n", bdd_nodecount(res));
+    INFO(" | | time (ms):            %zu\n", duration_of(t1,t2));
 
     // =========================================================================
     // Count number of solutions
@@ -134,12 +133,12 @@ int main(int argc, char** argv)
     auto t4 = get_timestamp();
 
     // =========================================================================
-    INFO(" | | counting:          %zu\n", duration_of(t3,t4));
-    INFO(" | | total:             %zu\n", duration_of(t1,t4));
-  }
+    INFO(" | counting solutions:\n");
+    INFO(" | | counting:             %zu\n", duration_of(t3,t4));
+    INFO(" | | number of solutions:  %.0f\n", solutions);
 
-  // =========================================================================
-  INFO(" | number of solutions: %.0f\n", solutions);
+    INFO(" | total time (ms):        %zu\n", duration_of(t1,t4));
+  }
 
   ADIAR_DEINIT;
 
