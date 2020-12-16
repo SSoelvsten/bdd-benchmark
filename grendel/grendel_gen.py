@@ -72,6 +72,8 @@ def script_str(variant, problem_name, N, time):
 #SBATCH --cpus-per-task=1
 #SBATCH --time={time}:00
 #SBATCH --exclusive
+#SBATCH --mail-type=END
+#SBATCH --mail-user=soelvsten@cs.au.dk
 
 mkdir -p {output_dir}
 touch {output_file}
