@@ -37,10 +37,10 @@ libraries. For comparability, we will set them up to only utilise a single core.
 
 
 - [**COOM**](https://github.com/ssoelvsten/coom):
-  A cache-oblivious (I/O Efficient) implementation with iterative algorithms
-  using priority queues to exploit a special sorting of nodes on disk. These
-  algorithms have no need for memoization or garbage collection, but, on the
-  other hand, nodes are also not shareable between BDDs.
+  An I/O Efficient implementation with iterative algorithms using priority
+  queues to exploit a special sorting of nodes on disk. These algorithms have
+  no need for memoization or garbage collection, but, on the other hand, nodes
+  are also not shareable between BDDs.
   
 
 - [**Sylvan**](https://github.com/trolando/sylvan):
