@@ -31,6 +31,7 @@ int main(int argc, char** argv)
   INFO(" |\n");
 
   // =========================================================================
+#ifndef GRENDEL
   auto t3 = get_timestamp();
   bool satisfiable = solver.check_satisfiable();
   auto t4 = get_timestamp();
@@ -45,6 +46,7 @@ int main(int argc, char** argv)
   INFO(" | | | final size:        %zu\n", solver.bdd_size());
   INFO(" | | time (ms):           %zu\n", duration_of(t3,t4));
   INFO(" |\n");
+#endif
 
   // =========================================================================
   auto t5 = get_timestamp();
