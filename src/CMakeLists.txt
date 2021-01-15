@@ -23,28 +23,28 @@ target_include_directories(buddy_pigeonhole_principle PRIVATE "${BDD_SOURCE_DIR}
 target_link_libraries(buddy_pigeonhole_principle bdd)
 
 # ============================================================================ #
-# COOM
+# Adiar
 # ============================================================================ #
 
 # -- N Queens --
-add_executable(coom_queens coom_queens.cpp)
-target_link_libraries(coom_queens coom)
-set_target_properties(coom_queens PROPERTIES CXX_STANDARD 17)
+add_executable(adiar_queens adiar_queens.cpp)
+target_link_libraries(adiar_queens adiar)
+set_target_properties(adiar_queens PROPERTIES CXX_STANDARD 17)
 
 # -- N Queens (SAT) --
-add_executable(coom_queens_sat coom_queens_sat.cpp)
-target_link_libraries(coom_queens_sat coom)
-set_target_properties(coom_queens_sat PROPERTIES CXX_STANDARD 17)
+add_executable(adiar_queens_sat adiar_queens_sat.cpp)
+target_link_libraries(adiar_queens_sat adiar)
+set_target_properties(adiar_queens_sat PROPERTIES CXX_STANDARD 17)
 
 # -- Tic-Tac-Toe --
-add_executable(coom_tic_tac_toe coom_tic_tac_toe.cpp)
-target_link_libraries(coom_tic_tac_toe coom)
-set_target_properties(coom_tic_tac_toe PROPERTIES CXX_STANDARD 17)
+add_executable(adiar_tic_tac_toe adiar_tic_tac_toe.cpp)
+target_link_libraries(adiar_tic_tac_toe adiar)
+set_target_properties(adiar_tic_tac_toe PROPERTIES CXX_STANDARD 17)
 
 # -- Pigeonhole Principle --
-add_executable(coom_pigeonhole_principle coom_pigeonhole_principle.cpp)
-target_link_libraries(coom_pigeonhole_principle coom)
-set_target_properties(coom_pigeonhole_principle PROPERTIES CXX_STANDARD 17)
+add_executable(adiar_pigeonhole_principle adiar_pigeonhole_principle.cpp)
+target_link_libraries(adiar_pigeonhole_principle adiar)
+set_target_properties(adiar_pigeonhole_principle PROPERTIES CXX_STANDARD 17)
 
 # ============================================================================ #
 # Sylvan

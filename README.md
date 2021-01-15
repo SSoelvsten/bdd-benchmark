@@ -9,7 +9,7 @@ one to compare implementations.
 - [BDD Benchmark](#bdd-benchmark)
     - [Implementations](#implementations)
     - [Installation](#installation)
-        - [COOM](#coom)
+        - [Adiar](#adiar)
         - [Sylvan](#sylvan)
     - [Benchmarks](#benchmarks)
         - [N-Queens](#n-queens)
@@ -27,6 +27,13 @@ We provide all the benchmarks described further below for the following
 libraries. For comparability, we will set them up to only utilise a single core.
 
 
+- [**Adiar**](https://github.com/ssoelvsten/adiar):
+  An I/O Efficient implementation with iterative algorithms using priority
+  queues to exploit a special sorting of nodes on disk. These algorithms have no
+  need for memoization or garbage collection, but, on the other hand, nodes are
+  also not shareable between BDDs.
+
+
 - [**BuDDy**](http://vlsicad.eecs.umich.edu/BK/Slots/cache/www.itu.dk/research/buddy/):
   An easy-to-use yet extensive implementation with depth-first algorithms using
   a unique node table to share nodes. It uses a memoization table, automated
@@ -35,13 +42,6 @@ libraries. For comparability, we will set them up to only utilise a single core.
   We use the version from [here](https://github.com/jgcoded/BuDDy) that is set
   up for building with CMake.
 
-
-- [**COOM**](https://github.com/ssoelvsten/coom):
-  An I/O Efficient implementation with iterative algorithms using priority
-  queues to exploit a special sorting of nodes on disk. These algorithms have
-  no need for memoization or garbage collection, but, on the other hand, nodes
-  are also not shareable between BDDs.
-  
 
 - [**Sylvan**](https://github.com/trolando/sylvan):
   A parallel (multi-core) implementation with depth-first algorithms using a
@@ -67,8 +67,8 @@ git submodule update --init --recursive
 
 This also requires _CMake_ and a _C++_ compiler of your choice.
 
-### COOM
-COOM also has dependencies on the _Boost Library_, which can be installed as follows
+### Adiar
+Adiar also has dependencies on the _Boost Library_, which can be installed as follows
 ```
 apt install libboost-all-dev
 ```

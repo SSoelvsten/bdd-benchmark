@@ -1,7 +1,7 @@
 #include "common.cpp"
 #include "pigeonhole_principle.cpp"
 
-#include "coom_init.cpp"
+#include "adiar_init.cpp"
 
 // =============================================================================
 int main(int argc, char** argv)
@@ -11,11 +11,11 @@ int main(int argc, char** argv)
   parse_input(argc, argv, N, M);
 
   // =========================================================================
-  INFO("Pigeonhole Principle for %zu : %zu (COOM %zu MB):\n", N+1, N, M);
-  coom_init(M);
+  INFO("Pigeonhole Principle for %zu : %zu (Adiar %zu MB):\n", N+1, N, M);
+  adiar_init(M);
 
   // =========================================================================
-  coom_sat_solver solver(label_of_Pij(N+1, N, N));
+  adiar_sat_solver solver(label_of_Pij(N+1, N, N));
   auto t1 = get_timestamp();
   construct_PHP_cnf(solver, N);
   auto t2 = get_timestamp();
@@ -43,7 +43,7 @@ int main(int argc, char** argv)
   // =========================================================================
   INFO(" | solution:            %s\n", satisfiable ? "SATISFIABLE" : "UNSATISFIABLE");
 
-  coom_deinit();
+  adiar_deinit();
 
   exit(satisfiable ? -1 : 0);
 }

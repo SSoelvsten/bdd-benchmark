@@ -1,7 +1,7 @@
 #include "common.cpp"
 #include "queens.cpp"
 
-#include "coom_init.cpp"
+#include "adiar_init.cpp"
 
 size_t largest_bdd = 0;
 
@@ -106,13 +106,13 @@ int main(int argc, char** argv)
   parse_input(argc, argv, N, M);
 
   // =========================================================================
-  INFO("%zu-Queens (COOM %zu MB):\n", N, M);
-  coom_init(M);
+  INFO("%zu-Queens (Adiar %zu MB):\n", N, M);
+  adiar_init(M);
   double solutions;
 
   // =========================================================================
   // Compute board
-  { // Garbage collect all coom objects before calling coom_deinit();
+  { // Garbage collect all adiar objects before calling adiar_deinit();
     auto t1 = get_timestamp();
     bdd res = n_queens_B(N);
     auto t2 = get_timestamp();
@@ -136,8 +136,8 @@ int main(int argc, char** argv)
 
   // =========================================================================
   INFO(" | number of solutions: %.0f\n", solutions);
-  
-  coom_deinit();
+
+  adiar_deinit();
 
   if (solutions != expected_result[N]) {
     exit(-1);

@@ -1,7 +1,7 @@
 #include "common.cpp"
 #include "queens.cpp"
 
-#include "coom_init.cpp"
+#include "adiar_init.cpp"
 
 // =============================================================================
 int main(int argc, char** argv)
@@ -11,15 +11,15 @@ int main(int argc, char** argv)
   parse_input(argc, argv, N, M);
 
   // =========================================================================
-  coom::coom_init(M);
-  INFO("%zu-Queens SAT (COOM %zu MB):\n", N, M);
+  adiar::adiar_init(M);
+  INFO("%zu-Queens SAT (Adiar %zu MB):\n", N, M);
 
   bool satisfiable;
   uint64_t solutions;
 
   {
     // =======================================================================
-    coom_sat_solver solver(label_of_position(N, N-1, N-1)+1);
+    adiar_sat_solver solver(label_of_position(N, N-1, N-1)+1);
 
     auto t1 = get_timestamp();
     construct_Queens_cnf(solver, N);
@@ -63,7 +63,7 @@ int main(int argc, char** argv)
   }
 
   // =========================================================================
-  coom::coom_deinit();
+  adiar::adiar_deinit();
 
   if (solutions != expected_result[N] && satisfiable) {
     exit(-1);

@@ -1,8 +1,8 @@
-#include <coom/coom.h>
-using namespace coom;
+#include <adiar/adiar.h>
+using namespace adiar;
 
 ////////////////////////////////////////////////////////////////////////////////
-class coom_sat_policy
+class adiar_sat_policy
 {
 private:
   bdd sat_acc = bdd_true();
@@ -48,7 +48,7 @@ public:
 
   bool is_false()
   {
-    return is_sink(sat_acc, coom::is_false);
+    return is_sink(sat_acc, adiar::is_false);
   }
 
   uint64_t satcount(uint64_t varcount)
@@ -62,4 +62,4 @@ public:
   }
 };
 
-typedef sat_solver<coom_sat_policy> coom_sat_solver;
+typedef sat_solver<adiar_sat_policy> adiar_sat_solver;

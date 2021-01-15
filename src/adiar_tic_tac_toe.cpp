@@ -1,16 +1,16 @@
 #include "common.cpp"
 #include "tic_tac_toe.cpp"
 
-#include "coom_init.cpp"
+#include "adiar_init.cpp"
 
 bdd construct_is_not_winning(std::array<uint64_t, 4>& line)
 {
   size_t idx = 4 - 1;
 
-  ptr_t no_Xs_false = coom::create_sink_ptr(false);
-  ptr_t no_Xs_true = coom::create_sink_ptr(true);
+  ptr_t no_Xs_false = adiar::create_sink_ptr(false);
+  ptr_t no_Xs_true = adiar::create_sink_ptr(true);
 
-  ptr_t some_Xs_true = coom::create_sink_ptr(false);
+  ptr_t some_Xs_true = adiar::create_sink_ptr(false);
 
   node_file out;
   node_writer out_writer(out);
@@ -18,15 +18,15 @@ bdd construct_is_not_winning(std::array<uint64_t, 4>& line)
   do {
     /* Notice, we have to write bottom-up. That is actually more precisely in
      * reverse topological order which also includes the id's. */
-    node_t some_Xs = coom::create_node(line[idx], 1,
-                                       coom::create_sink_ptr(true),
+    node_t some_Xs = adiar::create_node(line[idx], 1,
+                                       adiar::create_sink_ptr(true),
                                        some_Xs_true);
 
     if (idx != 0) {
       out_writer << some_Xs;
     }
 
-    node_t no_Xs = coom::create_node(line[idx], 0,
+    node_t no_Xs = adiar::create_node(line[idx], 0,
                                      no_Xs_false,
                                      no_Xs_true);
 
@@ -51,11 +51,11 @@ int main(int argc, char** argv)
   parse_input(argc, argv, N, M);
 
   // =========================================================================
-  INFO("Tic-Tac-Toe with %zu crosses (COOM %zu MB):\n", N, M);
-  coom_init(M);
+  INFO("Tic-Tac-Toe with %zu crosses (Adiar %zu MB):\n", N, M);
+  adiar_init(M);
   double solutions;
 
-  { // Garbage collect all coom objects before deinit();
+  { // Garbage collect all adiar objects before deinit();
     // =========================================================================
     // Construct is_equal_N
     INFO(" | initial BDD:\n");
@@ -103,7 +103,7 @@ int main(int argc, char** argv)
     // =========================================================================
     INFO(" | total time (ms):        %zu\n", duration_of(t1,t2) + duration_of(t3,t6));
   }
-  coom_deinit();
+  adiar_deinit();
 
   if (solutions != expected_result[N]) {
     exit(-1);

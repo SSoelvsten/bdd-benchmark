@@ -1,13 +1,9 @@
+[submodule "external/adiar"]
+	path = external/adiar
+	url = ../../SSoelvsten/adiar
 [submodule "external/BuDDy"]
 	path = external/BuDDy
 	url = ../../jgcoded/BuDDy
 [submodule "external/sylvan"]
 	path = external/sylvan
 	url = ../../trolando/sylvan
-[submodule "external/cudd"]
-	path = external/cudd
-	url = ../../rakhimov/cudd.git
-	branch = cmake
-[submodule "external/coom"]
-	path = external/coom
-	url = ../../SSoelvsten/coom
