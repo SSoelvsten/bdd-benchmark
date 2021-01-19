@@ -11,8 +11,11 @@ int main(int argc, char** argv)
   parse_input(argc, argv, N, M);
 
   // =========================================================================
-  SYLVAN_INIT(M);
   INFO("%zu-Queens SAT (BuDDy %zu MB):\n", N, M);
+  auto t_init_before = get_timestamp();
+  SYLVAN_INIT(M);
+  auto t_init_after = get_timestamp();
+  INFO(" | init time (ms):        %zu\n", duration_of(t_init_before, t_init_after));
 
   // =========================================================================
   uint64_t varcount = label_of_position(N, N-1, N-1)+1;
@@ -23,9 +26,9 @@ int main(int argc, char** argv)
   auto t2 = get_timestamp();
 
   INFO(" | CNF:\n");
-  INFO(" | | clauses:      %zu\n", solver.cnf_size());
-  INFO(" | | variables:    %zu\n", solver.var_count());
-  INFO(" | | time (ms):    %zu\n", duration_of(t1,t2));
+  INFO(" | | clauses:             %zu\n", solver.cnf_size());
+  INFO(" | | variables:           %zu\n", solver.var_count());
+  INFO(" | | time (ms):           %zu\n", duration_of(t1,t2));
   INFO(" |\n");
 
   // =========================================================================

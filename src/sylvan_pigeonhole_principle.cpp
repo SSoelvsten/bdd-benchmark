@@ -12,9 +12,12 @@ int main(int argc, char** argv)
   size_t M = 128;
   parse_input(argc, argv, N, M);
 
-  // Init Lace
-  SYLVAN_INIT(M);
+  // =========================================================================
   INFO("Pigeonhole Principle for %zu : %zu (Sylvan %zu MB):\n", N+1, N, M);
+  auto t_init_before = get_timestamp();
+  SYLVAN_INIT(M);
+  auto t_init_after = get_timestamp();
+  INFO(" | init time (ms):      %zu\n", duration_of(t_init_before, t_init_after));
 
   // =========================================================================
   uint64_t max_var = label_of_Pij(N+1, N, N);

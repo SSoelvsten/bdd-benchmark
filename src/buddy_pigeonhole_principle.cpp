@@ -11,8 +11,11 @@ int main(int argc, char** argv)
   parse_input(argc, argv, N, M);
 
   // =========================================================================
-  BUDDY_INIT(label_of_Pij(N+1, N, N)+1, M);
   INFO("Pigeonhole Principle for %zu : %zu (BuDDy %zu MB):\n", N+1, N, M);
+  auto t_init_before = get_timestamp();
+  BUDDY_INIT(label_of_Pij(N+1, N, N)+1, M);
+  auto t_init_after = get_timestamp();
+  INFO(" | init time (ms):      %zu\n", duration_of(t_init_before, t_init_after));
 
   // =========================================================================
   auto t1 = get_timestamp();

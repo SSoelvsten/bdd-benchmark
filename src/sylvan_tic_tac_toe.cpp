@@ -41,7 +41,10 @@ int main(int argc, char** argv)
 
   // =========================================================================
   INFO("Tic-Tac-Toe with %zu crosses (Sylvan %zu MB):\n", N, M);
+  auto t_init_before = get_timestamp();
   SYLVAN_INIT(M);
+  auto t_init_after = get_timestamp();
+  INFO(" | init time (ms):         %zu\n", duration_of(t_init_before, t_init_after));
 
   // =========================================================================
   // Construct is_equal_N
