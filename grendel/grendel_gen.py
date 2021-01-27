@@ -1,6 +1,6 @@
 import os
 
-VARIANTS = ["buddy", "coom", "sylvan"]
+VARIANTS = ["adiar", "buddy", "sylvan"]
 
 # List of problems, with [N, M, max-time] triples
 PROBLEMS = [
