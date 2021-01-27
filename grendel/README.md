@@ -1,7 +1,7 @@
 # Grendel
 This folder contains the generation of shell scripts, with which one can run the
 benchmarks on the GRENDEL-S cluster running the SLURM queueing system at [CSCAA,
-Aarhus University](http://www.cscaa.dk/). Since _COOM_ makes use of disk, then
+Aarhus University](http://www.cscaa.dk/). Since _Adiar_ makes use of disk, then
 one needs to use the newly acquired _q48_ nodes with 3.0 GHz CPUs, 384 GB of
 memory, and 3.5 TB of SSD disk available for temporary files in a _scratch/_
 directory.
