@@ -70,7 +70,9 @@ int main(int argc, char** argv)
   // =========================================================================
   ADIAR_DEINIT;
 
-  if ((N >= size(expected_result) || solutions != expected_result[N]) && satisfiable) {
+  if ((N >= size(expected_result) || solutions != expected_result[N])
+      && ((N != 2 && N != 3) && satisfiable)
+      && ((N == 2 || N == 3) && !satisfiable)) {
     exit(-1);
   }
 }
