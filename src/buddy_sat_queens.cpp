@@ -46,6 +46,8 @@ int main(int argc, char** argv)
   INFO(" | | | final size:        %zu\n", solver.bdd_size());
   INFO(" | | time (ms):           %zu\n", duration_of(t3,t4));
   INFO(" |\n");
+#else
+  bool satisfiable = true;
 #endif
 
   // =========================================================================

@@ -16,8 +16,8 @@ cd $SLURM_SUBMIT_DIR/build/sylvan
 make DESTDIR=./ && make install DESTDIR=./
 
 cd $SLURM_SUBMIT_DIR/build/src/
-make buddy_queens coom_queens sylvan_queens
-make buddy_sat_pigeonhole_principle coom_sat_pigeonhole_principle sylvan_sat_pigeonhole_principle
-make buddy_sat_queens coom_sat_queens sylvan_sat_queens
-make buddy_tic_tac_toe coom_tic_tac_toe sylvan_tic_tac_toe
+make adiar_queens buddy_queens sylvan_queens
+make adiar_sat_pigeonhole_principle buddy_sat_pigeonhole_principle sylvan_sat_pigeonhole_principle
+make adiar_sat_queens buddy_sat_queens sylvan_sat_queens
+make adiar_tic_tac_toe buddy_tic_tac_toe sylvan_tic_tac_toe
 
