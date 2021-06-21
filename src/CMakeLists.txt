@@ -29,22 +29,18 @@ target_link_libraries(buddy_tic_tac_toe bdd)
 # -- Queens --
 add_executable(adiar_queens adiar_queens.cpp)
 target_link_libraries(adiar_queens adiar)
-set_target_properties(adiar_queens PROPERTIES CXX_STANDARD 17)
 
 # -- SAT Solver (Pigeonhole Principle) --
 add_executable(adiar_sat_pigeonhole_principle adiar_sat_pigeonhole_principle.cpp)
 target_link_libraries(adiar_sat_pigeonhole_principle adiar)
-set_target_properties(adiar_sat_pigeonhole_principle PROPERTIES CXX_STANDARD 17)
 
 # -- SAT Solver (Queens) --
 add_executable(adiar_sat_queens adiar_sat_queens.cpp)
 target_link_libraries(adiar_sat_queens adiar)
-set_target_properties(adiar_sat_queens PROPERTIES CXX_STANDARD 17)
 
 # -- Tic-Tac-Toe --
 add_executable(adiar_tic_tac_toe adiar_tic_tac_toe.cpp)
 target_link_libraries(adiar_tic_tac_toe adiar)
-set_target_properties(adiar_tic_tac_toe PROPERTIES CXX_STANDARD 17)
 
 # ============================================================================ #
 # Sylvan
