@@ -4,12 +4,20 @@ cmake_minimum_required(VERSION 3.10)
 # Compiler settings
 # ============================================================================ #
 set(CMAKE_C_FLAGS "-O3 ${CMAKE_C_FLAGS}")
-set(CMAKE_CXX_FLAGS "-O3 ${CMAKE_CXX_FLAGS}")  
+set(CMAKE_CXX_FLAGS "-O3 ${CMAKE_CXX_FLAGS}")
 
 option(GRENDEL "Build for Grendel-S cluster" OFF)
 if (GRENDEL)
   add_definitions(-DGRENDEL)
 endif()
+
+message(STATUS "CMake build configuration for BDD Benchmarks")
+message(STATUS "  OS: ${CMAKE_SYSTEM_NAME}")
+message(STATUS "  Compiler: ${CMAKE_CXX_COMPILER_ID}")
+message(STATUS "    C Flags: ${CMAKE_C_FLAGS}")
+message(STATUS "    CXX Flags: ${CMAKE_CXX_FLAGS}")
+message(STATUS "  Grendel: ${GRENDEL}")
+message(STATUS "")
 
 # ============================================================================ #
 # External
