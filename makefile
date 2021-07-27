@@ -6,8 +6,8 @@ MAKE_FLAGS=-j $$(nproc)
 #  VARIABLE DEFAULTS
 # ============================================================================ #
 
-# Variant (adiar, buddy, sylvan)
-V:=buddy
+# Variant (adiar, buddy, cudd, sylvan)
+V:=adiar
 
 # Memory
 M:=128
@@ -27,51 +27,53 @@ build:
 	@echo "\n\nInstall Sylvan"
 	@cd build/sylvan && make DESTDIR=./ && make install DESTDIR=./
 
-build-queens: | build
-	@cd build/ && make ${MAKE_FLAGS} ${V}_queens
+  # Installation of CUDD
+	@echo "\n\nInstall CUDD"
+	@[ -d "build/cudd/" ] || (cd external/cudd \
+                            && autoreconf \
+                            && ./configure --prefix ${CURDIR}/build/cudd/ --enable-obj \
+                            && make && make install)
 
-build-sat_pigeonhole_principle: | build
-	@cd build/ && make ${MAKE_FLAGS} ${V}_sat_pigeonhole_principle
+  # Build all benchmarks
+	@echo "\n\nBuild Benchmarks"
+	@cd build/ && for package in 'adiar' 'buddy' 'sylvan' 'cudd' ; do \
+		for benchmark in 'queens' 'sat_pigeonhole_principle' 'sat_queens' 'tic_tac_toe' ; do \
+			make ${MAKE_FLAGS} $$package'_'$$benchmark ; \
+		done ; \
+	done
 
-build-sat_queens: | build
-	@cd build/ && make ${MAKE_FLAGS} ${V}_sat_queens
-
-build-tic_tac_toe: | build
-	@cd build/ && make ${MAKE_FLAGS} ${V}_tic_tac_toe
-
+  # Add space after finishing the build process
+	@echo "\n"
 
 clean:
-	@rm -rf build/
+  # CUDD Autoconf files
+	@[ ! -f "external/cudd/Makefile" ] || ( \
+    cd external/cudd && make ${MAKE_FLAGS} clean \
+                     && rm -f Doxyfile doc/cudd.tex \
+                     && rm -f Makefile config.h config.log config.status dddmp/exp/text*.sh libtool stamp-h1 \
+                     && rm -rf autom4te.cache/ cplusplus/.deps/ cudd/.deps/ dddmp/.deps/ epd/.deps/ mtr/.deps/ nanotrav/.deps/ st/.deps/ util/deps/)
 
+  # CMake files
+	@rm -rf build/
 
 # ============================================================================ #
 #  RUN TARGETS
 # ============================================================================ #
-run-queens: N := 8
-run-queens:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_queens) $(N) $(M)
+queens: N := 8
+queens:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_queens) -N $(N) -M $(M)
 
-run-sat_pigeonhole_principle: N := 10
-run-sat_pigeonhole_principle:
+sat_pigeonhole_principle: N := 10
+sat_pigeonhole_principle:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_sat_pigeonhole_principle) $(N) $(M)
 
-run-sat_queens: N := 8
-run-sat_queens:
+sat_queens: N := 8
+sat_queens:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_sat_queens) $(N) $(M)
 
-run-tic_tac_toe: N := 20
-run-tic_tac_toe:
+tic_tac_toe: N := 20
+tic_tac_toe:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_tic_tac_toe) $(N) $(M)
-
-# ============================================================================ #
-#  ALL-IN-ONE TARGETS
-# ============================================================================ #
-queens: build-queens run-queens
-
-sat_queens: build-sat_queens run-sat_queens
-sat_pigeonhole_principle: build-sat_pigeonhole_principle run-sat_pigeonhole_principle
-
-tic_tac_toe: build-tic_tac_toe run-tic_tac_toe
 
 # ============================================================================ #
 #  GRENDEL

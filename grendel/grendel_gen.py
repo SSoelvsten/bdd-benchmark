@@ -1,6 +1,6 @@
 import os
 
-VARIANTS = ["adiar", "buddy", "sylvan"]
+VARIANTS = ["adiar", "buddy", "cudd", "sylvan"]
 
 # List of problems, with [N, M, max-time] triples
 PROBLEMS = [
@@ -89,7 +89,7 @@ export CXX=/comm/swstack/core/gcc/10.1.0/bin/c++
 export LC_ALL=C
 
 cd $SLURM_SUBMIT_DIR/build/src/
-./{variant}_{problem_name} {N} {M} /scratch/$SLURM_JOB_ID 2>&1 | tee -a {output_file}
+./{variant}_{problem_name} -N {N} -M {M} -t /scratch/$SLURM_JOB_ID 2>&1 | tee -a {output_file}
 
 echo "\n========= Finished `date` ==========\n" | tee -a {output_file}
 '''

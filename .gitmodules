@@ -7,3 +7,6 @@
 [submodule "external/sylvan"]
 	path = external/sylvan
 	url = ../../trolando/sylvan
+[submodule "external/cudd"]
+	path = external/cudd
+	url = ../../ivmai/cudd
