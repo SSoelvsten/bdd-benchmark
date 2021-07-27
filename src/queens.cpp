@@ -1,164 +1,137 @@
+#include "common.cpp"
+#include "expected.h"
+
+size_t largest_bdd = 0;
+
 // =============================================================================
-inline size_t label_of_position(size_t N, size_t i, size_t j)
+inline size_t label_of_position(size_t i, size_t j)
 {
   return (N * i) + j;
 }
 
-
-// =============================================================================
-// expected number taken from:
-//  https://en.wikipedia.org/wiki/Eight_queens_puzzle#Counting_solutions
-size_t expected_result[28] = {
-  0,
-  1,
-  0,
-  0,
-  2,
-  10,
-  4,
-  40,
-  92,
-  352,
-  724,
-  2680,
-  14200,
-  73712,
-  365596,
-  2279184,
-  14772512,
-  95815104,
-  666090624,
-  4968057848,
-  39029188884,
-  314666222712,
-  2691008701644,
-  24233937684440,
-  227514171973736,
-  2207893435808352,
-  22317699616364044,
-  234907967154122528
-};
-
-////////////////////////////////////////////////////////////////////////////////
-/// Constructs the CNF for the Queens problem.
-////////////////////////////////////////////////////////////////////////////////
-template<typename bdd_policy>
-void construct_Queens_cnf(sat_solver<bdd_policy> &solver, int N)
+// ========================================================================== //
+//                            SQUARE CONSTRUCTION                             //
+template<typename mgr_t>
+typename mgr_t::bdd_t queens_S(mgr_t &mgr, uint64_t i, uint64_t j)
 {
-  // ALO on rows
-  for (int i = 0; i < N; i++) {
-    clause_t clause;
+  size_t row = N - 1;
 
-    for (int j = 0; j < N; j++) {
-      clause.push_back(literal_t (label_of_position(N,i,j), false));
-    }
+  typename mgr_t::bdd_t out = mgr.leaf_true();
 
-    solver.add_clause(clause);
-  }
+  do {
+    size_t row_diff = std::max(row, i) - std::min(row, i);
 
-  // ALO on columns
+    if (row_diff == 0) {
+      size_t column = N - 1;
 
-  // Strictly not necessary, as the ALO on rows together with the AMO
-  // constraints below already enforce this. What we do gain is hopefully an
-  // earlier pruning of the search-tree (reflected in the BDD).
-  for (int j = 0; j < N; j++) {
-    clause_t clause;
+      do {
+        size_t label = label_of_position(row, column);
 
-    for (int i = 0; i < N; i++) {
-      clause.push_back(literal_t (label_of_position(N,i,j), false));
-    }
+        if (column == j) {
+          out &= mgr.ithvar(label);
+        } else {
+          out &= mgr.nithvar(label);
+        }
+      } while (column-- > 0);
+    } else {
+      if (j + row_diff < N) {
+        size_t label = label_of_position(row, j + row_diff);
+        out &= mgr.nithvar(label);
+      }
 
-    solver.add_clause(clause);
-  }
+      size_t label = label_of_position(row, j);
+      out &= mgr.nithvar(label);
 
-  // AMO on rows
-  for (int row = 0; row < N; row++) {
-    for (int i = 0; i < N-1; i++) {
-      for (int j = i+1; j < N; j++) {
-        clause_t clause;
-        clause.push_back(literal_t (label_of_position(N,row,i), true));
-        clause.push_back(literal_t (label_of_position(N,row,j), true));
-        solver.add_clause(clause);
+      if (row_diff <= j) {
+        size_t label = label_of_position(row, j - row_diff);
+        out &= mgr.nithvar(label);
       }
     }
+  } while (row-- > 0);
+
+  return out;
+}
+
+// ========================================================================== //
+//                              ROW CONSTRUCTION                              //
+template<typename mgr_t>
+typename mgr_t::bdd_t queens_R(mgr_t &mgr, uint64_t row)
+{
+  typename mgr_t::bdd_t out = queens_S(mgr, row, 0);
+
+  for (uint64_t j = 1; j < N; j++) {
+    out |= queens_S(mgr, row, j);
+    largest_bdd = std::max(largest_bdd, mgr.nodecount(out));
+  }
+  return out;
+}
+
+// ========================================================================== //
+//                              ROW ACCUMULATION                              //
+template<typename mgr_t>
+typename mgr_t::bdd_t queens_B(mgr_t &mgr)
+{
+  if (N == 1) {
+    return queens_S(mgr, 0, 0);
   }
 
-  // AMO on columns
-  for (int col = 0; col < N; col++) {
-    for (int i = 0; i < N-1; i++) {
-      for (int j = i+1; j < N; j++) {
-        clause_t clause;
-        clause.push_back(literal_t (label_of_position(N,i,col), true));
-        clause.push_back(literal_t (label_of_position(N,j,col), true));
-        solver.add_clause(clause);
-      }
-    }
+  typename mgr_t::bdd_t out = queens_R(mgr, 0);
+
+  for (uint64_t i = 1; i < N; i++) {
+    out &= queens_R(mgr, i);
+    largest_bdd = std::max(largest_bdd, mgr.nodecount(out));
+  }
+  return out;
+}
+
+// ========================================================================== //
+template<typename mgr_t>
+void run_queens(int argc, char** argv)
+{
+  N = 8; // Default N value
+  bool should_exit = parse_input(argc, argv);
+  if (should_exit) { exit(-1); }
+
+  // =========================================================================
+  std::cout << N << "-Queens"
+            << " (" << mgr_t::NAME << " " << M << " MiB):" << std::endl;
+
+  // ========================================================================
+  // Initialise package manager
+  time_point t_init_before = get_timestamp();
+  mgr_t mgr(N*N);
+  time_point t_init_after = get_timestamp();
+  INFO(" | package init (ms):      %zu\n", duration_of(t_init_before, t_init_after));
+
+  uint64_t solutions;
+  {
+    // ========================================================================
+    // Compute the bdd that represents the entire board
+    time_point t1 = get_timestamp();
+    typename mgr_t::bdd_t res = queens_B(mgr);
+    time_point t2 = get_timestamp();
+
+    INFO(" | construction:\n");
+    INFO(" | | largest size (nodes): %zu\n", largest_bdd);
+    INFO(" | | final size (nodes):   %zu\n", mgr.nodecount(res));
+    INFO(" | | time (ms):            %zu\n", duration_of(t1,t2));
+
+    // ========================================================================
+    // Count number of solutions
+    time_point t3 = get_timestamp();
+    solutions = mgr.satcount(res);
+    time_point t4 = get_timestamp();
+
+    // ========================================================================
+    INFO(" | counting solutions:\n");
+    INFO(" | | counting:             %zu\n", duration_of(t3,t4));
+    INFO(" | | number of solutions:  %zu\n", solutions);
+
+    INFO(" | total time (ms):        %zu\n", duration_of(t1,t4));
   }
 
-  // AMO on diagonals
-  for (int d = 0; d < N; d++) {
-    // Diagonal, that touches the left side of the board
-    for (int i_col = 0; i_col + d < N; i_col++) {
-      int i_row = i_col + d;
-      for (int j_offset = 1; i_row + j_offset < N; j_offset++) {
-        int j_row = i_row + j_offset;
-        int j_col = i_col + j_offset;
-
-        clause_t clause;
-        clause.push_back(literal_t (label_of_position(N,i_row,i_col), true));
-        clause.push_back(literal_t (label_of_position(N,j_row,j_col), true));
-        solver.add_clause(clause);
-      }
-    }
-  }
-
-  for (int d = 1; d < N; d++) {
-    // Diagonal, that touches the right side of the board
-    // d starts at 1 to skip the diagonal that touches both left and right
-    for (int i_row = 0; i_row + d < N; i_row++) {
-      int i_col = i_row + d;
-      for (int j_offset = 1; i_col + j_offset < N; j_offset++) {
-        int j_row = i_row + j_offset;
-        int j_col = i_col + j_offset;
-
-        clause_t clause;
-        clause.push_back(literal_t (label_of_position(N,i_row,i_col), true));
-        clause.push_back(literal_t (label_of_position(N,j_row,j_col), true));
-        solver.add_clause(clause);
-      }
-    }
-  }
-
-  // AMO on anti-diagonals
-  for (int d = 0; d < N; d++) {
-    // Diagonal, that touches the top
-    for (int i_row = 0; i_row < N && N-1 - i_row - d >= 0; i_row++) {
-      int i_col = N - 1 - i_row - d;
-      for (int j_offset = 1; i_col - j_offset >= 0 && i_row + j_offset < N; j_offset++) {
-        int j_row = i_row + j_offset;
-        int j_col = i_col - j_offset;
-
-        clause_t clause;
-        clause.push_back(literal_t (label_of_position(N,i_row,i_col), true));
-        clause.push_back(literal_t (label_of_position(N,j_row,j_col), true));
-        solver.add_clause(clause);
-      }
-    }
-  }
-
-  for (int d = 1; d < N; d++) {
-    // Anti-diagonal, that touches the bottom
-    for (int i_col = 0; i_col < N && N-1 - i_col + d >= 0; i_col++) {
-      int i_row = N - 1 - i_col + d;
-      for (int j_offset = 1; i_col - j_offset >= 0 && i_row + j_offset < N; j_offset++) {
-        int j_row = i_row + j_offset;
-        int j_col = i_col - j_offset;
-
-        clause_t clause;
-        clause.push_back(literal_t (label_of_position(N,i_row,i_col), true));
-        clause.push_back(literal_t (label_of_position(N,j_row,j_col), true));
-        solver.add_clause(clause);
-      }
-    }
+  if (N < size(expected_queens) && solutions != expected_queens[N]) {
+    exit(-1);
   }
 }
+

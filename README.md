@@ -12,12 +12,12 @@ one to compare implementations.
     - [Installation](#installation)
         - [Adiar](#adiar)
         - [Sylvan](#sylvan)
-    - [Benchmarks](#benchmarks)
+    - [Combinatorial Benchmarks](#combinatorial-benchmarks)
         - [N-Queens](#n-queens)
         - [Tic-Tac-Toe](#tic-tac-toe)
-        - [SAT Solver](#sat-solver)
-            - [N-Queens](#n-queens-1)
-            - [Pigeonhole Principle](#pigeonhole-principle)
+     - [SAT Solver Benchmarks](#sat-solver-benchmarks)
+        - [N-Queens](#n-queens-1)
+        - [Pigeonhole Principle](#pigeonhole-principle)
     - [License](#license)
     - [References](#references)
 
@@ -44,6 +44,16 @@ libraries.
   up for building with CMake.
 
 
+- **CUDD**
+
+  The most popular BDD package after decades of heavy development and
+  optimisations. It uses a memoization table, automated garbage collection, and
+  dynamic variable reordering.
+
+  We use version 3.0.0 as distributed on the unofficial mirror
+  [here](https://github.com/ivmai/cudd).
+
+
 - [**Sylvan**](https://github.com/trolando/sylvan):
   A parallel (multi-core) implementation with depth-first algorithms using a
   unique node table to share nodes. It also provides a memoization table,
@@ -60,7 +70,7 @@ help to do so is very much appreciated.
 ### Enforcing comparability
 For comparability, we will enforce all packages to follow the same settings.
 
-- Only use a single core
+- Only use a single core.
 
 - Packages with a unique node table and a memoization table will have a ratio
   between the two of 16:1.
@@ -89,7 +99,7 @@ Hardware Locality_ libraries, which can be installed as follows
 apt install libgmp-dev libhwloc-dev
 ```
 
-## Benchmarks
+## Combinatorial Benchmarks
 
 ### N-Queens
 Solves the following problem:
@@ -132,7 +142,7 @@ intermediate result.
 | Initial BDD size  | (64-N+1)(N+1)-1 |
 
 
-### SAT Solver
+## SAT Solver Benchmarks
 We have a few benchmarks using a simple SAT Solver based on the description in
 [[Pan04; Section 2](#references)]. 
 
@@ -148,14 +158,14 @@ The SAT solver works in two modes:
   accumulated clauses.
 
 
-#### N-Queens
+### N-Queens
 Computes for the same problem as for [N-Queens](#n-queens) above, but does so
 based on a CNF of _at-least-one_ (alo) and _at-most-one_ (amo) constraints.
 The number of clauses is some order of O(N³) which also is reflected in the
 much worse performance compared to BDD oriented solution above.
 
 
-#### Pigeonhole Principle
+### Pigeonhole Principle
 Computes that the following is false
 
 > Given N, does there exist an isomorphism between the sets { 1, 2, ..., N + 1}

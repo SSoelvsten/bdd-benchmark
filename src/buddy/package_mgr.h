@@ -53,63 +53,52 @@ int buddy_cachesize_from_mb(size_t M)
 #endif
 }
 
-#define BUDDY_INIT(N, M)                                                       \
-  bdd_init(buddy_nodesize_from_mb(M),  buddy_cachesize_from_mb(M));            \
-  bdd_setmaxincrease(0);                                                       \
-  bdd_setvarnum(N)
-
-#define BUDDY_DEINIT                                                           \
-  bdd_done()
-
-////////////////////////////////////////////////////////////////////////////////
-class buddy_sat_policy
+class buddy_mgr
 {
-private:
-  bdd sat_acc = bddtrue;
-
 public:
-  void reset()
+  inline static const std::string NAME = "BuDDy";
+
+  // Variable type
+public:
+  typedef bdd bdd_t;
+
+  // Init and Deinit
+public:
+  buddy_mgr(int varcount)
   {
-    sat_acc = bddtrue;
+    bdd_init(buddy_nodesize_from_mb(M), buddy_cachesize_from_mb(M));
+    bdd_setmaxincrease(0);
+    bdd_setvarnum(varcount);
   }
 
-  void and_clause(clause_t &clause)
+  ~buddy_mgr()
   {
-    bdd c = bddfalse;
-
-    uint64_t label = UINT64_MAX;
-
-    for (auto it = clause.rbegin(); it != clause.rend(); it++)
-      {
-        assert((*it).first < label);
-        label = (*it).first;
-        bool negated = (*it).second;
-
-        bdd v = negated ? bdd_nithvar(label) : bdd_ithvar(label);
-        c = bdd_ite(v, bddtrue, c);
-      }
-    sat_acc &= c;
+    bdd_done();
   }
 
-  void quantify_variable(uint64_t var)
-  {
-    sat_acc = bdd_exist(sat_acc, bdd_ithvar(var));
-  }
+  // BDD Operations
+public:
+  inline bdd leaf_true()
+  { return bddtrue; }
 
-  bool is_false()
-  {
-    return sat_acc == bddfalse;
-  }
+  inline bdd leaf_false()
+  { return bddfalse; }
 
-  uint64_t satcount(uint64_t)
-  {
-    return static_cast<uint64_t>(bdd_satcount(sat_acc));
-  }
+  inline bdd ithvar(size_t label)
+  { return bdd_ithvar(label); }
 
-  uint64_t size()
-  {
-    return bdd_nodecount(sat_acc);
-  }
+  inline bdd nithvar(size_t label)
+  { return bdd_nithvar(label); }
+
+  inline bdd ite(const bdd &f, const bdd &g, const bdd &h)
+  { return bdd_ite(f,g,h); }
+
+  inline bdd exists(const bdd &b, size_t label)
+  { return bdd_exist(b, bdd_ithvar(label)); }
+
+  inline uint64_t nodecount(const bdd_t &b)
+  { return bdd_nodecount(b); }
+
+  inline uint64_t satcount(const bdd_t &b)
+  { return bdd_satcount(b); }
 };
-
-typedef sat_solver<buddy_sat_policy> buddy_sat_solver;

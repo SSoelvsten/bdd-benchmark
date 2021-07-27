@@ -4,20 +4,32 @@
 #SBATCH --time=00:10:00
 
 # Load packages
-module load cmake gcc gpm boost gmp
+module load cmake autoconf automake gcc gpm boost gmp
 export CC=/comm/swstack/core/gcc/10.1.0/bin/gcc
 export CXX=/comm/swstack/core/gcc/10.1.0/bin/c++
 
 # Build
+echo "Build"
 mkdir -p $SLURM_SUBMIT_DIR/build/ && cd $SLURM_SUBMIT_DIR/build/
 cmake -D GRENDEL=ON $SLURM_SUBMIT_DIR
 
+echo ""
+echo "Build Sylvan"
 cd $SLURM_SUBMIT_DIR/build/sylvan
 make DESTDIR=./ && make install DESTDIR=./
 
-cd $SLURM_SUBMIT_DIR/build/src/
-make adiar_queens buddy_queens sylvan_queens
-make adiar_sat_pigeonhole_principle buddy_sat_pigeonhole_principle sylvan_sat_pigeonhole_principle
-make adiar_sat_queens buddy_sat_queens sylvan_sat_queens
-make adiar_tic_tac_toe buddy_tic_tac_toe sylvan_tic_tac_toe
+echo ""
+echo "Build CUDD"
+cd $SLURM_SUBMIT_DIR/external/cudd
+autoreconf
+./configure --prefix $SLURM_SUBMIT_DIR/build/cudd/ --enable-obj
+make && make install
 
+echo ""
+echo "Build Benchmarks"
+cd $SLURM_SUBMIT_DIR/build/
+for package in 'adiar' 'buddy' 'sylvan' 'cudd' ; do
+		for benchmark in 'queens' 'sat_pigeonhole_principle' 'sat_queens' 'tic_tac_toe' ; do
+			  make $package'_'$benchmark ;
+		done ;
+done
