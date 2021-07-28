@@ -20,7 +20,7 @@
 ///   Cache table size: 36 bytes * cache entries
 ///
 /// - sylvan_set_limit:       Set the memory limit, the ratio between node table
-///                           and cache to be 4:1, and lastly make the table
+///                           and cache to be 2^4:1, and lastly make the table
 ///                           sizes be as big as possible.
 ///
 /// - sylvan_set_granularity: 1 means "use cache for every operation".
