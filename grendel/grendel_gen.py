@@ -66,7 +66,7 @@ def script_str(variant, problem_name, N, M, time):
     return f'''#!/bin/bash
 #SBATCH --job-name={variant}_{problem_name}_{N}
 #SBATCH --partition=q48
-#SBATCH --mem=300G
+#SBATCH --mem={64 if variant == "buddy" else M+1}G
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
