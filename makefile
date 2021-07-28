@@ -59,21 +59,21 @@ clean:
 # ============================================================================ #
 #  RUN TARGETS
 # ============================================================================ #
-queens: N := 8
-queens:
+combinatorial/queens: N := 8
+combinatorial/queens:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_queens) -N $(N) -M $(M)
 
-sat_pigeonhole_principle: N := 10
-sat_pigeonhole_principle:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_sat_pigeonhole_principle) $(N) $(M)
+combinatorial/tic_tac_toe: N := 20
+combinatorial/tic_tac_toe:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_tic_tac_toe) -N $(N) -M $(M)
 
-sat_queens: N := 8
-sat_queens:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_sat_queens) $(N) $(M)
+sat-solver/pigeonhole_principle: N := 10
+sat-solver/pigeonhole_principle:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_sat_pigeonhole_principle) -N $(N) -M $(M)
 
-tic_tac_toe: N := 20
-tic_tac_toe:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_tic_tac_toe) $(N) $(M)
+sat-solver/queens: N := 6
+sat-solver/queens:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_sat_queens) -N $(N) -M $(M)
 
 # ============================================================================ #
 #  GRENDEL

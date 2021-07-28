@@ -9,14 +9,13 @@ one to compare implementations.
 - [BDD Benchmark](#bdd-benchmark)
     - [Implementations](#implementations)
         - [Enforcing comparability](#enforcing-comparability)
-    - [Installation](#installation)
-        - [Adiar](#adiar)
-        - [Sylvan](#sylvan)
+    - [Dependencies](#dependencies)
+    - [Usage](#usage)
     - [Combinatorial Benchmarks](#combinatorial-benchmarks)
-        - [N-Queens](#n-queens)
+        - [Queens](#queens)
         - [Tic-Tac-Toe](#tic-tac-toe)
      - [SAT Solver Benchmarks](#sat-solver-benchmarks)
-        - [N-Queens](#n-queens-1)
+        - [Queens](#queens-1)
         - [Pigeonhole Principle](#pigeonhole-principle)
     - [License](#license)
     - [References](#references)
@@ -78,9 +77,9 @@ For comparability, we will enforce all packages to follow the same settings.
 - Dynamic variable reordering is disabled.
 
 
-## Installation
-All packages interface with CMake, which makes installation very simple after
-having initialised all submodules using the following command.
+## Dependencies
+Almost packages interface with CMake or GNU Autotools, which makes installation
+very simple after having initialised all submodules using the following command.
 
 ```
 git submodule update --init --recursive
@@ -88,22 +87,45 @@ git submodule update --init --recursive
 
 This also requires _CMake_ and a _C++_ compiler of your choice.
 
-### Adiar
+**Adiar**
+
 Adiar also has dependencies on the _Boost Library_, which can be installed as follows
 ```
 apt install libboost-all-dev
 ```
 
-### Sylvan
+**Sylvan**
+
 Sylvan also needs the _The GNU Multiple Precision Arithmetic_ and _Portable
 Hardware Locality_ libraries, which can be installed as follows
 ```
 apt install libgmp-dev libhwloc-dev
 ```
 
+
+## Usage
+
+All interactions have been made easy by use of the _makefile_ at the root.
+
+| Target  | Description                               |
+|---------|-------------------------------------------|
+| `build` | Build all dependencies and all benchmarks |
+| `clean` | Remove all build artifacts                |
+
+Each benchmark below also has its own _make_ target too for ease of use. You may
+specify as a make variable the instance size _N_ to solve, the amount of
+_M_emory (MiB) to use in, and the _V_ariant (i.e. BDD package). For example, to
+solve the combinatorial Queens with CUDD for _N_ = 10 and with 256 MiB of memory
+you run the following target.
+
+```bash
+make combinatorial/queens V=cudd N=10 M=256
+```
+
+
 ## Combinatorial Benchmarks
 
-### N-Queens
+### Queens
 Solves the following problem:
 
 > Given N, then in how many ways can N queens be placed on an N x N chess board
@@ -160,8 +182,8 @@ The SAT solver works in two modes:
   accumulated clauses.
 
 
-### N-Queens
-Computes for the same problem as for [N-Queens](#n-queens) above, but does so
+### Queens
+Computes for the same problem as for [Queens](#queens) above, but does so
 based on a CNF of _at-least-one_ (alo) and _at-most-one_ (amo) constraints.
 The number of clauses is some order of O(N³) which also is reflected in the
 much worse performance compared to BDD oriented solution above.
