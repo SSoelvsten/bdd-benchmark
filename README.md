@@ -75,6 +75,8 @@ For comparability, we will enforce all packages to follow the same settings.
 - Packages with a unique node table and a memoization table will have a ratio
   between the two of 16:1.
 
+- Dynamic variable reordering is disabled.
+
 
 ## Installation
 All packages interface with CMake, which makes installation very simple after

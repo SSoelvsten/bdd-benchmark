@@ -69,6 +69,9 @@ public:
     bdd_init(buddy_nodesize_from_mb(M), buddy_cachesize_from_mb(M));
     bdd_setmaxincrease(0);
     bdd_setvarnum(varcount);
+
+    // Disable dynamic variable reordering
+    bdd_disable_reorder();
   }
 
   ~buddy_mgr()
