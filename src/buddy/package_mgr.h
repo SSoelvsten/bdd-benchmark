@@ -87,16 +87,16 @@ public:
   inline bdd leaf_false()
   { return bddfalse; }
 
-  inline bdd ithvar(size_t label)
+  inline bdd ithvar(int label)
   { return bdd_ithvar(label); }
 
-  inline bdd nithvar(size_t label)
+  inline bdd nithvar(int label)
   { return bdd_nithvar(label); }
 
   inline bdd ite(const bdd &f, const bdd &g, const bdd &h)
   { return bdd_ite(f,g,h); }
 
-  inline bdd exists(const bdd &b, size_t label)
+  inline bdd exists(const bdd &b, int label)
   { return bdd_exist(b, bdd_ithvar(label)); }
 
   inline uint64_t nodecount(const bdd_t &b)

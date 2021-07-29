@@ -5,7 +5,7 @@
 #include <utility>
 
 // ========================================================================= //
-uint64_t label_of_Pij(uint64_t i, uint64_t j, int N)
+uint64_t label_of_Pij(int i, int j)
 {
   assert(0 <= i && i <= N+1);
   assert(0 <= j && j <= N);
@@ -17,7 +17,7 @@ uint64_t label_of_Pij(uint64_t i, uint64_t j, int N)
 // Carsten Sinz, and Hans Zantema "Ordered Binary Decision Diagrams, Pigeonhole
 // Formulas and Beyond".
 template<typename mgr_t>
-void construct_PHP_cnf(sat_solver<mgr_t> &solver, int N)
+void construct_PHP_cnf(sat_solver<mgr_t> &solver)
 {
   // PC_n
   for (int i = 1; i <= N+1; i++)
@@ -25,7 +25,7 @@ void construct_PHP_cnf(sat_solver<mgr_t> &solver, int N)
     clause_t clause;
     for (int j = 1; j <= N; j++)
     {
-      clause.push_back(literal_t (label_of_Pij(i,j,N), false));
+      clause.push_back(literal_t (label_of_Pij(i,j), false));
     }
     solver.add_clause(clause);
   }
@@ -38,8 +38,8 @@ void construct_PHP_cnf(sat_solver<mgr_t> &solver, int N)
       for (int k = 1; k <= N; k++)
       {
         clause_t clause;
-        clause.push_back(literal_t (label_of_Pij(i,k,N), true));
-        clause.push_back(literal_t (label_of_Pij(j,k,N), true));
+        clause.push_back(literal_t (label_of_Pij(i,k), true));
+        clause.push_back(literal_t (label_of_Pij(j,k), true));
         solver.add_clause(clause);
       }
     }
@@ -60,7 +60,7 @@ void run_sat_pigeonhole_principle(int argc, char** argv)
     std::cout << "Pigeonhole Principle for " << N+1 << " : " << N
               << " (" << mgr_t::NAME << " " << M << " MiB):" << std::endl;
 
-    uint64_t max_var = label_of_Pij(N+1, N, N);
+    uint64_t max_var = label_of_Pij(N+1, N);
 
     auto t_init_before = get_timestamp();
     sat_solver<mgr_t> solver(max_var+1);
@@ -70,7 +70,7 @@ void run_sat_pigeonhole_principle(int argc, char** argv)
     // =========================================================================
 
     auto t1 = get_timestamp();
-    construct_PHP_cnf(solver, N);
+    construct_PHP_cnf(solver);
     auto t2 = get_timestamp();
 
     auto t3 = get_timestamp();

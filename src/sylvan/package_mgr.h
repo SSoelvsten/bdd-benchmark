@@ -66,16 +66,16 @@ public:
   inline sylvan::Bdd leaf_false()
   { return sylvan::Bdd::bddZero(); }
 
-  inline sylvan::Bdd ithvar(size_t label)
+  inline sylvan::Bdd ithvar(int label)
   { return sylvan::Bdd::bddVar(label); }
 
-  inline sylvan::Bdd nithvar(size_t label)
+  inline sylvan::Bdd nithvar(int label)
   { return ~sylvan::Bdd::bddVar(label); }
 
   inline sylvan::Bdd ite(const sylvan::Bdd &f, const sylvan::Bdd &g, const sylvan::Bdd &h)
   { return f.Ite(g,h); }
 
-  inline sylvan::Bdd exists(const sylvan::Bdd &b, size_t label)
+  inline sylvan::Bdd exists(const sylvan::Bdd &b, int label)
   { return b.ExistAbstract(sylvan::Bdd::bddVar(label)); }
 
   inline uint64_t nodecount(const bdd_t &b)

@@ -4,28 +4,30 @@
 size_t largest_bdd = 0;
 
 // =============================================================================
-inline size_t label_of_position(size_t i, size_t j)
+inline int label_of_position(int i, int j)
 {
+  assert(i >= 0 && j >= 0);
+
   return (N * i) + j;
 }
 
 // ========================================================================== //
 //                            SQUARE CONSTRUCTION                             //
 template<typename mgr_t>
-typename mgr_t::bdd_t queens_S(mgr_t &mgr, uint64_t i, uint64_t j)
+typename mgr_t::bdd_t queens_S(mgr_t &mgr, int i, int j)
 {
-  size_t row = N - 1;
+  int row = N - 1;
 
   typename mgr_t::bdd_t out = mgr.leaf_true();
 
   do {
-    size_t row_diff = std::max(row, i) - std::min(row, i);
+    int row_diff = std::max(row, i) - std::min(row, i);
 
     if (row_diff == 0) {
-      size_t column = N - 1;
+      int column = N - 1;
 
       do {
-        size_t label = label_of_position(row, column);
+        int label = label_of_position(row, column);
 
         if (column == j) {
           out &= mgr.ithvar(label);
@@ -35,15 +37,15 @@ typename mgr_t::bdd_t queens_S(mgr_t &mgr, uint64_t i, uint64_t j)
       } while (column-- > 0);
     } else {
       if (j + row_diff < N) {
-        size_t label = label_of_position(row, j + row_diff);
+        int label = label_of_position(row, j + row_diff);
         out &= mgr.nithvar(label);
       }
 
-      size_t label = label_of_position(row, j);
+      int label = label_of_position(row, j);
       out &= mgr.nithvar(label);
 
       if (row_diff <= j) {
-        size_t label = label_of_position(row, j - row_diff);
+        int label = label_of_position(row, j - row_diff);
         out &= mgr.nithvar(label);
       }
     }
@@ -55,11 +57,11 @@ typename mgr_t::bdd_t queens_S(mgr_t &mgr, uint64_t i, uint64_t j)
 // ========================================================================== //
 //                              ROW CONSTRUCTION                              //
 template<typename mgr_t>
-typename mgr_t::bdd_t queens_R(mgr_t &mgr, uint64_t row)
+typename mgr_t::bdd_t queens_R(mgr_t &mgr, int row)
 {
   typename mgr_t::bdd_t out = queens_S(mgr, row, 0);
 
-  for (uint64_t j = 1; j < N; j++) {
+  for (int j = 1; j < N; j++) {
     out |= queens_S(mgr, row, j);
     largest_bdd = std::max(largest_bdd, mgr.nodecount(out));
   }
@@ -77,7 +79,7 @@ typename mgr_t::bdd_t queens_B(mgr_t &mgr)
 
   typename mgr_t::bdd_t out = queens_R(mgr, 0);
 
-  for (uint64_t i = 1; i < N; i++) {
+  for (int i = 1; i < N; i++) {
     out &= queens_R(mgr, i);
     largest_bdd = std::max(largest_bdd, mgr.nodecount(out));
   }
