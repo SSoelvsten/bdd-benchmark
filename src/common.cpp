@@ -58,15 +58,17 @@ bool parse_input(int &argc, char* argv[])
         temp_path = optarg;
         continue;
 
+      case '?': // All parameters not defined above will be overwritten to be the '?' character
+        std::cout << "Undefined flag parameter used" << std::endl << std::endl;
+
       case 'h':
-      default:
         std::cout << "Usage:  -flag      [default]  Description" << std::endl
                   << std::endl
                   << "        -h                    Print this information" << std::endl
                   << "        -N SIZE     [" << N
                                         << "]       Specify the size of problem" << std::endl
                   << "        -M MiB      [128]     Specify the amount of memory (MiB) to be dedicated to the BDD package" << std::endl
-                  << "        -t TEMP_PTH [/tmp]    Filepath for temporary files on disk (Adiar BDD package)"
+                  << "        -t TEMP_PTH [/tmp]    Filepath for temporary files on disk (Adiar BDD package)" << std::endl
           ;
         return true;
       }
@@ -79,7 +81,7 @@ bool parse_input(int &argc, char* argv[])
     }
   }
 
-  optind = 0; // Reset getopt, such that it can be used again outside
+  // optind = 0; // Reset getopt, such that it can be used again outside
   return exit;
 }
 
