@@ -50,6 +50,7 @@ bool parse_input(int &argc, char* argv[])
         M = std::stoi(optarg);
         if (M == 0) {
           std::cout << "  Must specify positive amount of memory (-M)" << std::endl;
+          exit = true;
         }
 
         continue;
