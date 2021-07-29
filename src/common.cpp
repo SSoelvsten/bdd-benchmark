@@ -60,6 +60,7 @@ bool parse_input(int &argc, char* argv[])
 
       case '?': // All parameters not defined above will be overwritten to be the '?' character
         std::cout << "Undefined flag parameter used" << std::endl << std::endl;
+        [[fallthrough]]; // Let the compiler know, that we intend to fall through to 'h' case
 
       case 'h':
         std::cout << "Usage:  -flag      [default]  Description" << std::endl
