@@ -5,20 +5,20 @@
 // ========================================================================== //
 //                            SQUARE CONSTRUCTION                             //
 template<>
-adiar::bdd queens_S(adiar_mgr &/*mgr*/, uint64_t i, uint64_t j)
+adiar::bdd queens_S(adiar_mgr &/*mgr*/, int i, int j)
 {
   adiar::node_file out;
   adiar::node_writer out_writer(out);
 
-  uint64_t row = N - 1;
+  int row = N - 1;
   adiar::ptr_t next = adiar::create_sink_ptr(true);
 
   do {
-    uint64_t row_diff = std::max(row,i) - std::min(row,i);
+    int row_diff = std::max(row,i) - std::min(row,i);
 
     if (row_diff == 0) {
       // On row of the queen in question
-      uint64_t column = N - 1;
+      int column = N - 1;
       do {
         adiar::label_t label = label_of_position(row, column);
 

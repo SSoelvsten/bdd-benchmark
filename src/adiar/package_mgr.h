@@ -33,7 +33,7 @@ public:
   inline adiar::bdd leaf_false()
   { return adiar::bdd_false(); }
 
-  inline adiar::bdd exists(const adiar::bdd &b, size_t label)
+  inline adiar::bdd exists(const adiar::bdd &b, int label)
   { return adiar::bdd_exists(b,label); }
 
   inline uint64_t nodecount(const adiar::bdd &b)

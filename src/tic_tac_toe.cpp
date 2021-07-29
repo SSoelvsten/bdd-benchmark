@@ -6,35 +6,37 @@
 
 // =============================================================================
 // Label index
-inline size_t label_of_position(size_t i, size_t j, size_t k)
+inline int label_of_position(int i, int j, int k)
 {
+  assert(i >= 0 && j >= 0 && k >= 0);
+
   return (4 * 4 * i) + (4 * j) + k;
 }
 
 
 // =============================================================================
 // Constraint lines
-std::vector<std::array<size_t,4>> lines { };
+std::vector<std::array<int,4>> lines { };
 
 void construct_lines() {
   // 4 planes and the rows in these
-  for (uint64_t i = 0; i < 4; i++) { // (dist: 4)
-    for (uint64_t j = 0; j < 4; j++) {
+  for (int i = 0; i < 4; i++) { // (dist: 4)
+    for (int j = 0; j < 4; j++) {
       lines.push_back({ label_of_position(i,j,0), label_of_position(i,j,1), label_of_position(i,j,2), label_of_position(i,j,3) });
     }
   }
   // 4 planes and a diagonal within
-  for (uint64_t i = 0; i < 4; i++) { // (dist: 10)
+  for (int i = 0; i < 4; i++) { // (dist: 10)
     lines.push_back({ label_of_position(i,0,3), label_of_position(i,1,2), label_of_position(i,2,1), label_of_position(i,3,0) });
   }
   // 4 planes... again, now the columns
-  for (uint64_t i = 0; i < 4; i++) { // (dist: 13)
-    for (uint64_t k = 0; k < 4; k++) {
+  for (int i = 0; i < 4; i++) { // (dist: 13)
+    for (int k = 0; k < 4; k++) {
       lines.push_back({ label_of_position(i,0,k), label_of_position(i,1,k), label_of_position(i,2,k), label_of_position(i,3,k) });
     }
   }
   // 4 planes and the other diagonal within
-  for (uint64_t i = 0; i < 4; i++) { // (dist: 16)
+  for (int i = 0; i < 4; i++) { // (dist: 16)
     lines.push_back({ label_of_position(i,0,0), label_of_position(i,1,1), label_of_position(i,2,2), label_of_position(i,3,3) });
   }
 
@@ -45,26 +47,26 @@ void construct_lines() {
   lines.push_back({ label_of_position(0,3,0), label_of_position(1,2,1), label_of_position(2,1,2), label_of_position(3,0,3) });
 
   // Diagonals in the vertical planes
-  for (uint64_t j = 0; j < 4; j++) { // (dist: 46)
+  for (int j = 0; j < 4; j++) { // (dist: 46)
     lines.push_back({ label_of_position(0,j,3), label_of_position(1,j,2), label_of_position(2,j,1), label_of_position(3,j,0) });
   }
 
   // 16 vertical lines (dist: 48)
-  for (uint64_t j = 0; j < 4; j++) {
-    for (uint64_t k = 0; k < 4; k++) {
+  for (int j = 0; j < 4; j++) {
+    for (int k = 0; k < 4; k++) {
       lines.push_back({ label_of_position(0,j,k), label_of_position(1,j,k), label_of_position(2,j,k), label_of_position(3,j,k) });
     }
   }
 
   // Diagonals in the vertical planes
-  for (uint64_t j = 0; j < 4; j++) { // (dist: 49)
+  for (int j = 0; j < 4; j++) { // (dist: 49)
     lines.push_back({ label_of_position(0,j,0), label_of_position(1,j,1), label_of_position(2,j,2), label_of_position(3,j,3) });
   }
 
-  for (uint64_t k = 0; k < 4; k++) { // (dist: 36)
+  for (int k = 0; k < 4; k++) { // (dist: 36)
     lines.push_back({ label_of_position(0,3,k), label_of_position(1,2,k), label_of_position(2,1,k), label_of_position(3,0,k) });
   }
-  for (uint64_t k = 0; k < 4; k++) { // (dist: 60)
+  for (int k = 0; k < 4; k++) { // (dist: 60)
     lines.push_back({ label_of_position(0,0,k), label_of_position(1,1,k), label_of_position(2,2,k), label_of_position(3,3,k) });
   }
 
@@ -87,17 +89,17 @@ typename mgr_t::bdd_t construct_init(mgr_t &mgr)
   typename mgr_t::bdd_t res;
 
   typename mgr_t::bdd_t init_parts[N+1];
-  for (size_t i = 0; i <= N; i++) {
+  for (int i = 0; i <= N; i++) {
     init_parts[i] = i < N ? mgr.leaf_false() : mgr.leaf_true();
   }
 
-  size_t curr_level = 63;
+  int curr_level = 63;
 
   do {
-    size_t min_idx = curr_level > 63 - N ? N - (63 - curr_level + 1) : 0;
-    size_t max_idx = std::min(curr_level, N);
+    int min_idx = curr_level > 63 - N ? N - (63 - curr_level + 1) : 0;
+    int max_idx = std::min(curr_level, N);
 
-    for (size_t curr_idx = min_idx; curr_idx <= max_idx; curr_idx++) {
+    for (int curr_idx = min_idx; curr_idx <= max_idx; curr_idx++) {
       typename mgr_t::bdd_t low = init_parts[curr_idx];
       typename mgr_t::bdd_t high = curr_idx == N ? mgr.leaf_false() : init_parts[curr_idx + 1];
 
@@ -113,7 +115,7 @@ typename mgr_t::bdd_t construct_init(mgr_t &mgr)
 // ========================================================================== //
 //                              LINE CONSTRAINT                               //
 template<typename mgr_t>
-typename mgr_t::bdd_t construct_is_not_winning(mgr_t &mgr, std::array<uint64_t, 4>& line)
+typename mgr_t::bdd_t construct_is_not_winning(mgr_t &mgr, std::array<int, 4>& line)
 {
   size_t idx = 4 - 1;
 

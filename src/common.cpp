@@ -28,8 +28,8 @@ inline unsigned long int duration_of(time_point &before, time_point &after) {
 #include <iostream>       // std::cerr
 #include <stdexcept>      // std::invalid_argument
 
-size_t N = std::numeric_limits<uint64_t>::max();
-size_t M = 128; /* MiB */
+int N = -1;
+int M = 128; /* MiB */
 std::string temp_path = "";
 
 bool parse_input(int &argc, char* argv[])
@@ -87,7 +87,7 @@ bool parse_input(int &argc, char* argv[])
 
 // =============================================================================
 template <class T, size_t N>
-constexpr size_t size(const T (& /*array*/)[N]) noexcept
+constexpr int size(const T (& /*array*/)[N]) noexcept
 {
   return N;
 }

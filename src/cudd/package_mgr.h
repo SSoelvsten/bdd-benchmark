@@ -37,16 +37,16 @@ public:
   inline BDD leaf_false()
   { return __mgr.bddZero(); }
 
-  inline BDD ithvar(size_t label)
+  inline BDD ithvar(int label)
   { return __mgr.bddVar(label); }
 
-  inline BDD nithvar(size_t label)
+  inline BDD nithvar(int label)
   { return ~__mgr.bddVar(label); }
 
   inline BDD ite(const BDD &f, const BDD &g, const BDD &h)
   { return f.Ite(g,h); }
 
-  inline BDD exists(const BDD &b, size_t label)
+  inline BDD exists(const BDD &b, int label)
   { return b.ExistAbstract(__mgr.bddVar(label)); }
 
   inline uint64_t nodecount(const BDD &b)

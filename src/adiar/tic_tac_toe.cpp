@@ -11,7 +11,7 @@ adiar::bdd construct_init(adiar_mgr &/*mgr*/)
 }
 
 template<>
-adiar::bdd construct_is_not_winning(adiar_mgr &/* mgr */, std::array<uint64_t, 4>& line)
+adiar::bdd construct_is_not_winning(adiar_mgr &/* mgr */, std::array<int, 4>& line)
 {
   size_t idx = 4 - 1;
 
