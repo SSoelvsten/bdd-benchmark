@@ -51,8 +51,8 @@ clean:
 	@[ ! -f "external/cudd/Makefile" ] || ( \
     cd external/cudd && make ${MAKE_FLAGS} clean \
                      && rm -f Doxyfile doc/cudd.tex \
-                     && rm -f Makefile config.h config.log config.status dddmp/exp/text*.sh libtool stamp-h1 \
-                     && rm -rf autom4te.cache/ cplusplus/.deps/ cudd/.deps/ dddmp/.deps/ epd/.deps/ mtr/.deps/ nanotrav/.deps/ st/.deps/ util/deps/)
+                     && rm -f Makefile config.h config.log config.status dddmp/exp/text*.sh libtool stamp-h1 */.dirstamp \
+                     && rm -rf autom4te.cache/ */.deps/)
 
   # CMake files
 	@rm -rf build/
