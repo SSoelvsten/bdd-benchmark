@@ -32,7 +32,8 @@ build:
 	@[ -d "build/cudd/" ] || (cd external/cudd \
                             && autoreconf \
                             && ./configure --prefix ${CURDIR}/build/cudd/ --enable-obj \
-                            && make && make install)
+                            && make MAKEINFO=true \
+                            && make install)
 
   # Build all benchmarks
 	@echo "\n\nBuild Benchmarks"
