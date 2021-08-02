@@ -3,6 +3,13 @@
 #include <assert.h>
 
 // =============================================================================
+// Global constants
+constexpr size_t CACHE_RATIO = 16u;
+
+// Initial size taken from CUDD defaults
+constexpr size_t INIT_UNIQUE_SLOTS_PER_VAR = 256;
+
+// =============================================================================
 // A few chrono wrappers to improve readability
 #include <chrono>
 
@@ -50,6 +57,9 @@ bool parse_input(int &argc, char* argv[])
         M = std::stoi(optarg);
         if (M == 0) {
           std::cout << "  Must specify positive amount of memory (-M)" << std::endl;
+          exit = true;
+        } else if (M < 128) {
+          std::cout << "  Memory requirement must at least be 128 MiB" << std::endl;
           exit = true;
         }
 

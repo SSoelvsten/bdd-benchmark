@@ -20,7 +20,10 @@ public:
   // Init and Deinit
 public:
   cudd_mgr(int varcount)
-    : __mgr(varcount, 0, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS, M*1024*1024),
+    : __mgr(varcount, 0,
+            CUDD_UNIQUE_SLOTS,
+            (CUDD_UNIQUE_SLOTS * varcount) / CACHE_RATIO,
+            static_cast<size_t>(M)*1024u*1024u),
       varcount(varcount)
   { // Disable dynamic ordering
     __mgr.AutodynDisable();

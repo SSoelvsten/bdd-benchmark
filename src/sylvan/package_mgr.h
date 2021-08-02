@@ -4,7 +4,10 @@
 #include <sylvan_obj.hpp>
 
 ////////////////////////////////////////////////////////////////////////////////
-/// To initialise Sylvan with M megabytes of memory.
+/// Initialisation of Sylvan.
+///
+/// From 'sylvan_commons.h' we know that every node takes up 24 bytes of memory
+/// and every operation cache entry takes up 36 bytes.
 ///
 /// Lace initialisation
 /// - lace_init:              Single-threaded and use a 1,000,000 size task
@@ -19,12 +22,22 @@
 ///   Nodes table size: 24 bytes * nodes
 ///   Cache table size: 36 bytes * cache entries
 ///
-/// - sylvan_set_limit:       Set the memory limit, the ratio between node table
-///                           and cache to be 2^4:1, and lastly make the table
-///                           sizes be as big as possible.
+/// - sylvan_set_limit:       Set the memory limit, the (exponent of the) ratio
+///                           between node table and cache, and lastly make the
+///                           table sizes be as big as possible.
 ///
-/// - sylvan_set_granularity: 1 means "use cache for every operation".
+/// - sylvan_set_granularity: 1 for "use cache for every operation".
 ////////////////////////////////////////////////////////////////////////////////
+size_t log2(size_t n)
+{
+  size_t exp = 1u;
+  size_t val = 2u; // 2^1
+  while (val < n) {
+    val <<= 1u;
+    exp++;
+  }
+  return exp;
+}
 
 
 class sylvan_mgr
@@ -43,12 +56,36 @@ public:
 public:
   sylvan_mgr(int varcount) : varcount(varcount)
   {
+    // Init LACE
     lace_init(1, 1000000);
     lace_startup(0, NULL, NULL);
     LACE_ME;
-    sylvan::sylvan_set_limits(M * 1024 * 1024, 4, 0);
-    sylvan::sylvan_init_package();
+
+    const size_t memory_bytes = static_cast<size_t>(M) * 1024u * 1024u;
+
+    // Reversing computations of 'sylvan_set_limits' in sylvan_common.c
+    size_t max_c = 1;
+    size_t max_t = 1 << log2(CACHE_RATIO);
+    while (2*(max_t * 24u + max_c * 36u) < memory_bytes && max_t < 0x0000040000000000) {
+      max_t *= 2;
+      max_c *= 2;
+    }
+
+    const size_t min_t = INIT_UNIQUE_SLOTS_PER_VAR * varcount;
+    // const size_t min_c = (INIT_UNIQUE_SLOTS_PER_VAR * varcount) / CACHE_RATIO;
+
+    int initial_ratio = 0;
+    while ((max_t >> 2) > min_t) {
+      max_t >>= 2;
+      initial_ratio++;
+    }
+
+    // Init Sylvan
+    sylvan::sylvan_set_limits(memory_bytes,
+                              log2(CACHE_RATIO),
+                              initial_ratio);
     sylvan::sylvan_set_granularity(1);
+    sylvan::sylvan_init_package();
     sylvan::sylvan_init_bdd();
   }
 
