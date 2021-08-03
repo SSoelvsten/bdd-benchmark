@@ -58,9 +58,6 @@ bool parse_input(int &argc, char* argv[])
         if (M == 0) {
           std::cout << "  Must specify positive amount of memory (-M)" << std::endl;
           exit = true;
-        } else if (M < 128) {
-          std::cout << "  Memory requirement must at least be 128 MiB" << std::endl;
-          exit = true;
         }
 
         continue;
