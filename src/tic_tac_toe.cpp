@@ -77,10 +77,6 @@ void construct_lines() {
   lines.push_back({ label_of_position(0,0,0), label_of_position(1,1,1), label_of_position(2,2,2), label_of_position(3,3,3) });
 }
 
-// =============================================================================
-int largest_bdd = 0;
-
-
 // ========================================================================== //
 //                           EXACTLY N CONSTRAINT                             //
 template<typename mgr_t>
@@ -155,6 +151,8 @@ void run_tic_tac_toe(int argc, char** argv)
   auto t_init_after = get_timestamp();
   INFO(" | init time (ms):         %zu\n", duration_of(t_init_before, t_init_after));
 
+  construct_lines();
+
   uint64_t solutions;
   {
     // =========================================================================
@@ -163,7 +161,7 @@ void run_tic_tac_toe(int argc, char** argv)
 
     auto t1 = get_timestamp();
     typename mgr_t::bdd_t res = construct_init(mgr);
-    uint64_t initial_bdd = mgr.nodecount(res);
+    size_t initial_bdd = mgr.nodecount(res);
     auto t2 = get_timestamp();
 
     INFO(" | | size (nodes):         %zu\n", initial_bdd);
@@ -173,18 +171,22 @@ void run_tic_tac_toe(int argc, char** argv)
     // Add constraints lines
     INFO(" | applying constraints:\n");
 
-    construct_lines();
-    uint64_t largest_bdd = 0;
+    size_t largest_bdd = 0;
+    size_t total_nodes = initial_bdd;
 
     auto t3 = get_timestamp();
 
     for (auto &line : lines) {
       res &= construct_is_not_winning(mgr, line);
-      largest_bdd = std::max(largest_bdd, mgr.nodecount(res));
+
+      const size_t nodecount = mgr.nodecount(res);
+      largest_bdd = std::max(largest_bdd, nodecount);
+      total_nodes += nodecount + 4 /* from construct_is_not_winning */;
     }
 
     auto t4 = get_timestamp();
 
+    INFO(" | | total no. nodes:      %zu\n", total_nodes);
     INFO(" | | largest size (nodes): %zu\n", largest_bdd);
     INFO(" | | final size (nodes):   %zu\n", mgr.nodecount(res));
     INFO(" | | time (ms):            %zu\n", duration_of(t3,t4));

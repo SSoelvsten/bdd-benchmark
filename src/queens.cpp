@@ -2,6 +2,7 @@
 #include "expected.h"
 
 size_t largest_bdd = 0;
+size_t total_nodes = 0;
 
 // =============================================================================
 inline int label_of_position(int i, int j)
@@ -51,6 +52,8 @@ typename mgr_t::bdd_t queens_S(mgr_t &mgr, int i, int j)
     }
   } while (row-- > 0);
 
+  total_nodes += mgr.nodecount(out);
+
   return out;
 }
 
@@ -63,7 +66,10 @@ typename mgr_t::bdd_t queens_R(mgr_t &mgr, int row)
 
   for (int j = 1; j < N; j++) {
     out |= queens_S(mgr, row, j);
-    largest_bdd = std::max(largest_bdd, mgr.nodecount(out));
+
+    const size_t nodecount = mgr.nodecount(out);
+    largest_bdd = std::max(largest_bdd, nodecount);
+    total_nodes += nodecount;
   }
   return out;
 }
@@ -81,7 +87,10 @@ typename mgr_t::bdd_t queens_B(mgr_t &mgr)
 
   for (int i = 1; i < N; i++) {
     out &= queens_R(mgr, i);
-    largest_bdd = std::max(largest_bdd, mgr.nodecount(out));
+
+    const size_t nodecount = mgr.nodecount(out);
+    largest_bdd = std::max(largest_bdd, nodecount);
+    total_nodes += nodecount;
   }
   return out;
 }
@@ -114,6 +123,7 @@ void run_queens(int argc, char** argv)
     time_point t2 = get_timestamp();
 
     INFO(" | construction:\n");
+    INFO(" | | total no. nodes:      %zu\n", total_nodes);
     INFO(" | | largest size (nodes): %zu\n", largest_bdd);
     INFO(" | | final size (nodes):   %zu\n", mgr.nodecount(res));
     INFO(" | | time (ms):            %zu\n", duration_of(t1,t2));
