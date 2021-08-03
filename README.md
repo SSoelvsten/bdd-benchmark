@@ -71,9 +71,8 @@ For comparability, we will enforce all packages to follow the same settings.
 
 - Only use a single core.
 
-- Packages with a unique node table and a memoization table will have a ratio
-  between the two of 16:1. The initial number of entries in the unique node
-  table (and the operation cache in turn) is 256 times the number of variables.
+- Packages will initialise its unique node table to its full potential size and
+  have its operation cache (memoization table) set to of 16:1.
 
 - Dynamic variable reordering is disabled.
 

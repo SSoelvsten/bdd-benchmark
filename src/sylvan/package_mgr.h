@@ -63,27 +63,10 @@ public:
 
     const size_t memory_bytes = static_cast<size_t>(M) * 1024u * 1024u;
 
-    // Reversing computations of 'sylvan_set_limits' in sylvan_common.c
-    size_t max_c = 1;
-    size_t max_t = 1 << log2(CACHE_RATIO);
-    while (2*(max_t * 24u + max_c * 36u) < memory_bytes && max_t < 0x0000040000000000) {
-      max_t *= 2;
-      max_c *= 2;
-    }
-
-    const size_t min_t = INIT_UNIQUE_SLOTS_PER_VAR * varcount;
-    // const size_t min_c = (INIT_UNIQUE_SLOTS_PER_VAR * varcount) / CACHE_RATIO;
-
-    int initial_ratio = 0;
-    while ((max_t >> 2) > min_t) {
-      max_t >>= 2;
-      initial_ratio++;
-    }
-
     // Init Sylvan
-    sylvan::sylvan_set_limits(memory_bytes,
-                              log2(CACHE_RATIO),
-                              initial_ratio);
+    sylvan::sylvan_set_limits(memory_bytes,      // Set memory limit
+                              log2(CACHE_RATIO), // Set (exponent) of cache ratio
+                              0);                // Initialise unique node table to full size
     sylvan::sylvan_set_granularity(1);
     sylvan::sylvan_init_package();
     sylvan::sylvan_init_bdd();

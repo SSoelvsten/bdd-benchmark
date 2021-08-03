@@ -31,16 +31,31 @@
 ///     Declare the number of variables to expect to be used.
 ////////////////////////////////////////////////////////////////////////////////
 
-int compute_maxnodenum()
+constexpr size_t MAX_INT = 2147483647;
+
+struct buddy_init_size
+{
+  int node_size;
+  int cache_size;
+  bool broke_cache_ratio = false;
+};
+
+buddy_init_size compute_init_size()
 {
   // We need to maximise x and y in the following system of inequalities:
-  //              24x + 16y <= M , x = CACHE_RATIO * y
+  //              24x + 16y <= M , x = y * CACHE_RATIO
   const size_t memory_bytes = static_cast<size_t>(M) * 1024 * 1024;
-  const size_t x = memory_bytes / (24u * CACHE_RATIO + 16u);
+  const size_t x = memory_bytes / (24u + 16u / CACHE_RATIO);
 
-  // memory ceiling for BuDDy is MAX_INT, though that is the same as 'unlimited'
-  constexpr size_t MAX_INT = 2147483647;
-  return x > MAX_INT ? 0 : x;
+  // memory ceiling for BuDDy is MAX_INT.
+
+  // Let y take the remaining space left.
+  const bool broke_cache_ratio = x > MAX_INT;
+  const size_t y = broke_cache_ratio
+    ? (memory_bytes - (x * 24u)) / 16u
+    : x / CACHE_RATIO;
+
+  return { std::min(x, MAX_INT), std::min(y, MAX_INT), broke_cache_ratio };
 }
 
 class buddy_mgr
@@ -56,11 +71,19 @@ public:
 public:
   buddy_mgr(int varcount)
   {
-    bdd_init(INIT_UNIQUE_SLOTS_PER_VAR * varcount,
-             (INIT_UNIQUE_SLOTS_PER_VAR * varcount) / CACHE_RATIO);
+#ifndef GRENDEL
+    const buddy_init_size init_size = compute_init_size();
+    bdd_init(init_size.node_size, init_size.cache_size);
+
+    if (!init_size.broke_cache_ratio) {
+      bdd_setcacheratio(CACHE_RATIO);
+    }
+    bdd_setmaxnodenum(init_size.node_size);
+#else
+    bdd_init(MAX_INT, MAX_INT);
+#endif
+
     bdd_setvarnum(varcount);
-    bdd_setcacheratio(CACHE_RATIO);
-    bdd_setmaxnodenum(compute_maxnodenum());
 
     // Disable default gbc_handler
     bdd_gbc_hook(NULL);

@@ -22,7 +22,7 @@ public:
   cudd_mgr(int varcount)
     : __mgr(varcount, 0,
             CUDD_UNIQUE_SLOTS,
-            (CUDD_UNIQUE_SLOTS * varcount) / CACHE_RATIO,
+            CUDD_CACHE_SLOTS,
             static_cast<size_t>(M)*1024u*1024u),
       varcount(varcount)
   { // Disable dynamic ordering
