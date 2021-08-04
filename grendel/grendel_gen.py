@@ -63,10 +63,11 @@ PROBLEMS = [
 def script_str(variant, problem_name, N, M, time):
     output_dir = f'$SLURM_SUBMIT_DIR/out/{problem_name}'
     output_file = f'{output_dir}/{variant}_{N}.out'
+    memory = "64G" if variant == "buddy" else f'{M+1024}M'
     return f'''#!/bin/bash
 #SBATCH --job-name={variant}_{problem_name}_{N}
 #SBATCH --partition=q48
-#SBATCH --mem={64 if variant == "buddy" else M+1}G
+#SBATCH --mem={memory}
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
