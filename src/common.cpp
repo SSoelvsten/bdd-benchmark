@@ -4,7 +4,7 @@
 
 // =============================================================================
 // Global constants
-constexpr size_t CACHE_RATIO = 16u;
+constexpr size_t CACHE_RATIO = 64u;
 
 // Initial size taken from CUDD defaults
 constexpr size_t INIT_UNIQUE_SLOTS_PER_VAR = 256;

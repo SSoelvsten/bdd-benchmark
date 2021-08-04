@@ -72,7 +72,7 @@ For comparability, we will enforce all packages to follow the same settings.
 - Only use a single core.
 
 - Packages will initialise its unique node table to its full potential size and
-  have its operation cache (memoization table) set to of 16:1.
+  have its operation cache (memoization table) set to of 64:1.
 
 - Dynamic variable reordering is disabled.
 
