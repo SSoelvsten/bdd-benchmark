@@ -10,3 +10,9 @@
 [submodule "external/cudd"]
 	path = external/cudd
 	url = ../../ivmai/cudd
+[submodule "external/blifparse"]
+	path = external/blifparse
+	url = ../../SSoelvsten/libblifparse
+[submodule "benchmarks/epfl"]
+	path = benchmarks/epfl
+	url = ../../lsils/benchmarks.git

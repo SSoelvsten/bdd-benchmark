@@ -19,7 +19,7 @@ inline time_point get_timestamp() {
   return std::chrono::steady_clock::now();
 }
 
-inline unsigned long int duration_of(time_point &before, time_point &after) {
+inline unsigned long int duration_of(const time_point &before, const time_point &after) {
   return std::chrono::duration_cast<std::chrono::milliseconds>(after - before).count();
 }
 
@@ -34,10 +34,16 @@ inline unsigned long int duration_of(time_point &before, time_point &after) {
 #include <getopt.h>       // argument parsing
 #include <iostream>       // std::cerr
 #include <stdexcept>      // std::invalid_argument
+#include <string>         // std::string
+#include <sstream>        // std::istringstream
+#include <vector>         // std::vector
+#include <iterator>       // iterators
 
 int N = -1;
 int M = 128; /* MiB */
 std::string temp_path = "";
+
+std::vector<std::string> input_files = {};
 
 bool parse_input(int &argc, char* argv[])
 {
@@ -46,7 +52,7 @@ bool parse_input(int &argc, char* argv[])
 
   opterr = 0; // Squelch errors for non-common command-line arguments
 
-  while ((c = getopt(argc, argv, "N:M:t:h")) != -1) {
+  while ((c = getopt(argc, argv, "N:f:M:t:h")) != -1) {
     try {
       switch(c) {
       case 'N':
@@ -66,6 +72,12 @@ bool parse_input(int &argc, char* argv[])
         temp_path = optarg;
         continue;
 
+      case 'f': {
+          std::string file = optarg;
+          if (!file.empty()) { input_files.push_back(file); }
+        }
+        continue;
+
       case '?': // All parameters not defined above will be overwritten to be the '?' character
         std::cout << "Undefined flag parameter used" << std::endl << std::endl;
         [[fallthrough]]; // Let the compiler know, that we intend to fall through to 'h' case
@@ -75,9 +87,10 @@ bool parse_input(int &argc, char* argv[])
                   << std::endl
                   << "        -h                    Print this information" << std::endl
                   << "        -N SIZE     [" << N
-                                        << "]       Specify the size of problem" << std::endl
-                  << "        -M MiB      [128]     Specify the amount of memory (MiB) to be dedicated to the BDD package" << std::endl
-                  << "        -t TEMP_PTH [/tmp]    Filepath for temporary files on disk (Adiar BDD package)" << std::endl
+                                        << "]       Size of a problem" << std::endl
+                  << "        -f FILENAME           Input file to run (use repeatedly for multiple files)" << std::endl
+                  << "        -M MiB      [128]     Amount of memory (MiB) to be dedicated to the BDD package" << std::endl
+                  << "        -t TEMP_PTH [/tmp]    Filepath for temporary files on disk" << std::endl
           ;
         return true;
       }
@@ -90,7 +103,7 @@ bool parse_input(int &argc, char* argv[])
     }
   }
 
-  // optind = 0; // Reset getopt, such that it can be used again outside
+  optind = 0; // Reset getopt, such that it can be used again outside
   return exit;
 }
 

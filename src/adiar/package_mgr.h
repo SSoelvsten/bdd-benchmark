@@ -34,6 +34,12 @@ public:
   inline adiar::bdd leaf_false()
   { return adiar::bdd_false(); }
 
+  inline adiar::bdd ithvar(int label)
+  { return adiar::bdd_ithvar(label); }
+
+  inline adiar::bdd negate(const adiar::bdd &b)
+  { return ~b; }
+
   inline adiar::bdd exists(const adiar::bdd &b, int label)
   { return adiar::bdd_exists(b,label); }
 
@@ -42,6 +48,11 @@ public:
 
   inline uint64_t satcount(const adiar::bdd &b)
   { return adiar::bdd_satcount(b); }
+
+  // Statistics
+public:
+  inline size_t allocated_nodes()
+  { return 0; }
 };
 
 #include "../sat_solver.h"
