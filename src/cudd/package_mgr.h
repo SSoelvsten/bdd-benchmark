@@ -73,13 +73,20 @@ public:
   inline BDD ite(const BDD &f, const BDD &g, const BDD &h)
   { return f.Ite(g,h); }
 
+  inline BDD negate(const BDD &b)
+  { return ~b; }
+
   inline BDD exists(const BDD &b, int label)
   { return b.ExistAbstract(__mgr.bddVar(label)); }
 
   inline uint64_t nodecount(const BDD &b)
   { return b.nodeCount(); }
 
-public:
   inline uint64_t satcount(const BDD &b)
   { return b.CountMinterm(varcount); }
+
+  // Statistics
+public:
+  inline size_t allocated_nodes()
+  { return __mgr.ReadSize(); }
 };

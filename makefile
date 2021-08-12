@@ -38,7 +38,7 @@ build:
   # Build all benchmarks
 	@echo "\n\nBuild Benchmarks"
 	@cd build/ && for package in 'adiar' 'buddy' 'sylvan' 'cudd' ; do \
-		for benchmark in 'queens' 'sat_pigeonhole_principle' 'sat_queens' 'tic_tac_toe' ; do \
+		for benchmark in 'picotrav' 'queens' 'sat_pigeonhole_principle' 'sat_queens' 'tic_tac_toe' ; do \
 			make ${MAKE_FLAGS} $$package'_'$$benchmark ; \
 		done ; \
 	done
@@ -60,6 +60,13 @@ clean:
 # ============================================================================ #
 #  RUN TARGETS
 # ============================================================================ #
+F1 := ""
+F2 := ""
+
+combinatorial/picotrav:
+combinatorial/picotrav:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_picotrav) -f $(F1) -f $(F2) -M $(M)
+
 combinatorial/queens: N := 8
 combinatorial/queens:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_queens) -N $(N) -M $(M)

@@ -95,6 +95,9 @@ public:
   inline sylvan::Bdd ite(const sylvan::Bdd &f, const sylvan::Bdd &g, const sylvan::Bdd &h)
   { return f.Ite(g,h); }
 
+  inline sylvan::Bdd negate(const sylvan::Bdd &b)
+  { return ~b; }
+
   inline sylvan::Bdd exists(const sylvan::Bdd &b, int label)
   { return b.ExistAbstract(sylvan::Bdd::bddVar(label)); }
 
@@ -103,4 +106,9 @@ public:
 
   inline uint64_t satcount(const bdd_t &b)
   { return b.SatCount(varcount); }
+
+  // Statistics
+public:
+  inline size_t allocated_nodes()
+  { return -1; }
 };

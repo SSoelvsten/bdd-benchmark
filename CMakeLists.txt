@@ -7,7 +7,6 @@ project (bdd_benchmarks
 )
 
 
-
 # ============================================================================ #
 # Compiler settings
 # ============================================================================ #
@@ -27,10 +26,13 @@ message(STATUS "    CXX Flags: ${CMAKE_CXX_FLAGS}")
 message(STATUS "  Grendel: ${GRENDEL}")
 message(STATUS "")
 
+
 # ============================================================================ #
 # External
 # ============================================================================ #
 
+# ---------------------------------------------------------------------------- #
+# BDD Packages
 # Adiar Package (Steffan Sølvsten - Aarhus University, Denmark)
 add_subdirectory (external/adiar adiar)
 
@@ -47,6 +49,10 @@ set(CUDD_LIB_FILES "${CUDD_BUILD_DIR}/lib/libcudd.a")
 # Sylvan Package (Tom van Dijk - University of Twente, Netherlands)
 add_subdirectory (external/sylvan sylvan)
 set(SYLVAN_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/build/sylvan/usr/local/include")
+
+# ---------------------------------------------------------------------------- #
+# BLIF parser
+add_subdirectory (external/blifparse libblifparse)
 
 # ============================================================================ #
 # Examples

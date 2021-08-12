@@ -14,7 +14,8 @@ one to compare implementations.
     - [Combinatorial Benchmarks](#combinatorial-benchmarks)
         - [Queens](#queens)
         - [Tic-Tac-Toe](#tic-tac-toe)
-     - [SAT Solver Benchmarks](#sat-solver-benchmarks)
+        - [Picotrav](#picotrav)
+    - [SAT Solver Benchmarks](#sat-solver-benchmarks)
         - [Queens](#queens-1)
         - [Pigeonhole Principle](#pigeonhole-principle)
     - [License](#license)
@@ -85,7 +86,12 @@ very simple after having initialised all submodules using the following command.
 git submodule update --init --recursive
 ```
 
-This also requires _CMake_ and a _C++_ compiler of your choice.
+This also requires _CMake_ and a _C++_ compiler of your choice. The _Picotrav_
+benchmark requires GNU Bison and Flex, which can be installed with.
+
+```bash
+apt install bison flex
+```
 
 **Adiar**
 
@@ -164,6 +170,19 @@ intermediate result.
 | Labels            |              64 |
 | Apply operations  |              76 |
 | Initial BDD size  | (64-N+1)(N+1)-1 |
+
+### Picotrav
+This benchmark is a small recreation of the _Nanotrav_ example provided with the
+CUDD library. Given a hierarchical circuit in (a subset of the) [Berkeley Logic
+Interchange Format (BLIF)](https://course.ece.cmu.edu/~ee760/760docs/blif.pdf) a
+BDD is created for every gate in the order they are given in the file. If two
+files are given, then both are constructed and every output gate is compared.
+
+You can find multiple inputs in the _benchmarks/_ folder.
+
+Note, that the memory given is only for the BDD package. So, the program will
+either use swap or be killed if the BDD package takes up more memory in
+conjunction with auxiliary data structures.
 
 
 ## SAT Solver Benchmarks

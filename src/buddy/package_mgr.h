@@ -116,6 +116,9 @@ public:
   inline bdd ite(const bdd &f, const bdd &g, const bdd &h)
   { return bdd_ite(f,g,h); }
 
+  inline bdd negate(const bdd &b)
+  { return bdd_not(b); }
+
   inline bdd exists(const bdd &b, int label)
   { return bdd_exist(b, bdd_ithvar(label)); }
 
@@ -124,4 +127,9 @@ public:
 
   inline uint64_t satcount(const bdd_t &b)
   { return bdd_satcount(b); }
+
+  // Statistics
+public:
+  inline size_t allocated_nodes()
+  { return bdd_getnodenum(); }
 };
