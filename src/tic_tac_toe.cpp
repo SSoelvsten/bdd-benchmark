@@ -137,8 +137,9 @@ typename mgr_t::bdd_t construct_is_not_winning(mgr_t &mgr, std::array<int, 4>& l
 template<typename mgr_t>
 void run_tic_tac_toe(int argc, char** argv)
 {
+  no_variable_order variable_order = no_variable_order::NO_ORDERING;
   N = 20;
-  bool should_exit = parse_input(argc, argv);
+  bool should_exit = parse_input(argc, argv, variable_order);
   if (should_exit) { exit(-1); }
 
   // =========================================================================
