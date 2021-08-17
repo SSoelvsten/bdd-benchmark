@@ -55,10 +55,11 @@ clean:
 # ============================================================================ #
 F1 := ""
 F2 := ""
+O := "INPUT"
 
 combinatorial/picotrav:
 combinatorial/picotrav:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_picotrav) -f $(F1) -f $(F2) -M $(M)
+	@$(subst VARIANT,$(V),./build/src/VARIANT_picotrav) -f $(F1) -f $(F2) -M $(M) -o $(O)
 
 combinatorial/queens: N := 8
 combinatorial/queens:

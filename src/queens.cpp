@@ -99,8 +99,9 @@ typename mgr_t::bdd_t queens_B(mgr_t &mgr)
 template<typename mgr_t>
 void run_queens(int argc, char** argv)
 {
+  no_variable_order variable_order = no_variable_order::NO_ORDERING;
   N = 8; // Default N value
-  bool should_exit = parse_input(argc, argv);
+  bool should_exit = parse_input(argc, argv, variable_order);
   if (should_exit) { exit(-1); }
 
   // =========================================================================

@@ -45,14 +45,28 @@ std::string temp_path = "";
 
 std::vector<std::string> input_files = {};
 
-bool parse_input(int &argc, char* argv[])
+enum no_variable_order { NO_ORDERING };
+
+template<typename variable_order_enum>
+variable_order_enum parse_variable_ordering(const std::string &arg, bool &should_exit);
+
+template<>
+no_variable_order parse_variable_ordering(const std::string &, bool &should_exit)
+{
+  std::cerr << "Variable ordering is undefined for this benchmark" << std::endl;
+  should_exit = true;
+  return no_variable_order::NO_ORDERING;
+}
+
+template<typename variable_order_enum = no_variable_order>
+bool parse_input(int &argc, char* argv[], variable_order_enum &variable_order)
 {
   bool exit = false;
   int c;
 
   opterr = 0; // Squelch errors for non-common command-line arguments
 
-  while ((c = getopt(argc, argv, "N:f:M:t:h")) != -1) {
+  while ((c = getopt(argc, argv, "N:M:f:o:t:h")) != -1) {
     try {
       switch(c) {
       case 'N':
@@ -62,24 +76,27 @@ bool parse_input(int &argc, char* argv[])
       case 'M':
         M = std::stoi(optarg);
         if (M == 0) {
-          std::cout << "  Must specify positive amount of memory (-M)" << std::endl;
+          std::cerr << "  Must specify positive amount of memory (-M)" << std::endl;
           exit = true;
         }
+        continue;
 
+      case 'f': {
+        std::string file = optarg;
+        if (!file.empty()) { input_files.push_back(file); }
+        continue;
+      }
+
+      case 'o':
+        variable_order = parse_variable_ordering<variable_order_enum>(optarg, exit);
         continue;
 
       case 't':
         temp_path = optarg;
         continue;
 
-      case 'f': {
-          std::string file = optarg;
-          if (!file.empty()) { input_files.push_back(file); }
-        }
-        continue;
-
       case '?': // All parameters not defined above will be overwritten to be the '?' character
-        std::cout << "Undefined flag parameter used" << std::endl << std::endl;
+        std::cerr << "Undefined flag parameter used" << std::endl << std::endl;
         [[fallthrough]]; // Let the compiler know, that we intend to fall through to 'h' case
 
       case 'h':
@@ -90,15 +107,16 @@ bool parse_input(int &argc, char* argv[])
                                         << "]       Size of a problem" << std::endl
                   << "        -f FILENAME           Input file to run (use repeatedly for multiple files)" << std::endl
                   << "        -M MiB      [128]     Amount of memory (MiB) to be dedicated to the BDD package" << std::endl
+                  << "        -o ORDERING           Variable ordering to use" << std::endl
                   << "        -t TEMP_PTH [/tmp]    Filepath for temporary files on disk" << std::endl
           ;
         return true;
       }
     } catch (std::invalid_argument const &ex) {
-      std::cout << "Invalid number: " << argv[1] << std::endl;
+      std::cerr << "Invalid number: " << argv[1] << std::endl;
       exit = true;
     } catch (std::out_of_range const &ex) {
-      std::cout << "Number out of range: " << argv[1] << std::endl;
+      std::cerr << "Number out of range: " << argv[1] << std::endl;
       exit = true;
     }
   }

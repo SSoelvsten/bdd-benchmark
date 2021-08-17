@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 #include <unordered_set>
+#include <random>
 
 #include <blifparse.hpp>
 
@@ -24,17 +25,18 @@ public:
   std::unordered_map<std::string, int> inputs_w_order;
   std::unordered_set<std::string> outputs;
   std::vector<std::string> outputs_in_order;
+  std::unordered_map<std::string, int> level;
   std::unordered_map<std::string, int> ref_count;
   std::unordered_map<std::string, node_t> nodes;
 
 
-  bool is_input(const std::string &n)
+  bool is_input(const std::string &n) const
   {
     const auto lookup_inputs = inputs_w_order.find(n);
     return lookup_inputs != inputs_w_order.end();
   }
 
-  bool is_output(const std::string &n)
+  bool is_output(const std::string &n) const
   {
     const auto lookup_outputs = outputs.find(n);
     return lookup_outputs != outputs.end();
@@ -220,6 +222,234 @@ bool construct_net(std::string filename, net_t &net)
 }
 
 // ========================================================================== //
+// Variable Ordering
+void dfs_variable_order_rec(const std::string &node_name,
+                            std::unordered_map<int, int> &new_ordering,
+                            const net_t &net,
+                            std::unordered_set<std::string> &visited)
+{
+  if (new_ordering.size() == net.inputs_w_order.size()) { return; }
+
+  const auto lookup_visited = visited.find(node_name);
+  if (lookup_visited != visited.end()) { return; }
+  visited.insert(node_name);
+
+  const auto lookup_node = net.nodes.find(node_name);
+  if (lookup_node == net.nodes.end()) {
+    std::cerr << "Referenced net '" << node_name << "' is undefined." << std::endl;
+    exit(-1);
+  }
+
+  const node_t n = lookup_node -> second;
+
+  // Iterate through for non-input nets (i.e. looking at deeper inputs)
+  for (const std::string &dep_name : n.nets) {
+    if (net.is_input(dep_name)) { continue; }
+    dfs_variable_order_rec(dep_name, new_ordering, net, visited);
+  }
+
+  // Add yet unseen inputs (i.e. looking at shallow inputs)
+  for (const std::string &dep_name : n.nets) {
+    if (!net.is_input(dep_name)) { continue; }
+
+    const int old_idx = net.inputs_w_order.find(dep_name) -> second;
+
+    const auto lookup_order = new_ordering.find(old_idx);
+    if (lookup_order != new_ordering.end()) { continue; }
+
+    const int new_idx = new_ordering.size();
+    new_ordering.insert({ old_idx, new_idx});
+  }
+}
+
+std::unordered_map<int, int> dfs_variable_order(const net_t &net)
+{
+  std::unordered_set<std::string> visited_nodes;
+  std::unordered_map<int, int> new_ordering;
+  for (const std::string output : net.outputs_in_order) {
+    dfs_variable_order_rec(output, new_ordering, net, visited_nodes);
+  }
+  return new_ordering;
+}
+
+// Compute (lazily) the level of a node
+int level_of(const std::string &node_name, net_t &net)
+{
+  if (net.is_input(node_name)) { return 0; }
+
+  const auto lookup_level = net.level.find(node_name);
+  if (lookup_level != net.level.end()) { return lookup_level -> second; }
+
+  const auto lookup_node = net.nodes.find(node_name);
+  if (lookup_node == net.nodes.end()) {
+    std::cerr << "Referenced net '" << node_name << "' is undefined." << std::endl;
+    exit(-1);
+  }
+
+  const node_t n = lookup_node -> second;
+
+  int level = -1;
+  for (const std::string dep_name : n.nets) {
+    level = std::max(level, level_of(dep_name, net) + 1);
+  }
+
+  net.level.insert({ node_name, level });
+  return level;
+}
+
+// For each input, compute the smallest level of a net referencing it
+void compute_input_depth(const std::string &node_name,
+                         std::unordered_map<std::string, int> &deepest_reference,
+                         net_t &net,
+                         std::unordered_set<std::string> &visited)
+{
+  const auto lookup_visited = visited.find(node_name);
+  if (lookup_visited != visited.end()) { return; }
+  visited.insert(node_name);
+
+  const int node_level = level_of(node_name, net);
+
+  const auto lookup_node = net.nodes.find(node_name);
+  if (lookup_node == net.nodes.end()) {
+    std::cerr << "Referenced net '" << node_name << "' is undefined." << std::endl;
+    exit(-1);
+  }
+
+  const node_t n = lookup_node -> second;
+
+  for (const std::string &dep_name : n.nets) {
+    if (net.is_input(dep_name)) {
+      const auto lookup_depth = deepest_reference.find(dep_name);
+
+      if (lookup_depth != deepest_reference.end()) {
+        if (lookup_depth -> second > node_level) {
+          deepest_reference.erase(dep_name);
+          deepest_reference.insert({dep_name, node_level});
+        }
+      } else {
+        deepest_reference.insert({dep_name, node_level});
+      }
+    } else {
+      compute_input_depth(dep_name, deepest_reference, net, visited);
+    }
+  }
+}
+
+std::unordered_map<int, int> level_variable_order(net_t &net)
+{
+  // Create a std::vector we can sort
+  std::vector<std::string> inputs;
+  for (auto kv : net.inputs_w_order) {
+    inputs.push_back(kv.first);
+  }
+
+  std::unordered_map<std::string, int> deepest_reference;
+  std::unordered_set<std::string> visited_nodes;
+  for (const std::string output : net.outputs_in_order) {
+    compute_input_depth(output, deepest_reference, net, visited_nodes);
+  }
+
+  // Sort based on deepest referenced level (break ties by prior ordering)
+  const auto comparator = [&net, &deepest_reference](const std::string &i, const std::string &j) {
+      const int old_i = net.inputs_w_order.find(i) -> second;
+      const int i_level = deepest_reference.find(i) -> second;
+      const int old_j = net.inputs_w_order.find(j) -> second;
+      const int j_level = deepest_reference.find(j) -> second;
+
+      return (i_level < j_level) || (i_level == j_level && old_i < old_j);
+    };
+
+  std::sort(inputs.begin(), inputs.end(), comparator);
+
+  // Map into new ordering
+  std::unordered_map<int, int> new_ordering;
+
+  for (size_t idx = 0; idx < inputs.size(); idx++) {
+    new_ordering.insert({ net.inputs_w_order.find(inputs[idx]) -> second, idx });
+  }
+
+  return new_ordering;
+}
+
+std::unordered_map<int, int> random_variable_order(net_t &net)
+{
+  // Create a std::vector we can shuffle
+  std::vector<std::string> inputs;
+  for (auto kv : net.inputs_w_order) {
+    inputs.push_back(kv.first);
+  }
+
+  std::random_device rd;
+  std::mt19937 gen(rd());
+
+  std::shuffle(inputs.begin(), inputs.end(), gen);
+
+  // Map into new ordering
+  std::unordered_map<int, int> new_ordering;
+
+  for (size_t idx = 0; idx < inputs.size(); idx++) {
+    new_ordering.insert({ net.inputs_w_order.find(inputs[idx]) -> second, idx });
+  }
+
+  return new_ordering;
+}
+
+void update_order(net_t &net, const std::unordered_map<int, int> &new_ordering)
+{
+  std::unordered_map<std::string, int> new_inputs_w_order;
+
+  for (auto kv : net.inputs_w_order) {
+    new_inputs_w_order.insert({ kv.first, new_ordering.find(kv.second) -> second });
+  }
+
+  net.inputs_w_order = new_inputs_w_order;
+}
+
+enum variable_order { INPUT, DFS, LEVEL, LEVEL_DFS, RANDOM };
+
+void apply_variable_order(const variable_order &o, net_t &net_0, net_t &net_1, bool print = true)
+{
+  std::unordered_map<int, int> new_ordering;
+
+  switch (o) {
+  case INPUT:
+    if (print) { std::cout << " | Variable order: INPUT" << std::endl; }
+    // Keep as is
+    return;
+
+  case DFS: {
+    if (print) { std::cout << " | Variable order: DFS" << std::endl; }
+    new_ordering = dfs_variable_order(net_0);
+    break;
+  }
+
+  case LEVEL: {
+    if (print) { std::cout << " | Variable order: LEVEL" << std::endl; }
+    new_ordering = level_variable_order(net_0);
+    break;
+  }
+
+  case LEVEL_DFS: {
+    if (print) { std::cout << " | Variable order: LEVEL / DFS" << std::endl; }
+    apply_variable_order(variable_order::DFS, net_0, net_1, false);
+    new_ordering = level_variable_order(net_0);
+    break;
+  }
+
+  case RANDOM: {
+    if (print) { std::cout << " | Variable order: RANDOM" << std::endl; }
+    new_ordering = random_variable_order(net_0);
+    break;
+  }
+  }
+
+  update_order(net_0, new_ordering);
+  if (net_1.inputs_w_order.size() == net_0.inputs_w_order.size()) {
+    update_order(net_1, new_ordering);
+  }
+}
+
+// ========================================================================== //
 // Depth-first BDD construction of net gate
 
 struct bdd_statistics
@@ -274,13 +504,8 @@ typename mgr_t::bdd_t construct_node_bdd(net_t &net,
     return mgr.ithvar(lookup_input -> second);
   }
 
-  const auto lookup_node = net.nodes.find(node_name);
-  if (lookup_node == net.nodes.end()) {
-    std::cerr << "Net '" << node_name << "' is undefined" << std::endl;
-    exit(-1);
-  }
-
-  const node_t &node_data = lookup_node -> second;
+  assert (net.nodes.find(node_name) != net.nodes.end());
+  const node_t &node_data = net.nodes.find(node_name) -> second;
 
   typename mgr_t::bdd_t so_cover_bdd = mgr.leaf_false();
 
@@ -347,7 +572,7 @@ void construct_net_bdd(const std::string &filename,
   }
 
   INFO(" | constructing '%s'\n", filename.c_str());
-  INFO(" | | net info:\n");
+  INFO(" | | Net info:\n");
   INFO(" | | | inputs:                 %zu\n", net.inputs_w_order.size());
   INFO(" | | | outputs:                %zu\n", net.outputs_in_order.size());
   INFO(" | | | internal nodes:         %zu\n", net.nodes.size());
@@ -407,10 +632,26 @@ bool verify_outputs(const net_t& net_0, const bdd_cache<mgr_t>& cache_0,
 }
 
 // ========================================================================== //
+template<>
+variable_order parse_variable_ordering(const std::string &arg, bool &should_exit)
+{
+  if (arg == "INPUT") { return variable_order::INPUT; }
+  if (arg == "DFS") { return variable_order::DFS; }
+  if (arg == "LEVEL") { return variable_order::LEVEL; }
+  if (arg == "LEVEL_DFS") { return variable_order::LEVEL_DFS; }
+  if (arg == "RANDOM") { return variable_order::RANDOM; }
+
+  std::cerr << "Undefined variable ordering: " << arg << std::endl;
+  should_exit = true;
+
+  return variable_order::INPUT;
+}
+
 template<typename mgr_t>
 void run_picotrav(int argc, char** argv)
 {
-  bool should_exit = parse_input(argc, argv);
+  variable_order variable_order = variable_order::INPUT;
+  bool should_exit = parse_input(argc, argv, variable_order);
 
   if (input_files.size() == 0) {
     std::cerr << "Input file(s) not specified" << std::endl;
@@ -444,9 +685,10 @@ void run_picotrav(int argc, char** argv)
     }
   }
 
-  // TODO: order output nodes by their level
+  // TODO: order output nodes in ascending order by their level
 
-  // TODO: derive variable ordering (DFS)
+  // Derive variable order
+  apply_variable_order(variable_order, net_0, net_1);
 
   // ========================================================================
   // Initialise BDD package manager
@@ -455,7 +697,7 @@ void run_picotrav(int argc, char** argv)
   const time_point t_init_before = get_timestamp();
   mgr_t mgr(varcount);
   const time_point t_init_after = get_timestamp();
-  INFO(" | package init (ms):      %zu\n", duration_of(t_init_before, t_init_after));
+  INFO(" | BDD package init (ms):      %zu\n", duration_of(t_init_before, t_init_after));
 
   // ========================================================================
   // Construct BDD for net(s)
