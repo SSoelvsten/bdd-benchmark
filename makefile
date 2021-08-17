@@ -47,14 +47,7 @@ build:
 	@echo "\n"
 
 clean:
-  # CUDD Autoconf files
-	@[ ! -f "external/cudd/Makefile" ] || ( \
-    cd external/cudd && make ${MAKE_FLAGS} clean \
-                     && rm -f Doxyfile doc/cudd.tex \
-                     && rm -f Makefile config.h config.log config.status dddmp/exp/text*.sh libtool stamp-h1 */.dirstamp \
-                     && rm -rf autom4te.cache/ */.deps/)
-
-  # CMake files
+	@cd external/cudd && git clean -qdf && git checkout .
 	@rm -rf build/
 
 # ============================================================================ #
