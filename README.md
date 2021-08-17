@@ -96,15 +96,34 @@ apt install bison flex
 **Adiar**
 
 Adiar also has dependencies on the _Boost Library_, which can be installed as follows
-```
+```bash
 apt install libboost-all-dev
+```
+
+**CUDD**
+
+The project has been built on Linux and tested on Ubuntu 18.04 and 20.04. On
+_Windows Subsystem for Linux_ or _Cygwin_ the automake installation will fail
+due to _\r\n_ line endings. To resolve this, convert the line endings for the
+relevant files as shown below.
+
+```bash
+find . -name \*.m4|xargs dos2unix
+find . -name \*.ac|xargs dos2unix
+find . -name \*.am|xargs dos2unix
+```
+
+Installation of CUDD seems neither possible without also building the
+documentation. For this, you need a local installation of LaTeX.
+```bash
+sudo apt install texlive texlive-latex-extra
 ```
 
 **Sylvan**
 
 Sylvan also needs the _The GNU Multiple Precision Arithmetic_ and _Portable
 Hardware Locality_ libraries, which can be installed as follows
-```
+```bash
 apt install libgmp-dev libhwloc-dev
 ```
 
