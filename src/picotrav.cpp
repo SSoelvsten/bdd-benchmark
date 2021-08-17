@@ -685,7 +685,9 @@ void run_picotrav(int argc, char** argv)
     }
   }
 
-  // TODO: order output nodes in ascending order by their level
+  // Nanotrav sorts the output in ascending order by their level. The same is
+  // possible here, but experiments show this at times decreases and other
+  // times increases the running time.
 
   // Derive variable order
   apply_variable_order(variable_order, net_0, net_1);
