@@ -620,7 +620,7 @@ bool verify_outputs(const net_t& net_0, const bdd_cache<mgr_t>& cache_0,
     const typename mgr_t::bdd_t bdd_1 = cache_1.find(output_1) -> second;
 
     if (bdd_0 != bdd_1) {
-      std::cout << " | | | output differ in ['" << output_0 << "' / '" << output_1 << "']"  << std::endl;
+      INFO(" | | | output differ in ['%s' / '%s']\n", output_0.c_str(), output_1.c_str());
       ret_value = false;
     }
   }

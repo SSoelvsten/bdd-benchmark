@@ -29,7 +29,7 @@ echo ""
 echo "Build Benchmarks"
 cd $SLURM_SUBMIT_DIR/build/
 for package in 'adiar' 'buddy' 'sylvan' 'cudd' ; do
-		for benchmark in 'queens' 'sat_pigeonhole_principle' 'sat_queens' 'tic_tac_toe' ; do
+		for benchmark in 'picotrav' 'queens' 'sat_pigeonhole_principle' 'sat_queens' 'tic_tac_toe' ; do
 			  make $package'_'$benchmark ;
 		done ;
 done
