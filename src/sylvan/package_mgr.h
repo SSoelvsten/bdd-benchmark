@@ -102,7 +102,7 @@ public:
   { return b.ExistAbstract(sylvan::Bdd::bddVar(label)); }
 
   inline uint64_t nodecount(const bdd_t &b)
-  { return b.NodeCount(); }
+  { return b.NodeCount() - 1; /* Sylvan also counts leafs */ }
 
   inline uint64_t satcount(const bdd_t &b)
   { return b.SatCount(varcount); }
@@ -110,5 +110,11 @@ public:
   // Statistics
 public:
   inline size_t allocated_nodes()
-  { return -1; }
+  { return 0; }
+
+  void print_stats()
+  {
+    // Requires the "SYLVAN_STATS" property to be set in CMake
+    sylvan::sylvan_stats_report(stdout);
+  }
 };

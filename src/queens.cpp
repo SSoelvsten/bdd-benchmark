@@ -143,6 +143,8 @@ void run_queens(int argc, char** argv)
     INFO(" | total time (ms):        %zu\n", duration_of(t1,t4));
   }
 
+  mgr.print_stats();
+
   if (N < size(expected_queens) && solutions != expected_queens[N]) {
     exit(-1);
   }

@@ -80,7 +80,7 @@ public:
   { return b.ExistAbstract(__mgr.bddVar(label)); }
 
   inline uint64_t nodecount(const BDD &b)
-  { return b.nodeCount(); }
+  { return b.nodeCount() - 1; /* CUDD also counts leafs */ }
 
   inline uint64_t satcount(const BDD &b)
   { return b.CountMinterm(varcount); }
@@ -88,5 +88,27 @@ public:
   // Statistics
 public:
   inline size_t allocated_nodes()
-  { return __mgr.ReadSize(); }
+  { return __mgr.ReadKeys(); }
+
+  void print_stats()
+  {
+    INFO("CUDD Statistics:\n");
+
+    INFO(" | Table:\n");
+    INFO(" | | peak node count:     %zu\n", __mgr.ReadPeakNodeCount());
+    INFO(" | | node count:          %zu\n", __mgr.ReadNodeCount());
+    INFO(" | | keys:                %u\n",  __mgr.ReadKeys());
+    INFO(" | | dead:                %u\n",  __mgr.ReadDead());
+
+    // Commented lines are only available if 'DD_STATS' flag is set in CUDD compilation
+
+    // INFO(" | Cache:\n");
+    // INFO(" | | slots:               %zu\n", __mgr.ReadCacheUsedSlots());
+    // INFO(" | | lookups:             %zu\n", __mgr.ReadCacheLookUps());
+    // INFO(" | | hits:                %zu\n", __mgr.ReadCacheHits());
+
+    INFO(" | Garbage Collections:\n");
+    INFO(" | | runs:                %u\n",  __mgr.ReadGarbageCollections());
+    INFO(" | | time (ms):           %zu\n", __mgr.ReadGarbageCollectionTime());
+  }
 };
