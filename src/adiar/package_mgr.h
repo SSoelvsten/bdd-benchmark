@@ -49,6 +49,9 @@ public:
 public:
   inline size_t allocated_nodes()
   { return 0; }
+
+  void print_stats()
+  { /* do nothing */ }
 };
 
 #include "../sat_solver.h"

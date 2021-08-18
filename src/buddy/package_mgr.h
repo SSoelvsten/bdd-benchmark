@@ -132,4 +132,28 @@ public:
 public:
   inline size_t allocated_nodes()
   { return bdd_getnodenum(); }
+
+  void print_stats()
+  {
+    INFO("BuDDy Statistics:\n");
+
+    bddStat stats;
+    bdd_stats(&stats);
+
+    INFO(" | Table:\n");
+    INFO(" | | total produced:      %zu\n", stats.produced);
+
+    // Commented lines are only available if 'CACHESTATS' flag is set
+    // bddCacheStat cache_stats;
+    // bdd_cachestats(&cache_stats);
+
+    // INFO(" | | access:              %zu\n", cache_stats.uniqueAccess);
+    // INFO(" | | hits:                %zu\n", cache_stats.uniqueHit);
+    // INFO(" | | miss:                %zu\n", cache_stats.uniqueMiss);
+    // INFO(" | Cache:\n");
+    // INFO(" | | hits:                %zu\n", cache_stats.opHit);
+    // INFO(" | | miss:                %zu\n", cache_stats.opMiss);
+
+    INFO(" | Garbage Collections:   %u\n",  stats.gbcnum);
+  }
 };

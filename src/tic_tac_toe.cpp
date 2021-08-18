@@ -208,6 +208,8 @@ void run_tic_tac_toe(int argc, char** argv)
     INFO(" | total time (ms):        %zu\n", duration_of(t1,t2) + duration_of(t3,t6));
   }
 
+  mgr.print_stats();
+
   if (N < size(expected_tic_tac_toe) && solutions != expected_tic_tac_toe[N]) {
     exit(-1);
   }

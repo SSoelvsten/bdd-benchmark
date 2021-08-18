@@ -454,10 +454,12 @@ void apply_variable_order(const variable_order &o, net_t &net_0, net_t &net_1, b
 
 struct bdd_statistics
 {
-  size_t largest_bdd = 0;
   size_t total_processed = 0;
-  size_t curr_nodes = 0;
+  size_t max_bdd_size = 0;
+  size_t curr_bdd_sizes = 0;
   size_t sum_bdd_sizes = 0;
+  size_t max_roots = 0;
+  size_t max_allocated = 0;
   size_t sum_allocated = 0;
 };
 
@@ -508,6 +510,7 @@ typename mgr_t::bdd_t construct_node_bdd(net_t &net,
   const node_t &node_data = net.nodes.find(node_name) -> second;
 
   typename mgr_t::bdd_t so_cover_bdd = mgr.leaf_false();
+  size_t so_nodecount = 0;
 
   for (size_t row_idx = 0; row_idx < node_data.so_cover.size(); row_idx++) {
     typename mgr_t::bdd_t tmp = mgr.leaf_true();
@@ -534,27 +537,36 @@ typename mgr_t::bdd_t construct_node_bdd(net_t &net,
       // Decrease reference count on dependency if we are on the last row.
       if (row_idx == node_data.so_cover.size() - 1) {
         decrease_ref_count<mgr_t>(net, dep_name, cache);
+        if (!net.is_input(dep_name)) { stats.curr_bdd_sizes -= mgr.nodecount(dep_bdd); }
       }
 
       const size_t tmp_nodecount =  mgr.nodecount(tmp);
       stats.total_processed += tmp_nodecount;
-      stats.largest_bdd = std::max(stats.largest_bdd, tmp_nodecount);
+      stats.max_bdd_size = std::max(stats.max_bdd_size, tmp_nodecount);
     }
 
     so_cover_bdd |= tmp;
 
-    const size_t so_nodecount = mgr.nodecount(so_cover_bdd);
-    stats.total_processed += so_nodecount;
-    stats.largest_bdd = std::max(stats.largest_bdd, so_nodecount);
+    stats.curr_bdd_sizes -= so_nodecount;
+    so_nodecount = mgr.nodecount(so_cover_bdd);
+    stats.curr_bdd_sizes += so_nodecount;
 
-    stats.curr_nodes += so_nodecount;
-    stats.sum_bdd_sizes += stats.curr_nodes;
+    stats.total_processed += so_nodecount;
+    stats.max_bdd_size = std::max(stats.max_bdd_size, so_nodecount);
+
+    stats.sum_bdd_sizes += stats.curr_bdd_sizes;
+    stats.max_allocated = std::max(stats.max_allocated, mgr.allocated_nodes());
     stats.sum_allocated += mgr.allocated_nodes();
   }
 
   so_cover_bdd = node_data.is_onset ? so_cover_bdd : mgr.negate(so_cover_bdd);
 
+  stats.sum_bdd_sizes += stats.curr_bdd_sizes;
+  stats.max_allocated = std::max(stats.max_allocated, mgr.allocated_nodes());
+  stats.sum_allocated += mgr.allocated_nodes();
+
   cache.insert({ node_name, so_cover_bdd });
+  stats.max_roots = std::max(stats.max_roots, cache.size());
   return so_cover_bdd;
 }
 
@@ -587,14 +599,25 @@ void construct_net_bdd(const std::string &filename,
   INFO(" | | BDD construction:\n");
   INFO(" | | | time (ms):              %zu\n", duration_of(t_construct_before, t_construct_after));
   INFO(" | | | total no. nodes:        %zu\n", stats.total_processed);
-  INFO(" | | | largest BDD:            %zu\n", stats.largest_bdd);
+
+  size_t sum_final_sizes = 0;
+  size_t max_final_size = 0;
+  for (auto kv : cache) {
+    size_t nodecount = mgr.nodecount(kv.second);
+    sum_final_sizes += nodecount;
+    max_final_size = std::max(max_final_size, nodecount);
+  }
   INFO(" | | | final BDDs:\n");
-  INFO(" | | | | no. roots:            %zu\n", cache.size());
-  INFO(" | | | | w/ duplicates:        %zu\n", stats.largest_bdd);
+  INFO(" | | | | max BDD size:         %zu\n", max_final_size);
+  INFO(" | | | | w/ duplicates:        %zu\n", sum_final_sizes);
   INFO(" | | | | allocated:            %zu\n", mgr.allocated_nodes());
+
   INFO(" | | | life-time BDDs:\n");
-  INFO(" | | | | w/ duplicates:        %zu\n", stats.sum_bdd_sizes);
-  INFO(" | | | | allocated:            %zu\n", stats.sum_allocated);
+  INFO(" | | | | max no. roots:        %zu\n", stats.max_roots);
+  INFO(" | | | | max BDD size:         %zu\n", stats.max_bdd_size);
+  INFO(" | | | | sum w/ duplicates:    %zu\n", stats.sum_bdd_sizes);
+  INFO(" | | | | sum allocated:        %zu\n", stats.sum_allocated);
+  INFO(" | | | | max allocated:        %zu\n", stats.max_allocated);
 }
 
 // ========================================================================== //
@@ -712,4 +735,6 @@ void run_picotrav(int argc, char** argv)
 
     verify_outputs<mgr_t>(net_0, cache_0, net_1, cache_1);
   }
+
+  mgr.print_stats();
 }
