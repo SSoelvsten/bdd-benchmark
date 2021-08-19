@@ -135,13 +135,13 @@ public:
 
   void print_stats()
   {
-    INFO("BuDDy Statistics:\n");
+    INFO("\nBuDDy statistics:\n");
 
     bddStat stats;
     bdd_stats(&stats);
 
-    INFO(" | Table:\n");
-    INFO(" | | total produced:      %zu\n", stats.produced);
+    INFO("   Table:\n");
+    INFO("   | total produced:      %zu\n", stats.produced);
 
     // Commented lines are only available if 'CACHESTATS' flag is set
     // bddCacheStat cache_stats;
@@ -154,6 +154,6 @@ public:
     // INFO(" | | hits:                %zu\n", cache_stats.opHit);
     // INFO(" | | miss:                %zu\n", cache_stats.opMiss);
 
-    INFO(" | Garbage Collections:   %u\n",  stats.gbcnum);
+    INFO("   Garbage Collections:   %u\n",  stats.gbcnum);
   }
 };

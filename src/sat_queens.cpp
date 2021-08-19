@@ -146,63 +146,63 @@ void run_sat_queens(int argc, char** argv)
 
   {
     // =========================================================================
-    std::cout << N << "-Queens SAT"
-              << " (" << mgr_t::NAME << " " << M << " MiB):" << std::endl;
+    INFO("%i-Queens SAT (%s %i MiB):\n", N, mgr_t::NAME.c_str(), M);
 
     uint64_t varcount = label_of_position(N-1, N-1)+1;
 
     auto t_init_before = get_timestamp();
     sat_solver<mgr_t> solver(varcount);
     auto t_init_after = get_timestamp();
-    INFO(" | init time (ms):        %zu\n", duration_of(t_init_before, t_init_after));
+    INFO("\n   %s initialisation:\n", mgr_t::NAME.c_str());
+    INFO("   | time (ms):                %zu\n", duration_of(t_init_before, t_init_after));
 
     // =========================================================================
+    INFO("\n   CNF construction:\n");
+
     auto t1 = get_timestamp();
     construct_Queens_cnf(solver);
     auto t2 = get_timestamp();
 
-    INFO(" | CNF:\n");
-    INFO(" | | clauses:             %zu\n", solver.cnf_size());
-    INFO(" | | variables:           %zu\n", solver.var_count());
-    INFO(" | | time (ms):           %zu\n", duration_of(t1,t2));
-    INFO(" |\n");
+    INFO("   | variables:                %zu\n", solver.var_count());
+    INFO("   | clauses:                  %zu\n", solver.cnf_size());
+    INFO("   | time (ms):                %zu\n", duration_of(t1,t2));
 
     // =========================================================================
+    INFO("\n   BDD satisfiability solving:\n");
+
 #ifndef GRENDEL
     auto t3 = get_timestamp();
     satisfiable = solver.check_satisfiable();
     auto t4 = get_timestamp();
-    INFO(" | Satisfiability:\n");
-    INFO(" | | solution:            %s\n", satisfiable ? "SATISFIABLE" : "UNSATISFIABLE");
-    INFO(" | statistics:\n");
-    INFO(" | | operations:\n");
-    INFO(" | | | exists:            %zu\n", solver.exists_count());
-    INFO(" | | | apply:             %zu\n", solver.apply_count());
-    INFO(" | | BDD size (nodes):\n");
-    INFO(" | | | largest size:      %zu\n", solver.bdd_largest_size());
-    INFO(" | | | final size:        %zu\n", solver.bdd_size());
-    INFO(" | | time (ms):           %zu\n", duration_of(t3,t4));
-    INFO(" |\n");
+    INFO("   | solution:                 %s\n", satisfiable ? "SATISFIABLE" : "UNSATISFIABLE");
+    INFO("   | operations:\n");
+    INFO("   | | exists:                 %zu\n", solver.exists_count());
+    INFO("   | | apply:                  %zu\n", solver.apply_count());
+    INFO("   | BDD size (nodes):\n");
+    INFO("   | | largest:                %zu\n", solver.bdd_largest_size());
+    INFO("   | | final:                  %zu\n", solver.bdd_size());
+    INFO("   | time (ms):                %zu\n", duration_of(t3,t4));
 #endif
 
     // =========================================================================
+    INFO("\n   BDD counting:\n");
+
     auto t5 = get_timestamp();
     solutions = solver.check_satcount();
     auto t6 = get_timestamp();
-    INFO(" | Counting:\n");
-    INFO(" | | solutions:           %zu\n", solutions);
-    INFO(" | statistics:\n");
-    INFO(" | | operations:\n");
-    INFO(" | | | apply:             %zu\n", solver.apply_count());
-    INFO(" | | BDD size (nodes):\n");
-    INFO(" | | | largest size:      %zu\n", solver.bdd_largest_size());
-    INFO(" | | | final size:        %zu\n", solver.bdd_size());
-    INFO(" | | time (ms):           %zu\n", duration_of(t5,t6));
+    INFO("   | solutions:                %zu\n", solutions);
+    INFO("   | operations:\n");
+    INFO("   | | apply:                  %zu\n", solver.apply_count());
+    INFO("   | BDD size (nodes):\n");
+    INFO("   | | largest:                %zu\n", solver.bdd_largest_size());
+    INFO("   | | final:                  %zu\n", solver.bdd_size());
+    INFO("   | time (ms):                %zu\n", duration_of(t5,t6));
   }
 
   if ((N >= size(expected_queens) || solutions != expected_queens[N])
       && ((N != 2 && N != 3) && satisfiable)
       && ((N == 2 || N == 3) && !satisfiable)) {
-    exit(-1);
+    EXIT(-1);
   }
+  FLUSH();
 }

@@ -115,6 +115,7 @@ public:
   void print_stats()
   {
     // Requires the "SYLVAN_STATS" property to be set in CMake
+    INFO("\n");
     sylvan::sylvan_stats_report(stdout);
   }
 };

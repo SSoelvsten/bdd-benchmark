@@ -99,13 +99,13 @@ public:
 
   void print_stats()
   {
-    INFO("CUDD Statistics:\n");
+    INFO("\nCUDD Statistics:\n");
 
-    INFO(" | Table:\n");
-    INFO(" | | peak node count:     %zu\n", __mgr.ReadPeakNodeCount());
-    INFO(" | | node count:          %zu\n", __mgr.ReadNodeCount());
-    INFO(" | | keys:                %u\n",  __mgr.ReadKeys());
-    INFO(" | | dead:                %u\n",  __mgr.ReadDead());
+    INFO("   Table:\n");
+    INFO("   | peak node count:     %zu\n", __mgr.ReadPeakNodeCount());
+    INFO("   | node count:          %zu\n", __mgr.ReadNodeCount());
+    INFO("   | keys:                %u\n",  __mgr.ReadKeys());
+    INFO("   | dead:                %u\n",  __mgr.ReadDead());
 
     // Commented lines are only available if 'DD_STATS' flag is set in CUDD compilation
 
@@ -114,8 +114,8 @@ public:
     // INFO(" | | lookups:             %zu\n", __mgr.ReadCacheLookUps());
     // INFO(" | | hits:                %zu\n", __mgr.ReadCacheHits());
 
-    INFO(" | Garbage Collections:\n");
-    INFO(" | | runs:                %u\n",  __mgr.ReadGarbageCollections());
-    INFO(" | | time (ms):           %zu\n", __mgr.ReadGarbageCollectionTime());
+    INFO("   Garbage Collections:\n");
+    INFO("   | runs:                %u\n",  __mgr.ReadGarbageCollections());
+    INFO("   | time (ms):           %zu\n", __mgr.ReadGarbageCollectionTime());
   }
 };
