@@ -21,7 +21,7 @@ N:=0
 build:
   # Primary build
 	@echo "\nBuild"
-	@mkdir -p build/ && cd build/ && cmake ..
+	@mkdir -p build/ && cd build/ && cmake -D ADIAR_STATS=ON ..
 
   # Installation of sylvan
 	@echo "\n\nInstall Sylvan"
