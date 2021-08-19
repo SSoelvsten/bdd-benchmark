@@ -307,13 +307,7 @@ void dfs_variable_order_rec(const std::string &node_name,
   if (lookup_visited != visited.end()) { return; }
   visited.insert(node_name);
 
-  const auto lookup_node = net.nodes.find(node_name);
-  if (lookup_node == net.nodes.end()) {
-    std::cerr << "Referenced net '" << node_name << "' is undefined." << std::endl;
-    exit(-1);
-  }
-
-  const node_t n = lookup_node -> second;
+  const node_t n = net.nodes.find(node_name) -> second;
 
   // Iterate through for non-input nets (i.e. looking at deeper inputs)
   for (const std::string &dep_name : n.nets) {
@@ -353,13 +347,7 @@ int level_of(const std::string &node_name, net_t &net)
   const auto lookup_level = net.level.find(node_name);
   if (lookup_level != net.level.end()) { return lookup_level -> second; }
 
-  const auto lookup_node = net.nodes.find(node_name);
-  if (lookup_node == net.nodes.end()) {
-    std::cerr << "Referenced net '" << node_name << "' is undefined." << std::endl;
-    exit(-1);
-  }
-
-  const node_t n = lookup_node -> second;
+  const node_t n = net.nodes.find(node_name) -> second;
 
   int level = -1;
   for (const std::string dep_name : n.nets) {
