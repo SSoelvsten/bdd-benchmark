@@ -83,7 +83,7 @@ def script_str_N(variant, problem_name, N, sylvan_M, time):
 mkdir -p {output_dir}
 touch {output_file}
 
-echo "=========  Started `date`  ==========" | tee -a {output_file}
+echo -e "\\n=========  Started `date`  ==========\\n" | tee -a {output_file}
 
 module load cmake gcc gpm boost gmp
 export CC=/comm/swstack/core/gcc/10.1.0/bin/gcc
@@ -93,7 +93,9 @@ export LC_ALL=C
 cd $SLURM_SUBMIT_DIR/build/src/
 ./{variant}_{problem_name} -N {N} -M {memory} -t /scratch/$SLURM_JOB_ID 2>&1 | tee -a {output_file}
 
-echo "========= Finished `date` ==========" | tee -a {output_file}
+echo -e "\\nexit code: "$? | tee -a {output_file}
+
+echo -e "\\n========= Finished `date` ==========\\n" | tee -a {output_file}
 '''
 
 
@@ -154,7 +156,7 @@ def script_str_picotrav(variant, problem_name, file_1, file_2, sylvan_M, time, v
 mkdir -p {output_dir}
 touch {output_file}
 
-echo "=========  Started `date`  ==========" | tee -a {output_file}
+echo -e "\\n=========  Started `date`  ==========\\n" | tee -a {output_file}
 
 module load cmake gcc gpm boost gmp
 export CC=/comm/swstack/core/gcc/10.1.0/bin/gcc
@@ -164,7 +166,9 @@ export LC_ALL=C
 cd $SLURM_SUBMIT_DIR/build/src/
 ./{variant}_picotrav -f {input_file_1} -f {input_file_2} -M {memory} -o {variable_order} -t /scratch/$SLURM_JOB_ID 2>&1 | tee -a {output_file}
 
-echo "========= Finished `date` ==========" | tee -a {output_file}
+echo -e "\\nexit code: "$? | tee -a {output_file}
+
+echo -e "\\n========= Finished `date` ==========\\n" | tee -a {output_file}
 '''
 
 for variant in VARIANTS:
