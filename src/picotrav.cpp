@@ -51,7 +51,10 @@ private:
   net_t &net;
 
   bool has_error_ = false;
-  bool has_names = false;
+  bool has_names_ = false;
+
+  int line_num;
+  std::string fname;
 
 public:
   construct_net_callback(net_t &n) : blifparse::Callback(), net(n)
@@ -63,12 +66,17 @@ public:
   }
 
 public:
+  // Sets current filename
+  void filename(std::string fn) { fname = fn; }
+
+  // Sets current line number
+  void lineno(int ln) { line_num = ln; }
+
   // Create the input set with the ordering as given in the input file.
   void inputs(std::vector<std::string> inputs) override
   {
-    if (has_names) {
-      std::cerr << "Defining '.inputs' after a '.names'" << std::endl;
-      has_error_ = true;
+    if (has_names_) {
+      parse_error(".inputs", "Defining '.inputs' after a '.names'");
     }
 
     for (const std::string &i : inputs) {
@@ -79,9 +87,8 @@ public:
   // Note down what nets are outputs
   void outputs(std::vector<std::string> outputs) override
   {
-    if (has_names) {
-      std::cerr << "Defining '.outputs' after a '.names'" << std::endl;
-      has_error_ = true;
+    if (has_names_) {
+      parse_error(".outputs", "Defining '.outputs' after a '.names'");
     }
 
     for (const std::string &o : outputs) {
@@ -94,11 +101,10 @@ public:
   void names(std::vector<std::string> nets,
              std::vector<std::vector<blifparse::LogicValue>> so_cover) override
   {
-    has_names = true;
+    has_names_ = true;
 
     if (nets.size() == 0) {
-      std::cerr << ".names given without any net names" << std::endl;
-      has_error_ = true;
+      parse_error(".names", "at least one net name should be given");
       return;
     }
 
@@ -109,8 +115,7 @@ public:
       const std::string new_name = nets[nets.size() - 1];
 
       if (net.nodes.find(new_name) != net.nodes.end()) {
-        std::cerr << "Net '" << new_name << "' defined multiple times" << std::endl;
-        has_error_ = true;
+        parse_error(".names - " + new_name, "Net '" + new_name + "' defined multiple times");
         return;
       }
 
@@ -119,8 +124,7 @@ public:
 
       for (const std::vector<blifparse::LogicValue> &row : so_cover) {
         if (row.size() != nets.size()) {
-          std::cerr << "Incorrect number of logic values defined on a row for net '" << new_name << "'" << std::endl;
-          has_error_ = true;
+          parse_error(".names - " + new_name, "Incompatible number of logic values defined on a row");
           return;
         }
 
@@ -152,22 +156,19 @@ public:
 
           case blifparse::LogicValue::DONT_CARE:
             if (is_out_plane) {
-              std::cerr << "Cannot have 'dont care' in output plane of net '" << new_name << "'" << std::endl;
-              has_error_ = true;
+              parse_error(".names - " + new_name, "Cannot have 'dont care' in output plane");
             } else {
               new_row.push_back(logic_value::DONT_CARE);
             }
             break;
 
           case blifparse::LogicValue::UNKNOWN :
-            std::cerr << "Cannot deal with 'unknown' value of net '" << new_name << "'" << std::endl;
-            has_error_ = true;
+            parse_error(".names - " + new_name, "Cannot deal with 'unknown' logic value");
           }
         } while (it != row.end());
 
         if (has_is_onset && row_is_onset != new_is_onset) {
-          std::cerr << "Cannot handle both on-set and off-set in output plane of '" << new_name << "'" << std::endl;
-          has_error_ = true;
+          parse_error(line_num, ".names - " + new_name, "Cannot handle both on-set and off-set in output plane");
           return;
         }
 
@@ -205,17 +206,25 @@ public:
              std::string output,
              blifparse::LatchType /* type */,
              std::string control,
-             blifparse::LogicValue /* init */)
+             blifparse::LogicValue /* init */) override
   {
     // TODO: When state transitions are used, then add <x> and <x'> variables
-    std::cerr << "State transitions with '.latch " << input << " " << output << control
-              << "' not (yet) supported" << std::endl;
+    parse_error(".latch", "State transitions not (yet) supported");
+  }
+
+  void parse_error(const std::string& near_text, const std::string& msg) {
+    parse_error(line_num, near_text, msg);
+  }
+
+  void parse_error(const int curr_lineno, const std::string& near_text, const std::string& msg) override {
+    fprintf(stderr, "Parsing error at line %d near '%s': %s\n", curr_lineno, near_text.c_str(), msg.c_str());
     has_error_ = true;
   }
 };
 
 bool construct_net(std::string filename, net_t &net)
 {
+  INFO(" | | parsing '%s'\n", filename.c_str());
   construct_net_callback callback(net);
   blifparse::blif_parse_filename(filename, callback);
   return callback.has_error();
@@ -477,31 +486,31 @@ void apply_variable_order(const variable_order &o, net_t &net_0, net_t &net_1, b
 
   switch (o) {
   case INPUT:
-    if (print) { std::cout << " | Variable order: INPUT" << std::endl; }
+    if (print) { INFO(" | | variable order: INPUT\n"); }
     // Keep as is
     return;
 
   case DFS: {
-    if (print) { std::cout << " | Variable order: DFS" << std::endl; }
+    if (print) { INFO(" | | variable order: DFS\n"); }
     new_ordering = dfs_variable_order(net_0);
     break;
   }
 
   case LEVEL: {
-    if (print) { std::cout << " | Variable order: LEVEL" << std::endl; }
+    if (print) { INFO(" | | variable order: LEVEL\n"); }
     new_ordering = level_variable_order(net_0);
     break;
   }
 
   case LEVEL_DFS: {
-    if (print) { std::cout << " | Variable order: LEVEL / DFS" << std::endl; }
+    if (print) { INFO(" | | variable order: LEVEL / DFS\n"); }
     apply_variable_order(variable_order::DFS, net_0, net_1, false);
     new_ordering = level_variable_order(net_0);
     break;
   }
 
   case RANDOM: {
-    if (print) { std::cout << " | Variable order: RANDOM" << std::endl; }
+    if (print) { INFO(" | | variable order: RANDOM\n"); }
     new_ordering = random_variable_order(net_0);
     break;
   }
@@ -511,6 +520,7 @@ void apply_variable_order(const variable_order &o, net_t &net_0, net_t &net_1, b
   if (net_1.inputs_w_order.size() == net_0.inputs_w_order.size()) {
     update_order(net_1, new_ordering);
   }
+  if (print) { INFO(" | | | derived\n"); }
 }
 
 // ========================================================================== //
@@ -756,22 +766,31 @@ void run_picotrav(int argc, char** argv)
   // =========================================================================
   // Read file(s) and construct Nets
   net_t net_0;
+
+  INFO(" | Create input net(s):\n");
   if(construct_net(input_files.at(0), net_0)) { exit(-1); }
+  INFO(" | | | [x] formatted\n");
+
   if(!is_acyclic(net_0)) { exit(-1); }
+  INFO(" | | | [x] acyclic\n");
 
   net_t net_1;
   if (verify_networks) {
-    if(construct_net(input_files.at(1), net_1)) { verify_networks = false; }
-    if(!is_acyclic(net_1)) { verify_networks = false; }
+    const bool is_parsed = !construct_net(input_files.at(1), net_1);
+    INFO(" | | | [%s] formatted\n", is_parsed ? "x" : " ");
+    verify_networks &= is_parsed;
 
-    if (net_0.inputs_w_order.size() != net_1.inputs_w_order.size()) {
-      std::cerr << "| Number of inputs do not match: skipping verification..." << std::endl;
-      verify_networks = false;
-    }
-    if (net_0.inputs_w_order.size() != net_1.inputs_w_order.size()) {
-      std::cerr << "| Number of outputs do not match: skipping verification..." << std::endl;
-      verify_networks = false;
-    }
+    const bool is_not_cyclic = is_acyclic(net_1);
+    INFO(" | | | [%s] acyclic\n", is_not_cyclic ? "x" : " ");
+    verify_networks &= is_not_cyclic;
+
+    const bool inputs_match = net_0.inputs_w_order.size() == net_1.inputs_w_order.size();
+    INFO(" | | | [%s] number of inputs match\n", inputs_match ? "x" : " ");
+    verify_networks &= inputs_match;
+
+    const bool outputs_match = net_0.outputs_in_order.size() == net_1.outputs_in_order.size();
+    INFO(" | | | [%s] number of outputs match\n", outputs_match ? "x" : " ");
+    verify_networks &= outputs_match;
   }
 
   // Nanotrav sorts the output in ascending order by their level. The same is
