@@ -28,6 +28,13 @@ cudd_cachesize(int varcount)
   return y;
 }
 
+unsigned long
+cudd_memorysize()
+{
+  constexpr size_t CUDD_MAX = std::numeric_limits<unsigned long>::max();
+  return std::min(static_cast<size_t>(M), CUDD_MAX / (1024 * 1024)) * 1024 * 1024;
+}
+
 class cudd_mgr
 {
 private:
@@ -47,7 +54,7 @@ public:
     : __mgr(varcount, 0,
             CUDD_UNIQUE_SLOTS,
             cudd_cachesize(varcount),
-            static_cast<size_t>(M)*1024u*1024u),
+            cudd_memorysize()),
       varcount(varcount)
   { // Disable dynamic ordering
     __mgr.AutodynDisable();
