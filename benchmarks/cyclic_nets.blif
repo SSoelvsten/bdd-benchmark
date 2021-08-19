@@ -1,0 +1,16 @@
+.model not_1
+.inputs a0 a1 a2
+.outputs b0 b1
+.names a0 c2 a1 c0
+0 1 0 1
+.names a0 c0 a2 c1
+1 0 0 1
+0 1 0 1
+.names a0 c1 c2
+1 1 1
+0 1 1
+.names a0 a1 b0
+1 0 0
+.names b0 c2 b1
+1 1 0
+.end

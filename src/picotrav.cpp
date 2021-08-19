@@ -222,6 +222,70 @@ bool construct_net(std::string filename, net_t &net)
 }
 
 // ========================================================================== //
+// Cycle detection
+bool is_acyclic_rec(const std::string &node_name,
+                    const net_t &net,
+                    std::unordered_set<std::string> &net_visited,
+                    std::vector<std::string> &pth,
+                    std::unordered_set<std::string> &pth_visited)
+{
+  if (net.is_input(node_name)) { return true; }
+
+  const auto lookup_pth_visited = pth_visited.find(node_name);
+  if (lookup_pth_visited != pth_visited.end()) {
+    std::cerr << "Net is cyclic: ";
+    for (const std::string &n : pth) { std::cerr << n << " -> "; }
+    std::cerr << node_name << std::endl;
+
+    return false;
+  }
+
+  const auto lookup_prior_visited = net_visited.find(node_name);
+  if (lookup_prior_visited != pth_visited.end()) { return true; }
+  net_visited.insert(node_name);
+
+  bool result = true;
+
+  pth_visited.insert(node_name);
+  pth.push_back(node_name);
+
+  const auto lookup_node = net.nodes.find(node_name);
+  if (lookup_node == net.nodes.end()) {
+    std::cerr << "Referenced net '" << node_name << "' is undefined." << std::endl;
+    exit(-1);
+  }
+
+  const node_t n = lookup_node -> second;
+
+  for (const std::string &dep_name : n.nets) {
+    if (!result) { break; }
+
+    result &= is_acyclic_rec(dep_name, net, net_visited, pth, pth_visited);
+  }
+
+  pth_visited.erase(node_name);
+  pth.pop_back();
+  return result;
+}
+
+
+bool is_acyclic(const net_t &net)
+{
+  std::unordered_set<std::string> net_visited;
+
+  std::vector<std::string> pth;
+  std::unordered_set<std::string> pth_visited;
+
+  bool result = true;
+  for (const std::string output : net.outputs_in_order) {
+    if (!result) { break; }
+    result &= is_acyclic_rec(output, net, net_visited, pth, pth_visited);
+  }
+  return result;
+}
+
+
+// ========================================================================== //
 // Variable Ordering
 void dfs_variable_order_rec(const std::string &node_name,
                             std::unordered_map<int, int> &new_ordering,
@@ -693,10 +757,12 @@ void run_picotrav(int argc, char** argv)
   // Read file(s) and construct Nets
   net_t net_0;
   if(construct_net(input_files.at(0), net_0)) { exit(-1); }
+  if(!is_acyclic(net_0)) { exit(-1); }
 
   net_t net_1;
   if (verify_networks) {
     if(construct_net(input_files.at(1), net_1)) { verify_networks = false; }
+    if(!is_acyclic(net_1)) { verify_networks = false; }
 
     if (net_0.inputs_w_order.size() != net_1.inputs_w_order.size()) {
       std::cerr << "| Number of inputs do not match: skipping verification..." << std::endl;
