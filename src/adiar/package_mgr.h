@@ -51,7 +51,10 @@ public:
   { return 0; }
 
   void print_stats()
-  { /* do nothing */ }
+  {
+    // Requires the "ADIAR_STATS" and/or "ADIAR_STATS_EXTRA" property to be ON in CMake
+    adiar::adiar_printstat();
+  }
 };
 
 #include "../sat_solver.h"

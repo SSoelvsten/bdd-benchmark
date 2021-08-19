@@ -11,7 +11,7 @@ export CXX=/comm/swstack/core/gcc/10.1.0/bin/c++
 # Build
 echo "Build"
 mkdir -p $SLURM_SUBMIT_DIR/build/ && cd $SLURM_SUBMIT_DIR/build/
-cmake -D GRENDEL=ON $SLURM_SUBMIT_DIR
+cmake -D GRENDEL=ON -D ADIAR_STATS=ON $SLURM_SUBMIT_DIR
 
 echo ""
 echo "Build Sylvan"
