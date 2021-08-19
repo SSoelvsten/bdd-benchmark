@@ -202,10 +202,10 @@ public:
     }
   }
 
-  void latch(std::string input,
-             std::string output,
+  void latch(std::string /* input */,
+             std::string /* output */,
              blifparse::LatchType /* type */,
-             std::string control,
+             std::string /* control */,
              blifparse::LogicValue /* init */) override
   {
     // TODO: When state transitions are used, then add <x> and <x'> variables
@@ -217,14 +217,14 @@ public:
   }
 
   void parse_error(const int curr_lineno, const std::string& near_text, const std::string& msg) override {
-    fprintf(stderr, "Parsing error at line %d near '%s': %s\n", curr_lineno, near_text.c_str(), msg.c_str());
+    ERROR("Parsing error at line %d near '%s': %s\n", curr_lineno, near_text.c_str(), msg.c_str());
     has_error_ = true;
   }
 };
 
 bool construct_net(std::string filename, net_t &net)
 {
-  INFO(" | | parsing '%s'\n", filename.c_str());
+  INFO("   Parsing '%s'\n", filename.c_str());
   construct_net_callback callback(net);
   blifparse::blif_parse_filename(filename, callback);
   return callback.has_error();
@@ -242,9 +242,9 @@ bool is_acyclic_rec(const std::string &node_name,
 
   const auto lookup_pth_visited = pth_visited.find(node_name);
   if (lookup_pth_visited != pth_visited.end()) {
-    std::cerr << "Net is cyclic: ";
-    for (const std::string &n : pth) { std::cerr << n << " -> "; }
-    std::cerr << node_name << std::endl;
+    ERROR("Net is cyclic: ");
+    for (const std::string &n : pth) { ERROR("%s -> ", n.c_str()); }
+    ERROR("%s\n", node_name.c_str());
 
     return false;
   }
@@ -260,8 +260,8 @@ bool is_acyclic_rec(const std::string &node_name,
 
   const auto lookup_node = net.nodes.find(node_name);
   if (lookup_node == net.nodes.end()) {
-    std::cerr << "Referenced net '" << node_name << "' is undefined." << std::endl;
-    exit(-1);
+    ERROR("Referenced net '%s' is undefined.\n", node_name.c_str());
+    EXIT(-1);
   }
 
   const node_t n = lookup_node -> second;
@@ -471,34 +471,35 @@ enum variable_order { INPUT, DFS, LEVEL, LEVEL_DFS, RANDOM };
 void apply_variable_order(const variable_order &o, net_t &net_0, net_t &net_1, bool print = true)
 {
   std::unordered_map<int, int> new_ordering;
+  INFO("\n   Variable order: ");
 
   switch (o) {
   case INPUT:
-    if (print) { INFO(" | | variable order: INPUT\n"); }
+    if (print) { INFO("INPUT\n"); }
     // Keep as is
     return;
 
   case DFS: {
-    if (print) { INFO(" | | variable order: DFS\n"); }
+    if (print) { INFO("DFS\n"); }
     new_ordering = dfs_variable_order(net_0);
     break;
   }
 
   case LEVEL: {
-    if (print) { INFO(" | | variable order: LEVEL\n"); }
+    if (print) { INFO("LEVEL\n"); }
     new_ordering = level_variable_order(net_0);
     break;
   }
 
   case LEVEL_DFS: {
-    if (print) { INFO(" | | variable order: LEVEL / DFS\n"); }
+    if (print) { INFO("LEVEL / DFS\n"); }
     apply_variable_order(variable_order::DFS, net_0, net_1, false);
     new_ordering = level_variable_order(net_0);
     break;
   }
 
   case RANDOM: {
-    if (print) { INFO(" | | variable order: RANDOM\n"); }
+    if (print) { INFO("RANDOM\n"); }
     new_ordering = random_variable_order(net_0);
     break;
   }
@@ -508,7 +509,7 @@ void apply_variable_order(const variable_order &o, net_t &net_0, net_t &net_1, b
   if (net_1.inputs_w_order.size() == net_0.inputs_w_order.size()) {
     update_order(net_1, new_ordering);
   }
-  if (print) { INFO(" | | | derived\n"); }
+  if (print) { INFO("   | derived\n"); }
 }
 
 // ========================================================================== //
@@ -641,15 +642,11 @@ void construct_net_bdd(const std::string &filename,
                        mgr_t &mgr)
 {
   if (cache.size() > 0) {
-    std::cerr << "Given BDD cache is non-empty" << std::endl;
-    exit(-1);
+    ERROR("Given BDD cache is non-empty");
+    EXIT(-1);
   }
 
-  INFO(" | constructing '%s'\n", filename.c_str());
-  INFO(" | | Net info:\n");
-  INFO(" | | | inputs:                 %zu\n", net.inputs_w_order.size());
-  INFO(" | | | outputs:                %zu\n", net.outputs_in_order.size());
-  INFO(" | | | internal nodes:         %zu\n", net.nodes.size());
+  INFO("\n   Constructing BDD%s for '%s'\n", net.outputs.size() > 1 ? "s" : "", filename.c_str());
 
   const time_point t_construct_before = get_timestamp();
   bdd_statistics stats;
@@ -658,9 +655,8 @@ void construct_net_bdd(const std::string &filename,
   }
   const time_point t_construct_after = get_timestamp();
 
-  INFO(" | | BDD construction:\n");
-  INFO(" | | | time (ms):              %zu\n", duration_of(t_construct_before, t_construct_after));
-  INFO(" | | | total no. nodes:        %zu\n", stats.total_processed);
+  INFO("   | time (ms):              %zu\n", duration_of(t_construct_before, t_construct_after));
+  INFO("   | total no. nodes:        %zu\n", stats.total_processed);
 
   size_t sum_final_sizes = 0;
   size_t max_final_size = 0;
@@ -669,17 +665,17 @@ void construct_net_bdd(const std::string &filename,
     sum_final_sizes += nodecount;
     max_final_size = std::max(max_final_size, nodecount);
   }
-  INFO(" | | | final BDDs:\n");
-  INFO(" | | | | max BDD size:         %zu\n", max_final_size);
-  INFO(" | | | | w/ duplicates:        %zu\n", sum_final_sizes);
-  INFO(" | | | | allocated:            %zu\n", mgr.allocated_nodes());
+  INFO("   | final BDDs:\n");
+  INFO("   | | max BDD size:         %zu\n", max_final_size);
+  INFO("   | | w/ duplicates:        %zu\n", sum_final_sizes);
+  INFO("   | | allocated:            %zu\n", mgr.allocated_nodes());
 
-  INFO(" | | | life-time BDDs:\n");
-  INFO(" | | | | max no. roots:        %zu\n", stats.max_roots);
-  INFO(" | | | | max BDD size:         %zu\n", stats.max_bdd_size);
-  INFO(" | | | | sum w/ duplicates:    %zu\n", stats.sum_bdd_sizes);
-  INFO(" | | | | sum allocated:        %zu\n", stats.sum_allocated);
-  INFO(" | | | | max allocated:        %zu\n", stats.max_allocated);
+  INFO("   | life-time BDDs:\n");
+  INFO("   | | max no. roots:        %zu\n", stats.max_roots);
+  INFO("   | | max BDD size:         %zu\n", stats.max_bdd_size);
+  INFO("   | | sum w/ duplicates:    %zu\n", stats.sum_bdd_sizes);
+  INFO("   | | sum allocated:        %zu\n", stats.sum_allocated);
+  INFO("   | | max allocated:        %zu\n", stats.max_allocated);
 }
 
 // ========================================================================== //
@@ -691,8 +687,8 @@ bool verify_outputs(const net_t& net_0, const bdd_cache<mgr_t>& cache_0,
   assert(net_0.outputs_in_order.size() == cache_0.size());
   assert(net_1.outputs_in_order.size() == cache_1.size());
   assert(net_0.outputs_in_order.size() == net_1.outputs_in_order.size());
-  INFO(" | verifying equality:\n");
-  INFO(" | | result:\n");
+  INFO("\n   Verifying equality:\n");
+  INFO("   | result:\n");
 
   const time_point t_compare_before = get_timestamp();
   bool ret_value = true;
@@ -705,14 +701,14 @@ bool verify_outputs(const net_t& net_0, const bdd_cache<mgr_t>& cache_0,
     const typename mgr_t::bdd_t bdd_1 = cache_1.find(output_1) -> second;
 
     if (bdd_0 != bdd_1) {
-      INFO(" | | | output differ in ['%s' / '%s']\n", output_0.c_str(), output_1.c_str());
+      INFO("   | | output differ in ['%s' / '%s']\n", output_0.c_str(), output_1.c_str());
       ret_value = false;
     }
   }
   const time_point t_compare_after = get_timestamp();
-  if (ret_value) { INFO(" | | | all outputs match!\n"); }
+  if (ret_value) { INFO("   | | all outputs match!\n"); }
 
-  INFO(" | | time (ms):            %zu\n", duration_of(t_compare_before, t_compare_after));
+  INFO("   | time (ms):            %zu\n", duration_of(t_compare_before, t_compare_after));
   return ret_value;
 }
 
@@ -726,7 +722,7 @@ variable_order parse_variable_ordering(const std::string &arg, bool &should_exit
   if (arg == "LEVEL_DFS") { return variable_order::LEVEL_DFS; }
   if (arg == "RANDOM") { return variable_order::RANDOM; }
 
-  std::cerr << "Undefined variable ordering: " << arg << std::endl;
+  ERROR("Undefined variable ordering: %s\n", arg.c_str());
   should_exit = true;
 
   return variable_order::INPUT;
@@ -739,47 +735,59 @@ void run_picotrav(int argc, char** argv)
   bool should_exit = parse_input(argc, argv, variable_order);
 
   if (input_files.size() == 0) {
-    std::cerr << "Input file(s) not specified" << std::endl;
+    ERROR("Input file(s) not specified\n");
     should_exit = true;
   }
 
-  if (should_exit) { exit(-1); }
+  if (should_exit) { EXIT(-1); }
 
   bool verify_networks = input_files.size() > 1;
 
   // =========================================================================
-  std::cout << "Picotrav "
-            << " (" << mgr_t::NAME << " " << M << " MiB):" << std::endl;
+  INFO("Picotrav (%s %i MiB):\n", mgr_t::NAME.c_str(), M);
 
   // =========================================================================
   // Read file(s) and construct Nets
   net_t net_0;
 
-  INFO(" | Create input net(s):\n");
-  if(construct_net(input_files.at(0), net_0)) { exit(-1); }
-  INFO(" | | | [x] formatted\n");
+  const bool parsing_error_0 = construct_net(input_files.at(0), net_0);
+  INFO("   | input validation:\n");
+  INFO("   | | [%s] parsing\n", parsing_error_0 ? " " : "x");
+  if(parsing_error_0) { EXIT(-1); }
 
-  if(!is_acyclic(net_0)) { exit(-1); }
-  INFO(" | | | [x] acyclic\n");
+  const bool is_not_cyclic_0 = is_acyclic(net_0);
+  INFO("   | | [%s] acyclic\n", is_not_cyclic_0 ? "x" : " ");
+  if(!is_not_cyclic_0) { EXIT(-1); }
+
+  INFO("   | net info:\n");
+  INFO("   | | inputs:                 %zu\n", net_0.inputs_w_order.size());
+  INFO("   | | outputs:                %zu\n", net_0.outputs_in_order.size());
+  INFO("   | | internal nodes:         %zu\n", net_0.nodes.size());
 
   net_t net_1;
   if (verify_networks) {
-    const bool is_parsed = !construct_net(input_files.at(1), net_1);
-    INFO(" | | | [%s] formatted\n", is_parsed ? "x" : " ");
-    verify_networks &= is_parsed;
+    const bool parsing_error_1 = construct_net(input_files.at(1), net_1);
+    INFO("   | input validation:\n");
+    INFO("   | | [%s] parsing\n", parsing_error_1 ? " " : "x");
+    verify_networks &= !parsing_error_1;
 
-    const bool is_not_cyclic = is_acyclic(net_1);
-    INFO(" | | | [%s] acyclic\n", is_not_cyclic ? "x" : " ");
-    verify_networks &= is_not_cyclic;
+    const bool is_not_cyclic_1 = is_acyclic(net_1);
+    INFO("   | | [%s] acyclic\n", is_not_cyclic_1 ? "x" : " ");
+    verify_networks &= is_not_cyclic_1;
 
     const bool inputs_match = net_0.inputs_w_order.size() == net_1.inputs_w_order.size();
-    INFO(" | | | [%s] number of inputs match\n", inputs_match ? "x" : " ");
+    INFO("   | | [%s] number of inputs match\n", inputs_match ? "x" : " ");
     verify_networks &= inputs_match;
 
     const bool outputs_match = net_0.outputs_in_order.size() == net_1.outputs_in_order.size();
-    INFO(" | | | [%s] number of outputs match\n", outputs_match ? "x" : " ");
+    INFO("   | | [%s] number of outputs match\n", outputs_match ? "x" : " ");
     verify_networks &= outputs_match;
   }
+
+  INFO("   | net info:\n");
+  INFO("   | | inputs:                 %zu\n", net_1.inputs_w_order.size());
+  INFO("   | | outputs:                %zu\n", net_1.outputs_in_order.size());
+  INFO("   | | internal nodes:         %zu\n", net_1.nodes.size());
 
   // Nanotrav sorts the output in ascending order by their level. The same is
   // possible here, but experiments show this at times decreases and other
@@ -795,19 +803,23 @@ void run_picotrav(int argc, char** argv)
   const time_point t_init_before = get_timestamp();
   mgr_t mgr(varcount);
   const time_point t_init_after = get_timestamp();
-  INFO(" | BDD package init (ms):      %zu\n", duration_of(t_init_before, t_init_after));
+  INFO("\n   %s init (ms):      %zu\n", mgr_t::NAME.c_str(), duration_of(t_init_before, t_init_after));
 
   // ========================================================================
   // Construct BDD for net(s)
   bdd_cache<mgr_t> cache_0;
   construct_net_bdd(input_files.at(0), net_0, cache_0, mgr);
 
+  bool networks_equal = true;
   if (verify_networks) {
     bdd_cache<mgr_t> cache_1;
     construct_net_bdd(input_files.at(1), net_1, cache_1, mgr);
 
-    verify_outputs<mgr_t>(net_0, cache_0, net_1, cache_1);
+    networks_equal = verify_outputs<mgr_t>(net_0, cache_0, net_1, cache_1);
   }
 
   mgr.print_stats();
+
+  if (verify_networks && !networks_equal) { EXIT(-1); }
+  FLUSH();
 }

@@ -143,14 +143,13 @@ void run_tic_tac_toe(int argc, char** argv)
   if (should_exit) { exit(-1); }
 
   // =========================================================================
-
-  std::cout << "Tic-Tac-Toe with " << N << " crosses "
-            << "(" << mgr_t::NAME << " " << M << " MiB):" << std::endl;
+  INFO("Tic-Tac-Toe with %i crosses (%s %i MiB):\n", N, mgr_t::NAME.c_str(), M);
 
   auto t_init_before = get_timestamp();
   mgr_t mgr(64);
   auto t_init_after = get_timestamp();
-  INFO(" | init time (ms):         %zu\n", duration_of(t_init_before, t_init_after));
+  INFO("\n   %s initialisation:\n", mgr_t::NAME.c_str());
+  INFO("   | time (ms):              %zu\n", duration_of(t_init_before, t_init_after));
 
   construct_lines();
 
@@ -158,19 +157,21 @@ void run_tic_tac_toe(int argc, char** argv)
   {
     // =========================================================================
     // Construct is_equal_N
-    INFO(" | initial BDD:\n");
+    INFO("\n   Initial BDD:\n");
 
     auto t1 = get_timestamp();
     typename mgr_t::bdd_t res = construct_init(mgr);
     size_t initial_bdd = mgr.nodecount(res);
     auto t2 = get_timestamp();
 
-    INFO(" | | size (nodes):         %zu\n", initial_bdd);
-    INFO(" | | time (ms):            %zu\n", duration_of(t1,t2));
+    const auto init_time = duration_of(t1,t2);
+
+    INFO("   | size (nodes):           %zu\n", initial_bdd);
+    INFO("   | time (ms):              %zu\n", init_time);
 
     // =========================================================================
     // Add constraints lines
-    INFO(" | applying constraints:\n");
+    INFO("\n   Applying constraints:\n");
 
     size_t largest_bdd = 0;
     size_t total_nodes = initial_bdd;
@@ -187,30 +188,33 @@ void run_tic_tac_toe(int argc, char** argv)
 
     auto t4 = get_timestamp();
 
-    INFO(" | | total no. nodes:      %zu\n", total_nodes);
-    INFO(" | | largest size (nodes): %zu\n", largest_bdd);
-    INFO(" | | final size (nodes):   %zu\n", mgr.nodecount(res));
-    INFO(" | | time (ms):            %zu\n", duration_of(t3,t4));
+    const auto constraints_time = duration_of(t3,t4);
+
+    INFO("   | total no. nodes:        %zu\n", total_nodes);
+    INFO("   | largest size (nodes):   %zu\n", largest_bdd);
+    INFO("   | final size (nodes):     %zu\n", mgr.nodecount(res));
+    INFO("   | time (ms):              %zu\n", constraints_time);
 
     // =========================================================================
     // Count number of solutions
-    INFO(" | counting solutions:\n");
+    INFO("\n   counting solutions:\n");
 
     auto t5 = get_timestamp();
     solutions = mgr.satcount(res);
     auto t6 = get_timestamp();
 
-    // =========================================================================
-    INFO(" | | time (ms):            %zu\n", duration_of(t5,t6));
-    INFO(" | | number of solutions:  %zu\n", solutions);
+    const auto counting_time = duration_of(t5,t6);
 
     // =========================================================================
-    INFO(" | total time (ms):        %zu\n", duration_of(t1,t2) + duration_of(t3,t6));
+    INFO("   | number of solutions:    %zu\n", solutions);
+    INFO("   | time (ms):              %zu\n", counting_time);
+
+    // =========================================================================
+    INFO("\n   total time (ms):          %zu\n", init_time + constraints_time + counting_time);
   }
 
   mgr.print_stats();
 
-  if (N < size(expected_tic_tac_toe) && solutions != expected_tic_tac_toe[N]) {
-    exit(-1);
-  }
+  if (N < size(expected_tic_tac_toe) && solutions != expected_tic_tac_toe[N]) { EXIT(-1); }
+  FLUSH();
 }

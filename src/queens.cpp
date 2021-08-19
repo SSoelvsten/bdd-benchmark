@@ -105,15 +105,15 @@ void run_queens(int argc, char** argv)
   if (should_exit) { exit(-1); }
 
   // =========================================================================
-  std::cout << N << "-Queens"
-            << " (" << mgr_t::NAME << " " << M << " MiB):" << std::endl;
+  INFO("%i-Queens (%s %i MiB):\n", N, mgr_t::NAME.c_str(), M);
 
   // ========================================================================
   // Initialise package manager
   time_point t_init_before = get_timestamp();
   mgr_t mgr(N*N);
   time_point t_init_after = get_timestamp();
-  INFO(" | package init (ms):      %zu\n", duration_of(t_init_before, t_init_after));
+  INFO("\n   %s initialisation:\n", mgr_t::NAME.c_str());
+  INFO("   | time (ms):              %zu\n", duration_of(t_init_before, t_init_after));
 
   uint64_t solutions;
   {
@@ -123,11 +123,13 @@ void run_queens(int argc, char** argv)
     typename mgr_t::bdd_t res = queens_B(mgr);
     time_point t2 = get_timestamp();
 
-    INFO(" | construction:\n");
-    INFO(" | | total no. nodes:      %zu\n", total_nodes);
-    INFO(" | | largest size (nodes): %zu\n", largest_bdd);
-    INFO(" | | final size (nodes):   %zu\n", mgr.nodecount(res));
-    INFO(" | | time (ms):            %zu\n", duration_of(t1,t2));
+    const auto construction_time = duration_of(t1,t2);
+
+    INFO("\n   BDD construction:\n");
+    INFO("   | total no. nodes:        %zu\n", total_nodes);
+    INFO("   | largest size (nodes):   %zu\n", largest_bdd);
+    INFO("   | final size (nodes):     %zu\n", mgr.nodecount(res));
+    INFO("   | time (ms):              %zu\n", construction_time);
 
     // ========================================================================
     // Count number of solutions
@@ -135,18 +137,21 @@ void run_queens(int argc, char** argv)
     solutions = mgr.satcount(res);
     time_point t4 = get_timestamp();
 
-    // ========================================================================
-    INFO(" | counting solutions:\n");
-    INFO(" | | counting:             %zu\n", duration_of(t3,t4));
-    INFO(" | | number of solutions:  %zu\n", solutions);
+    const auto counting_time = duration_of(t3,t4);
 
-    INFO(" | total time (ms):        %zu\n", duration_of(t1,t4));
+    INFO("\n   Counting solutions:\n");
+    INFO("   | number of solutions:    %zu\n", solutions);
+    INFO("   | time (ms):              %zu\n", counting_time);
+
+    // ========================================================================
+    INFO("\n   total time (ms):          %zu\n", construction_time + counting_time);
   }
 
   mgr.print_stats();
 
   if (N < size(expected_queens) && solutions != expected_queens[N]) {
-    exit(-1);
+    EXIT(-1);
   }
+  FLUSH();
 }
 

@@ -58,42 +58,43 @@ void run_sat_pigeonhole_principle(int argc, char** argv)
   bool satisfiable = true;
   {
     // =========================================================================
-    std::cout << "Pigeonhole Principle for " << N+1 << " : " << N
-              << " (" << mgr_t::NAME << " " << M << " MiB):" << std::endl;
+    INFO("Pigeonhole Principle for %i : %i (%s %i MiB):\n", N+1, N, mgr_t::NAME.c_str(), M);
 
     uint64_t max_var = label_of_Pij(N+1, N);
 
     auto t_init_before = get_timestamp();
     sat_solver<mgr_t> solver(max_var+1);
     auto t_init_after = get_timestamp();
-    INFO(" | init time (ms):      %zu\n", duration_of(t_init_before, t_init_after));
+    INFO("\n   %s initialisation:\n", mgr_t::NAME.c_str());
+    INFO("   | time (ms):                %zu\n", duration_of(t_init_before, t_init_after));
 
     // =========================================================================
+    INFO("\n   CNF construction:\n");
 
     auto t1 = get_timestamp();
     construct_PHP_cnf(solver);
     auto t2 = get_timestamp();
 
+    INFO("   | variables:                %zu\n", solver.var_count());
+    INFO("   | clauses:                  %zu\n", solver.cnf_size());
+    INFO("   | time (ms):                %zu\n", duration_of(t1,t2));
+
+    // =========================================================================
+    INFO("\n   BDD satisfiability solving:\n");
+
     auto t3 = get_timestamp();
     satisfiable = solver.check_satisfiable();
     auto t4 = get_timestamp();
 
-    // =========================================================================
-    INFO(" | solution:            %s\n", satisfiable ? "SATISFIABLE" : "UNSATISFIABLE");
-    INFO(" | CNF:\n");
-    INFO(" | | variables:\n");
-    INFO(" | | | total:           %zu\n", solver.var_count());
-    INFO(" | | | quantified:      %zu\n", solver.exists_count());
-    INFO(" | | clauses:\n");
-    INFO(" | | | total:           %zu\n", solver.cnf_size());
-    INFO(" | | | done:            %zu\n", solver.apply_count());
-    INFO(" | BDD size (nodes):\n");
-    INFO(" | | largest size:      %zu\n", solver.bdd_largest_size());
-    INFO(" | | final size:        %zu\n", solver.bdd_size());
-    INFO(" | time (ms):\n");
-    INFO(" | | CNF construction:  %zu\n", duration_of(t1,t2));
-    INFO(" | | BDD solving:       %zu\n", duration_of(t3,t4));
+    INFO("   | operations:\n");
+    INFO("   | | exists:                 %zu\n", solver.exists_count());
+    INFO("   | | apply:                  %zu\n", solver.apply_count());
+    INFO("   | BDD size (nodes):\n");
+    INFO("   | | largest:                %zu\n", solver.bdd_largest_size());
+    INFO("   | | final:                  %zu\n", solver.bdd_size());
+    INFO("   | time (ms):                %zu\n", duration_of(t3,t4));
   }
 
-  if (satisfiable) { exit(-1); }
+  if (satisfiable) { EXIT(-1); }
+  FLUSH();
 }

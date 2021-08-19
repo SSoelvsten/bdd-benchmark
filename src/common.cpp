@@ -25,8 +25,11 @@ inline unsigned long int duration_of(const time_point &before, const time_point 
 
 // =============================================================================
 // Common printing macros
-#define INFO(s, ...) fprintf(stdout, s, ##__VA_ARGS__)
-#define Abort(...) { fprintf(stderr, __VA_ARGS__); exit(-1); }
+#define FLUSH() { fflush(stdout); fflush(stderr); }
+#define EXIT(e) { FLUSH(); exit(e); }
+
+#define INFO(s, ...) { fprintf(stdout, s, ##__VA_ARGS__); FLUSH() }
+#define ERROR(s, ...) { fprintf(stderr, s, ##__VA_ARGS__); FLUSH() }
 
 
 // =============================================================================
@@ -53,7 +56,7 @@ variable_order_enum parse_variable_ordering(const std::string &arg, bool &should
 template<>
 no_variable_order parse_variable_ordering(const std::string &, bool &should_exit)
 {
-  std::cerr << "Variable ordering is undefined for this benchmark" << std::endl;
+  ERROR("Variable ordering is undefined for this benchmark\n");
   should_exit = true;
   return no_variable_order::NO_ORDERING;
 }
@@ -76,7 +79,7 @@ bool parse_input(int &argc, char* argv[], variable_order_enum &variable_order)
       case 'M':
         M = std::stoi(optarg);
         if (M == 0) {
-          std::cerr << "  Must specify positive amount of memory (-M)" << std::endl;
+          ERROR("  Must specify positive amount of memory (-M)\n");
           exit = true;
         }
         continue;
@@ -96,7 +99,7 @@ bool parse_input(int &argc, char* argv[], variable_order_enum &variable_order)
         continue;
 
       case '?': // All parameters not defined above will be overwritten to be the '?' character
-        std::cerr << "Undefined flag parameter used" << std::endl << std::endl;
+        ERROR("Undefined flag parameter used\n\n");
         [[fallthrough]]; // Let the compiler know, that we intend to fall through to 'h' case
 
       case 'h':
@@ -113,10 +116,10 @@ bool parse_input(int &argc, char* argv[], variable_order_enum &variable_order)
         return true;
       }
     } catch (std::invalid_argument const &ex) {
-      std::cerr << "Invalid number: " << argv[1] << std::endl;
+      ERROR("Invalid number: %s\n", ex.what());
       exit = true;
     } catch (std::out_of_range const &ex) {
-      std::cerr << "Number out of range: " << argv[1] << std::endl;
+      ERROR("Number out of range: %s", ex.what());
       exit = true;
     }
   }
