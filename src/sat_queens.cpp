@@ -141,7 +141,7 @@ void run_sat_queens(int argc, char** argv)
   bool should_exit = parse_input(argc, argv, variable_order);
   if (should_exit) { exit(-1); }
 
-  bool satisfiable = true;
+  bool satisfiable = N != 2 && N != 3;
   uint64_t solutions = -1;
 
   {
