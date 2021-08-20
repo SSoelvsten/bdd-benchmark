@@ -102,7 +102,10 @@ public:
   { return b.ExistAbstract(sylvan::Bdd::bddVar(label)); }
 
   inline uint64_t nodecount(const bdd_t &b)
-  { return b.NodeCount() - 1; /* Sylvan also counts leafs */ }
+  {
+    // Sylvan also counts leaves (but complement edges makes it only 1)
+    return b.NodeCount() - 1;
+  }
 
   inline uint64_t satcount(const bdd_t &b)
   { return b.SatCount(varcount); }

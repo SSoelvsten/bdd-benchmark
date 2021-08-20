@@ -520,6 +520,7 @@ struct bdd_statistics
   size_t total_processed = 0;
   size_t max_bdd_size = 0;
   size_t curr_bdd_sizes = 0;
+  size_t max_bdd_sizes = 0;
   size_t sum_bdd_sizes = 0;
   size_t max_roots = 0;
   size_t max_allocated = 0;
@@ -529,11 +530,10 @@ struct bdd_statistics
 template<typename mgr_t>
 using bdd_cache = std::unordered_map<std::string, typename mgr_t::bdd_t>;
 
-template<typename mgr_t>
-void decrease_ref_count(net_t &net, const std::string &node_name, bdd_cache<mgr_t> &cache)
+bool decrease_ref_count(net_t &net, const std::string &node_name)
 {
-  if (net.is_input(node_name)) { return; }
-  if (net.is_output(node_name)) { return; }
+  if (net.is_input(node_name)) { return false; }
+  if (net.is_output(node_name)) { return false; }
 
   const auto lookup_ref_count = net.ref_count.find(node_name);
   if (lookup_ref_count == net.ref_count.end()) {
@@ -545,11 +545,11 @@ void decrease_ref_count(net_t &net, const std::string &node_name, bdd_cache<mgr_
   assert(ref_count > 0);
 
   net.ref_count.erase(node_name);
-  if (ref_count > 1) {
-    net.ref_count.insert({ node_name, ref_count - 1});
-  } else {
-    cache.erase(node_name);
-  }
+
+  if (ref_count == 1) { return true; }
+
+  net.ref_count.insert({ node_name, ref_count - 1});
+  return false;
 }
 
 template<typename mgr_t>
@@ -573,7 +573,8 @@ typename mgr_t::bdd_t construct_node_bdd(net_t &net,
   const node_t &node_data = net.nodes.find(node_name) -> second;
 
   typename mgr_t::bdd_t so_cover_bdd = mgr.leaf_false();
-  size_t so_nodecount = 0;
+  size_t so_nodecount = mgr.nodecount(so_cover_bdd);
+  assert(so_nodecount == 0);
 
   for (size_t row_idx = 0; row_idx < node_data.so_cover.size(); row_idx++) {
     typename mgr_t::bdd_t tmp = mgr.leaf_true();
@@ -599,8 +600,10 @@ typename mgr_t::bdd_t construct_node_bdd(net_t &net,
 
       // Decrease reference count on dependency if we are on the last row.
       if (row_idx == node_data.so_cover.size() - 1) {
-        decrease_ref_count<mgr_t>(net, dep_name, cache);
-        if (!net.is_input(dep_name)) { stats.curr_bdd_sizes -= mgr.nodecount(dep_bdd); }
+        if (decrease_ref_count(net, dep_name)) {
+          cache.erase(dep_name);
+          stats.curr_bdd_sizes -= mgr.nodecount(dep_bdd);
+        }
       }
 
       const size_t tmp_nodecount =  mgr.nodecount(tmp);
@@ -610,6 +613,7 @@ typename mgr_t::bdd_t construct_node_bdd(net_t &net,
 
     so_cover_bdd |= tmp;
 
+    assert(so_nodecount <= stats.curr_bdd_sizes);
     stats.curr_bdd_sizes -= so_nodecount;
     so_nodecount = mgr.nodecount(so_cover_bdd);
     stats.curr_bdd_sizes += so_nodecount;
@@ -617,16 +621,19 @@ typename mgr_t::bdd_t construct_node_bdd(net_t &net,
     stats.total_processed += so_nodecount;
     stats.max_bdd_size = std::max(stats.max_bdd_size, so_nodecount);
 
+    stats.max_bdd_sizes = std::max(stats.max_bdd_sizes, stats.curr_bdd_sizes);
     stats.sum_bdd_sizes += stats.curr_bdd_sizes;
+
     stats.max_allocated = std::max(stats.max_allocated, mgr.allocated_nodes());
     stats.sum_allocated += mgr.allocated_nodes();
   }
 
   so_cover_bdd = node_data.is_onset ? so_cover_bdd : mgr.negate(so_cover_bdd);
 
-  stats.sum_bdd_sizes += stats.curr_bdd_sizes;
-  stats.max_allocated = std::max(stats.max_allocated, mgr.allocated_nodes());
-  stats.sum_allocated += mgr.allocated_nodes();
+  // count negation
+  // stats.sum_bdd_sizes += stats.curr_bdd_sizes;
+  // stats.max_allocated = std::max(stats.max_allocated, mgr.allocated_nodes());
+  // stats.sum_allocated += mgr.allocated_nodes();
 
   cache.insert({ node_name, so_cover_bdd });
   stats.max_roots = std::max(stats.max_roots, cache.size());
@@ -674,6 +681,7 @@ void construct_net_bdd(const std::string &filename,
   INFO("   | | max no. roots:        %zu\n", stats.max_roots);
   INFO("   | | max BDD size:         %zu\n", stats.max_bdd_size);
   INFO("   | | sum w/ duplicates:    %zu\n", stats.sum_bdd_sizes);
+  INFO("   | | max w/ duplicates:    %zu\n", stats.max_bdd_sizes);
   INFO("   | | sum allocated:        %zu\n", stats.sum_allocated);
   INFO("   | | max allocated:        %zu\n", stats.max_allocated);
 }
