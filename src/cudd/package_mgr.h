@@ -87,7 +87,10 @@ public:
   { return b.ExistAbstract(__mgr.bddVar(label)); }
 
   inline uint64_t nodecount(const BDD &b)
-  { return b.nodeCount() - 1; /* CUDD also counts leafs */ }
+  {
+    // CUDD also counts leaves (but complement edges makes it only 1)
+    return b.nodeCount() - 1;
+  }
 
   inline uint64_t satcount(const BDD &b)
   { return b.CountMinterm(varcount); }
