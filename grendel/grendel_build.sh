@@ -1,10 +1,11 @@
 #!/bin/bash
-#SBATCH --job-name=soelvsten_build
+#SBATCH --job-name=bdd_benchmark_build
 #SBATCH --partition=q48
 #SBATCH --time=00:10:00
 
 # Load packages
-module load cmake autoconf automake gcc gpm boost gmp
+module load cmake autoconf automake gcc gpm
+module load boost gmp
 export CC=/comm/swstack/core/gcc/10.1.0/bin/gcc
 export CXX=/comm/swstack/core/gcc/10.1.0/bin/c++
 
