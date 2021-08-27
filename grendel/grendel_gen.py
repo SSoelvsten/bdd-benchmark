@@ -85,7 +85,8 @@ touch {output_file}
 
 echo -e "\\n=========  Started `date`  ==========\\n" | tee -a {output_file}
 
-module load cmake gcc gpm boost gmp
+module load cmake gcc gpm
+module load boost gmp
 export CC=/comm/swstack/core/gcc/10.1.0/bin/gcc
 export CXX=/comm/swstack/core/gcc/10.1.0/bin/c++
 export LC_ALL=C
@@ -158,7 +159,8 @@ touch {output_file}
 
 echo -e "\\n=========  Started `date`  ==========\\n" | tee -a {output_file}
 
-module load cmake gcc gpm boost gmp
+module load cmake gcc gpm
+module load boost gmp
 export CC=/comm/swstack/core/gcc/10.1.0/bin/gcc
 export CXX=/comm/swstack/core/gcc/10.1.0/bin/c++
 export LC_ALL=C
