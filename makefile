@@ -76,11 +76,3 @@ sat-solver/pigeonhole_principle:
 sat-solver/queens: N := 6
 sat-solver/queens:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_sat_queens) -N $(N) -M $(M)
-
-# ============================================================================ #
-#  GRENDEL
-# ============================================================================ #
-grendel:
-	@rm -f grendel/*_*_*.sh
-	@cd grendel && python3 grendel_gen.py
-	@chmod a+x grendel/*.sh
