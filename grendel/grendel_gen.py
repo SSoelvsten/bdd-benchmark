@@ -242,7 +242,7 @@ echo -e "\\n========= Finished `date` ==========\\n"
 # RUN BUILD SCRIPTS
 # =========================================================================== #
 
-with open("grendel_build.sh", "w") as file:
+with open("build.sh", "w") as file:
     file.write(script_str_build())
 
 for variant in VARIANTS:
