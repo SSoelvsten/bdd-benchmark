@@ -13,10 +13,11 @@ public:
 public:
   adiar_mgr(int /* varcount */)
   {
+    const size_t memory_bytes = static_cast<size_t>(M) * 1024u * 1024u;
 #ifndef GRENDEL
-    adiar::adiar_init(M);
+    adiar::adiar_init(memory_bytes);
 #else
-    adiar::adiar_init(M, temp_path);
+    adiar::adiar_init(memory_bytes, temp_path);
 #endif
   }
 
