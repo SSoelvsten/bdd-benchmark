@@ -14,9 +14,9 @@ public:
   adiar_mgr(int /* varcount */)
   {
 #ifndef GRENDEL
-    adiar::adiar_init(M);
+    adiar::adiar_init(M * 1024 * 1024);
 #else
-    adiar::adiar_init(M, temp_path);
+    adiar::adiar_init(M * 1024 * 1024, temp_path);
 #endif
   }
 
