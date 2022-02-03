@@ -2,6 +2,9 @@
 
 class adiar_bdd_adapter
 {
+private:
+  const int varcount;
+
 public:
   inline static const std::string NAME = "Adiar";
 
@@ -11,7 +14,7 @@ public:
 
   // Init and Deinit
 public:
-  adiar_bdd_adapter(int /* varcount */)
+  adiar_bdd_adapter(int vc) : varcount(vc)
   {
     const size_t memory_bytes = static_cast<size_t>(M) * 1024u * 1024u;
     adiar::adiar_init(memory_bytes, temp_path);
@@ -43,7 +46,7 @@ public:
   { return adiar::bdd_nodecount(b); }
 
   inline uint64_t satcount(const adiar::bdd &b)
-  { return adiar::bdd_satcount(b); }
+  { return adiar::bdd_satcount(b, varcount); }
 
   // Statistics
 public:
