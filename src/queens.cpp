@@ -14,12 +14,12 @@ inline int label_of_position(int i, int j)
 
 // ========================================================================== //
 //                            SQUARE CONSTRUCTION                             //
-template<typename mgr_t>
-typename mgr_t::bdd_t queens_S(mgr_t &mgr, int i, int j)
+template<typename adapter_t>
+typename adapter_t::bdd_t queens_S(adapter_t &adapter, int i, int j)
 {
   int row = N - 1;
 
-  typename mgr_t::bdd_t out = mgr.leaf_true();
+  typename adapter_t::bdd_t out = adapter.leaf_true();
 
   do {
     int row_diff = std::max(row, i) - std::min(row, i);
@@ -31,43 +31,43 @@ typename mgr_t::bdd_t queens_S(mgr_t &mgr, int i, int j)
         int label = label_of_position(row, column);
 
         if (column == j) {
-          out &= mgr.ithvar(label);
+          out &= adapter.ithvar(label);
         } else {
-          out &= mgr.nithvar(label);
+          out &= adapter.nithvar(label);
         }
       } while (column-- > 0);
     } else {
       if (j + row_diff < N) {
         int label = label_of_position(row, j + row_diff);
-        out &= mgr.nithvar(label);
+        out &= adapter.nithvar(label);
       }
 
       int label = label_of_position(row, j);
-      out &= mgr.nithvar(label);
+      out &= adapter.nithvar(label);
 
       if (row_diff <= j) {
         int label = label_of_position(row, j - row_diff);
-        out &= mgr.nithvar(label);
+        out &= adapter.nithvar(label);
       }
     }
   } while (row-- > 0);
 
-  total_nodes += mgr.nodecount(out);
+  total_nodes += adapter.nodecount(out);
 
   return out;
 }
 
 // ========================================================================== //
 //                              ROW CONSTRUCTION                              //
-template<typename mgr_t>
-typename mgr_t::bdd_t queens_R(mgr_t &mgr, int row)
+template<typename adapter_t>
+typename adapter_t::bdd_t queens_R(adapter_t &adapter, int row)
 {
-  typename mgr_t::bdd_t out = queens_S(mgr, row, 0);
+  typename adapter_t::bdd_t out = queens_S(adapter, row, 0);
 
   for (int j = 1; j < N; j++) {
-    out |= queens_S(mgr, row, j);
+    out |= queens_S(adapter, row, j);
 
-    const size_t nodecount = mgr.nodecount(out);
+    const size_t nodecount = adapter.nodecount(out);
     largest_bdd = std::max(largest_bdd, nodecount);
     total_nodes += nodecount;
   }
@@ -76,19 +76,19 @@ typename mgr_t::bdd_t queens_R(mgr_t &mgr, int row)
 
 // ========================================================================== //
 //                              ROW ACCUMULATION                              //
-template<typename mgr_t>
-typename mgr_t::bdd_t queens_B(mgr_t &mgr)
+template<typename adapter_t>
+typename adapter_t::bdd_t queens_B(adapter_t &adapter)
 {
   if (N == 1) {
-    return queens_S(mgr, 0, 0);
+    return queens_S(adapter, 0, 0);
   }
 
-  typename mgr_t::bdd_t out = queens_R(mgr, 0);
+  typename adapter_t::bdd_t out = queens_R(adapter, 0);
 
   for (int i = 1; i < N; i++) {
-    out &= queens_R(mgr, i);
+    out &= queens_R(adapter, i);
 
-    const size_t nodecount = mgr.nodecount(out);
+    const size_t nodecount = adapter.nodecount(out);
     largest_bdd = std::max(largest_bdd, nodecount);
     total_nodes += nodecount;
   }
@@ -96,7 +96,7 @@ typename mgr_t::bdd_t queens_B(mgr_t &mgr)
 }
 
 // ========================================================================== //
-template<typename mgr_t>
+template<typename adapter_t>
 void run_queens(int argc, char** argv)
 {
   no_variable_order variable_order = no_variable_order::NO_ORDERING;
@@ -105,14 +105,14 @@ void run_queens(int argc, char** argv)
   if (should_exit) { exit(-1); }
 
   // =========================================================================
-  INFO("%i-Queens (%s %i MiB):\n", N, mgr_t::NAME.c_str(), M);
+  INFO("%i-Queens (%s %i MiB):\n", N, adapter_t::NAME.c_str(), M);
 
   // ========================================================================
   // Initialise package manager
   time_point t_init_before = get_timestamp();
-  mgr_t mgr(N*N);
+  adapter_t adapter(N*N);
   time_point t_init_after = get_timestamp();
-  INFO("\n   %s initialisation:\n", mgr_t::NAME.c_str());
+  INFO("\n   %s initialisation:\n", adapter_t::NAME.c_str());
   INFO("   | time (ms):              %zu\n", duration_of(t_init_before, t_init_after));
 
   uint64_t solutions;
@@ -120,7 +120,7 @@ void run_queens(int argc, char** argv)
     // ========================================================================
     // Compute the bdd that represents the entire board
     time_point t1 = get_timestamp();
-    typename mgr_t::bdd_t res = queens_B(mgr);
+    typename adapter_t::bdd_t res = queens_B(adapter);
     time_point t2 = get_timestamp();
 
     const auto construction_time = duration_of(t1,t2);
@@ -128,13 +128,13 @@ void run_queens(int argc, char** argv)
     INFO("\n   BDD construction:\n");
     INFO("   | total no. nodes:        %zu\n", total_nodes);
     INFO("   | largest size (nodes):   %zu\n", largest_bdd);
-    INFO("   | final size (nodes):     %zu\n", mgr.nodecount(res));
+    INFO("   | final size (nodes):     %zu\n", adapter.nodecount(res));
     INFO("   | time (ms):              %zu\n", construction_time);
 
     // ========================================================================
     // Count number of solutions
     time_point t3 = get_timestamp();
-    solutions = mgr.satcount(res);
+    solutions = adapter.satcount(res);
     time_point t4 = get_timestamp();
 
     const auto counting_time = duration_of(t3,t4);
@@ -147,7 +147,7 @@ void run_queens(int argc, char** argv)
     INFO("\n   total time (ms):          %zu\n", construction_time + counting_time);
   }
 
-  mgr.print_stats();
+  adapter.print_stats();
 
   if (N < size(expected_queens) && solutions != expected_queens[N]) {
     EXIT(-1);

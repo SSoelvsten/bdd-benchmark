@@ -11,8 +11,8 @@ inline size_t label_of_position(int i, int j)
 }
 
 // =============================================================================
-template<typename mgr_t>
-void construct_Queens_cnf(sat_solver<mgr_t> &solver)
+template<typename adapter_t>
+void construct_Queens_cnf(sat_solver<adapter_t> &solver)
 {
   // ALO on rows
   for (int i = 0; i < N; i++) {
@@ -133,7 +133,7 @@ void construct_Queens_cnf(sat_solver<mgr_t> &solver)
 }
 
 // =============================================================================
-template<typename mgr_t>
+template<typename adapter_t>
 void run_sat_queens(int argc, char** argv)
 {
   no_variable_order variable_order = no_variable_order::NO_ORDERING;
@@ -146,14 +146,14 @@ void run_sat_queens(int argc, char** argv)
 
   {
     // =========================================================================
-    INFO("%i-Queens SAT (%s %i MiB):\n", N, mgr_t::NAME.c_str(), M);
+    INFO("%i-Queens SAT (%s %i MiB):\n", N, adapter_t::NAME.c_str(), M);
 
     uint64_t varcount = label_of_position(N-1, N-1)+1;
 
     auto t_init_before = get_timestamp();
-    sat_solver<mgr_t> solver(varcount);
+    sat_solver<adapter_t> solver(varcount);
     auto t_init_after = get_timestamp();
-    INFO("\n   %s initialisation:\n", mgr_t::NAME.c_str());
+    INFO("\n   %s initialisation:\n", adapter_t::NAME.c_str());
     INFO("   | time (ms):                %zu\n", duration_of(t_init_before, t_init_after));
 
     // =========================================================================

@@ -1,11 +1,11 @@
 #include "../queens.cpp"
 
-#include "package_mgr.h"
+#include "adapter.h"
 
 // ========================================================================== //
 //                            SQUARE CONSTRUCTION                             //
 template<>
-adiar::bdd queens_S(adiar_mgr &/*mgr*/, int i, int j)
+adiar::bdd queens_S(adiar_bdd_adapter &/*mgr*/, int i, int j)
 {
   adiar::node_file out;
   adiar::node_writer out_writer(out);
@@ -74,5 +74,5 @@ adiar::bdd queens_S(adiar_mgr &/*mgr*/, int i, int j)
 // ========================================================================== //
 int main(int argc, char** argv)
 {
-  run_queens<adiar_mgr>(argc, argv);
+  run_queens<adiar_bdd_adapter>(argc, argv);
 }

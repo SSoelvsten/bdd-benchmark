@@ -527,8 +527,8 @@ struct bdd_statistics
   size_t sum_allocated = 0;
 };
 
-template<typename mgr_t>
-using bdd_cache = std::unordered_map<std::string, typename mgr_t::bdd_t>;
+template<typename adapter_t>
+using bdd_cache = std::unordered_map<std::string, typename adapter_t::bdd_t>;
 
 bool decrease_ref_count(net_t &net, const std::string &node_name)
 {
@@ -552,11 +552,11 @@ bool decrease_ref_count(net_t &net, const std::string &node_name)
   return false;
 }
 
-template<typename mgr_t>
-typename mgr_t::bdd_t construct_node_bdd(net_t &net,
+template<typename adapter_t>
+typename adapter_t::bdd_t construct_node_bdd(net_t &net,
                                          const std::string &node_name,
-                                         bdd_cache<mgr_t> &cache,
-                                         mgr_t &mgr,
+                                         bdd_cache<adapter_t> &cache,
+                                         adapter_t &adapter,
                                          bdd_statistics &stats)
 {
   const auto lookup_cache = cache.find(node_name);
@@ -566,27 +566,27 @@ typename mgr_t::bdd_t construct_node_bdd(net_t &net,
 
   const auto lookup_input = net.inputs_w_order.find(node_name);
   if (lookup_input != net.inputs_w_order.end()) {
-    return mgr.ithvar(lookup_input -> second);
+    return adapter.ithvar(lookup_input -> second);
   }
 
   assert (net.nodes.find(node_name) != net.nodes.end());
   const node_t &node_data = net.nodes.find(node_name) -> second;
 
-  typename mgr_t::bdd_t so_cover_bdd = mgr.leaf_false();
-  size_t so_nodecount = mgr.nodecount(so_cover_bdd);
+  typename adapter_t::bdd_t so_cover_bdd = adapter.leaf_false();
+  size_t so_nodecount = adapter.nodecount(so_cover_bdd);
   assert(so_nodecount == 0);
 
   for (size_t row_idx = 0; row_idx < node_data.so_cover.size(); row_idx++) {
-    typename mgr_t::bdd_t tmp = mgr.leaf_true();
+    typename adapter_t::bdd_t tmp = adapter.leaf_true();
 
     for (size_t column_idx = 0; column_idx < node_data.nets.size(); column_idx++) {
       const std::string &dep_name = node_data.nets.at(column_idx);
-      typename mgr_t::bdd_t dep_bdd = construct_node_bdd(net, dep_name, cache, mgr, stats);
+      typename adapter_t::bdd_t dep_bdd = construct_node_bdd(net, dep_name, cache, adapter, stats);
 
       // Add to row accumulation in 'tmp'
       switch (node_data.so_cover.at(row_idx).at(column_idx)) {
       case logic_value::FALSE:
-        tmp &= mgr.negate(dep_bdd);
+        tmp &= adapter.negate(dep_bdd);
         break;
 
       case logic_value::TRUE:
@@ -602,11 +602,11 @@ typename mgr_t::bdd_t construct_node_bdd(net_t &net,
       if (row_idx == node_data.so_cover.size() - 1) {
         if (decrease_ref_count(net, dep_name)) {
           cache.erase(dep_name);
-          stats.curr_bdd_sizes -= mgr.nodecount(dep_bdd);
+          stats.curr_bdd_sizes -= adapter.nodecount(dep_bdd);
         }
       }
 
-      const size_t tmp_nodecount =  mgr.nodecount(tmp);
+      const size_t tmp_nodecount =  adapter.nodecount(tmp);
       stats.total_processed += tmp_nodecount;
       stats.max_bdd_size = std::max(stats.max_bdd_size, tmp_nodecount);
     }
@@ -615,7 +615,7 @@ typename mgr_t::bdd_t construct_node_bdd(net_t &net,
 
     assert(so_nodecount <= stats.curr_bdd_sizes);
     stats.curr_bdd_sizes -= so_nodecount;
-    so_nodecount = mgr.nodecount(so_cover_bdd);
+    so_nodecount = adapter.nodecount(so_cover_bdd);
     stats.curr_bdd_sizes += so_nodecount;
 
     stats.total_processed += so_nodecount;
@@ -624,16 +624,16 @@ typename mgr_t::bdd_t construct_node_bdd(net_t &net,
     stats.max_bdd_sizes = std::max(stats.max_bdd_sizes, stats.curr_bdd_sizes);
     stats.sum_bdd_sizes += stats.curr_bdd_sizes;
 
-    stats.max_allocated = std::max(stats.max_allocated, mgr.allocated_nodes());
-    stats.sum_allocated += mgr.allocated_nodes();
+    stats.max_allocated = std::max(stats.max_allocated, adapter.allocated_nodes());
+    stats.sum_allocated += adapter.allocated_nodes();
   }
 
-  so_cover_bdd = node_data.is_onset ? so_cover_bdd : mgr.negate(so_cover_bdd);
+  so_cover_bdd = node_data.is_onset ? so_cover_bdd : adapter.negate(so_cover_bdd);
 
   // count negation
   // stats.sum_bdd_sizes += stats.curr_bdd_sizes;
-  // stats.max_allocated = std::max(stats.max_allocated, mgr.allocated_nodes());
-  // stats.sum_allocated += mgr.allocated_nodes();
+  // stats.max_allocated = std::max(stats.max_allocated, adapter.allocated_nodes());
+  // stats.sum_allocated += adapter.allocated_nodes();
 
   cache.insert({ node_name, so_cover_bdd });
   stats.max_roots = std::max(stats.max_roots, cache.size());
@@ -642,11 +642,11 @@ typename mgr_t::bdd_t construct_node_bdd(net_t &net,
 
 // ========================================================================== //
 // Construct the BDD for each output gate
-template<typename mgr_t>
+template<typename adapter_t>
 void construct_net_bdd(const std::string &filename,
                        net_t &net,
-                       bdd_cache<mgr_t> &cache,
-                       mgr_t &mgr)
+                       bdd_cache<adapter_t> &cache,
+                       adapter_t &adapter)
 {
   if (cache.size() > 0) {
     ERROR("Given BDD cache is non-empty");
@@ -658,7 +658,7 @@ void construct_net_bdd(const std::string &filename,
   const time_point t_construct_before = get_timestamp();
   bdd_statistics stats;
   for (const std::string &output : net.outputs_in_order) {
-    construct_node_bdd(net, output, cache, mgr, stats);
+    construct_node_bdd(net, output, cache, adapter, stats);
   }
   const time_point t_construct_after = get_timestamp();
 
@@ -668,14 +668,14 @@ void construct_net_bdd(const std::string &filename,
   size_t sum_final_sizes = 0;
   size_t max_final_size = 0;
   for (auto kv : cache) {
-    size_t nodecount = mgr.nodecount(kv.second);
+    size_t nodecount = adapter.nodecount(kv.second);
     sum_final_sizes += nodecount;
     max_final_size = std::max(max_final_size, nodecount);
   }
   INFO("   | final BDDs:\n");
   INFO("   | | max BDD size:         %zu\n", max_final_size);
   INFO("   | | w/ duplicates:        %zu\n", sum_final_sizes);
-  INFO("   | | allocated:            %zu\n", mgr.allocated_nodes());
+  INFO("   | | allocated:            %zu\n", adapter.allocated_nodes());
 
   INFO("   | life-time BDDs:\n");
   INFO("   | | max no. roots:        %zu\n", stats.max_roots);
@@ -688,9 +688,9 @@ void construct_net_bdd(const std::string &filename,
 
 // ========================================================================== //
 // Test equivalence of every output gate (in-order they were given)
-template<typename mgr_t>
-bool verify_outputs(const net_t& net_0, const bdd_cache<mgr_t>& cache_0,
-                    const net_t& net_1, const bdd_cache<mgr_t>& cache_1)
+template<typename adapter_t>
+bool verify_outputs(const net_t& net_0, const bdd_cache<adapter_t>& cache_0,
+                    const net_t& net_1, const bdd_cache<adapter_t>& cache_1)
 {
   assert(net_0.outputs_in_order.size() == cache_0.size());
   assert(net_1.outputs_in_order.size() == cache_1.size());
@@ -705,8 +705,8 @@ bool verify_outputs(const net_t& net_0, const bdd_cache<mgr_t>& cache_0,
     const std::string &output_0 = net_0.outputs_in_order.at(out_idx);
     const std::string &output_1 = net_1.outputs_in_order.at(out_idx);
 
-    const typename mgr_t::bdd_t bdd_0 = cache_0.find(output_0) -> second;
-    const typename mgr_t::bdd_t bdd_1 = cache_1.find(output_1) -> second;
+    const typename adapter_t::bdd_t bdd_0 = cache_0.find(output_0) -> second;
+    const typename adapter_t::bdd_t bdd_1 = cache_1.find(output_1) -> second;
 
     if (bdd_0 != bdd_1) {
       INFO("   | | output differ in ['%s' / '%s']\n", output_0.c_str(), output_1.c_str());
@@ -736,7 +736,7 @@ variable_order parse_variable_ordering(const std::string &arg, bool &should_exit
   return variable_order::INPUT;
 }
 
-template<typename mgr_t>
+template<typename adapter_t>
 void run_picotrav(int argc, char** argv)
 {
   variable_order variable_order = variable_order::INPUT;
@@ -752,7 +752,7 @@ void run_picotrav(int argc, char** argv)
   bool verify_networks = input_files.size() > 1;
 
   // =========================================================================
-  INFO("Picotrav (%s %i MiB):\n", mgr_t::NAME.c_str(), M);
+  INFO("Picotrav (%s %i MiB):\n", adapter_t::NAME.c_str(), M);
 
   // =========================================================================
   // Read file(s) and construct Nets
@@ -809,24 +809,24 @@ void run_picotrav(int argc, char** argv)
   const size_t varcount = net_0.inputs_w_order.size();
 
   const time_point t_init_before = get_timestamp();
-  mgr_t mgr(varcount);
+  adapter_t adapter(varcount);
   const time_point t_init_after = get_timestamp();
-  INFO("\n   %s init (ms):      %zu\n", mgr_t::NAME.c_str(), duration_of(t_init_before, t_init_after));
+  INFO("\n   %s init (ms):      %zu\n", adapter_t::NAME.c_str(), duration_of(t_init_before, t_init_after));
 
   // ========================================================================
   // Construct BDD for net(s)
-  bdd_cache<mgr_t> cache_0;
-  construct_net_bdd(input_files.at(0), net_0, cache_0, mgr);
+  bdd_cache<adapter_t> cache_0;
+  construct_net_bdd(input_files.at(0), net_0, cache_0, adapter);
 
   bool networks_equal = true;
   if (verify_networks) {
-    bdd_cache<mgr_t> cache_1;
-    construct_net_bdd(input_files.at(1), net_1, cache_1, mgr);
+    bdd_cache<adapter_t> cache_1;
+    construct_net_bdd(input_files.at(1), net_1, cache_1, adapter);
 
-    networks_equal = verify_outputs<mgr_t>(net_0, cache_0, net_1, cache_1);
+    networks_equal = verify_outputs<adapter_t>(net_0, cache_0, net_1, cache_1);
   }
 
-  mgr.print_stats();
+  adapter.print_stats();
 
   if (verify_networks && !networks_equal) { EXIT(-1); }
   FLUSH();

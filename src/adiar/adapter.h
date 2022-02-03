@@ -1,6 +1,6 @@
 #include <adiar/adiar.h>
 
-class adiar_mgr
+class adiar_bdd_adapter
 {
 public:
   inline static const std::string NAME = "Adiar";
@@ -11,13 +11,13 @@ public:
 
   // Init and Deinit
 public:
-  adiar_mgr(int /* varcount */)
+  adiar_bdd_adapter(int /* varcount */)
   {
     const size_t memory_bytes = static_cast<size_t>(M) * 1024u * 1024u;
     adiar::adiar_init(memory_bytes, temp_path);
   }
 
-  ~adiar_mgr()
+  ~adiar_bdd_adapter()
   {
     adiar::adiar_deinit();
   }
@@ -61,7 +61,7 @@ public:
 #include "../sat_solver.h"
 
 template<>
-adiar::bdd bdd_from_clause(adiar_mgr &/* mgr */, clause_t &clause)
+adiar::bdd bdd_from_clause(adiar_bdd_adapter &/* mgr */, clause_t &clause)
 {
   adiar::node_file clause_bdd;
   adiar::node_writer clause_writer(clause_bdd);
