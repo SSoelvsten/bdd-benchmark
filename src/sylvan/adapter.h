@@ -35,7 +35,7 @@ size_t log2(size_t n)
 }
 
 
-class sylvan_mgr
+class sylvan_bdd_adapter
 {
 private:
   int varcount;
@@ -49,7 +49,7 @@ public:
 
   // Init and Deinit
 public:
-  sylvan_mgr(int varcount) : varcount(varcount)
+  sylvan_bdd_adapter(int varcount) : varcount(varcount)
   {
     // Init LACE
     lace_start(1, 1000000);
@@ -65,7 +65,7 @@ public:
     sylvan::sylvan_init_bdd();
   }
 
-  ~sylvan_mgr()
+  ~sylvan_bdd_adapter()
   {
     sylvan::sylvan_quit();
     lace_stop();

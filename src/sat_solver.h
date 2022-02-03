@@ -25,10 +25,10 @@ typedef std::vector<clause_t> cnf_t;
 /// functions of Sylvan cannot be called without local variables generated
 /// during initialisation in the respective main function being in scope.
 ////////////////////////////////////////////////////////////////////////////////
-template<typename mgr_t>
-typename mgr_t::bdd_t bdd_from_clause(mgr_t &mgr, clause_t &clause)
+template<typename adapter_t>
+typename adapter_t::bdd_t bdd_from_clause(adapter_t &adapter, clause_t &clause)
 {
-  typename mgr_t::bdd_t c = mgr.leaf_false();
+  typename adapter_t::bdd_t c = adapter.leaf_false();
 
   uint64_t label = UINT64_MAX;
 
@@ -38,22 +38,22 @@ typename mgr_t::bdd_t bdd_from_clause(mgr_t &mgr, clause_t &clause)
       label = (*it).first;
       bool negated = (*it).second;
 
-      typename mgr_t::bdd_t v = negated ? mgr.nithvar(label) : mgr.ithvar(label);
-      c = mgr.ite(v, mgr.leaf_true(), c);
+      typename adapter_t::bdd_t v = negated ? adapter.nithvar(label) : adapter.ithvar(label);
+      c = adapter.ite(v, adapter.leaf_true(), c);
     }
 
   return c;
 }
 
-template<typename mgr_t>
+template<typename adapter_t>
 class sat_solver
 {
 private:
   uint64_t varcount;
   cnf_t clauses;
 
-  mgr_t mgr;
-  typename mgr_t::bdd_t acc;
+  adapter_t adapter;
+  typename adapter_t::bdd_t acc;
 
   size_t number_of_quantifications = 0;
   size_t number_of_applies = 0;
@@ -62,8 +62,8 @@ private:
 public:
   sat_solver(uint64_t varcount)
     : varcount(varcount),
-      mgr(varcount),
-      acc(mgr.leaf_true())
+      adapter(varcount),
+      acc(adapter.leaf_true())
   { }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -107,7 +107,7 @@ public:
 private:
   void reset()
   {
-    acc = mgr.leaf_true();
+    acc = adapter.leaf_true();
     number_of_applies = 0;
     number_of_quantifications = 0;
     largest_nodecount = 0;
@@ -120,16 +120,16 @@ public:
     reset();
 
     for (clause_t &clause : clauses) {
-      acc &= bdd_from_clause(mgr, clause);
+      acc &= bdd_from_clause(adapter, clause);
       number_of_applies++;
       largest_nodecount = std::max(largest_nodecount, bdd_size());
 
-      if (acc == mgr.leaf_false()) {
+      if (acc == adapter.leaf_false()) {
         return 0u;
       }
     }
 
-    return mgr.satcount(acc);
+    return adapter.satcount(acc);
   }
 
   bool check_satisfiable()
@@ -147,9 +147,9 @@ public:
     {
       while (!seen_labels.empty() && clause.back().first < *seen_labels.rbegin())
       {
-        acc = mgr.exists(acc, *seen_labels.rbegin());
+        acc = adapter.exists(acc, *seen_labels.rbegin());
         number_of_quantifications++;
-        largest_nodecount = std::max(largest_nodecount, mgr.nodecount(acc));
+        largest_nodecount = std::max(largest_nodecount, adapter.nodecount(acc));
 
         seen_labels.erase(*seen_labels.rbegin());
       }
@@ -159,17 +159,17 @@ public:
         seen_labels.insert(x.first);
       }
 
-      acc &= bdd_from_clause(mgr, clause);
+      acc &= bdd_from_clause(adapter, clause);
       number_of_applies++;
-      largest_nodecount = std::max(largest_nodecount, mgr.nodecount(acc));
+      largest_nodecount = std::max(largest_nodecount, adapter.nodecount(acc));
 
-      if (acc == mgr.leaf_false())
+      if (acc == adapter.leaf_false())
       {
         return false;
       }
     }
 
-    return acc != mgr.leaf_false();
+    return acc != adapter.leaf_false();
   }
 
   bool check_unsatisfiable()
@@ -185,7 +185,7 @@ public:
 
   uint64_t bdd_size()
   {
-    return mgr.nodecount(acc);
+    return adapter.nodecount(acc);
   }
 
   uint64_t apply_count()

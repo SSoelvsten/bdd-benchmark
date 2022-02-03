@@ -1,17 +1,17 @@
 #include "../tic_tac_toe.cpp"
 
-#include "package_mgr.h"
+#include "adapter.h"
 
 // ========================================================================== //
 //                            SQUARE CONSTRUCTION                             //
 template<>
-adiar::bdd construct_init(adiar_mgr &/*mgr*/)
+adiar::bdd construct_init(adiar_bdd_adapter &/*mgr*/)
 {
   return adiar::bdd_counter(0, 63, N);
 }
 
 template<>
-adiar::bdd construct_is_not_winning(adiar_mgr &/* mgr */, std::array<int, 4>& line)
+adiar::bdd construct_is_not_winning(adiar_bdd_adapter &/* mgr */, std::array<int, 4>& line)
 {
   size_t idx = 4 - 1;
 
@@ -52,5 +52,5 @@ adiar::bdd construct_is_not_winning(adiar_mgr &/* mgr */, std::array<int, 4>& li
 // ========================================================================== //
 int main(int argc, char** argv)
 {
-  run_tic_tac_toe<adiar_mgr>(argc, argv);
+  run_tic_tac_toe<adiar_bdd_adapter>(argc, argv);
 }

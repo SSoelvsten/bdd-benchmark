@@ -79,14 +79,14 @@ void construct_lines() {
 
 // ========================================================================== //
 //                           EXACTLY N CONSTRAINT                             //
-template<typename mgr_t>
-typename mgr_t::bdd_t construct_init(mgr_t &mgr)
+template<typename adapter_t>
+typename adapter_t::bdd_t construct_init(adapter_t &adapter)
 {
-  typename mgr_t::bdd_t res;
+  typename adapter_t::bdd_t res;
 
-  typename mgr_t::bdd_t init_parts[N+1];
+  typename adapter_t::bdd_t init_parts[N+1];
   for (int i = 0; i <= N; i++) {
-    init_parts[i] = i < N ? mgr.leaf_false() : mgr.leaf_true();
+    init_parts[i] = i < N ? adapter.leaf_false() : adapter.leaf_true();
   }
 
   int curr_level = 63;
@@ -96,10 +96,10 @@ typename mgr_t::bdd_t construct_init(mgr_t &mgr)
     int max_idx = std::min(curr_level, N);
 
     for (int curr_idx = min_idx; curr_idx <= max_idx; curr_idx++) {
-      typename mgr_t::bdd_t low = init_parts[curr_idx];
-      typename mgr_t::bdd_t high = curr_idx == N ? mgr.leaf_false() : init_parts[curr_idx + 1];
+      typename adapter_t::bdd_t low = init_parts[curr_idx];
+      typename adapter_t::bdd_t high = curr_idx == N ? adapter.leaf_false() : init_parts[curr_idx + 1];
 
-      init_parts[curr_idx] = mgr.ite(mgr.ithvar(curr_level), low, high);
+      init_parts[curr_idx] = adapter.ite(adapter.ithvar(curr_level), low, high);
     }
   } while (curr_level-- > 0);
 
@@ -110,23 +110,23 @@ typename mgr_t::bdd_t construct_init(mgr_t &mgr)
 
 // ========================================================================== //
 //                              LINE CONSTRAINT                               //
-template<typename mgr_t>
-typename mgr_t::bdd_t construct_is_not_winning(mgr_t &mgr, std::array<int, 4>& line)
+template<typename adapter_t>
+typename adapter_t::bdd_t construct_is_not_winning(adapter_t &adapter, std::array<int, 4>& line)
 {
   size_t idx = 4 - 1;
 
-  typename mgr_t::bdd_t no_Xs = mgr.leaf_false();
-  typename mgr_t::bdd_t only_Xs = mgr.leaf_false();
+  typename adapter_t::bdd_t no_Xs = adapter.leaf_false();
+  typename adapter_t::bdd_t only_Xs = adapter.leaf_false();
 
   do {
-    no_Xs = mgr.ite(mgr.ithvar(line[idx]),
-                    idx == 0 ? only_Xs : mgr.leaf_true(),
+    no_Xs = adapter.ite(adapter.ithvar(line[idx]),
+                    idx == 0 ? only_Xs : adapter.leaf_true(),
                     no_Xs);
 
     if (idx > 0) {
-      only_Xs = mgr.ite(mgr.ithvar(line[idx]),
+      only_Xs = adapter.ite(adapter.ithvar(line[idx]),
                         only_Xs,
-                        mgr.leaf_true());
+                        adapter.leaf_true());
     }
   } while (idx-- > 0);
 
@@ -134,7 +134,7 @@ typename mgr_t::bdd_t construct_is_not_winning(mgr_t &mgr, std::array<int, 4>& l
 }
 
 // =============================================================================
-template<typename mgr_t>
+template<typename adapter_t>
 void run_tic_tac_toe(int argc, char** argv)
 {
   no_variable_order variable_order = no_variable_order::NO_ORDERING;
@@ -143,12 +143,12 @@ void run_tic_tac_toe(int argc, char** argv)
   if (should_exit) { exit(-1); }
 
   // =========================================================================
-  INFO("Tic-Tac-Toe with %i crosses (%s %i MiB):\n", N, mgr_t::NAME.c_str(), M);
+  INFO("Tic-Tac-Toe with %i crosses (%s %i MiB):\n", N, adapter_t::NAME.c_str(), M);
 
   auto t_init_before = get_timestamp();
-  mgr_t mgr(64);
+  adapter_t adapter(64);
   auto t_init_after = get_timestamp();
-  INFO("\n   %s initialisation:\n", mgr_t::NAME.c_str());
+  INFO("\n   %s initialisation:\n", adapter_t::NAME.c_str());
   INFO("   | time (ms):              %zu\n", duration_of(t_init_before, t_init_after));
 
   construct_lines();
@@ -160,8 +160,8 @@ void run_tic_tac_toe(int argc, char** argv)
     INFO("\n   Initial BDD:\n");
 
     auto t1 = get_timestamp();
-    typename mgr_t::bdd_t res = construct_init(mgr);
-    size_t initial_bdd = mgr.nodecount(res);
+    typename adapter_t::bdd_t res = construct_init(adapter);
+    size_t initial_bdd = adapter.nodecount(res);
     auto t2 = get_timestamp();
 
     const auto init_time = duration_of(t1,t2);
@@ -179,9 +179,9 @@ void run_tic_tac_toe(int argc, char** argv)
     auto t3 = get_timestamp();
 
     for (auto &line : lines) {
-      res &= construct_is_not_winning(mgr, line);
+      res &= construct_is_not_winning(adapter, line);
 
-      const size_t nodecount = mgr.nodecount(res);
+      const size_t nodecount = adapter.nodecount(res);
       largest_bdd = std::max(largest_bdd, nodecount);
       total_nodes += nodecount + 4 /* from construct_is_not_winning */;
     }
@@ -192,7 +192,7 @@ void run_tic_tac_toe(int argc, char** argv)
 
     INFO("   | total no. nodes:        %zu\n", total_nodes);
     INFO("   | largest size (nodes):   %zu\n", largest_bdd);
-    INFO("   | final size (nodes):     %zu\n", mgr.nodecount(res));
+    INFO("   | final size (nodes):     %zu\n", adapter.nodecount(res));
     INFO("   | time (ms):              %zu\n", constraints_time);
 
     // =========================================================================
@@ -200,7 +200,7 @@ void run_tic_tac_toe(int argc, char** argv)
     INFO("\n   counting solutions:\n");
 
     auto t5 = get_timestamp();
-    solutions = mgr.satcount(res);
+    solutions = adapter.satcount(res);
     auto t6 = get_timestamp();
 
     const auto counting_time = duration_of(t5,t6);
@@ -213,7 +213,7 @@ void run_tic_tac_toe(int argc, char** argv)
     INFO("\n   total time (ms):          %zu\n", init_time + constraints_time + counting_time);
   }
 
-  mgr.print_stats();
+  adapter.print_stats();
 
   if (N < size(expected_tic_tac_toe) && solutions != expected_tic_tac_toe[N]) { EXIT(-1); }
   FLUSH();

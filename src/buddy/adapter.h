@@ -53,7 +53,7 @@ buddy_init_size compute_init_size()
   return { std::min(x, MAX_INT), std::min(y, MAX_INT / CACHE_RATIO) };
 }
 
-class buddy_mgr
+class buddy_bdd_adapter
 {
 public:
   inline static const std::string NAME = "BuDDy";
@@ -64,7 +64,7 @@ public:
 
   // Init and Deinit
 public:
-  buddy_mgr(int varcount)
+  buddy_bdd_adapter(int varcount)
   {
 #ifndef GRENDEL
     const buddy_init_size init_size = compute_init_size();
@@ -94,7 +94,7 @@ public:
     bdd_disable_reorder();
   }
 
-  ~buddy_mgr()
+  ~buddy_bdd_adapter()
   {
     bdd_done();
   }

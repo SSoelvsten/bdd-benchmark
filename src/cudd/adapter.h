@@ -35,7 +35,7 @@ cudd_memorysize()
   return std::min(static_cast<size_t>(M), CUDD_MAX / (1024 * 1024)) * 1024 * 1024;
 }
 
-class cudd_mgr
+class cudd_bdd_adapter
 {
 private:
   Cudd __mgr;
@@ -50,7 +50,7 @@ public:
 
   // Init and Deinit
 public:
-  cudd_mgr(int varcount)
+  cudd_bdd_adapter(int varcount)
     : __mgr(varcount, 0,
             CUDD_UNIQUE_SLOTS,
             cudd_cachesize(varcount),
@@ -60,7 +60,7 @@ public:
     __mgr.AutodynDisable();
   }
 
-  ~cudd_mgr()
+  ~cudd_bdd_adapter()
   { /* Do nothing */ }
 
   // BDD Operations
