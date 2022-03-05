@@ -222,7 +222,7 @@ public:
   }
 };
 
-bool construct_net(std::string filename, net_t &net)
+bool construct_net(std::string &filename, net_t &net)
 {
   INFO("   Parsing '%s'\n", filename.c_str());
   construct_net_callback callback(net);
@@ -286,7 +286,7 @@ bool is_acyclic(const net_t &net)
   std::unordered_set<std::string> pth_visited;
 
   bool result = true;
-  for (const std::string output : net.outputs_in_order) {
+  for (const std::string &output : net.outputs_in_order) {
     if (!result) { break; }
     result &= is_acyclic_rec(output, net, net_visited, pth, pth_visited);
   }
@@ -333,7 +333,7 @@ std::unordered_map<int, int> dfs_variable_order(const net_t &net)
 {
   std::unordered_set<std::string> visited_nodes;
   std::unordered_map<int, int> new_ordering;
-  for (const std::string output : net.outputs_in_order) {
+  for (const std::string &output : net.outputs_in_order) {
     dfs_variable_order_rec(output, new_ordering, net, visited_nodes);
   }
   return new_ordering;
@@ -350,7 +350,7 @@ int level_of(const std::string &node_name, net_t &net)
   const node_t n = net.nodes.find(node_name) -> second;
 
   int level = -1;
-  for (const std::string dep_name : n.nets) {
+  for (const std::string &dep_name : n.nets) {
     level = std::max(level, level_of(dep_name, net) + 1);
   }
 
@@ -406,7 +406,7 @@ std::unordered_map<int, int> level_variable_order(net_t &net)
 
   std::unordered_map<std::string, int> deepest_reference;
   std::unordered_set<std::string> visited_nodes;
-  for (const std::string output : net.outputs_in_order) {
+  for (const std::string &output : net.outputs_in_order) {
     compute_input_depth(output, deepest_reference, net, visited_nodes);
   }
 
@@ -657,7 +657,7 @@ void construct_net_bdd(const std::string &filename,
 
   const time_point t_construct_before = get_timestamp();
   bdd_statistics stats;
-  for (const std::string output : net.outputs_in_order) {
+  for (const std::string &output : net.outputs_in_order) {
     construct_node_bdd(net, output, cache, mgr, stats);
   }
   const time_point t_construct_after = get_timestamp();
