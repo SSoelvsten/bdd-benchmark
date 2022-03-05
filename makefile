@@ -23,10 +23,6 @@ build:
 	@echo "\nBuild"
 	@mkdir -p build/ && cd build/ && cmake -D ADIAR_STATS=ON ..
 
-  # Installation of sylvan
-	@echo "\n\nInstall Sylvan"
-	@cd build/sylvan && make DESTDIR=./ && make install DESTDIR=./
-
   # Installation of CUDD
 	@echo "\n\nInstall CUDD"
 	@[ -d "build/cudd/" ] || (cd external/cudd \

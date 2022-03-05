@@ -10,13 +10,8 @@
 /// and every operation cache entry takes up 36 bytes.
 ///
 /// Lace initialisation
-/// - lace_init:              Single-threaded and use a 1,000,000 size task
-///                           queue.
-///
-/// - lace_startup:           Auto-detect program stack, do not use a callback
-///                           for startup.
-///
-/// - LACE_ME:                Lace is initialized, now set local variables.
+/// - lace_start:             Initializes LACE given the number of threads and
+///                           the size of the task queue.
 ///
 /// Sylvan initialisation:
 ///   Nodes table size: 24 bytes * nodes
@@ -57,9 +52,7 @@ public:
   sylvan_mgr(int varcount) : varcount(varcount)
   {
     // Init LACE
-    lace_init(1, 1000000);
-    lace_startup(0, NULL, NULL);
-    LACE_ME;
+    lace_start(1, 1000000);
 
     const size_t memory_bytes = static_cast<size_t>(M) * 1024u * 1024u;
 
@@ -75,7 +68,7 @@ public:
   ~sylvan_mgr()
   {
     sylvan::sylvan_quit();
-    lace_exit();
+    lace_stop();
   }
 
   // BDD Operations
