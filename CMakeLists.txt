@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.10)
 project (bdd_benchmarks
   VERSION 1
   DESCRIPTION "A collection of comparable BDD Benchmarks"
-  LANGUAGES CXX
 )
 
 
@@ -48,7 +47,6 @@ set(CUDD_LIB_FILES "${CUDD_BUILD_DIR}/lib/libcudd.a")
 
 # Sylvan Package (Tom van Dijk - University of Twente, Netherlands)
 add_subdirectory (external/sylvan sylvan)
-set(SYLVAN_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/build/sylvan/usr/local/include")
 
 # ---------------------------------------------------------------------------- #
 # BLIF parser

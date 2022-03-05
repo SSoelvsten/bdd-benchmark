@@ -19,8 +19,7 @@ macro(add_benchmark NAME)
   # Sylvan
   add_executable(sylvan_${NAME} sylvan/${NAME}.cpp)
   #set_target_properties(sylvan_${NAME} PROPERTIES CXX_STANDARD 17)
-  target_include_directories(sylvan_${NAME} PRIVATE "${SYLVAN_INCLUDE_DIR}")
-  target_link_libraries(sylvan_${NAME} PRIVATE sylvan)
+  target_link_libraries(sylvan_${NAME} PRIVATE Sylvan::Sylvan)
 endmacro(add_benchmark)
 
 macro(link_extra NAME LIB_NAME)
