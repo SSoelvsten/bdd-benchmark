@@ -30,9 +30,9 @@ libraries.
 
 - [**Adiar**](https://github.com/ssoelvsten/adiar):
   An I/O Efficient implementation with iterative algorithms using priority
-  queues to exploit a special sorting of nodes on disk. These algorithms have no
-  need for memoization or garbage collection, but, on the other hand, nodes are
-  also not shareable between BDDs.
+  queues to exploit a special sorting of streamed from/to disk. These algorithms
+  have no need for memoization or garbage collection, but, on the other hand,
+  nodes are also not shareable between BDDs.
 
 
 - [**BuDDy**](http://vlsicad.eecs.umich.edu/BK/Slots/cache/www.itu.dk/research/buddy/):
@@ -44,8 +44,7 @@ libraries.
   up for building with CMake.
 
 
-- **CUDD**
-
+- **CUDD**:
   The most popular BDD package after decades of heavy development and
   optimisations. It uses a memoization table, automated garbage collection, and
   dynamic variable reordering.
