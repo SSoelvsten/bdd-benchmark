@@ -31,10 +31,18 @@ build:
                             && make MAKEINFO=true \
                             && make install)
 
-  # Build all benchmarks
-	@echo "\n\nBuild Benchmarks"
+  # Build all bdd benchmarks
+	@echo "\n\nBuild BDD Benchmarks"
 	@cd build/ && for package in 'adiar' 'buddy' 'sylvan' 'cudd' ; do \
 		for benchmark in 'picotrav' 'queens' 'sat_pigeonhole_principle' 'sat_queens' 'tic_tac_toe' ; do \
+			make ${MAKE_FLAGS} $$package'_'$$benchmark ; \
+		done ; \
+	done
+
+	# Build all zdd benchmarks
+	@echo "\n\nBuild ZDD Benchmarks"
+	@cd build/ && for package in 'adiar' ; do \
+		for benchmark in 'queens_zdd' ; do \
 			make ${MAKE_FLAGS} $$package'_'$$benchmark ; \
 		done ; \
 	done
@@ -57,8 +65,15 @@ combinatorial/picotrav:
 combinatorial/picotrav:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_picotrav) -f $(F1) -f $(F2) -M $(M) -o $(O)
 
-combinatorial/queens: N := 8
 combinatorial/queens:
+	$(MAKE) combinatorial/queens/bdd
+
+combinatorial/queens/zdd: N := 8
+combinatorial/queens/zdd:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_queens_zdd) -N $(N) -M $(M)
+
+combinatorial/queens/bdd: N := 8
+combinatorial/queens/bdd:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_queens) -N $(N) -M $(M)
 
 combinatorial/tic_tac_toe: N := 20
