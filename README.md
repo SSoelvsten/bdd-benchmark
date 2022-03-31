@@ -57,7 +57,7 @@ libraries.
   A parallel (multi-core) implementation with depth-first algorithms using a
   unique node table to share nodes. It also provides a memoization table,
   complement edges, automated garbage collection, and much more.
-  
+
   We will _not_ make use of the multi-core aspect to make the results
   comparable.
 
@@ -103,14 +103,16 @@ apt install libboost-all-dev
 
 The project has been built on Linux and tested on Ubuntu 18.04 and 20.04. On
 _Windows Subsystem for Linux_ or _Cygwin_ the automake installation will fail
-due to _\r\n_ line endings. To resolve this, convert the line endings for the
-relevant files as shown below.
+due to _\r\n_ line endings. To resolve this, first install dos2unix, then convert
+the line endings for the relevant files as shown below in the CUDD folder.
 
 ```bash
+apt install dos2unix
 find . -name \*.m4|xargs dos2unix
 find . -name \*.ac|xargs dos2unix
 find . -name \*.am|xargs dos2unix
 ```
+Alternatively, run `make clean`.
 
 Installation of CUDD seems neither possible without also building the
 documentation. For this, you need a local installation of LaTeX.
