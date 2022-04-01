@@ -10,7 +10,7 @@ public:
 
   // Variable type
 public:
-  typedef adiar::zdd bdd_t;
+  typedef adiar::zdd dd_t;
 
   // Init and Deinit
 public:

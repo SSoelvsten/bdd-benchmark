@@ -26,9 +26,9 @@ typedef std::vector<clause_t> cnf_t;
 /// during initialisation in the respective main function being in scope.
 ////////////////////////////////////////////////////////////////////////////////
 template<typename adapter_t>
-typename adapter_t::bdd_t bdd_from_clause(adapter_t &adapter, clause_t &clause)
+typename adapter_t::dd_t bdd_from_clause(adapter_t &adapter, clause_t &clause)
 {
-  typename adapter_t::bdd_t c = adapter.leaf_false();
+  typename adapter_t::dd_t c = adapter.leaf_false();
 
   uint64_t label = UINT64_MAX;
 
@@ -38,7 +38,7 @@ typename adapter_t::bdd_t bdd_from_clause(adapter_t &adapter, clause_t &clause)
       label = (*it).first;
       bool negated = (*it).second;
 
-      typename adapter_t::bdd_t v = negated ? adapter.nithvar(label) : adapter.ithvar(label);
+      typename adapter_t::dd_t v = negated ? adapter.nithvar(label) : adapter.ithvar(label);
       c = adapter.ite(v, adapter.leaf_true(), c);
     }
 
@@ -53,7 +53,7 @@ private:
   cnf_t clauses;
 
   adapter_t adapter;
-  typename adapter_t::bdd_t acc;
+  typename adapter_t::dd_t acc;
 
   size_t number_of_quantifications = 0;
   size_t number_of_applies = 0;

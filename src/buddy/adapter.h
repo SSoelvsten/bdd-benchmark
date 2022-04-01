@@ -60,7 +60,7 @@ public:
 
   // Variable type
 public:
-  typedef bdd bdd_t;
+  typedef bdd dd_t;
 
   // Init and Deinit
 public:
@@ -122,10 +122,10 @@ public:
   inline bdd exists(const bdd &b, int label)
   { return bdd_exist(b, bdd_ithvar(label)); }
 
-  inline uint64_t nodecount(const bdd_t &b)
+  inline uint64_t nodecount(const dd_t &b)
   { return bdd_nodecount(b); }
 
-  inline uint64_t satcount(const bdd_t &b)
+  inline uint64_t satcount(const dd_t &b)
   { return bdd_satcount(b); }
 
   // Statistics

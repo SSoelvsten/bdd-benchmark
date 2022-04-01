@@ -168,7 +168,7 @@ void run_sat_queens(int argc, char** argv)
     INFO("   | time (ms):                %zu\n", duration_of(t1,t2));
 
     // =========================================================================
-    INFO("\n   BDD satisfiability solving:\n");
+    INFO("\n   Decision diagram satisfiability solving:\n");
 
 #ifndef GRENDEL
     auto t3 = get_timestamp();
@@ -178,14 +178,14 @@ void run_sat_queens(int argc, char** argv)
     INFO("   | operations:\n");
     INFO("   | | exists:                 %zu\n", solver.exists_count());
     INFO("   | | apply:                  %zu\n", solver.apply_count());
-    INFO("   | BDD size (nodes):\n");
+    INFO("   | DD size (nodes):\n");
     INFO("   | | largest:                %zu\n", solver.bdd_largest_size());
     INFO("   | | final:                  %zu\n", solver.bdd_size());
     INFO("   | time (ms):                %zu\n", duration_of(t3,t4));
 #endif
 
     // =========================================================================
-    INFO("\n   BDD counting:\n");
+    INFO("\n   Decicsion Diagram counting:\n");
 
     auto t5 = get_timestamp();
     solutions = solver.check_satcount();
@@ -193,7 +193,7 @@ void run_sat_queens(int argc, char** argv)
     INFO("   | solutions:                %zu\n", solutions);
     INFO("   | operations:\n");
     INFO("   | | apply:                  %zu\n", solver.apply_count());
-    INFO("   | BDD size (nodes):\n");
+    INFO("   | DD size (nodes):\n");
     INFO("   | | largest:                %zu\n", solver.bdd_largest_size());
     INFO("   | | final:                  %zu\n", solver.bdd_size());
     INFO("   | time (ms):                %zu\n", duration_of(t5,t6));
