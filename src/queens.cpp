@@ -15,11 +15,11 @@ inline int label_of_position(int i, int j)
 // ========================================================================== //
 //                            SQUARE CONSTRUCTION                             //
 template<typename adapter_t>
-typename adapter_t::bdd_t queens_S(adapter_t &adapter, int i, int j)
+typename adapter_t::dd_t queens_S(adapter_t &adapter, int i, int j)
 {
   int row = N - 1;
 
-  typename adapter_t::bdd_t out = adapter.leaf_true();
+  typename adapter_t::dd_t out = adapter.leaf_true();
 
   do {
     int row_diff = std::max(row, i) - std::min(row, i);
@@ -60,9 +60,9 @@ typename adapter_t::bdd_t queens_S(adapter_t &adapter, int i, int j)
 // ========================================================================== //
 //                              ROW CONSTRUCTION                              //
 template<typename adapter_t>
-typename adapter_t::bdd_t queens_R(adapter_t &adapter, int row)
+typename adapter_t::dd_t queens_R(adapter_t &adapter, int row)
 {
-  typename adapter_t::bdd_t out = queens_S(adapter, row, 0);
+  typename adapter_t::dd_t out = queens_S(adapter, row, 0);
 
   for (int j = 1; j < N; j++) {
     out |= queens_S(adapter, row, j);
@@ -77,13 +77,13 @@ typename adapter_t::bdd_t queens_R(adapter_t &adapter, int row)
 // ========================================================================== //
 //                              ROW ACCUMULATION                              //
 template<typename adapter_t>
-typename adapter_t::bdd_t queens_B(adapter_t &adapter)
+typename adapter_t::dd_t queens_B(adapter_t &adapter)
 {
   if (N == 1) {
     return queens_S(adapter, 0, 0);
   }
 
-  typename adapter_t::bdd_t out = queens_R(adapter, 0);
+  typename adapter_t::dd_t out = queens_R(adapter, 0);
 
   for (int i = 1; i < N; i++) {
     out &= queens_R(adapter, i);
@@ -120,12 +120,12 @@ void run_queens(int argc, char** argv)
     // ========================================================================
     // Compute the bdd that represents the entire board
     time_point t1 = get_timestamp();
-    typename adapter_t::bdd_t res = queens_B(adapter);
+    typename adapter_t::dd_t res = queens_B(adapter);
     time_point t2 = get_timestamp();
 
     const auto construction_time = duration_of(t1,t2);
 
-    INFO("\n   BDD construction:\n");
+    INFO("\n   Decision diagram construction:\n");
     INFO("   | total no. nodes:        %zu\n", total_nodes);
     INFO("   | largest size (nodes):   %zu\n", largest_bdd);
     INFO("   | final size (nodes):     %zu\n", adapter.nodecount(res));

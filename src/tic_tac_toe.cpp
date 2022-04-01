@@ -80,11 +80,11 @@ void construct_lines() {
 // ========================================================================== //
 //                           EXACTLY N CONSTRAINT                             //
 template<typename adapter_t>
-typename adapter_t::bdd_t construct_init(adapter_t &adapter)
+typename adapter_t::dd_t construct_init(adapter_t &adapter)
 {
-  typename adapter_t::bdd_t res;
+  typename adapter_t::dd_t res;
 
-  typename adapter_t::bdd_t init_parts[N+1];
+  typename adapter_t::dd_t init_parts[N+1];
   for (int i = 0; i <= N; i++) {
     init_parts[i] = i < N ? adapter.leaf_false() : adapter.leaf_true();
   }
@@ -96,8 +96,8 @@ typename adapter_t::bdd_t construct_init(adapter_t &adapter)
     int max_idx = std::min(curr_level, N);
 
     for (int curr_idx = min_idx; curr_idx <= max_idx; curr_idx++) {
-      typename adapter_t::bdd_t low = init_parts[curr_idx];
-      typename adapter_t::bdd_t high = curr_idx == N ? adapter.leaf_false() : init_parts[curr_idx + 1];
+      typename adapter_t::dd_t low = init_parts[curr_idx];
+      typename adapter_t::dd_t high = curr_idx == N ? adapter.leaf_false() : init_parts[curr_idx + 1];
 
       init_parts[curr_idx] = adapter.ite(adapter.ithvar(curr_level), low, high);
     }
@@ -111,12 +111,12 @@ typename adapter_t::bdd_t construct_init(adapter_t &adapter)
 // ========================================================================== //
 //                              LINE CONSTRAINT                               //
 template<typename adapter_t>
-typename adapter_t::bdd_t construct_is_not_winning(adapter_t &adapter, std::array<int, 4>& line)
+typename adapter_t::dd_t construct_is_not_winning(adapter_t &adapter, std::array<int, 4>& line)
 {
   size_t idx = 4 - 1;
 
-  typename adapter_t::bdd_t no_Xs = adapter.leaf_false();
-  typename adapter_t::bdd_t only_Xs = adapter.leaf_false();
+  typename adapter_t::dd_t no_Xs = adapter.leaf_false();
+  typename adapter_t::dd_t only_Xs = adapter.leaf_false();
 
   do {
     no_Xs = adapter.ite(adapter.ithvar(line[idx]),
@@ -157,10 +157,10 @@ void run_tic_tac_toe(int argc, char** argv)
   {
     // =========================================================================
     // Construct is_equal_N
-    INFO("\n   Initial BDD:\n");
+    INFO("\n   Initial decision diagram:\n");
 
     auto t1 = get_timestamp();
-    typename adapter_t::bdd_t res = construct_init(adapter);
+    typename adapter_t::dd_t res = construct_init(adapter);
     size_t initial_bdd = adapter.nodecount(res);
     auto t2 = get_timestamp();
 

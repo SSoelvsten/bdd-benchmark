@@ -46,7 +46,7 @@ public:
 
   // Variable type
 public:
-  typedef BDD bdd_t;
+  typedef BDD dd_t;
 
   // Init and Deinit
 public:

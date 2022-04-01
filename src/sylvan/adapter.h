@@ -45,7 +45,7 @@ public:
 
   // Variable type
 public:
-  typedef sylvan::Bdd bdd_t;
+  typedef sylvan::Bdd dd_t;
 
   // Init and Deinit
 public:
@@ -94,13 +94,13 @@ public:
   inline sylvan::Bdd exists(const sylvan::Bdd &b, int label)
   { return b.ExistAbstract(sylvan::Bdd::bddVar(label)); }
 
-  inline uint64_t nodecount(const bdd_t &b)
+  inline uint64_t nodecount(const dd_t &b)
   {
     // Sylvan also counts leaves (but complement edges makes it only 1)
     return b.NodeCount() - 1;
   }
 
-  inline uint64_t satcount(const bdd_t &b)
+  inline uint64_t satcount(const dd_t &b)
   { return b.SatCount(varcount); }
 
   // Statistics
