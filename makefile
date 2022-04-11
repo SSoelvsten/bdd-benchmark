@@ -26,10 +26,10 @@ build:
   # Installation of CUDD
 	@echo "\n\nInstall CUDD"
 	@[ -d "build/cudd/" ] || (cd external/cudd \
-                            && autoreconf \
-                            && ./configure --prefix ${CURDIR}/build/cudd/ --enable-obj \
-                            && make MAKEINFO=true \
-                            && make install)
+														&& autoreconf \
+														&& ./configure --prefix ${CURDIR}/build/cudd/ --enable-obj \
+														&& make MAKEINFO=true \
+														&& make install)
 
   # Build all bdd benchmarks
 	@echo "\n\nBuild BDD Benchmarks"
@@ -39,7 +39,7 @@ build:
 		done ; \
 	done
 
-	# Build all zdd benchmarks
+  # Build all zdd benchmarks
 	@echo "\n\nBuild ZDD Benchmarks"
 	@cd build/ && for package in 'adiar' ; do \
 		for benchmark in 'queens_zdd' ; do \

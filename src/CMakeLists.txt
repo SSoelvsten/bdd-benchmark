@@ -1,6 +1,6 @@
 macro(add_bdd_benchmark NAME)
   # Adiar
-	add_executable(adiar_${NAME} adiar/${NAME}.cpp)
+  add_executable(adiar_${NAME} adiar/${NAME}.cpp)
   #set_target_properties(adiar_${NAME} PROPERTIES CXX_STANDARD 17)
   target_link_libraries(adiar_${NAME} PRIVATE adiar)
 
