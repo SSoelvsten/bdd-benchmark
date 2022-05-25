@@ -6,7 +6,7 @@ private:
   const int varcount;
 
 public:
-  inline static const std::string NAME = "Adiar";
+  inline static const std::string NAME = "Adiar [ZDD]";
 
   // Variable type
 public:
