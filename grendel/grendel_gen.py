@@ -1,6 +1,7 @@
 import os
 
-VARIANTS = ["adiar", "buddy", "cudd", "sylvan"]
+VARIANTS_BDD = ["adiar", "buddy", "cudd", "sylvan"]
+VARIANTS_ZDD = ["adiar"]
 
 # =========================================================================== #
 # Common strings for scripts
@@ -38,8 +39,7 @@ def sbatch_str(jobname, time):
 # List of problems, with [N, Sylvan_M, max-time] triples.
 #
 # The sylvan memory are some 10 MiB/GiB above the actual computed value.
-N_PROBLEMS = [
-
+N_PROBLEMS_BDD = [
     ["queens",
      [[7,          64, "00-00:10"],
       [8,          64, "00-00:10"],
@@ -95,7 +95,24 @@ N_PROBLEMS = [
       [29, 330 * 1024, "15-00:00"],
 	  ]
     ],
+]
 
+N_PROBLEMS_ZDD = [
+    ["queens_zdd",
+     [[7,          64, "00-00:10"],
+      [8,          64, "00-00:10"],
+      [9,          64, "00-00:10"],
+      [10,         64, "00-00:10"],
+      [11,        256, "00-00:30"],
+      [12,       1024, "00-01:00"],
+      [13,   4 * 1024, "00-02:00"],
+      [14,  32 * 1024, "00-02:30"],
+      [15, 256 * 1024, "00-03:00"],
+      [16, 330 * 1024, "00-20:00"],
+      [17, 330 * 1024, "08-00:00"],
+      [18, 330 * 1024, "15-00:00"],
+     ]
+    ]
 ]
 
 def script_str_N(variant, problem_name, N, sylvan_M, time):
@@ -196,13 +213,17 @@ echo -e "\\n========= Finished `date` ==========\\n" | tee -a {output_file}
 # BUILD SCRIPT
 # =========================================================================== #
 
-BENCHMARKS = ["picotrav"] + [p[0] for p in N_PROBLEMS]
+BENCHMARKS_BDD = ["picotrav"] + [p[0] for p in N_PROBLEMS_BDD]
+BENCHMARKS_ZDD = [p[0] for p in N_PROBLEMS_ZDD]
 
 def script_str_build():
     settings = sbatch_str("bdd_benchmarks_build", "00-00:10")
 
-    variants = ' '.join([f"'{v}'" for v in VARIANTS])
-    benchmarks = ' '.join([f"'{b}'" for b in BENCHMARKS])
+    variants_bdd = ' '.join([f"'{v}'" for v in VARIANTS_BDD])
+    variants_zdd = ' '.join([f"'{v}'" for v in VARIANTS_BDD])
+
+    benchmarks_bdd = ' '.join([f"'{b}'" for b in BENCHMARKS_BDD])
+    benchmarks_zdd = ' '.join([f"'{b}'" for b in BENCHMARKS_ZDD])
 
     return f'''#!/bin/bash
 {settings}
@@ -229,11 +250,20 @@ autoreconf
 ./configure --prefix $SLURM_SUBMIT_DIR/build/cudd/ --enable-obj
 make && make install
 
-echo ""
-echo "Build Benchmarks"
 cd $SLURM_SUBMIT_DIR/build/
-for package in {variants} ; do
-		for benchmark in {benchmarks} ; do
+
+echo ""
+echo "Build BDD Benchmarks"
+for package in {variants_bdd} ; do
+		for benchmark in {benchmarks_bdd} ; do
+			  make $package'_'$benchmark ;
+		done ;
+done
+
+echo ""
+echo "Build ZDD Benchmarks"
+for package in {variants_zdd} ; do
+		for benchmark in {benchmarks_zdd} ; do
 			  make $package'_'$benchmark ;
 		done ;
 done
@@ -248,8 +278,8 @@ echo -e "\\n========= Finished `date` ==========\\n"
 with open("build.sh", "w") as file:
     file.write(script_str_build())
 
-for variant in VARIANTS:
-    for problem in N_PROBLEMS:
+for variant in VARIANTS_BDD:
+    for problem in N_PROBLEMS_BDD:
         problem_name = problem[0]
 
         for instance in problem[1]:
@@ -257,8 +287,7 @@ for variant in VARIANTS:
             sylvan_M = instance[1]
             time = instance[2]
 
-            filename = f"{variant}_{problem_name}_{N}.sh"
-
+            filename = f"{variant}_{problem_name}_bdd_{N}.sh"
             os.system(f"rm -f {filename} && touch {filename}")
 
             with open(filename, "w") as file:
@@ -278,8 +307,21 @@ for variant in VARIANTS:
                 variable_order = instance_a[3]
 
                 filename = f"{variant}_{circuit_type}_{instance_a[0]}_{instance_b}.sh"
-
                 os.system(f"rm -f {filename} && touch {filename}")
 
                 with open(filename, "w") as file:
                     file.write(script_str_picotrav(variant, problem_name, file_1, file_2, sylvan_M, time, variable_order))
+
+for variant in VARIANTS_ZDD:
+    for problem in N_PROBLEMS_ZDD:
+        problem_name = problem[0]
+
+        for instance in problem[1]:
+            N = instance[0]
+            time = instance[2]
+
+            filename = f"{variant}_{problem_name}_{N}.sh"
+            os.system(f"rm -f {filename} && touch {filename}")
+
+            with open(filename, "w") as file:
+                file.write(script_str_N(variant, problem_name, N, None, time))
