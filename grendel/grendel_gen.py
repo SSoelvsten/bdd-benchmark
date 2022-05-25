@@ -223,7 +223,7 @@ BENCHMARKS_BDD = ["picotrav"] + [p[0] for p in N_PROBLEMS_BDD]
 BENCHMARKS_ZDD = [p[0] for p in N_PROBLEMS_ZDD]
 
 def script_str_build():
-    settings = sbatch_str("bdd_benchmarks_build", "00-00:10")
+    settings = sbatch_str("bdd_benchmarks_build", "00-00:30")
 
     variants_bdd = ' '.join([f"'{v}'" for v in VARIANTS_BDD])
     variants_zdd = ' '.join([f"'{v}'" for v in VARIANTS_BDD])
