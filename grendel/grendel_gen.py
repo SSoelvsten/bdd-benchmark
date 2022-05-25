@@ -215,7 +215,7 @@ echo -e "\\n=========  Started `date`  ==========\\n"
 # Build
 echo "Build"
 mkdir -p $SLURM_SUBMIT_DIR/build/ && cd $SLURM_SUBMIT_DIR/build/
-cmake -D GRENDEL=ON -D ADIAR_STATS=ON $SLURM_SUBMIT_DIR
+cmake -D GRENDEL=ON -D $SLURM_SUBMIT_DIR
 
 echo ""
 echo "Build Sylvan"
