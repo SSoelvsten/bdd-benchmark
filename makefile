@@ -21,7 +21,7 @@ N:=0
 build:
   # Primary build
 	@echo "\nBuild"
-	@mkdir -p build/ && cd build/ && cmake -D ADIAR_STATS=ON ..
+	@mkdir -p build/ && cd build/ && cmake ..
 
   # Installation of CUDD
 	@echo "\n\nInstall CUDD"
