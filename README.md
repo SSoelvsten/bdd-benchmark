@@ -14,10 +14,11 @@ one to compare implementations.
     - [Combinatorial Benchmarks](#combinatorial-benchmarks)
         - [Queens](#queens)
         - [Tic-Tac-Toe](#tic-tac-toe)
-        - [Picotrav](#picotrav)
     - [SAT Solver Benchmarks](#sat-solver-benchmarks)
         - [Queens](#queens-1)
         - [Pigeonhole Principle](#pigeonhole-principle)
+    - [Verification](#verification)
+        - [Picotrav](#picotrav)
     - [License](#license)
     - [References](#references)
 
@@ -191,40 +192,6 @@ intermediate result.
 | Apply operations  |              76 |
 | Initial BDD size  | (64-N+1)(N+1)-1 |
 
-### Picotrav
-This benchmark is a small recreation of the _Nanotrav_ example provided with the
-CUDD library. Given a hierarchical circuit in (a subset of the) [Berkeley Logic
-Interchange Format (BLIF)](https://course.ece.cmu.edu/~ee760/760docs/blif.pdf) a
-BDD is created for every net; dereferencing BDDs for intermediate nets after
-they have been used for the last time. If two _.blif_ files are given, then BDDs
-for both are constructed and every output net is compared for equality.
-
-BDD variables represent the value of inputs. Hence, a good variable ordering is
-important for a high performance. To this end, one can use various variable
-orderings derived from the given net.
-
-- `INPUT`: Use the order in which they are declared in the input _.blif_ file.
-
-- `DFS`: Variables are ordered based on a DFS traversal where non-input gates
-  are recursed to first; thereby favouring deeper nodes.
-
-- `LEVEL`: Variables are ordered based on the deepest reference by another net.
-  Ties are broken based on the declaration order in the input (`INPUT`).
-
-- `LEVEL_DFS`: Similar to `LEVEL` but ties are broken based on the ordering in
-  `DFS` rather than `INPUT`.
-
-- `RANDOM`: A randomized ordering of variables.
-
-The _.blif_ file(s) is given with the `-f` parameter (_F1_ and _F2_ Make
-variables) and the variable order with `-o` (_O_ for Make). You can find
-multiple inputs in the _benchmarks/_ folder.
-
-Note, that the memory you set is only for the BDD package. So, the program will
-either use swap or be killed if the BDD package takes up more memory in
-conjunction with auxiliary data structures.
-
-
 ## SAT Solver Benchmarks
 We have a few benchmarks using a simple SAT Solver based on the description in
 [[Pan04; Section 2](#references)]. 
@@ -258,6 +225,40 @@ Based on [[Tveretina10](#references)], this is disproven by use of variables
 _P<sub>i,j</sub>_ saying that the _i_'th pigeon is mapped to the _j_'th hole.
 This makes for N(N+1) labels and N³ + N(N+1) clauses.
 
+## Verification
+
+### Picotrav
+This benchmark is a small recreation of the _Nanotrav_ example provided with the
+CUDD library. Given a hierarchical circuit in (a subset of the) [Berkeley Logic
+Interchange Format (BLIF)](https://course.ece.cmu.edu/~ee760/760docs/blif.pdf) a
+BDD is created for every net; dereferencing BDDs for intermediate nets after
+they have been used for the last time. If two _.blif_ files are given, then BDDs
+for both are constructed and every output net is compared for equality.
+
+BDD variables represent the value of inputs. Hence, a good variable ordering is
+important for a high performance. To this end, one can use various variable
+orderings derived from the given net.
+
+- `INPUT`: Use the order in which they are declared in the input _.blif_ file.
+
+- `DFS`: Variables are ordered based on a DFS traversal where non-input gates
+  are recursed to first; thereby favouring deeper nodes.
+
+- `LEVEL`: Variables are ordered based on the deepest reference by another net.
+  Ties are broken based on the declaration order in the input (`INPUT`).
+
+- `LEVEL_DFS`: Similar to `LEVEL` but ties are broken based on the ordering in
+  `DFS` rather than `INPUT`.
+
+- `RANDOM`: A randomized ordering of variables.
+
+The _.blif_ file(s) is given with the `-f` parameter (_F1_ and _F2_ Make
+variables) and the variable order with `-o` (_O_ for Make). You can find
+multiple inputs in the _benchmarks/_ folder.
+
+Note, that the memory you set is only for the BDD package. So, the program will
+either use swap or be killed if the BDD package takes up more memory in
+conjunction with auxiliary data structures.
 
 ## License
 The software files in this repository are provided under the
