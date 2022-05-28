@@ -31,9 +31,13 @@ build:
 														&& make MAKEINFO=true \
 														&& make install)
 
+  # Make out folder
+	@mkdir -p out/
+
   # Build all bdd benchmarks
 	@echo "\n\nBuild BDD Benchmarks"
 	@cd build/ && for package in 'adiar' 'buddy' 'sylvan' 'cudd' ; do \
+		mkdir -p ../out/$$package ; \
 		for benchmark in 'picotrav' 'queens' 'sat_pigeonhole_principle' 'sat_queens' 'tic_tac_toe' ; do \
 			make ${MAKE_FLAGS} $$package'_'$$benchmark ; \
 		done ; \
@@ -42,6 +46,7 @@ build:
   # Build all zdd benchmarks
 	@echo "\n\nBuild ZDD Benchmarks"
 	@cd build/ && for package in 'adiar' ; do \
+		mkdir -p ../out/$$package ; \
 		for benchmark in 'queens_zdd' ; do \
 			make ${MAKE_FLAGS} $$package'_'$$benchmark ; \
 		done ; \
@@ -53,40 +58,47 @@ build:
 clean:
 	@cd external/cudd && git clean -qdf && git checkout .
 	@rm -rf build/
+	@rm -rf out/
+
+clean/out:
+	@rm out/**/*.out
 
 # ============================================================================ #
-#  RUN TARGETS
+#  COMBINATORIAL PROBLEMS
+# ============================================================================ #
+combinatorial/queens:
+	$(MAKE) combinatorial/queens/bdd
+
+combinatorial/queens/bdd: N := 8
+combinatorial/queens/bdd:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_queens -N $(N) -M $(M) | tee -a out/VARIANT/queens.out)
+
+combinatorial/queens/zdd: N := 8
+combinatorial/queens/zdd:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_queens_zdd -N $(N) -M $(M) | tee -a out/VARIANT/queens_zdd.out)
+
+combinatorial/tic_tac_toe: N := 20
+combinatorial/tic_tac_toe:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_tic_tac_toe -N $(N) -M $(M) | tee -a out/VARIANT/tic_tac_toe.out)
+
+# ============================================================================ #
+#  SAT SOLVER
+# ============================================================================ #
+sat-solver/pigeonhole_principle: N := 10
+sat-solver/pigeonhole_principle:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_sat_pigeonhole_principle -N $(N) -M $(M) | tee -a out/VARIANT/sat_pigeonhole_principle.out)
+
+sat-solver/queens: N := 6
+sat-solver/queens:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_sat_queens -N $(N) -M $(M) | tee -a out/VARIANT/sat_queens.out)
+
+# ============================================================================ #
+#  VERIFICATION BENCHMARKS
 # ============================================================================ #
 F1 := ""
 F2 := ""
 O := "INPUT"
 
-# Combinatorial Problems
-combinatorial/queens:
-	$(MAKE) combinatorial/queens/bdd
-
-combinatorial/queens/zdd: N := 8
-combinatorial/queens/zdd:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_queens_zdd) -N $(N) -M $(M) | tee -a queens_zdd.out
-
-combinatorial/queens/bdd: N := 8
-combinatorial/queens/bdd:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_queens) -N $(N) -M $(M) | tee -a queens_bdd.out
-
-combinatorial/tic_tac_toe: N := 20
-combinatorial/tic_tac_toe:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_tic_tac_toe) -N $(N) -M $(M) | tee -a tic_tac_toe.out
-
-# Sat Solver problems
-sat-solver/pigeonhole_principle: N := 10
-sat-solver/pigeonhole_principle:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_sat_pigeonhole_principle) -N $(N) -M $(M) | tee -a sat__pigeon.out
-
-sat-solver/queens: N := 6
-sat-solver/queens:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_sat_queens) -N $(N) -M $(M) | tee -a sat__queens_bdd.out
-
-# Verification problems
 verification/picotrav:
 verification/picotrav:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_picotrav) -f $(F1) -f $(F2) -M $(M) -o $(O) | tee -a picotrav.out
+	@$(subst VARIANT,$(V),./build/src/VARIANT_picotrav -f $(F1) -f $(F2) -M $(M) -o $(O) | tee -a out/VARIANT/picotrav.out)
