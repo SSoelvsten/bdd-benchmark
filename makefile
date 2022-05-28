@@ -61,7 +61,7 @@ clean:
 	@rm -rf out/
 
 clean/out:
-	@rm out/**/*.out
+	@rm -f out/**/*.out
 
 # ============================================================================ #
 #  COMBINATORIAL PROBLEMS
