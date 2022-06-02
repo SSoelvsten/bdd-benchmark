@@ -722,7 +722,11 @@ bool verify_outputs(const net_t& net_0, const bdd_cache<adapter_t>& cache_0,
 
 // ========================================================================== //
 template<>
-variable_order parse_variable_ordering(const std::string &arg, bool &should_exit)
+std::string option_help_str<variable_order>()
+{ return "Desired Variable ordering"; }
+
+template<>
+variable_order parse_option(const std::string &arg, bool &should_exit)
 {
   if (arg == "INPUT") { return variable_order::INPUT; }
   if (arg == "DFS") { return variable_order::DFS; }

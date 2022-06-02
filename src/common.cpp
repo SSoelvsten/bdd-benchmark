@@ -50,21 +50,28 @@ std::string temp_path = "";
 
 std::vector<std::string> input_files = {};
 
-enum no_variable_order { NO_ORDERING };
+template<typename option_enum>
+option_enum parse_option(const std::string &arg, bool &should_exit);
 
-template<typename variable_order_enum>
-variable_order_enum parse_variable_ordering(const std::string &arg, bool &should_exit);
+template<typename option_enum>
+std::string option_help_str();
+
+enum no_options { NONE };
 
 template<>
-no_variable_order parse_variable_ordering(const std::string &, bool &should_exit)
+no_options parse_option(const std::string &, bool &should_exit)
 {
   ERROR("Variable ordering is undefined for this benchmark\n");
   should_exit = true;
-  return no_variable_order::NO_ORDERING;
+  return no_options::NONE;
 }
 
-template<typename variable_order_enum = no_variable_order>
-bool parse_input(int &argc, char* argv[], variable_order_enum &variable_order)
+template<>
+std::string option_help_str<no_options>()
+{ return "Not part of this benchmark"; }
+
+template<typename option_enum = no_options>
+bool parse_input(int &argc, char* argv[], option_enum &option)
 {
   bool exit = false;
   int c;
@@ -93,7 +100,7 @@ bool parse_input(int &argc, char* argv[], variable_order_enum &variable_order)
       }
 
       case 'o':
-        variable_order = parse_variable_ordering<variable_order_enum>(optarg, exit);
+        option = parse_option<option_enum>(optarg, exit);
         continue;
 
       case 't':
@@ -112,7 +119,7 @@ bool parse_input(int &argc, char* argv[], variable_order_enum &variable_order)
                                         << "]       Size of a problem" << std::endl
                   << "        -f FILENAME           Input file to run (use repeatedly for multiple files)" << std::endl
                   << "        -M MiB      [128]     Amount of memory (MiB) to be dedicated to the BDD package" << std::endl
-                  << "        -o ORDERING           Variable ordering to use" << std::endl
+                  << "        -o OPTION             " << option_help_str<option_enum>() << std::endl
                   << "        -t TEMP_PTH [/tmp]    Filepath for temporary files on disk" << std::endl
           ;
         return true;

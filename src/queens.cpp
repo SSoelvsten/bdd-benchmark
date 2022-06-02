@@ -99,9 +99,9 @@ typename adapter_t::dd_t queens_B(adapter_t &adapter)
 template<typename adapter_t>
 void run_queens(int argc, char** argv)
 {
-  no_variable_order variable_order = no_variable_order::NO_ORDERING;
+  no_options option = no_options::NONE;
   N = 8; // Default N value
-  bool should_exit = parse_input(argc, argv, variable_order);
+  bool should_exit = parse_input(argc, argv, option);
   if (should_exit) { exit(-1); }
 
   // =========================================================================

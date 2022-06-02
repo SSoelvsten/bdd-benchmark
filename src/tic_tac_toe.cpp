@@ -137,9 +137,9 @@ typename adapter_t::dd_t construct_is_not_winning(adapter_t &adapter, std::array
 template<typename adapter_t>
 void run_tic_tac_toe(int argc, char** argv)
 {
-  no_variable_order variable_order = no_variable_order::NO_ORDERING;
+  no_options option = no_options::NONE;
   N = 20;
-  bool should_exit = parse_input(argc, argv, variable_order);
+  bool should_exit = parse_input(argc, argv, option);
   if (should_exit) { exit(-1); }
 
   // =========================================================================

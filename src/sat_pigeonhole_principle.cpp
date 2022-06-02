@@ -50,9 +50,9 @@ void construct_PHP_cnf(sat_solver<adapter_t> &solver)
 template<typename adapter_t>
 void run_sat_pigeonhole_principle(int argc, char** argv)
 {
-  no_variable_order variable_order = no_variable_order::NO_ORDERING;
+  no_options option = no_options::NONE;
   N = 8;
-  bool should_exit = parse_input(argc, argv, variable_order);
+  bool should_exit = parse_input(argc, argv, option);
   if (should_exit) { exit(-1); }
 
   bool satisfiable = true;
