@@ -12,6 +12,7 @@ one to compare implementations.
     - [Dependencies](#dependencies)
     - [Usage](#usage)
     - [Combinatorial Benchmarks](#combinatorial-benchmarks)
+        - [Knight's Tour](#knights-tour)
         - [Queens](#queens)
         - [Tic-Tac-Toe](#tic-tac-toe)
     - [SAT Solver Benchmarks](#sat-solver-benchmarks)
@@ -151,6 +152,42 @@ make combinatorial/queens V=cudd N=10 M=256
 
 
 ## Combinatorial Benchmarks
+
+### Knight's Tour
+Solves the following problem:
+
+> Given N, then how many hamiltonian paths can a single Knight do across a chess
+> board of size (N/2)x(N-N/2)?
+
+Our implementation is based on Bryants implementation
+[here](https://github.com/rebryant/Cloud-BDD/blob/conjunction_streamlined/hamiltonian/hpath.py)
+using ZDDs. We represent all O(N<sup>4</sup>) states, i.e. position and time, as
+a separate variable; a transition relation then encodes the legal moves between
+two time steps. By intersecting moves at all time steps we obtain all paths.
+On-top of this, hamiltonian constraints are added and finally the size of the
+set of Knight's Tours is obtained.
+
+You may choose to include the hamiltonian constraint inside of the transition
+relation. This seems to result in slower running times, but slightly smaller
+ZDDs.
+
+You may provide an option `-o` of the form `{STRAT}_{TYPE}`
+
+- `{STRAT}`: Whether to use the `SPLIT` approach, where transitions and
+  hamiltonian are handled separately. Alternatively, one may use the `COMBINED`
+  approach.
+
+- `{TYPE}`: Whether to count the `OPEN` paths, i.e. all hamiltonian paths, or
+  only the `CLOSED` ones, i.e. the hamiltonian cycles.
+
+`OPEN` and `CLOSED` are shortcuts for using `SPLIT`.
+
+**Statistics:**
+
+| Variable                | Value         |
+|-------------------------|---------------|
+| Labels                  | N<sup>4</sup> |
+| Intersection operations | 4<sup>4</sup> |
 
 ### Queens
 Solves the following problem:
