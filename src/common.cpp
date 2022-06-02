@@ -19,6 +19,8 @@ inline time_point get_timestamp() {
   return std::chrono::steady_clock::now();
 }
 
+typedef unsigned long int time_duration;
+
 inline unsigned long int duration_of(const time_point &before, const time_point &after) {
   return std::chrono::duration_cast<std::chrono::milliseconds>(after - before).count();
 }

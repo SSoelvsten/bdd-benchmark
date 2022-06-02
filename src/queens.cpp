@@ -123,7 +123,7 @@ void run_queens(int argc, char** argv)
     typename adapter_t::dd_t res = queens_B(adapter);
     time_point t2 = get_timestamp();
 
-    const auto construction_time = duration_of(t1,t2);
+    const time_duration construction_time = duration_of(t1,t2);
 
     INFO("\n   Decision diagram construction:\n");
     INFO("   | total no. nodes:        %zu\n", total_nodes);
@@ -137,7 +137,7 @@ void run_queens(int argc, char** argv)
     solutions = adapter.satcount(res);
     time_point t4 = get_timestamp();
 
-    const auto counting_time = duration_of(t3,t4);
+    const time_duration counting_time = duration_of(t3,t4);
 
     INFO("\n   Counting solutions:\n");
     INFO("   | number of solutions:    %zu\n", solutions);
