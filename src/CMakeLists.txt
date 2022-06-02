@@ -42,6 +42,8 @@ add_zdd_benchmark(queens_zdd)
 
 add_bdd_benchmark(tic_tac_toe)
 
+add_zdd_benchmark(knights_tour_zdd)
+
 # ---------------------------------------------------------------------------- #
 # SAT Solver benchmarks
 add_bdd_benchmark(sat_pigeonhole_principle)

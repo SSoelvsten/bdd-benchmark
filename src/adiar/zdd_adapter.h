@@ -27,6 +27,9 @@ public:
 
   // ZDD Operations
 public:
+  inline adiar::zdd ithvar(int i)
+  { return adiar::zdd_ithvar(i); }
+
   inline uint64_t nodecount(const adiar::zdd &z)
   { return adiar::zdd_nodecount(z); }
 
