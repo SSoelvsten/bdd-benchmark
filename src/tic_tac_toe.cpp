@@ -145,9 +145,9 @@ void run_tic_tac_toe(int argc, char** argv)
   // =========================================================================
   INFO("Tic-Tac-Toe with %i crosses (%s %i MiB):\n", N, adapter_t::NAME.c_str(), M);
 
-  auto t_init_before = get_timestamp();
+  time_point t_init_before = get_timestamp();
   adapter_t adapter(64);
-  auto t_init_after = get_timestamp();
+  time_point t_init_after = get_timestamp();
   INFO("\n   %s initialisation:\n", adapter_t::NAME.c_str());
   INFO("   | time (ms):              %zu\n", duration_of(t_init_before, t_init_after));
 
@@ -159,12 +159,12 @@ void run_tic_tac_toe(int argc, char** argv)
     // Construct is_equal_N
     INFO("\n   Initial decision diagram:\n");
 
-    auto t1 = get_timestamp();
+    time_point t1 = get_timestamp();
     typename adapter_t::dd_t res = construct_init(adapter);
     size_t initial_bdd = adapter.nodecount(res);
-    auto t2 = get_timestamp();
+    time_point t2 = get_timestamp();
 
-    const auto init_time = duration_of(t1,t2);
+    const time_duration init_time = duration_of(t1,t2);
 
     INFO("   | size (nodes):           %zu\n", initial_bdd);
     INFO("   | time (ms):              %zu\n", init_time);
@@ -176,7 +176,7 @@ void run_tic_tac_toe(int argc, char** argv)
     size_t largest_bdd = 0;
     size_t total_nodes = initial_bdd;
 
-    auto t3 = get_timestamp();
+    time_point t3 = get_timestamp();
 
     for (auto &line : lines) {
       res &= construct_is_not_winning(adapter, line);
@@ -186,9 +186,9 @@ void run_tic_tac_toe(int argc, char** argv)
       total_nodes += nodecount + 4 /* from construct_is_not_winning */;
     }
 
-    auto t4 = get_timestamp();
+    time_point t4 = get_timestamp();
 
-    const auto constraints_time = duration_of(t3,t4);
+    const time_duration constraints_time = duration_of(t3,t4);
 
     INFO("   | total no. nodes:        %zu\n", total_nodes);
     INFO("   | largest size (nodes):   %zu\n", largest_bdd);
@@ -199,11 +199,11 @@ void run_tic_tac_toe(int argc, char** argv)
     // Count number of solutions
     INFO("\n   counting solutions:\n");
 
-    auto t5 = get_timestamp();
+    time_point t5 = get_timestamp();
     solutions = adapter.satcount(res);
-    auto t6 = get_timestamp();
+    time_point t6 = get_timestamp();
 
-    const auto counting_time = duration_of(t5,t6);
+    const time_duration counting_time = duration_of(t5,t6);
 
     // =========================================================================
     INFO("   | number of solutions:    %zu\n", solutions);

@@ -68,19 +68,54 @@ bool is_legal_position(int r, int c, int t = 0)
   return true;
 }
 
+bool is_reachable(int r, int c)
+{
+  for (int r_from = 0; r_from < rows(); r_from++) {
+    for (int c_from = 0; c_from < cols(); c_from++) {
+      if (is_legal_move(r_from, c_from, r, c)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 // TODO: Define 'knights_tour_rel(t)' for regular DFS implementations.
 template<typename adapter_t>
 typename adapter_t::dd_t knights_tour_rel(adapter_t &adapter, int t);
 
+// TODO: Define 'knights_tour_ham(t)' for regular DFS implementations.
+template<typename adapter_t>
+typename adapter_t::dd_t knights_tour_ham(adapter_t &adapter, int r, int c);
+
+// TODO: Define 'knights_tour_rel_ham(t)' for regular DFS implementations.
+template<typename adapter_t>
+typename adapter_t::dd_t knights_tour_ham_rel(adapter_t &adapter, int t);
+
 // ========================================================================== //
 //                    Iterate over the above Transition Relation              //
-template<typename adapter_t>
-typename adapter_t::dd_t knights_tour_iter(adapter_t &adapter)
-{
-  typename adapter_t::dd_t res = knights_tour_rel<adapter_t>(adapter, MAX_TIME()-1);
+bool closed = true;
+bool ham_rel = false;
 
-  for (int t = MAX_TIME()-2; t >= 0; t--) {
-    res &= knights_tour_rel<adapter_t>(adapter, t);
+template<typename adapter_t>
+typename adapter_t::dd_t knights_tour_iter_rel(adapter_t &adapter)
+{
+  largest_bdd = 0;
+
+  typename adapter_t::dd_t res;
+
+  if (closed) {
+    res = knights_tour_closed<adapter_t>(adapter);
+  } else {
+    res = ham_rel
+      ? knights_tour_ham_rel<adapter_t>(adapter, MAX_TIME()-1)
+      : knights_tour_rel<adapter_t>(adapter, MAX_TIME()-1);
+  }
+
+  for (int t = MAX_TIME()-2; t >= 2*closed; t--) {
+    res &= ham_rel
+      ? knights_tour_ham_rel<adapter_t>(adapter, t)
+      : knights_tour_rel<adapter_t>(adapter, t);
 
     const size_t nodecount = adapter.nodecount(res);
     largest_bdd = std::max(largest_bdd, nodecount);
@@ -91,12 +126,58 @@ typename adapter_t::dd_t knights_tour_iter(adapter_t &adapter)
 }
 
 // ========================================================================== //
+//                            Add Hamiltonian constraints                     //
+template<typename adapter_t>
+void knights_tour_iter_ham(adapter_t &adapter, typename adapter_t::dd_t &paths)
+{
+  largest_bdd = 0;
+
+  for (int r = 0; r < rows(); r++) {
+    for (int c = 0; c < cols(); c++) {
+      if (closed && is_closed_square(r,c)) { continue; }
+
+      paths &= knights_tour_ham<adapter_t>(adapter, r, c);
+
+      const size_t nodecount = adapter.nodecount(paths);
+      largest_bdd = std::max(largest_bdd, nodecount);
+      total_nodes += nodecount;
+    }
+  }
+}
+
+// ========================================================================== //
+enum iter_opt { SPLIT_OPEN, SPLIT_CLOSED, COMBINED_OPEN, COMBINED_CLOSED };
+
+template<>
+iter_opt parse_variable_ordering(const std::string &arg, bool &should_exit)
+{
+  if (arg == "SPLIT_OPEN" || arg == "OPEN" || arg == "SPLIT")
+  { return iter_opt::SPLIT_OPEN; }
+
+  if (arg == "SPLIT_CLOSED" || arg == "CLOSED")
+  { return iter_opt::SPLIT_OPEN; }
+
+  if (arg == "COMBINED_OPEN" || arg == "COMBINED")
+  { return iter_opt::COMBINED_OPEN; }
+
+  if (arg == "COMBINED_CLOSED")
+  { return iter_opt::COMBINED_CLOSED; }
+
+  ERROR("Undefined option: %s\n", arg.c_str());
+  should_exit = true;
+
+  return iter_opt::SPLIT_OPEN;
+}
+
+// ========================================================================== //
+
 template<typename adapter_t>
 void run_knights_tour(int argc, char** argv)
 {
-  no_variable_order variable_order = no_variable_order::NO_ORDERING;
-  N = 8; // Default N value
-  bool should_exit = parse_input(argc, argv, variable_order);
+  iter_opt opt = iter_opt::SPLIT_OPEN; // Default strategy
+  N = 12; // Default N value for a 6x6 sized chess board
+
+  bool should_exit = parse_input(argc, argv, opt);
   if (should_exit) { exit(-1); }
 
   if (rows() == 0 || cols() == 0) {
@@ -104,8 +185,13 @@ void run_knights_tour(int argc, char** argv)
     exit(-1);
   }
 
+  closed  = opt == iter_opt::SPLIT_CLOSED || opt == iter_opt::COMBINED_CLOSED;
+  ham_rel = opt == iter_opt::COMBINED_OPEN || opt == iter_opt::COMBINED_CLOSED;
+
   // =========================================================================
   INFO("%i x %i - Knight's Tour (%s %i MiB):\n", rows(), cols(), adapter_t::NAME.c_str(), M);
+  INFO("   | Tour type:              %s\n", closed ? "Closed tours only" : "Open (all) tours");
+  INFO("   | Computation pattern:    Transitions %s Hamiltonian\n", ham_rel ? "||" : ";");
 
   // ========================================================================
   // Initialise package manager
@@ -123,32 +209,54 @@ void run_knights_tour(int argc, char** argv)
 
     typename adapter_t::dd_t res = rows() == 1 && cols() == 1
       ? adapter.ithvar(int_of_position(0,0,0))
-      : knights_tour_iter(adapter);
+      : knights_tour_iter_rel(adapter);
 
     time_point t2 = get_timestamp();
 
-    const auto construction_time = duration_of(t1,t2);
+    const time_duration paths_time = duration_of(t1,t2);
 
-    INFO("\n   Decision diagram construction:\n");
+    if (ham_rel) {
+      INFO("\n   Paths + Hamiltonian construction:\n");
+    } else {
+      INFO("\n   Paths construction:\n");
+    }
+
     INFO("   | total no. nodes:        %zu\n", total_nodes);
     INFO("   | largest size (nodes):   %zu\n", largest_bdd);
     INFO("   | final size (nodes):     %zu\n", adapter.nodecount(res));
-    INFO("   | time (ms):              %zu\n", construction_time);
+    INFO("   | time (ms):              %zu\n", paths_time);
+
+    // ========================================================================
+    // Hamiltonian constraints (if requested seperately)
+    time_duration hamiltonian_time = 0;
+    if (!ham_rel) {
+      INFO("\n   Applying Hamiltonian constraints:\n");
+
+      time_point t3 = get_timestamp();
+      knights_tour_iter_ham(adapter, res);
+      time_point t4 = get_timestamp();
+      hamiltonian_time = duration_of(t3,t4);
+
+      INFO("   | total no. nodes:        %zu\n", total_nodes);
+      INFO("   | largest size (nodes):   %zu\n", largest_bdd);
+      INFO("   | final size (nodes):     %zu\n", adapter.nodecount(res));
+      INFO("   | time (ms):              %zu\n", hamiltonian_time);
+    }
 
     // ========================================================================
     // Count number of solutions
-    time_point t3 = get_timestamp();
+    time_point t5 = get_timestamp();
     solutions = adapter.satcount(res);
-    time_point t4 = get_timestamp();
+    time_point t6 = get_timestamp();
 
-    const auto counting_time = duration_of(t3,t4);
+    const time_duration counting_time = duration_of(t5,t6);
 
     INFO("\n   Counting solutions:\n");
     INFO("   | number of solutions:    %zu\n", solutions);
     INFO("   | time (ms):              %zu\n", counting_time);
 
     // ========================================================================
-    INFO("\n   total time (ms):          %zu\n", construction_time + counting_time);
+    INFO("\n   total time (ms):          %zu\n", paths_time + hamiltonian_time + counting_time);
   }
 
   adapter.print_stats();
