@@ -37,9 +37,6 @@ endmacro(link_extra)
 
 # ---------------------------------------------------------------------------- #
 # Combinatorial Benchmarks
-add_bdd_benchmark(picotrav)
-link_extra(picotrav libblifparse)
-
 add_bdd_benchmark(queens)
 add_zdd_benchmark(queens_zdd)
 
@@ -50,3 +47,8 @@ add_bdd_benchmark(tic_tac_toe)
 add_bdd_benchmark(sat_pigeonhole_principle)
 
 add_bdd_benchmark(sat_queens)
+
+# ---------------------------------------------------------------------------- #
+# Verification
+add_bdd_benchmark(picotrav)
+link_extra(picotrav libblifparse)

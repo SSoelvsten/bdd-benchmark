@@ -7,7 +7,7 @@
 constexpr size_t CACHE_RATIO = 64u;
 
 // Initial size taken from CUDD defaults
-constexpr size_t INIT_UNIQUE_SLOTS_PER_VAR = 256;
+constexpr size_t INIT_UNIQUE_SLOTS_PER_VAR = 256u;
 
 // =============================================================================
 // A few chrono wrappers to improve readability
