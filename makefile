@@ -47,7 +47,7 @@ build:
 	@echo "\n\nBuild ZDD Benchmarks"
 	@cd build/ && for package in 'adiar' ; do \
 		mkdir -p ../out/$$package ; \
-		for benchmark in 'queens_zdd' ; do \
+		for benchmark in 'queens_zdd' 'knights_tour_zdd' ; do \
 			make ${MAKE_FLAGS} $$package'_'$$benchmark ; \
 		done ; \
 	done
@@ -66,6 +66,13 @@ clean/out:
 # ============================================================================ #
 #  COMBINATORIAL PROBLEMS
 # ============================================================================ #
+combinatorial/knights_tour:
+	$(MAKE) combinatorial/knights_tour/zdd
+
+combinatorial/knights_tour/zdd: N := 12
+combinatorial/knights_tour/zdd:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_knights_tour_zdd -N $(N) -M $(M) | tee -a out/VARIANT/queens_zdd.out)
+
 combinatorial/queens:
 	$(MAKE) combinatorial/queens/bdd
 
