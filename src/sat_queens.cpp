@@ -136,9 +136,9 @@ void construct_Queens_cnf(sat_solver<adapter_t> &solver)
 template<typename adapter_t>
 void run_sat_queens(int argc, char** argv)
 {
-  no_variable_order variable_order = no_variable_order::NO_ORDERING;
+  no_options option = no_options::NONE;
   N = 6;
-  bool should_exit = parse_input(argc, argv, variable_order);
+  bool should_exit = parse_input(argc, argv, option);
   if (should_exit) { exit(-1); }
 
   bool satisfiable = N != 2 && N != 3;
@@ -150,18 +150,18 @@ void run_sat_queens(int argc, char** argv)
 
     uint64_t varcount = label_of_position(N-1, N-1)+1;
 
-    auto t_init_before = get_timestamp();
+    time_point t_init_before = get_timestamp();
     sat_solver<adapter_t> solver(varcount);
-    auto t_init_after = get_timestamp();
+    time_point t_init_after = get_timestamp();
     INFO("\n   %s initialisation:\n", adapter_t::NAME.c_str());
     INFO("   | time (ms):                %zu\n", duration_of(t_init_before, t_init_after));
 
     // =========================================================================
     INFO("\n   CNF construction:\n");
 
-    auto t1 = get_timestamp();
+    time_point t1 = get_timestamp();
     construct_Queens_cnf(solver);
-    auto t2 = get_timestamp();
+    time_point t2 = get_timestamp();
 
     INFO("   | variables:                %zu\n", solver.var_count());
     INFO("   | clauses:                  %zu\n", solver.cnf_size());
@@ -171,9 +171,9 @@ void run_sat_queens(int argc, char** argv)
     INFO("\n   Decision diagram satisfiability solving:\n");
 
 #ifndef GRENDEL
-    auto t3 = get_timestamp();
+    time_point t3 = get_timestamp();
     satisfiable = solver.check_satisfiable();
-    auto t4 = get_timestamp();
+    time_point t4 = get_timestamp();
     INFO("   | solution:                 %s\n", satisfiable ? "SATISFIABLE" : "UNSATISFIABLE");
     INFO("   | operations:\n");
     INFO("   | | exists:                 %zu\n", solver.exists_count());
@@ -187,9 +187,9 @@ void run_sat_queens(int argc, char** argv)
     // =========================================================================
     INFO("\n   Decicsion Diagram counting:\n");
 
-    auto t5 = get_timestamp();
+    time_point t5 = get_timestamp();
     solutions = solver.check_satcount();
-    auto t6 = get_timestamp();
+    time_point t6 = get_timestamp();
     INFO("   | solutions:                %zu\n", solutions);
     INFO("   | operations:\n");
     INFO("   | | apply:                  %zu\n", solver.apply_count());

@@ -149,7 +149,11 @@ void knights_tour_iter_ham(adapter_t &adapter, typename adapter_t::dd_t &paths)
 enum iter_opt { SPLIT_OPEN, SPLIT_CLOSED, COMBINED_OPEN, COMBINED_CLOSED };
 
 template<>
-iter_opt parse_variable_ordering(const std::string &arg, bool &should_exit)
+std::string option_help_str<iter_opt>()
+{ return "Desired Variable ordering"; }
+
+template<>
+iter_opt parse_option(const std::string &arg, bool &should_exit)
 {
   if (arg == "SPLIT_OPEN" || arg == "OPEN" || arg == "SPLIT")
   { return iter_opt::SPLIT_OPEN; }
