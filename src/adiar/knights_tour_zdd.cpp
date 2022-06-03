@@ -91,107 +91,111 @@ adiar::ptr_t next_legal(int r_from, int c_from, int r_to, int c_to, int t)
   return adiar::create_sink_ptr(false);
 }
 
+template<bool incl_hamiltonian>
+inline void __knights_tour_rel__post_chain(adiar::node_writer &out_writer,
+                                           int time, int row, int col);
+
 template<>
-adiar::zdd knights_tour_ham(adiar_zdd_adapter &/*adapter*/, int r, int c)
+inline void __knights_tour_rel__post_chain<true>(adiar::node_writer &out_writer,
+                                                 int time, int row, int col)
 {
-  adiar::node_file out;
-  adiar::node_writer out_writer(out);
+  // Hamiltonian constraint chain for each position reached at time step 't+1'
+  // given some position at time step 't'.
+  const int this_label = int_of_position(row, col, time);
 
-  adiar::ptr_t root_never = adiar::create_sink_ptr(false);
-  adiar::ptr_t root_once = adiar::create_sink_ptr(true);
+  for (int row_t = MAX_ROW(); row_t >= 0; row_t--) {
+    for (int col_t = MAX_COL(); col_t >= 0; col_t--) {
+      // This position matches (row_t, col_t)? Skip it to make this
+      // chain enforce it being a hamiltonian path.
+      if (row_t == row && col_t == col) { continue; }
 
-  for (int this_t = MAX_TIME(); this_t >= 0; this_t--) {
-    for (int this_r = MAX_ROW(); this_r >= 0; this_r--) {
-      for (int this_c = MAX_COL(); this_c >= 0; this_c--) {
-        int this_label = int_of_position(this_r, this_c, this_t);
+      // Missing node for this and the next time step
+      const int this_conflict = int_of_position(row_t, col_t, time);
+      const int next_conflict = int_of_position(row_t, col_t, time+1);
 
-        bool is_rc = r == this_r && c == this_c;
-
-        if (!is_rc && (this_t > 0 || this_r > r)) {
-          adiar::node_t out_once = adiar::create_node(this_label, 1, root_once, root_once);
-          out_writer << out_once;
-          root_once = out_once.uid;
-        }
-
-        adiar::node_t out_never = adiar::create_node(this_label, 0,
-                                                     root_never,
-                                                     is_rc ? root_once : root_never);
-        out_writer << out_never;
-        root_never = out_never.uid;
+      // If past this time step's conflict, then do not output
+      // something, since we will merge with the (0,0) chain
+      if (time == MAX_TIME() && this_label > this_conflict && !(row_t == 0 && col_t == 0)) {
+        continue;
       }
+
+      const int this_id = int_of_position(row_t, col_t);
+
+      // Next cell on board this time step that does match (row_t,col_t).
+      // Possibly loops back to (0,0) at the next time step.
+      //
+      // For the id, we will collapse into the 0-chain if we are past
+      // the final time to check for the hamiltonian constraint.
+      int next_label = this_label+1;
+      if (next_label == this_conflict) { next_label++; }
+      if (next_label == next_conflict) { next_label++; }
+
+      const int next_id = (MAX_TIME() == time   && next_label > this_conflict)
+        || (MAX_TIME()-1 == time && next_label > next_conflict)
+        ? 0
+        : this_id;
+
+      const adiar::ptr_t child = next_label > MAX_POSITION()
+        ? adiar::create_sink_ptr(true)
+        : adiar::create_node_ptr(next_label, next_id);
+
+      out_writer << adiar::create_node(this_label, this_id, child, child);
     }
   }
-
-  const size_t nodecount = out_writer.size();
-  largest_bdd = std::max(largest_bdd, nodecount);
-  total_nodes += nodecount;
-
-  return out;
 }
 
-template<bool ham_rel>
-inline adiar::zdd __knights_tour_rel(int t)
+template<>
+inline void __knights_tour_rel__post_chain<false>(adiar::node_writer &out_writer,
+                                                  int time, int row, int col)
+{
+  // Simple "don't care" chain
+  const int this_label = int_of_position(row, col, time);
+  const adiar::ptr_t next_ptr = this_label == MAX_POSITION()
+    ? adiar::create_sink_ptr(true)
+    : adiar::create_node_ptr(this_label+1, 0);
+
+  out_writer << adiar::create_node(this_label, 0, next_ptr, next_ptr);
+}
+
+template<bool incl_hamiltonian>
+inline adiar::ptr_t __knights_tour_rel__post_root(int t, int row, int col, int row_t, int col_t);
+
+template<>
+inline adiar::ptr_t __knights_tour_rel__post_root<true>(int t, int /*row*/, int /*col*/, int row_t, int col_t)
+{
+  int hamiltonian_legal_root = int_of_position(0, 0, t+2);
+  if (row_t == 0 && col_t == 0) { hamiltonian_legal_root++; }
+
+  const int hamiltonian_legal_id = hamiltonian_legal_root > int_of_position(row_t, col_t, MAX_TIME())
+    ? 0
+    : int_of_position(row_t, col_t); // chain_id;
+
+  return t+1 == MAX_TIME()
+    ? adiar::create_sink_ptr(true)
+    : adiar::create_node_ptr(hamiltonian_legal_root, hamiltonian_legal_id);
+}
+
+template<>
+inline adiar::ptr_t __knights_tour_rel__post_root<false>(int t, int /*row*/, int /*col*/, int /*row_t*/, int /*col_t*/)
+{
+  return t+1 == MAX_TIME()
+    ? adiar::create_sink_ptr(true)
+    : adiar::create_node_ptr(int_of_position(0,0,t+2), 0);
+}
+
+template<bool incl_hamiltonian>
+inline adiar::zdd knights_tour_rel(int t)
 {
   adiar::node_file out;
   adiar::node_writer out_writer(out);
 
   // Time steps t' > t+1:
-  //   Hamiltonian constraint chain for each position reached at time step 't+1'
-  //   given some position at time step 't'.
   for (int time = MAX_TIME(); time > t+1; time--) {
     for (int row = MAX_ROW(); row >= 0; row--) {
       for (int col = MAX_COL(); col >= 0; col--) {
         if (!is_reachable(row, col)) { continue; }
 
-        const int this_label = int_of_position(row, col, time);
-
-        if constexpr (ham_rel) {
-          for (int row_t = MAX_ROW(); row_t >= 0; row_t--) {
-            for (int col_t = MAX_COL(); col_t >= 0; col_t--) {
-              // This position matches (row_t, col_t)? Skip it to make this
-              // chain enforce it being a hamiltonian path.
-              if (row_t == row && col_t == col) { continue; }
-
-              // Missing node for this and the next time step
-              const int this_conflict = int_of_position(row_t, col_t, time);
-              const int next_conflict = int_of_position(row_t, col_t, time+1);
-
-              // If past this time step's conflict, then do not output
-              // something, since we will merge with the (0,0) chain
-              if (time == MAX_TIME() && this_label > this_conflict && !(row_t == 0 && col_t == 0)) {
-                continue;
-              }
-
-              const int this_id = int_of_position(row_t, col_t);
-
-              // Next cell on board this time step that does match (row_t,col_t).
-              // Possibly loops back to (0,0) at the next time step.
-              //
-              // For the id, we will collapse into the 0-chain if we are past
-              // the final time to check for the hamiltonian constraint.
-              int next_label = this_label+1;
-              if (next_label == this_conflict) { next_label++; }
-              if (next_label == next_conflict) { next_label++; }
-
-              const int next_id = (MAX_TIME() == time   && next_label > this_conflict)
-                || (MAX_TIME()-1 == time && next_label > next_conflict)
-                ? 0
-                : this_id;
-
-              const adiar::ptr_t child = next_label > MAX_POSITION()
-                ? adiar::create_sink_ptr(true)
-                : adiar::create_node_ptr(next_label, next_id);
-
-              out_writer << adiar::create_node(this_label, this_id, child, child);
-            }
-          }
-        } else { // !ham_rel
-          const adiar::ptr_t next_ptr = this_label == MAX_POSITION()
-            ? adiar::create_sink_ptr(true)
-            : adiar::create_node_ptr(this_label+1, 0);
-
-          out_writer << adiar::create_node(this_label, 0, next_ptr, next_ptr);
-        }
+        __knights_tour_rel__post_chain<incl_hamiltonian>(out_writer, time, row, col);
       }
     }
   }
@@ -208,24 +212,7 @@ inline adiar::zdd __knights_tour_rel(int t)
           const int chain_id = int_of_position(row_t, col_t);
 
           const adiar::ptr_t next_this_chain = next_legal(row_t, col_t, row, col, t+1);
-
-          adiar::ptr_t chain_root = adiar::NIL;
-          if constexpr (ham_rel) {
-            int hamiltonian_legal_root = int_of_position(0, 0, t+2);
-            if (row_t == 0 && col_t == 0) { hamiltonian_legal_root++; }
-
-            const int hamiltonian_legal_id = hamiltonian_legal_root > int_of_position(row_t, col_t, MAX_TIME())
-              ? 0
-              : chain_id;
-
-            chain_root = t+1 == MAX_TIME()
-              ? adiar::create_sink_ptr(true)
-              : adiar::create_node_ptr(hamiltonian_legal_root, hamiltonian_legal_id);
-          } else { // !ham_rel
-            chain_root = t+1 == MAX_TIME()
-              ? adiar::create_sink_ptr(true)
-              : adiar::create_node_ptr(int_of_position(0,0,t+2), 0);
-          }
+          const adiar::ptr_t chain_root = __knights_tour_rel__post_root<incl_hamiltonian>(t, row, col, row_t, col_t);
 
           out_writer << adiar::create_node(this_label, chain_id, next_this_chain, chain_root);
         }
@@ -267,17 +254,55 @@ inline adiar::zdd __knights_tour_rel(int t)
 }
 
 template<>
-adiar::zdd knights_tour_rel(adiar_zdd_adapter &/*adapter*/, int t)
+adiar::zdd knights_tour_rel<adiar_zdd_adapter, false>(adiar_zdd_adapter &/*adapter*/, int t)
 {
-  return __knights_tour_rel<false>(t);
+  return knights_tour_rel<false>(t);
 }
 
 template<>
-adiar::zdd knights_tour_ham_rel(adiar_zdd_adapter &/*adapter*/, int t)
+adiar::zdd knights_tour_rel<adiar_zdd_adapter, true>(adiar_zdd_adapter &/*adapter*/, int t)
 {
-  return __knights_tour_rel<true>(t);
+  return knights_tour_rel<true>(t);
 }
 
+// ========================================================================== //
+template<>
+adiar::zdd knights_tour_ham(adiar_zdd_adapter &/*adapter*/, int r, int c)
+{
+  adiar::node_file out;
+  adiar::node_writer out_writer(out);
+
+  adiar::ptr_t root_never = adiar::create_sink_ptr(false);
+  adiar::ptr_t root_once = adiar::create_sink_ptr(true);
+
+  for (int this_t = MAX_TIME(); this_t >= 0; this_t--) {
+    for (int this_r = MAX_ROW(); this_r >= 0; this_r--) {
+      for (int this_c = MAX_COL(); this_c >= 0; this_c--) {
+        int this_label = int_of_position(this_r, this_c, this_t);
+
+        bool is_rc = r == this_r && c == this_c;
+
+        if (!is_rc && (this_t > 0 || this_r > r)) {
+          adiar::node_t out_once = adiar::create_node(this_label, 1, root_once, root_once);
+          out_writer << out_once;
+          root_once = out_once.uid;
+        }
+
+        adiar::node_t out_never = adiar::create_node(this_label, 0,
+                                                     root_never,
+                                                     is_rc ? root_once : root_never);
+        out_writer << out_never;
+        root_never = out_never.uid;
+      }
+    }
+  }
+
+  const size_t nodecount = out_writer.size();
+  largest_bdd = std::max(largest_bdd, nodecount);
+  total_nodes += nodecount;
+
+  return out;
+}
 
 // ========================================================================== //
 int main(int argc, char** argv)
