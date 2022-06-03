@@ -187,7 +187,7 @@ You may provide an option `-o` of the form `{STRAT}_{TYPE}`
 | Variable                | Value         |
 |-------------------------|---------------|
 | Labels                  | N<sup>4</sup> |
-| Intersection operations | 4<sup>4</sup> |
+| Intersection operations | 2N<sup>4</sup> |
 
 ### Queens
 Solves the following problem:
