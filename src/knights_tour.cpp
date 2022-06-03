@@ -82,19 +82,15 @@ bool is_reachable(int r, int c)
 }
 
 // TODO: Define 'knights_tour_rel(t)' for regular DFS implementations.
-template<typename adapter_t>
+template<typename adapter_t, bool include_hamiltonian_constraint>
 typename adapter_t::dd_t knights_tour_rel(adapter_t &adapter, int t);
-
-// TODO: Define 'knights_tour_rel_ham(t)' for regular DFS implementations.
-template<typename adapter_t>
-typename adapter_t::dd_t knights_tour_ham_rel(adapter_t &adapter, int t);
 
 // ========================================================================== //
 //                    Iterate over the above Transition Relation              //
 bool closed = false;
 bool ham_rel = false;
 
-template<typename adapter_t>
+template<typename adapter_t, bool incl_hamiltonian>
 typename adapter_t::dd_t knights_tour_iter_rel(adapter_t &adapter)
 {
   largest_bdd = 0;
@@ -102,18 +98,12 @@ typename adapter_t::dd_t knights_tour_iter_rel(adapter_t &adapter)
   typename adapter_t::dd_t res;
 
   int t = MAX_TIME()-1;
-  if (closed) {
-    res = knights_tour_closed<adapter_t>(adapter);
-  } else {
-    res = ham_rel
-      ? knights_tour_ham_rel<adapter_t>(adapter, t)
-      : knights_tour_rel<adapter_t>(adapter, t);
-  }
+  res = closed
+    ? knights_tour_closed<adapter_t>(adapter)
+    : knights_tour_rel<adapter_t, incl_hamiltonian>(adapter, t);
 
   while (t-- > closed) {
-    res &= ham_rel
-      ? knights_tour_ham_rel<adapter_t>(adapter, t)
-      : knights_tour_rel<adapter_t>(adapter, t);
+    res &= knights_tour_rel<adapter_t, incl_hamiltonian>(adapter, t);
 
     const size_t nodecount = adapter.nodecount(res);
     largest_bdd = std::max(largest_bdd, nodecount);
@@ -220,19 +210,21 @@ void run_knights_tour(int argc, char** argv)
     // Compute the decision diagram that represents all hamiltonian paths
     time_point t1 = get_timestamp();
 
-    typename adapter_t::dd_t res = rows() == 1 && cols() == 1
-      ? adapter.ithvar(int_of_position(0,0,0))
-      : knights_tour_iter_rel(adapter);
-
-    time_point t2 = get_timestamp();
-
-    const time_duration paths_time = duration_of(t1,t2);
-
     if (ham_rel) {
       INFO("\n   Paths + Hamiltonian construction:\n");
     } else {
       INFO("\n   Paths construction:\n");
     }
+
+    typename adapter_t::dd_t res = rows() == 1 && cols() == 1
+      ? adapter.ithvar(int_of_position(0,0,0))
+      : (ham_rel
+         ? knights_tour_iter_rel<adapter_t, true>(adapter)
+         : knights_tour_iter_rel<adapter_t, false>(adapter));
+
+    time_point t2 = get_timestamp();
+
+    const time_duration paths_time = duration_of(t1,t2);
 
     INFO("   | total no. nodes:        %zu\n", total_nodes);
     INFO("   | largest size (nodes):   %zu\n", largest_bdd);
