@@ -126,11 +126,12 @@ inline void __knights_tour_rel__post_chain<true>(adiar::node_writer &out_writer,
       //
       // For the id, we will collapse into the 0-chain if we are past
       // the final time to check for the hamiltonian constraint.
-      int next_label = this_label+1;
+      int next_label = next_reachable_position(row, col, time);
       if (next_label == this_conflict) { next_label++; }
       if (next_label == next_conflict) { next_label++; }
+      if (!is_reachable(row_of_position(next_label), col_of_position(next_label))) { next_label++; }
 
-      const int next_id = (MAX_TIME() == time   && next_label > this_conflict)
+      const int next_id = (MAX_TIME() == time && next_label > this_conflict)
         || (MAX_TIME()-1 == time && next_label > next_conflict)
         ? 0
         : this_id;
