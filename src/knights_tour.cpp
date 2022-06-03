@@ -84,10 +84,6 @@ bool is_reachable(int r, int c)
 template<typename adapter_t>
 typename adapter_t::dd_t knights_tour_rel(adapter_t &adapter, int t);
 
-// TODO: Define 'knights_tour_ham(t)' for regular DFS implementations.
-template<typename adapter_t>
-typename adapter_t::dd_t knights_tour_ham(adapter_t &adapter, int r, int c);
-
 // TODO: Define 'knights_tour_rel_ham(t)' for regular DFS implementations.
 template<typename adapter_t>
 typename adapter_t::dd_t knights_tour_ham_rel(adapter_t &adapter, int t);
@@ -127,6 +123,11 @@ typename adapter_t::dd_t knights_tour_iter_rel(adapter_t &adapter)
 
 // ========================================================================== //
 //                            Add Hamiltonian constraints                     //
+
+// TODO: Define 'knights_tour_ham(t)' for regular DFS implementations.
+template<typename adapter_t>
+typename adapter_t::dd_t knights_tour_ham(adapter_t &adapter, int r, int c);
+
 template<typename adapter_t>
 void knights_tour_iter_ham(adapter_t &adapter, typename adapter_t::dd_t &paths)
 {
