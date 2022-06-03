@@ -160,7 +160,7 @@ iter_opt parse_option(const std::string &arg, bool &should_exit)
   { return iter_opt::SPLIT_OPEN; }
 
   if (arg == "SPLIT_CLOSED" || arg == "CLOSED")
-  { return iter_opt::SPLIT_OPEN; }
+  { return iter_opt::SPLIT_CLOSED; }
 
   if (arg == "COMBINED_OPEN" || arg == "COMBINED")
   { return iter_opt::COMBINED_OPEN; }
