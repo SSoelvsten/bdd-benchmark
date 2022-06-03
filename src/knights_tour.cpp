@@ -185,11 +185,6 @@ void run_knights_tour(int argc, char** argv)
   bool should_exit = parse_input(argc, argv, opt);
   if (should_exit) { exit(-1); }
 
-  if (rows() == 0 || cols() == 0) {
-    ERROR("  Please provide an N > 1 (-N)\n");
-    exit(-1);
-  }
-
   closed  = opt == iter_opt::SPLIT_CLOSED || opt == iter_opt::COMBINED_CLOSED;
   ham_rel = opt == iter_opt::COMBINED_OPEN || opt == iter_opt::COMBINED_CLOSED;
 
@@ -197,6 +192,17 @@ void run_knights_tour(int argc, char** argv)
   INFO("%i x %i - Knight's Tour (%s %i MiB):\n", rows(), cols(), adapter_t::NAME.c_str(), M);
   INFO("   | Tour type:              %s\n", closed ? "Closed tours only" : "Open (all) tours");
   INFO("   | Computation pattern:    Transitions %s Hamiltonian\n", ham_rel ? "||" : ";");
+
+  if (rows() == 0 || cols() == 0) {
+    INFO("\n  The board has no cells. Please provide an N > 1 (-N)\n");
+    exit(0);
+  }
+
+  if (closed && (rows() < 3 || cols() < 3) && rows() != 1 && cols() != 1) {
+    INFO("\n  There cannot exist closed tours on boards smaller than 3 x 3\n");
+    INFO("  Aborting computation...\n");
+    exit(0);
+  }
 
   // ========================================================================
   // Initialise package manager
