@@ -77,11 +77,9 @@ bool is_legal_position(int r, int c, int t = 0)
 
 bool is_reachable(int r, int c)
 {
-  for (int r_from = 0; r_from < rows(); r_from++) {
-    for (int c_from = 0; c_from < cols(); c_from++) {
-      if (is_legal_move(r_from, c_from, r, c)) {
-        return true;
-      }
+  for (int idx = 0; idx < 8; idx++) {
+    if (is_legal_position(r + row_moves[idx], c + column_moves[idx])) {
+      return true;
     }
   }
   return false;
