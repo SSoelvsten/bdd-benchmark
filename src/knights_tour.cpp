@@ -1,4 +1,5 @@
 #include "common.cpp"
+#include "expected.h"
 
 size_t largest_bdd = 0;
 size_t total_nodes = 0;
@@ -272,10 +273,14 @@ void run_knights_tour(int argc, char** argv)
 
   adapter.print_stats();
 
-  /* TODO
-  if (N < size(expected_queens) && solutions != expected_queens[N]) {
+  if (!closed && N < size(expected_knights_tour_open)
+      && expected_knights_tour_open[N] != UNKNOWN && solutions != expected_knights_tour_open[N]) {
     EXIT(-1);
   }
-  */
+
+  if (closed && N < size(expected_knights_tour_closed)
+      && expected_knights_tour_closed[N] != UNKNOWN && solutions != expected_knights_tour_closed[N]) {
+    EXIT(-1);
+  }
   FLUSH();
 }
