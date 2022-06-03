@@ -91,7 +91,7 @@ typename adapter_t::dd_t knights_tour_ham_rel(adapter_t &adapter, int t);
 
 // ========================================================================== //
 //                    Iterate over the above Transition Relation              //
-bool closed = true;
+bool closed = false;
 bool ham_rel = false;
 
 template<typename adapter_t>
@@ -101,15 +101,16 @@ typename adapter_t::dd_t knights_tour_iter_rel(adapter_t &adapter)
 
   typename adapter_t::dd_t res;
 
+  int t = MAX_TIME()-1;
   if (closed) {
     res = knights_tour_closed<adapter_t>(adapter);
   } else {
     res = ham_rel
-      ? knights_tour_ham_rel<adapter_t>(adapter, MAX_TIME()-1)
-      : knights_tour_rel<adapter_t>(adapter, MAX_TIME()-1);
+      ? knights_tour_ham_rel<adapter_t>(adapter, t)
+      : knights_tour_rel<adapter_t>(adapter, t);
   }
 
-  for (int t = MAX_TIME()-2; t >= 2*closed; t--) {
+  while (t-- > closed) {
     res &= ham_rel
       ? knights_tour_ham_rel<adapter_t>(adapter, t)
       : knights_tour_rel<adapter_t>(adapter, t);
