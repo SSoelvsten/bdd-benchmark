@@ -150,9 +150,12 @@ inline void __knights_tour_rel__post_chain<false>(adiar::node_writer &out_writer
 {
   // Simple "don't care" chain
   const int this_label = int_of_position(row, col, time);
-  const adiar::ptr_t next_ptr = this_label == MAX_POSITION()
+  const int max_reachable = MAX_POSITION();
+  const int next_reachable = next_reachable_position(row, col, time);
+
+  const adiar::ptr_t next_ptr = this_label == max_reachable
     ? adiar::create_sink_ptr(true)
-    : adiar::create_node_ptr(this_label+1, 0);
+    : adiar::create_node_ptr(next_reachable, 0);
 
   out_writer << adiar::create_node(this_label, 0, next_ptr, next_ptr);
 }

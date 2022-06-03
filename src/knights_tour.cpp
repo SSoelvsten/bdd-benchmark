@@ -28,6 +28,12 @@ inline int int_of_position(int r, int c, int t = 0)
 inline int MAX_POSITION()
 { return int_of_position(MAX_ROW(), MAX_COL(), MAX_TIME()); }
 
+inline int row_of_position(int pos)
+{ return (pos / cols()) % rows(); }
+
+inline int col_of_position(int pos)
+{ return pos % cols(); }
+
 // ========================================================================== //
 //                          Closed Tour Constraints                           //
 const int closed_squares [3][2] = {{0,0}, {1,2}, {2,1}};
@@ -79,6 +85,22 @@ bool is_reachable(int r, int c)
     }
   }
   return false;
+}
+
+int next_reachable_position(int r, int c, int t)
+{
+  int postulate = int_of_position(r,c,t);
+  bool reachable = false;
+
+  do {
+    postulate++;
+    const int row = row_of_position(postulate);
+    const int col = col_of_position(postulate);
+
+    reachable = is_reachable(row,col);
+  } while (!reachable);
+
+  return postulate;
 }
 
 // TODO: Define 'knights_tour_rel(t)' for regular DFS implementations.
