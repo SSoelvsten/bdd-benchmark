@@ -1,3 +1,53 @@
+constexpr size_t UNKNOWN = static_cast<size_t>(-1);
+
+// =============================================================================
+// Knight's Tour Problem
+//
+// expected number taken from:
+// [1] https://oeis.org/search?q=knights+tour
+// [2] https://en.wikipedia.org/wiki/Knight%27s_tour#Number_of_tours
+// [3] Our own numbers
+const size_t expected_knights_tour_open[17] = {
+  0,
+  0,
+  1,                // 1x1 [2]
+  0,                // 2x1 [3]
+  0,                // 2x2 [2]
+  0,                // 3x2 [1]
+  0,                // 3x3 [2]
+  16,               // 4x3 [1]
+  0,                // 4x4 [2]
+  164,              // 5x4 [3]
+  1728,             // 5x5 [2]
+  37568,            // 6x5 [3]
+  6637920,          // 6x6 [2]
+  UNKNOWN,          // 7x6 [?]
+  165575218320,     // 7x7 [2]
+  UNKNOWN,          // 8x7 [?]
+  19591828170979904 // 8x8 [2]
+};
+
+const size_t expected_knights_tour_closed[17] = {
+  0,
+  0,
+  1,                // 1x1 [1]
+  0,                // 2x1 [3]
+  0,                // 2x2 [2]
+  0,                // 3x2 [3]
+  0,                // 3x3 [1]
+  0,                // 4x3 [3]
+  0,                // 4x4 [1]
+  0,                // 5x4 [3]
+  0,                // 5x5 [1]
+  UNKNOWN,          // 6x5 [?]
+  9862,             // 6x6 [2]
+  UNKNOWN,          // 7x6 [?]
+  0,                // 7x7 [1]
+  UNKNOWN,          // 8x7 [?]
+  13267364410532    // 8x8 [1]
+};
+
+
 // =============================================================================
 // Queens Problem
 //
