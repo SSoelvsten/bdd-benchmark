@@ -88,7 +88,7 @@ combinatorial/queens/zdd:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_queens_zdd -N $(N) -M $(M) | tee -a out/VARIANT/queens_zdd.out)
 
 combinatorial/tic_tac_toe:
-	$(MAKE) combinatorial/queens/bdd
+	$(MAKE) combinatorial/tic_tac_toe/bdd
 
 combinatorial/tic_tac_toe/bdd: N := 20
 combinatorial/tic_tac_toe/bdd:
