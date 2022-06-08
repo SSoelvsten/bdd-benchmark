@@ -52,7 +52,7 @@ libraries.
   dynamic variable reordering.
 
   We use version 3.0.0 as distributed on the unofficial mirror
-  [here](https://github.com/ivmai/cudd).
+  [here](https://github.com/SSoelvsten/cudd).
 
 
 - [**Sylvan**](https://github.com/trolando/sylvan):

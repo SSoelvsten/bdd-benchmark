@@ -9,7 +9,7 @@
 	url = ../../trolando/sylvan
 [submodule "external/cudd"]
 	path = external/cudd
-	url = ../../ivmai/cudd
+	url = ../../SSoelvsten/cudd.git
 [submodule "external/blifparse"]
 	path = external/blifparse
 	url = ../../SSoelvsten/libblifparse
