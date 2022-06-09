@@ -32,15 +32,17 @@ typename adapter_t::dd_t bdd_from_clause(adapter_t &adapter, clause_t &clause)
 
   uint64_t label = UINT64_MAX;
 
-  for (auto it = clause.rbegin(); it != clause.rend(); it++)
-    {
-      assert((*it).first < label);
-      label = (*it).first;
-      bool negated = (*it).second;
+  for (auto it = clause.rbegin(); it != clause.rend(); it++) {
+    assert((*it).first < label);
+    const int label = (*it).first;
+    const bool negated = (*it).second;
 
-      typename adapter_t::dd_t v = negated ? adapter.nithvar(label) : adapter.ithvar(label);
-      c = adapter.ite(v, adapter.leaf_true(), c);
-    }
+    typename adapter_t::dd_t leaf_T = adapter.leaf_true();
+    const typename adapter_t::dd_t low = negated ? c : leaf_T;
+    const typename adapter_t::dd_t high = negated ? leaf_T : c;
+
+    c = adapter.make_node(label, low, high);
+  }
 
   return c;
 }

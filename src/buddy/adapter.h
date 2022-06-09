@@ -113,8 +113,8 @@ public:
   inline bdd nithvar(int label)
   { return bdd_nithvar(label); }
 
-  inline bdd ite(const bdd &f, const bdd &g, const bdd &h)
-  { return bdd_ite(f,g,h); }
+  inline bdd make_node(int label, const bdd &low, const bdd &high)
+  { return bdd_ite(bdd_ithvar(label), high, low); }
 
   inline bdd negate(const bdd &b)
   { return bdd_not(b); }

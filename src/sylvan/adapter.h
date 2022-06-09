@@ -85,8 +85,8 @@ public:
   inline sylvan::Bdd nithvar(int label)
   { return ~sylvan::Bdd::bddVar(label); }
 
-  inline sylvan::Bdd ite(const sylvan::Bdd &f, const sylvan::Bdd &g, const sylvan::Bdd &h)
-  { return f.Ite(g,h); }
+  inline sylvan::Bdd make_node(int label, const sylvan::Bdd &low, const sylvan::Bdd &high)
+  { return sylvan::Bdd::bddVar(label).Ite(high, low); }
 
   inline sylvan::Bdd negate(const sylvan::Bdd &b)
   { return ~b; }

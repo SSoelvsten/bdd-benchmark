@@ -89,22 +89,21 @@ typename adapter_t::dd_t construct_init(adapter_t &adapter)
     init_parts[i] = i < N ? adapter.leaf_false() : adapter.leaf_true();
   }
 
-  int curr_level = 63;
-
-  do {
+  for (int curr_level = 63; curr_level >= 0; curr_level--) {
     int min_idx = curr_level > 63 - N ? N - (63 - curr_level + 1) : 0;
     int max_idx = std::min(curr_level, N);
 
     for (int curr_idx = min_idx; curr_idx <= max_idx; curr_idx++) {
-      typename adapter_t::dd_t low = init_parts[curr_idx];
-      typename adapter_t::dd_t high = curr_idx == N ? adapter.leaf_false() : init_parts[curr_idx + 1];
+      const typename adapter_t::dd_t low = init_parts[curr_idx];
+      const typename adapter_t::dd_t high = curr_idx < N
+        ? init_parts[curr_idx + 1]
+        : adapter.leaf_false();
 
-      init_parts[curr_idx] = adapter.ite(adapter.ithvar(curr_level), low, high);
+      init_parts[curr_idx] = adapter.make_node(curr_level, low, high);
     }
-  } while (curr_level-- > 0);
+  }
 
   res = init_parts[0];
-
   return res;
 }
 
@@ -113,22 +112,20 @@ typename adapter_t::dd_t construct_init(adapter_t &adapter)
 template<typename adapter_t>
 typename adapter_t::dd_t construct_is_not_winning(adapter_t &adapter, std::array<int, 4>& line)
 {
-  size_t idx = 4 - 1;
-
   typename adapter_t::dd_t no_Xs = adapter.leaf_false();
   typename adapter_t::dd_t only_Xs = adapter.leaf_false();
 
-  do {
-    no_Xs = adapter.ite(adapter.ithvar(line[idx]),
-                    idx == 0 ? only_Xs : adapter.leaf_true(),
-                    no_Xs);
+  for (int idx = 4-1; idx >= 0; idx--) {
+    no_Xs = adapter.make_node(line[idx],
+                              no_Xs,
+                              idx == 0 ? only_Xs : adapter.leaf_true());
 
     if (idx > 0) {
-      only_Xs = adapter.ite(adapter.ithvar(line[idx]),
-                        only_Xs,
-                        adapter.leaf_true());
+      only_Xs = adapter.make_node(line[idx],
+                                  adapter.leaf_true(),
+                                  only_Xs);
     }
-  } while (idx-- > 0);
+  }
 
   return no_Xs;
 }
