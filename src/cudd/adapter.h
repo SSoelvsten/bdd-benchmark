@@ -77,8 +77,10 @@ public:
   inline BDD nithvar(int label)
   { return ~__mgr.bddVar(label); }
 
-  inline BDD ite(const BDD &f, const BDD &g, const BDD &h)
-  { return f.Ite(g,h); }
+  inline BDD make_node(int label, const BDD &low, const BDD &high)
+  {
+    return __mgr.makeBddNode(label, high, low);
+  }
 
   inline BDD negate(const BDD &b)
   { return ~b; }

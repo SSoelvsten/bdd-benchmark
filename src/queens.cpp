@@ -21,13 +21,11 @@ typename adapter_t::dd_t queens_S(adapter_t &adapter, int i, int j)
 
   typename adapter_t::dd_t out = adapter.leaf_true();
 
-  do {
+  for (int row = N-1; row >= 0; row--) {
     int row_diff = std::max(row, i) - std::min(row, i);
 
     if (row_diff == 0) {
-      int column = N - 1;
-
-      do {
+      for (int column = N-1; column >= 0; column--) {
         int label = label_of_position(row, column);
 
         if (column == j) {
@@ -35,7 +33,7 @@ typename adapter_t::dd_t queens_S(adapter_t &adapter, int i, int j)
         } else {
           out &= adapter.nithvar(label);
         }
-      } while (column-- > 0);
+      }
     } else {
       if (j + row_diff < N) {
         int label = label_of_position(row, j + row_diff);
@@ -50,7 +48,7 @@ typename adapter_t::dd_t queens_S(adapter_t &adapter, int i, int j)
         out &= adapter.nithvar(label);
       }
     }
-  } while (row-- > 0);
+  }
 
   total_nodes += adapter.nodecount(out);
 
