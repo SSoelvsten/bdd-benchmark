@@ -228,14 +228,14 @@ inline adiar::zdd knights_tour_rel(int t)
 }
 
 template<>
-adiar::zdd knights_tour_rel<adiar_zdd_adapter, false>(adiar_zdd_adapter &/*adapter*/, int t)
+adiar::zdd knights_tour_rel<adiar_zdd_adapter>(adiar_zdd_adapter &/*adapter*/, int t)
 {
   const adiar::zdd res = knights_tour_rel<false>(t);
   return res;
 }
 
 template<>
-adiar::zdd knights_tour_rel<adiar_zdd_adapter, true>(adiar_zdd_adapter &/*adapter*/, int t)
+adiar::zdd knights_tour_ham_rel<adiar_zdd_adapter>(adiar_zdd_adapter &/*adapter*/, int t)
 {
   const adiar::zdd res = knights_tour_rel<true>(t);
   return res;
