@@ -54,43 +54,6 @@ adiar::zdd knights_tour_closed(adiar_zdd_adapter &/*adapter*/)
 
 // ========================================================================== //
 //                 Transition Relation + Hamiltonian Constraint               //
-adiar::ptr_t first_legal(int r_from, int c_from, int t)
-{
-  for (int idx = 0; idx < 8; idx++) {
-    const int r_to = r_from + row_moves[idx];
-    const int c_to = c_from + column_moves[idx];
-
-    if (!is_legal_position(r_to, c_to)) { continue; }
-
-    const adiar::label_t to_label = int_of_position(r_to, c_to, t);
-    const adiar::label_t chain_id = int_of_position(r_from, c_from);
-
-    return adiar::create_node_ptr(to_label, chain_id);
-  }
-  return adiar::create_sink_ptr(false);
-}
-
-adiar::ptr_t next_legal(int r_from, int c_from, int r_to, int c_to, int t)
-{
-  bool seen_move = false;
-
-  for (int idx = 0; idx < 8; idx++) {
-    const int r = r_from + row_moves[idx];
-    const int c = c_from + column_moves[idx];
-
-    if (!is_legal_position(r,c)) { continue; }
-
-    if (seen_move) {
-      const adiar::label_t to_label = int_of_position(r, c, t);
-      const adiar::id_t chain_id = int_of_position(r_from, c_from);
-
-      return adiar::create_node_ptr(to_label, chain_id);
-    }
-    seen_move |= r == r_to && c == c_to;
-  }
-  return adiar::create_sink_ptr(false);
-}
-
 template<bool incl_hamiltonian>
 inline void __knights_tour_rel__post_chain(adiar::node_writer &out_writer,
                                            int time, int row, int col);
@@ -215,10 +178,12 @@ inline adiar::zdd knights_tour_rel(int t)
           const int this_label = int_of_position(row, col, t+1);
           const int chain_id = int_of_position(row_t, col_t);
 
-          const adiar::ptr_t next_this_chain = next_legal(row_t, col_t, row, col, t+1);
+          const adiar::label_t next_label = next_legal(row_t, col_t, row, col, t+1);
           const adiar::ptr_t chain_root = __knights_tour_rel__post_root<incl_hamiltonian>(t, row, col, row_t, col_t);
 
-          out_writer << adiar::create_node(this_label, chain_id, next_this_chain, chain_root);
+          out_writer << adiar::create_node(this_label, chain_id,
+                                           adiar::create_node_ptr(next_label, chain_id),
+                                           chain_root);
         }
       }
     }
@@ -232,9 +197,14 @@ inline adiar::zdd knights_tour_rel(int t)
   for (int row = MAX_ROW(); row >= 0; row--) {
     for (int col = MAX_COL(); col >= 0; col--) {
       const adiar::label_t this_label = int_of_position(row, col, t);
-      const adiar::ptr_t move_chain = first_legal(row, col, t+1);
 
-      const adiar::node_t n = adiar::create_node(this_label, 0, root, move_chain);
+      const adiar::label_t next_label = first_legal(row, col, t+1);
+      const adiar::id_t chain_id = int_of_position(row, col);
+
+      const adiar::node_t n = adiar::create_node(this_label, 0,
+                                                 root,
+                                                 adiar::create_node_ptr(next_label, chain_id));
+
       root = n.uid;
       out_writer << n;
    }

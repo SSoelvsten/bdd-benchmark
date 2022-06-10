@@ -101,6 +101,37 @@ int next_reachable_position(int r, int c, int t)
   return postulate;
 }
 
+constexpr int no_pos = std::numeric_limits<int>::max();
+
+int first_legal(int r_from, int c_from, int t)
+{
+  for (int idx = 0; idx < 8; idx++) {
+    const int r_to = r_from + row_moves[idx];
+    const int c_to = c_from + column_moves[idx];
+
+    if (!is_legal_position(r_to, c_to)) { continue; }
+
+    return int_of_position(r_to, c_to, t);
+  }
+  return no_pos;
+}
+
+int next_legal(int r_from, int c_from, int r_to, int c_to, int t)
+{
+  bool seen_move = false;
+
+  for (int idx = 0; idx < 8; idx++) {
+    const int r = r_from + row_moves[idx];
+    const int c = c_from + column_moves[idx];
+
+    if (!is_legal_position(r,c)) { continue; }
+
+    if (seen_move) { return int_of_position(r, c, t); }
+    seen_move |= r == r_to && c == c_to;
+  }
+  return no_pos;
+}
+
 // TODO: Define 'knights_tour_rel(t)' for regular DFS implementations.
 template<typename adapter_t, bool include_hamiltonian_constraint>
 typename adapter_t::dd_t knights_tour_rel(adapter_t &adapter, int t);
