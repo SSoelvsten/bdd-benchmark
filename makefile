@@ -45,7 +45,7 @@ build:
 
   # Build all zdd benchmarks
 	@echo "\n\nBuild ZDD Benchmarks"
-	@cd build/ && for package in 'adiar' ; do \
+	@cd build/ && for package in 'adiar' 'cudd' ; do \
 		mkdir -p ../out/$$package ; \
 		for benchmark in 'queens_zdd' 'knights_tour_zdd' ; do \
 			make ${MAKE_FLAGS} $$package'_'$$benchmark ; \

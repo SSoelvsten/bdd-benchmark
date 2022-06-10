@@ -42,7 +42,7 @@ private:
   int varcount;
 
 public:
-  inline static const std::string NAME = "CUDD";
+  inline static const std::string NAME = "CUDD [BDD]";
 
   // Variable type
 public:
