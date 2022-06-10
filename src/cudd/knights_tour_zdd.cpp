@@ -1,4 +1,9 @@
+#include "../knights_tour.cpp"
+
+#include "zdd_adapter.h"
+
+// ========================================================================== //
 int main(int argc, char** argv)
 {
-  // TODO
+  run_knights_tour<cudd_zdd_adapter>(argc, argv);
 }

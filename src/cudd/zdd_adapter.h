@@ -37,9 +37,10 @@ public:
   { return __mgr.zddZero(); }
 
   inline ZDD make_node(int label, const ZDD &low, const ZDD &high)
-  {
-    return __mgr.makeZddNode(label, high, low);
-  }
+  { return __mgr.makeZddNode(label, high, low); }
+
+  inline ZDD ithvar(int label)
+  { return __mgr.makeZddNode(label, leaf_false(), leaf_true()); }
 
   inline uint64_t nodecount(const ZDD &b)
   {

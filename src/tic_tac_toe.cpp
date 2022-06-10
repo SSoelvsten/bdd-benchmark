@@ -82,8 +82,6 @@ void construct_lines() {
 template<typename adapter_t>
 typename adapter_t::dd_t construct_init(adapter_t &adapter)
 {
-  typename adapter_t::dd_t res;
-
   typename adapter_t::dd_t init_parts[N+1];
   for (int i = 0; i <= N; i++) {
     init_parts[i] = i < N ? adapter.leaf_false() : adapter.leaf_true();
@@ -103,8 +101,7 @@ typename adapter_t::dd_t construct_init(adapter_t &adapter)
     }
   }
 
-  res = init_parts[0];
-  return res;
+  return init_parts[0];
 }
 
 // ========================================================================== //
