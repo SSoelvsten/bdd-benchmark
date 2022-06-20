@@ -45,9 +45,9 @@ adiar::zdd knights_tour_closed(adiar_zdd_adapter &/*adapter*/)
   const adiar::node_t step0_state = adiar::create_node(step0_position, 0, root, root);
   out_writer << step0_state;
 
-  const size_t nodecount = out_writer.size();
-  largest_bdd = std::max(largest_bdd, nodecount);
-  total_nodes += nodecount;
+  // const size_t nodecount = out_writer.size();
+  // largest_bdd = std::max(largest_bdd, nodecount);
+  // total_nodes += nodecount;
 
   return out;
 }
@@ -250,9 +250,9 @@ inline adiar::zdd knights_tour_rel(int t)
     }
   }
 
-  const size_t nodecount = out_writer.size();
-  largest_bdd = std::max(largest_bdd, nodecount);
-  total_nodes += nodecount;
+  // const size_t nodecount = out_writer.size();
+  // largest_bdd = std::max(largest_bdd, nodecount);
+  // total_nodes += nodecount;
 
   return out;
 }
@@ -303,9 +303,9 @@ adiar::zdd knights_tour_ham(adiar_zdd_adapter &/*adapter*/, int r, int c)
     }
   }
 
-  const size_t nodecount = out_writer.size();
-  largest_bdd = std::max(largest_bdd, nodecount);
-  total_nodes += nodecount;
+  // const size_t nodecount = out_writer.size();
+  // largest_bdd = std::max(largest_bdd, nodecount);
+  // total_nodes += nodecount;
 
   return out;
 }
