@@ -1,6 +1,6 @@
-#include "../queens.cpp"
+#include "../queens_zdd.cpp"
 
-#include "zdd_adapter.h"
+#include "adapter.h"
 
 // ========================================================================== //
 //                            SQUARE CONSTRUCTION                             //
@@ -13,13 +13,13 @@ adiar::zdd queens_S(adiar_zdd_adapter &/*mgr*/, int i, int j)
 
   for(int row = N-1; row >= 0; row--) {
     for(int col = N-1; col >= 0; col--) {
-      //Same row or column
+      // Same row or column
       if(i == row && j != col) { continue; }
       if(i != row && j == col) { continue; }
 
       adiar::label_t label = label_of_position(row, col);
 
-      //Is the queen
+      // Is the queen
       if(row == i && col == j) {
         adiar::ptr_t low = adiar::create_sink_ptr(false);
         adiar::ptr_t high = next;
@@ -30,12 +30,12 @@ adiar::zdd queens_S(adiar_zdd_adapter &/*mgr*/, int i, int j)
         continue;
       }
 
-      //Diagonal
+      // Diagonal
       int row_diff = std::abs(row - i);
       int col_diff = std::abs(col - j);
       if(col_diff == row_diff) { continue; }
 
-      //Not in conflict
+      // Not in conflict
       adiar::node_t out_node = adiar::create_node(label, 0, next, next);
 
       out_writer << out_node;

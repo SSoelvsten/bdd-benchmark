@@ -35,12 +35,56 @@ cudd_memorysize()
   return std::min(static_cast<size_t>(M), CUDD_MAX / (1024 * 1024)) * 1024 * 1024;
 }
 
-class cudd_bdd_adapter
+class cudd_adapter
 {
-private:
+protected:
   Cudd __mgr;
-  int varcount;
+  const int varcount;
 
+protected:
+  cudd_adapter(const int bdd_varcount, const int zdd_varcount)
+    : __mgr(bdd_varcount, zdd_varcount,
+            CUDD_UNIQUE_SLOTS,
+            cudd_cachesize(bdd_varcount + zdd_varcount),
+            cudd_memorysize()),
+      varcount(bdd_varcount + zdd_varcount)
+  { }
+
+  ~cudd_adapter()
+  { /* Do nothing */ }
+
+
+  // Statistics
+public:
+  inline size_t allocated_nodes()
+  { return __mgr.ReadKeys(); }
+
+  void print_stats()
+  {
+    INFO("\nCUDD Statistics:\n");
+
+    INFO("   Table:\n");
+    INFO("   | peak node count:     %zu\n", __mgr.ReadPeakNodeCount());
+    INFO("   | node count (bdd):    %zu\n", __mgr.ReadNodeCount());
+    INFO("   | node count (zdd):    %zu\n", __mgr.zddReadNodeCount());
+    INFO("   | keys:                %u\n",  __mgr.ReadKeys());
+    INFO("   | dead:                %u\n",  __mgr.ReadDead());
+
+    // Commented lines are only available if 'DD_STATS' flag is set in CUDD compilation
+
+    // INFO(" | Cache:\n");
+    // INFO(" | | slots:               %zu\n", __mgr.ReadCacheUsedSlots());
+    // INFO(" | | lookups:             %zu\n", __mgr.ReadCacheLookUps());
+    // INFO(" | | hits:                %zu\n", __mgr.ReadCacheHits());
+
+    INFO("   Garbage Collections:\n");
+    INFO("   | runs:                %u\n",  __mgr.ReadGarbageCollections());
+    INFO("   | time (ms):           %zu\n", __mgr.ReadGarbageCollectionTime());
+  }
+};
+
+class cudd_bdd_adapter : public cudd_adapter
+{
 public:
   inline static const std::string NAME = "CUDD [BDD]";
 
@@ -50,18 +94,10 @@ public:
 
   // Init and Deinit
 public:
-  cudd_bdd_adapter(int varcount)
-    : __mgr(varcount, 0,
-            CUDD_UNIQUE_SLOTS,
-            cudd_cachesize(varcount),
-            cudd_memorysize()),
-      varcount(varcount)
+  cudd_bdd_adapter(int varcount) : cudd_adapter(varcount, 0)
   { // Disable dynamic ordering
     __mgr.AutodynDisable();
   }
-
-  ~cudd_bdd_adapter()
-  { /* Do nothing */ }
 
   // BDD Operations
 public:
@@ -96,31 +132,44 @@ public:
 
   inline uint64_t satcount(const BDD &b)
   { return b.CountMinterm(varcount); }
+};
 
-  // Statistics
+class cudd_zdd_adapter : public cudd_adapter
+{
 public:
-  inline size_t allocated_nodes()
-  { return __mgr.ReadKeys(); }
+  inline static const std::string NAME = "CUDD [ZDD]";
 
-  void print_stats()
-  {
-    INFO("\nCUDD Statistics:\n");
+  // Variable type
+public:
+  typedef ZDD dd_t;
 
-    INFO("   Table:\n");
-    INFO("   | peak node count:     %zu\n", __mgr.ReadPeakNodeCount());
-    INFO("   | node count:          %zu\n", __mgr.ReadNodeCount());
-    INFO("   | keys:                %u\n",  __mgr.ReadKeys());
-    INFO("   | dead:                %u\n",  __mgr.ReadDead());
-
-    // Commented lines are only available if 'DD_STATS' flag is set in CUDD compilation
-
-    // INFO(" | Cache:\n");
-    // INFO(" | | slots:               %zu\n", __mgr.ReadCacheUsedSlots());
-    // INFO(" | | lookups:             %zu\n", __mgr.ReadCacheLookUps());
-    // INFO(" | | hits:                %zu\n", __mgr.ReadCacheHits());
-
-    INFO("   Garbage Collections:\n");
-    INFO("   | runs:                %u\n",  __mgr.ReadGarbageCollections());
-    INFO("   | time (ms):           %zu\n", __mgr.ReadGarbageCollectionTime());
+  // Init and Deinit
+public:
+  cudd_zdd_adapter(int varcount) : cudd_adapter(0, varcount)
+  { // Disable dynamic ordering
+    __mgr.AutodynDisableZdd();
   }
+
+  // ZDD Operations
+public:
+  inline ZDD leaf_true()
+  { return __mgr.zddOne(std::numeric_limits<int>::max()); }
+
+  inline ZDD leaf_false()
+  { return __mgr.zddZero(); }
+
+  inline ZDD make_node(int label, const ZDD &low, const ZDD &high)
+  { return __mgr.makeZddNode(label, high, low); }
+
+  inline ZDD ithvar(int label)
+  { return __mgr.makeZddNode(label, leaf_false(), leaf_true()); }
+
+  inline uint64_t nodecount(const ZDD &b)
+  {
+    // CUDD also counts leaves for ZDDs?
+    return b.nodeCount();
+  }
+
+  inline uint64_t satcount(const ZDD &b)
+  { return b.CountMinterm(varcount); }
 };

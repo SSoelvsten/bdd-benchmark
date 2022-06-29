@@ -38,8 +38,9 @@ build:
 	@echo "\n\nBuild BDD Benchmarks"
 	@cd build/ && for package in 'adiar' 'buddy' 'sylvan' 'cudd' ; do \
 		mkdir -p ../out/$$package ; \
+		mkdir -p ../out/$$package/bdd ; \
 		for benchmark in 'picotrav' 'queens' 'sat_pigeonhole_principle' 'sat_queens' 'tic_tac_toe' ; do \
-			make ${MAKE_FLAGS} $$package'_'$$benchmark ; \
+			make ${MAKE_FLAGS} $$package'_'$$benchmark'_bdd' ; \
 		done ; \
 	done
 
@@ -47,8 +48,9 @@ build:
 	@echo "\n\nBuild ZDD Benchmarks"
 	@cd build/ && for package in 'adiar' 'cudd' ; do \
 		mkdir -p ../out/$$package ; \
-		for benchmark in 'queens_zdd' 'knights_tour_zdd' ; do \
-			make ${MAKE_FLAGS} $$package'_'$$benchmark ; \
+		mkdir -p ../out/$$package/zdd ; \
+		for benchmark in 'queens' 'knights_tour' ; do \
+			make ${MAKE_FLAGS} $$package'_'$$benchmark'_zdd' ; \
 		done ; \
 	done
 
@@ -74,36 +76,36 @@ combinatorial/knights_tour:
 combinatorial/knights_tour/zdd: N := 12
 combinatorial/knights_tour/zdd: O="OPEN"
 combinatorial/knights_tour/zdd:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_knights_tour_zdd -N $(N) -M $(M) -o $(O) | tee -a out/VARIANT/queens_zdd.out)
+	@$(subst VARIANT,$(V),./build/src/VARIANT_knights_tour_zdd -N $(N) -M $(M) -o $(O) | tee -a out/VARIANT/zdd/knights_tour.out)
 
 combinatorial/queens:
 	$(MAKE) combinatorial/queens/bdd
 
 combinatorial/queens/bdd: N := 8
 combinatorial/queens/bdd:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_queens -N $(N) -M $(M) | tee -a out/VARIANT/queens.out)
+	@$(subst VARIANT,$(V),./build/src/VARIANT_queens_bdd -N $(N) -M $(M) | tee -a out/VARIANT/bdd/queens.out)
 
 combinatorial/queens/zdd: N := 8
 combinatorial/queens/zdd:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_queens_zdd -N $(N) -M $(M) | tee -a out/VARIANT/queens_zdd.out)
+	@$(subst VARIANT,$(V),./build/src/VARIANT_queens_zdd -N $(N) -M $(M) | tee -a out/VARIANT/zdd/queens.out)
 
 combinatorial/tic_tac_toe:
 	$(MAKE) combinatorial/tic_tac_toe/bdd
 
 combinatorial/tic_tac_toe/bdd: N := 20
 combinatorial/tic_tac_toe/bdd:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_tic_tac_toe -N $(N) -M $(M) | tee -a out/VARIANT/tic_tac_toe.out)
+	@$(subst VARIANT,$(V),./build/src/VARIANT_tic_tac_toe_bdd -N $(N) -M $(M) | tee -a out/VARIANT/bdd/tic_tac_toe.out)
 
 # ============================================================================ #
 #  SAT SOLVER
 # ============================================================================ #
 sat-solver/pigeonhole_principle: N := 10
 sat-solver/pigeonhole_principle:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_sat_pigeonhole_principle -N $(N) -M $(M) | tee -a out/VARIANT/sat_pigeonhole_principle.out)
+	@$(subst VARIANT,$(V),./build/src/VARIANT_sat_pigeonhole_principle_bdd -N $(N) -M $(M) | tee -a out/VARIANT/bdd/sat_pigeonhole_principle.out)
 
 sat-solver/queens: N := 6
 sat-solver/queens:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_sat_queens -N $(N) -M $(M) | tee -a out/VARIANT/sat_queens.out)
+	@$(subst VARIANT,$(V),./build/src/VARIANT_sat_queens_bdd -N $(N) -M $(M) | tee -a out/VARIANT/bdd/sat_queens.out)
 
 # ============================================================================ #
 #  VERIFICATION BENCHMARKS
@@ -111,6 +113,9 @@ sat-solver/queens:
 F1 := ""
 F2 := ""
 
-verification/picotrav: O := "INPUT"
 verification/picotrav:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_picotrav -f $(F1) -f $(F2) -M $(M) -o $(O) | tee -a out/VARIANT/picotrav.out)
+	$(MAKE) verification/picotrav/bdd
+
+verification/picotrav/bdd: O := "INPUT"
+verification/picotrav/bdd:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_picotrav_bdd -f $(F1) -f $(F2) -M $(M) -o $(O) | tee -a out/VARIANT/bdd/picotrav.out)
