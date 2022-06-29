@@ -15,9 +15,6 @@ one to compare implementations.
         - [Knight's Tour [ZDD]](#knights-tour-zdd)
         - [Queens [BDD, ZDD]](#queens-bdd-zdd)
         - [Tic-Tac-Toe [BDD]](#tic-tac-toe-bdd)
-    - [SAT Solver Benchmarks](#sat-solver-benchmarks)
-        - [Queens [BDD]](#queens-bdd)
-        - [Pigeonhole Principle [BDD]](#pigeonhole-principle-bdd)
     - [Verification](#verification)
         - [Picotrav [BDD]](#picotrav-bdd)
     - [License](#license)
@@ -235,39 +232,6 @@ intermediate result.
 | Labels            |              64 |
 | Apply operations  |              76 |
 | Initial BDD size  | (64-N+1)(N+1)-1 |
-
-## SAT Solver Benchmarks
-We have a few benchmarks using a simple SAT Solver based on the description in
-[[Pan04; Section 2](#references)]. 
-
-The SAT solver works in two modes:
-
-- **Counting**:
-  Accumulates all clauses together using _apply_ with the _and_ operator and
-  then counts the number of solutions
-
-- **Satisfiability**:
-  Also accumulates the clauses, but the accumulation is intermixed with
-  existential quantification variables, that are not present in any yet-to-be
-  accumulated clauses.
-
-
-### Queens [BDD]
-Computes for the same problem as for [Queens](#queens) above, but does so
-based on a CNF of _at-least-one_ (alo) and _at-most-one_ (amo) constraints.
-The number of clauses is some order of O(N³) which also is reflected in the
-much worse performance compared to BDD oriented solution above.
-
-
-### Pigeonhole Principle [BDD]
-Computes that the following is false
-
-> Given N, does there exist an isomorphism between the sets { 1, 2, ..., N + 1}
-> (pigeons) and { 1, 2, ..., N } (holes)?
-
-Based on [[Tveretina10](#references)], this is disproven by use of variables
-_P<sub>i,j</sub>_ saying that the _i_'th pigeon is mapped to the _j_'th hole.
-This makes for N(N+1) labels and N³ + N(N+1) clauses.
 
 ## Verification
 

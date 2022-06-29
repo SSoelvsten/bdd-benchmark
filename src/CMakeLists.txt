@@ -46,12 +46,6 @@ add_bdd_benchmark(tic_tac_toe)
 add_zdd_benchmark(knights_tour)
 
 # ---------------------------------------------------------------------------- #
-# SAT Solver benchmarks
-add_bdd_benchmark(sat_pigeonhole_principle)
-
-add_bdd_benchmark(sat_queens)
-
-# ---------------------------------------------------------------------------- #
 # Verification
 add_bdd_benchmark(picotrav)
 link_bdd_extra(picotrav libblifparse)

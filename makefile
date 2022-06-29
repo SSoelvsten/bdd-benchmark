@@ -97,17 +97,6 @@ combinatorial/tic_tac_toe/bdd:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_tic_tac_toe_bdd -N $(N) -M $(M) | tee -a out/VARIANT/bdd/tic_tac_toe.out)
 
 # ============================================================================ #
-#  SAT SOLVER
-# ============================================================================ #
-sat-solver/pigeonhole_principle: N := 10
-sat-solver/pigeonhole_principle:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_sat_pigeonhole_principle_bdd -N $(N) -M $(M) | tee -a out/VARIANT/bdd/sat_pigeonhole_principle.out)
-
-sat-solver/queens: N := 6
-sat-solver/queens:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_sat_queens_bdd -N $(N) -M $(M) | tee -a out/VARIANT/bdd/sat_queens.out)
-
-# ============================================================================ #
 #  VERIFICATION BENCHMARKS
 # ============================================================================ #
 F1 := ""
