@@ -82,26 +82,24 @@ void construct_lines() {
 template<typename adapter_t>
 typename adapter_t::dd_t construct_init(adapter_t &adapter)
 {
-  typename adapter_t::dd_t init_parts[N+1];
-  for (int i = 0; i <= N; i++) {
-    init_parts[i] = i < N ? adapter.leaf_false() : adapter.leaf_true();
-  }
+  std::vector<typename adapter_t::dd_t> init_parts(N+1, adapter.leaf_false());
+  init_parts.at(N) = adapter.leaf_true();
 
   for (int curr_level = 63; curr_level >= 0; curr_level--) {
     int min_idx = curr_level > 63 - N ? N - (63 - curr_level + 1) : 0;
     int max_idx = std::min(curr_level, N);
 
     for (int curr_idx = min_idx; curr_idx <= max_idx; curr_idx++) {
-      const typename adapter_t::dd_t low = init_parts[curr_idx];
+      const typename adapter_t::dd_t low = init_parts.at(curr_idx);
       const typename adapter_t::dd_t high = curr_idx < N
-        ? init_parts[curr_idx + 1]
+        ? init_parts.at(curr_idx + 1)
         : adapter.leaf_false();
 
-      init_parts[curr_idx] = adapter.make_node(curr_level, low, high);
+      init_parts.at(curr_idx) = adapter.make_node(curr_level, low, high);
     }
   }
 
-  return init_parts[0];
+  return init_parts.at(0);
 }
 
 // ========================================================================== //
