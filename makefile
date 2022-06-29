@@ -99,8 +99,8 @@ combinatorial/tic_tac_toe/bdd:
 # ============================================================================ #
 #  VERIFICATION BENCHMARKS
 # ============================================================================ #
-F1 := ""
-F2 := ""
+F1 := "benchmarks/not_a.blif"
+F2 := "benchmarks/not_b.blif"
 
 verification/picotrav:
 	$(MAKE) verification/picotrav/bdd
