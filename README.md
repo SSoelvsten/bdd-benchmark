@@ -14,7 +14,7 @@ one to compare implementations.
     - [Combinatorial Benchmarks](#combinatorial-benchmarks)
         - [Knight's Tour [ZDD]](#knights-tour-zdd)
         - [Queens [BDD, ZDD]](#queens-bdd-zdd)
-        - [Tic-Tac-Toe [BDD]](#tic-tac-toe-bdd)
+        - [Tic-Tac-Toe [BDD, ZDD]](#tic-tac-toe-bdd-zdd)
     - [Verification](#verification)
         - [Picotrav [BDD]](#picotrav-bdd)
     - [License](#license)
@@ -219,7 +219,7 @@ count the number of satisfying assignments.
 | Apply operations | N² + N |
 
 
-### Tic-Tac-Toe [BDD]
+### Tic-Tac-Toe [BDD, ZDD]
 Solves the following problem:
 
 > Given N, then in how many ways can Player 1 place N crosses in a 3D 4x4x4 cube
