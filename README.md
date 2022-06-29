@@ -147,13 +147,19 @@ make combinatorial/queens V=cudd N=10 M=256
 
 We provide benchmarks for both *Binary* and for *Zero-suppressed* Decision
 Diagrams. Not all benchmarks support both types of decision diagrams, but if
-possible, then the type can be chosen as part of the make target.
+possible, then the type can be chosen as part of the make target. We will below
+mark whether a benchmark supports **BDD**s or **ZDD**s.
 
 ```bash
 make combinatorial/queens/zdd V=cudd N=10 M=256
 ```
 
-We will below mark whether a benchmark supports **BDD**s or **ZDD**s.
+Some benchmarks allow for choosing between a set of **O**ptions, e.g. variable
+ordering or algorithm.
+
+```bash
+make verification/picotrav V=cudd O=LEVEL_DFS
+```
 
 ## Combinatorial Benchmarks
 
@@ -263,6 +269,10 @@ orderings derived from the given net.
 The _.blif_ file(s) is given with the `-f` parameter (_F1_ and _F2_ Make
 variables) and the variable order with `-o` (_O_ for Make). You can find
 multiple inputs in the _benchmarks/_ folder.
+
+```bash
+make verification/picotrav F1=benchmarks/not_a.blif F2=benchmarks/not_b.blif V=cudd O=LEVEL_DFS
+```
 
 Note, that the memory you set is only for the BDD package. So, the program will
 either use swap or be killed if the BDD package takes up more memory in
