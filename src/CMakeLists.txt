@@ -42,6 +42,7 @@ add_bdd_benchmark(queens)
 add_zdd_benchmark(queens)
 
 add_bdd_benchmark(tic_tac_toe)
+add_zdd_benchmark(tic_tac_toe)
 
 add_zdd_benchmark(knights_tour)
 

@@ -49,7 +49,7 @@ build:
 	@cd build/ && for package in 'adiar' 'cudd' ; do \
 		mkdir -p ../out/$$package ; \
 		mkdir -p ../out/$$package/zdd ; \
-		for benchmark in 'queens' 'knights_tour' ; do \
+		for benchmark in 'knights_tour' 'queens' 'tic_tac_toe' ; do \
 			make ${MAKE_FLAGS} $$package'_'$$benchmark'_zdd' ; \
 		done ; \
 	done
@@ -95,6 +95,10 @@ combinatorial/tic_tac_toe:
 combinatorial/tic_tac_toe/bdd: N := 20
 combinatorial/tic_tac_toe/bdd:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_tic_tac_toe_bdd -N $(N) -M $(M) | tee -a out/VARIANT/bdd/tic_tac_toe.out)
+
+combinatorial/tic_tac_toe/zdd: N := 20
+combinatorial/tic_tac_toe/zdd:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_tic_tac_toe_zdd -N $(N) -M $(M) | tee -a out/VARIANT/zdd/tic_tac_toe.out)
 
 # ============================================================================ #
 #  VERIFICATION BENCHMARKS
