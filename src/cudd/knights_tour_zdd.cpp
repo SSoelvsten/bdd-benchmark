@@ -1,6 +1,6 @@
-#include "../knights_tour.cpp"
+#include "../knights_tour_zdd.cpp"
 
-#include "zdd_adapter.h"
+#include "adapter.h"
 
 // ========================================================================== //
 int main(int argc, char** argv)

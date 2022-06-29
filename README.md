@@ -12,14 +12,14 @@ one to compare implementations.
     - [Dependencies](#dependencies)
     - [Usage](#usage)
     - [Combinatorial Benchmarks](#combinatorial-benchmarks)
-        - [Knight's Tour](#knights-tour)
-        - [Queens](#queens)
-        - [Tic-Tac-Toe](#tic-tac-toe)
+        - [Knight's Tour [ZDD]](#knights-tour-zdd)
+        - [Queens [BDD, ZDD]](#queens-bdd-zdd)
+        - [Tic-Tac-Toe [BDD]](#tic-tac-toe-bdd)
     - [SAT Solver Benchmarks](#sat-solver-benchmarks)
-        - [Queens](#queens-1)
-        - [Pigeonhole Principle](#pigeonhole-principle)
+        - [Queens [BDD]](#queens-bdd)
+        - [Pigeonhole Principle [BDD]](#pigeonhole-principle-bdd)
     - [Verification](#verification)
-        - [Picotrav](#picotrav)
+        - [Picotrav [BDD]](#picotrav-bdd)
     - [License](#license)
     - [References](#references)
 
@@ -28,7 +28,6 @@ one to compare implementations.
 ## Implementations
 We provide all the benchmarks described further below for the following
 libraries.
-
 
 - [**Adiar**](https://github.com/ssoelvsten/adiar):
   An I/O Efficient implementation with iterative algorithms using priority
@@ -39,17 +38,16 @@ libraries.
 
 - [**BuDDy**](http://vlsicad.eecs.umich.edu/BK/Slots/cache/www.itu.dk/research/buddy/):
   An easy-to-use yet extensive implementation with depth-first algorithms using
-  a unique node table to share nodes. It uses a memoization table, automated
-  garbage collection, and dynamic variable reordering.
+  a unique node table and memoization. It also supports variable reordering.
 
   We use the version from [here](https://github.com/jgcoded/BuDDy) that is set
   up for building with CMake.
 
 
 - **CUDD**:
-  The most popular BDD package after decades of heavy development and
-  optimisations. It uses a memoization table, automated garbage collection, and
-  dynamic variable reordering.
+  The most popular BDD package. It uses depth-first algorithms and a unique node
+  table and memoization and also supports complement edges, Zero-suppressed
+  Decision Diagrams, and variable reordering.
 
   We use version 3.0.0 as distributed on the unofficial mirror
   [here](https://github.com/SSoelvsten/cudd).
@@ -57,8 +55,8 @@ libraries.
 
 - [**Sylvan**](https://github.com/trolando/sylvan):
   A parallel (multi-core) implementation with depth-first algorithms using a
-  unique node table to share nodes. It also provides a memoization table,
-  complement edges, automated garbage collection, and much more.
+  unique node table and memoization. It also uses complement edges and supports
+  Zero-suppressed Decision Diagrams.
 
   We will _not_ make use of the multi-core aspect to make the results
   comparable.
@@ -150,10 +148,19 @@ you run the following target.
 make combinatorial/queens V=cudd N=10 M=256
 ```
 
+We provide benchmarks for both *Binary* and for *Zero-suppressed* Decision
+Diagrams. Not all benchmarks support both types of decision diagrams, but if
+possible, then the type can be chosen as part of the make target.
+
+```bash
+make combinatorial/queens/zdd V=cudd N=10 M=256
+```
+
+We will below mark whether a benchmark supports **BDD**s or **ZDD**s.
 
 ## Combinatorial Benchmarks
 
-### Knight's Tour
+### Knight's Tour [ZDD]
 Solves the following problem:
 
 > Given N, then how many hamiltonian paths can a single Knight do across a chess
@@ -189,7 +196,7 @@ You may provide an option `-o` of the form `{STRAT}_{TYPE}`
 | Labels                  | N<sup>4</sup> |
 | Intersection operations | 2N<sup>4</sup> |
 
-### Queens
+### Queens [BDD, ZDD]
 Solves the following problem:
 
 > Given N, then in how many ways can N queens be placed on an N x N chess board
@@ -209,7 +216,7 @@ count the number of satisfying assignments.
 | Apply operations | N² + N |
 
 
-### Tic-Tac-Toe
+### Tic-Tac-Toe [BDD]
 Solves the following problem:
 
 > Given N, then in how many ways can Player 1 place N crosses in a 3D 4x4x4 cube
@@ -245,14 +252,14 @@ The SAT solver works in two modes:
   accumulated clauses.
 
 
-### Queens
+### Queens [BDD]
 Computes for the same problem as for [Queens](#queens) above, but does so
 based on a CNF of _at-least-one_ (alo) and _at-most-one_ (amo) constraints.
 The number of clauses is some order of O(N³) which also is reflected in the
 much worse performance compared to BDD oriented solution above.
 
 
-### Pigeonhole Principle
+### Pigeonhole Principle [BDD]
 Computes that the following is false
 
 > Given N, does there exist an isomorphism between the sets { 1, 2, ..., N + 1}
@@ -264,7 +271,7 @@ This makes for N(N+1) labels and N³ + N(N+1) clauses.
 
 ## Verification
 
-### Picotrav
+### Picotrav [BDD]
 This benchmark is a small recreation of the _Nanotrav_ example provided with the
 CUDD library. Given a hierarchical circuit in (a subset of the) [Berkeley Logic
 Interchange Format (BLIF)](https://course.ece.cmu.edu/~ee760/760docs/blif.pdf) a

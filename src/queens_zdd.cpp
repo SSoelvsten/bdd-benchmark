@@ -1,13 +1,11 @@
-#include "../queens_zdd.cpp"
-
-#include "adapter.h"
+#include "queens.cpp"
 
 // ========================================================================== //
 //                            SQUARE CONSTRUCTION                             //
-template<>
-ZDD queens_S(cudd_zdd_adapter &mgr, int i, int j)
+template<typename adapter_t>
+typename adapter_t::dd_t queens_S(adapter_t &mgr, int i, int j)
 {
-  ZDD next = mgr.leaf_true();
+  typename adapter_t::dd_t next = mgr.leaf_true();
 
   for(int row = N-1; row >= 0; row--) {
     for(int col = N-1; col >= 0; col--) {
@@ -19,8 +17,8 @@ ZDD queens_S(cudd_zdd_adapter &mgr, int i, int j)
 
       //Is the queen
       if(row == i && col == j) {
-        const ZDD low = mgr.leaf_false();
-        const ZDD high = next;
+        typename adapter_t::dd_t low = mgr.leaf_false();
+        typename adapter_t::dd_t high = next;
         next = mgr.make_node(label, low, high);
 
         continue;
@@ -36,10 +34,4 @@ ZDD queens_S(cudd_zdd_adapter &mgr, int i, int j)
     }
   }
   return next;
-}
-
-// ========================================================================== //
-int main(int argc, char** argv)
-{
-  run_queens<cudd_zdd_adapter>(argc, argv);
 }
