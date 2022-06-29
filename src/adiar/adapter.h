@@ -111,30 +111,3 @@ public:
     adiar::adiar_printstat();
   }
 };
-
-#include "../sat_solver.h"
-
-template<>
-adiar::bdd bdd_from_clause(adiar_bdd_adapter &/* mgr */, clause_t &clause)
-{
-  adiar::node_file clause_bdd;
-  adiar::node_writer clause_writer(clause_bdd);
-
-  adiar::node_t n = adiar::create_sink(false);
-
-  uint64_t label = UINT64_MAX;
-
-  for (auto it = clause.rbegin(); it != clause.rend(); it++) {
-    assert((*it).first < label);
-    label = (*it).first;
-    bool negated = (*it).second;
-
-    n = create_node(label, 0,
-                    negated ? adiar::create_sink(true) : n,
-                    negated ? n : adiar::create_sink(true));
-
-    clause_writer << n;
-  }
-
-  return clause_bdd;
-}
