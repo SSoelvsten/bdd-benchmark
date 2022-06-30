@@ -260,11 +260,6 @@ mkdir -p $SLURM_SUBMIT_DIR/build/ && cd $SLURM_SUBMIT_DIR/build/
 cmake -D GRENDEL=ON $SLURM_SUBMIT_DIR
 
 echo ""
-echo "Build Sylvan"
-cd $SLURM_SUBMIT_DIR/build/sylvan
-make DESTDIR=./ && make install DESTDIR=./
-
-echo ""
 echo "Build CUDD"
 cd $SLURM_SUBMIT_DIR/external/cudd
 autoreconf
