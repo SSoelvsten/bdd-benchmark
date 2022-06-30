@@ -55,7 +55,8 @@ N_PROBLEMS_BDD = [
       [15, 256 * 1024, "00-03:00"],
       [16, 330 * 1024, "00-20:00"],
       [17, 330 * 1024, "08-00:00"],
-     ]
+      ],
+     [None]
     ],
 
     ["tic_tac_toe_bdd",
@@ -73,7 +74,8 @@ N_PROBLEMS_BDD = [
       [27, 330 * 1024, "06-00:00"],
       [28, 330 * 1024, "08-00:00"],
       [29, 330 * 1024, "15-00:00"],
-	  ]
+	  ],
+     [None]
     ],
 ]
 
@@ -94,7 +96,8 @@ N_PROBLEMS_ZDD = [
       [16, 330 * 1024, "00-20:00"],
       [17, 330 * 1024, "08-00:00"],
       [18, 330 * 1024, "15-00:00"],
-     ]
+      ],
+     [None]
     ],
 
     ["tic_tac_toe_zdd",
@@ -112,7 +115,8 @@ N_PROBLEMS_ZDD = [
       [27, 330 * 1024, "06-00:00"],
       [28, 330 * 1024, "08-00:00"],
       [29, 330 * 1024, "15-00:00"],
-	  ]
+	  ],
+     [None]
      ],
 
     ["knights_tour_zdd",
@@ -132,17 +136,19 @@ N_PROBLEMS_ZDD = [
       [14, 330 * 1024, "08-00:00"],
       [15, 330 * 1024, "15-00:00"],
       [16, 330 * 1024, "15-00:00"],
-	  ]
+	  ],
+     ["SPLIT_CLOSED", "SPLIT_OPEN", "COMBINED_CLOSED", "COMBINED_OPEN"]
     ]
 ]
 
-def script_str_N(variant, problem_name, N, sylvan_M, time):
+def script_str_N(variant, problem_name, N, sylvan_M, time, option):
     settings = sbatch_str(f'{variant}_{problem_name}_{N}', time)
 
     output_dir = f'$SLURM_SUBMIT_DIR/out/{problem_name}/{variant}'
-    output_file = f'{output_dir}/{N}.out'
+    output_file = f'{output_dir}/{N}{"" if option == None else "_"+option}.out'
 
     memory = sylvan_M if variant == "sylvan" else 300*1024
+    o_str  = "" if option == None else "-o "+option
 
     return f'''#!/bin/bash
 {settings}
@@ -156,7 +162,7 @@ echo -e "\\n=========  Started `date`  ==========\\n" | tee -a {output_file}
 {ENV_SETUP}
 
 cd $SLURM_SUBMIT_DIR/build/src/
-./{variant}_{problem_name} -N {N} -M {memory} -t /scratch/$SLURM_JOB_ID 2>&1 | tee -a {output_file}
+./{variant}_{problem_name} -N {N} -M {memory} {o_str} -t /scratch/$SLURM_JOB_ID 2>&1 | tee -a {output_file}
 
 echo -e "\\nexit code: "$? | tee -a {output_file}
 
@@ -298,16 +304,17 @@ for variant in VARIANTS_BDD:
     for problem in N_PROBLEMS_BDD:
         problem_name = problem[0]
 
-        for instance in problem[1]:
-            N = instance[0]
-            sylvan_M = instance[1]
-            time = instance[2]
+        for option in problem[2]:
+            for instance in problem[1]:
+                N = instance[0]
+                sylvan_M = instance[1]
+                time = instance[2]
 
-            filename = f"{variant}_{problem_name}_{N}.sh"
-            os.system(f"rm -f {filename} && touch {filename}")
+                filename = f'{variant}_{problem_name}_{N}{"" if option == None else "_"+option}.sh'
+                os.system(f"rm -f {filename} && touch {filename}")
 
-            with open(filename, "w") as file:
-                file.write(script_str_N(variant, problem_name, N, sylvan_M, time))
+                with open(filename, "w") as file:
+                    file.write(script_str_N(variant, problem_name, N, sylvan_M, time, option))
 
     for circuits_section in CIRCUIT_PROBLEMS:
         circuit_type = circuits_section[0]
@@ -332,12 +339,13 @@ for variant in VARIANTS_ZDD:
     for problem in N_PROBLEMS_ZDD:
         problem_name = problem[0]
 
-        for instance in problem[1]:
-            N = instance[0]
-            time = instance[2]
+        for option in problem[2]:
+            for instance in problem[1]:
+                N = instance[0]
+                time = instance[2]
 
-            filename = f"{variant}_{problem_name}_{N}.sh"
-            os.system(f"rm -f {filename} && touch {filename}")
+                filename = f'{variant}_{problem_name}_{N}{"" if option == None else "_"+option}.sh'
+                os.system(f"rm -f {filename} && touch {filename}")
 
-            with open(filename, "w") as file:
-                file.write(script_str_N(variant, problem_name, N, None, time))
+                with open(filename, "w") as file:
+                    file.write(script_str_N(variant, problem_name, N, None, time, option))
