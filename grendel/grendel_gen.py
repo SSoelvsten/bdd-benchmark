@@ -1,7 +1,7 @@
 import os
 
 VARIANTS_BDD = ["adiar", "buddy", "cudd", "sylvan"]
-VARIANTS_ZDD = ["adiar"]
+VARIANTS_ZDD = ["adiar", "cudd"]
 
 # =========================================================================== #
 # Common strings for scripts
@@ -40,7 +40,7 @@ def sbatch_str(jobname, time):
 #
 # The sylvan memory are some 10 MiB/GiB above the actual computed value.
 N_PROBLEMS_BDD = [
-    ["queens",
+    ["queens_bdd",
      [[4,          64, "00-00:10"],
       [5,          64, "00-00:10"],
       [6,          64, "00-00:10"],
@@ -58,30 +58,7 @@ N_PROBLEMS_BDD = [
      ]
     ],
 
-    ["sat_pigeonhole_principle",
-     [[6,         128, "00-00:10"],
-      [7,         128, "00-00:10"],
-      [8,         128, "00-00:10"],
-      [9,         140, "00-00:10"],
-      [10,        140, "00-00:10"],
-      [11,        140, "00-00:10"],
-      [12,        280, "00-00:15"],
-      [13,        550, "00-00:30"],
-      [14,        550, "00-01:00"],
-      [15,       1100, "00-06:00"],
-     ]
-    ],
-
-    ["sat_queens",
-     [[7,         128, "00-00:10"],
-      [8,         128, "00-00:10"],
-      [9,         300, "00-00:30"],
-      [10,       1100, "00-03:00"],
-      [11,  64 * 1024, "02-00:00"],
-     ]
-    ],
-
-    ["tic_tac_toe",
+    ["tic_tac_toe_bdd",
      [[16,        128, "00-00:10"],
       [17,        128, "00-00:10"],
       [18,        128, "00-00:10"],
@@ -118,6 +95,44 @@ N_PROBLEMS_ZDD = [
       [17, 330 * 1024, "08-00:00"],
       [18, 330 * 1024, "15-00:00"],
      ]
+    ],
+
+    ["tic_tac_toe_zdd",
+     [[16,        128, "00-00:10"],
+      [17,        128, "00-00:10"],
+      [18,        128, "00-00:10"],
+      [19,        140, "00-00:10"],
+      [20,       1100, "00-00:10"],
+      [21,   4 * 1024, "00-00:20"],
+      [22,  32 * 1024, "00-01:00"],
+      [23, 128 * 1024, "00-03:00"],
+      [24, 256 * 1024, "00-12:00"],
+      [25, 330 * 1024, "01-08:00"],
+      [26, 330 * 1024, "04-00:00"],
+      [27, 330 * 1024, "06-00:00"],
+      [28, 330 * 1024, "08-00:00"],
+      [29, 330 * 1024, "15-00:00"],
+	  ]
+     ],
+
+    ["knights_tour_zdd",
+     [[1,          64, "00-00:10"],
+      [2,          64, "00-00:10"],
+      [3,          64, "00-00:10"],
+      [4,          64, "00-00:10"],
+      [5,          64, "00-00:10"],
+      [6,          64, "00-00:10"],
+      [7,          64, "00-00:10"],
+      [8,         128, "00-00:10"],
+      [9,         512, "00-00:10"],
+      [10,       1024, "00-00:10"],
+      [11,   4 * 1024, "00-01:00"],
+      [12, 330 * 1024, "02-00:00"],
+      [13, 330 * 1024, "04-00:00"],
+      [14, 330 * 1024, "08-00:00"],
+      [15, 330 * 1024, "15-00:00"],
+      [16, 330 * 1024, "15-00:00"],
+	  ]
     ]
 ]
 
@@ -226,7 +241,7 @@ def script_str_build():
     settings = sbatch_str("bdd_benchmarks_build", "00-00:30")
 
     variants_bdd = ' '.join([f"'{v}'" for v in VARIANTS_BDD])
-    variants_zdd = ' '.join([f"'{v}'" for v in VARIANTS_BDD])
+    variants_zdd = ' '.join([f"'{v}'" for v in VARIANTS_ZDD])
 
     benchmarks_bdd = ' '.join([f"'{b}'" for b in BENCHMARKS_BDD])
     benchmarks_zdd = ' '.join([f"'{b}'" for b in BENCHMARKS_ZDD])
@@ -293,7 +308,7 @@ for variant in VARIANTS_BDD:
             sylvan_M = instance[1]
             time = instance[2]
 
-            filename = f"{variant}_{problem_name}_bdd_{N}.sh"
+            filename = f"{variant}_{problem_name}_{N}.sh"
             os.system(f"rm -f {filename} && touch {filename}")
 
             with open(filename, "w") as file:
