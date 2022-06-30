@@ -181,9 +181,11 @@ inline adiar::zdd knights_tour_rel(int t)
           const adiar::label_t next_label = next_legal(row_t, col_t, row, col, t+1);
           const adiar::ptr_t chain_root = __knights_tour_rel__post_root<incl_hamiltonian>(t, row, col, row_t, col_t);
 
-          out_writer << adiar::create_node(this_label, chain_id,
-                                           adiar::create_node_ptr(next_label, chain_id),
-                                           chain_root);
+          const adiar::ptr_t next_ptr = next_label == no_pos
+            ? adiar::create_sink_ptr(false)
+            : adiar::create_node_ptr(next_label, chain_id);
+
+          out_writer << adiar::create_node(this_label, chain_id, next_ptr, chain_root);
         }
       }
     }
@@ -201,9 +203,11 @@ inline adiar::zdd knights_tour_rel(int t)
       const adiar::label_t next_label = first_legal(row, col, t+1);
       const adiar::id_t chain_id = int_of_position(row, col);
 
-      const adiar::node_t n = adiar::create_node(this_label, 0,
-                                                 root,
-                                                 adiar::create_node_ptr(next_label, chain_id));
+      const adiar::ptr_t next_ptr = next_label == no_pos
+        ? adiar::create_sink_ptr(false)
+        : adiar::create_node_ptr(next_label, chain_id);
+
+      const adiar::node_t n = adiar::create_node(this_label, 0, root, next_ptr);
 
       root = n.uid;
       out_writer << n;
