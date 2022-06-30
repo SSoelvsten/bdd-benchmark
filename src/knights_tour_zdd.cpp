@@ -57,7 +57,7 @@ void __knights_tour_rel__post_chain__simp(adapter_t &adapter,
   const typename adapter_t::dd_t res =
     adapter.make_node(this_label, post_chains.at(0), post_chains.at(0));
 
-  for (int idx = 0; idx < N*N; idx++) {
+  for (int idx = 0; idx < rows() * cols(); idx++) {
     post_chains.at(idx) = res;
   }
 }
@@ -115,7 +115,7 @@ void __knights_tour_rel__post_chain__ham(adapter_t &adapter,
 template<typename adapter_t, bool incl_hamiltonian>
 typename adapter_t::dd_t __knights_tour_rel(adapter_t &adapter, int t)
 {
-  std::vector<typename adapter_t::dd_t> post_chains(N*N, adapter.leaf_true());
+  std::vector<typename adapter_t::dd_t> post_chains(cols() * rows(), adapter.leaf_true());
 
   // Time steps t' > t+1:
   for (int time = MAX_TIME(); time > t+1; time--) {
@@ -134,7 +134,7 @@ typename adapter_t::dd_t __knights_tour_rel(adapter_t &adapter, int t)
 
   // Time step t+1:
   //   Chain with each possible position reachable from some position at time 't'.
-  std::vector<typename adapter_t::dd_t> to_chains(N*N, adapter.leaf_false());
+  std::vector<typename adapter_t::dd_t> to_chains(cols() * rows(), adapter.leaf_false());
 
   for (int row = MAX_ROW(); row >= 0; row--) {
     for (int col = MAX_COL(); col >= 0; col--) {
