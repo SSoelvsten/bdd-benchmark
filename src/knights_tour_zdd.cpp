@@ -71,43 +71,31 @@ void __knights_tour_rel__post_chain__ham(adapter_t &adapter,
   // given some position at time step 't'.
   const int this_label = int_of_position(row, col, time);
 
-  for (int row_t = MAX_ROW(); row_t >= 0; row_t--) {
-    for (int col_t = MAX_COL(); col_t >= 0; col_t--) {
-      // This position matches (row_t, col_t)? Skip it to make this
-      // chain enforce it being a hamiltonian path.
+  for (int row_t = 0; row_t <= MAX_ROW(); row_t++) {
+    for (int col_t = 0; col_t <= MAX_COL(); col_t++) {
+      // Do nothing for unreachable positions at time 't'.
+      if (!is_reachable(row_t, col_t)) { continue; }
+
+      // This position matches (row_t, col_t)? Skip it to make this chain
+      // enforce it being a hamiltonian path.
       if (row_t == row && col_t == col) { continue; }
 
-      // Missing node for this and the next time step
-      const int this_conflict = int_of_position(row_t, col_t, time);
-      const int next_conflict = int_of_position(row_t, col_t, time+1);
+      // Index of chain to update.
+      const int chain_idx = int_of_position(row_t, col_t);
 
-      // If past this time step's conflict, then do not output
-      // something, since we will merge with the (0,0) chain
+      // If past this time step's conflict at the very last time step, then just
+      // reuse the "don't care" chain at index 0.
+      const int this_conflict = int_of_position(row_t, col_t, time);
+
       if (time == MAX_TIME()
           && this_label > this_conflict
           && !(row_t == 0 && col_t == 0)) {
-        continue;
+        post_chains.at(chain_idx) = post_chains.at(0);
+      } else {
+        post_chains.at(chain_idx) = adapter.make_node(this_label,
+                                                      post_chains.at(chain_idx),
+                                                      post_chains.at(chain_idx));
       }
-
-      // Next cell on board this time step that does match (row_t,col_t).
-      // Possibly loops back to (0,0) at the next time step.
-      //
-      // For the id, we will collapse into the 0-chain if we are past
-      // the final time to check for the hamiltonian constraint.
-      int next_label = next_reachable_position(row, col, time);
-      if (next_label == this_conflict) { next_label++; }
-      if (next_label == next_conflict) { next_label++; }
-      if (!is_reachable(row_of_position(next_label), col_of_position(next_label))) { next_label++; }
-
-      const int chain_idx = int_of_position(row_t, col_t);
-      const int child_idx = (MAX_TIME() == time && next_label > this_conflict)
-        || (MAX_TIME()-1 == time && next_label > next_conflict)
-        ? 0
-        : chain_idx;
-
-      post_chains.at(chain_idx) = adapter.make_node(this_label,
-                                                    post_chains.at(child_idx),
-                                                    post_chains.at(child_idx));
     }
   }
 }
