@@ -74,7 +74,7 @@ combinatorial/knights_tour:
 	$(MAKE) combinatorial/knights_tour/zdd
 
 combinatorial/knights_tour/zdd: N := 10
-combinatorial/knights_tour/zdd: O="OPEN"
+combinatorial/knights_tour/zdd: O := "OPEN"
 combinatorial/knights_tour/zdd:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_knights_tour_zdd -N $(N) -M $(M) -o $(O) | tee -a out/VARIANT/zdd/knights_tour.out)
 
