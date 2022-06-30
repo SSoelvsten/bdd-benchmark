@@ -148,10 +148,9 @@ typename adapter_t::dd_t knights_tour_iter_rel(adapter_t &adapter)
 {
   largest_bdd = 0;
 
-  typename adapter_t::dd_t res;
-
   int t = MAX_TIME()-1;
-  res = closed
+
+  typename adapter_t::dd_t res = closed
     ? knights_tour_closed<adapter_t>(adapter)
     : knights_tour_rel<adapter_t>(adapter, t);
 

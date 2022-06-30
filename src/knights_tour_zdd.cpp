@@ -138,11 +138,14 @@ typename adapter_t::dd_t __knights_tour_rel(adapter_t &adapter, int t)
 
   for (int row = MAX_ROW(); row >= 0; row--) {
     for (int col = MAX_COL(); col >= 0; col--) {
+      const int this_label = int_of_position(row, col, t+1);
+
       for (int row_t = MAX_ROW(); row_t >= 0; row_t--) {
         for (int col_t = MAX_COL(); col_t >= 0; col_t--) {
+          if (!is_reachable(row_t, col_t)) { continue; }
+
           if (!is_legal_move(row_t, col_t, row, col)) { continue; }
 
-          const int this_label = int_of_position(row, col, t+1);
           const int vector_idx = int_of_position(row_t, col_t);
 
           to_chains.at(vector_idx) = adapter.make_node(this_label,
@@ -160,17 +163,18 @@ typename adapter_t::dd_t __knights_tour_rel(adapter_t &adapter, int t)
 
   for (int row = MAX_ROW(); row >= 0; row--) {
     for (int col = MAX_COL(); col >= 0; col--) {
+      if (!is_reachable(row, col)) { continue; }
+
       const int this_label = int_of_position(row, col, t);
-      root = adapter.make_node(this_label, root, to_chains.at(int_of_position(row,col)));
+      const int to_chain_idx = int_of_position(row, col);
+      root = adapter.make_node(this_label, root, to_chains.at(to_chain_idx));
     }
   }
 
   // Time-step t' < t:
   //   Just allow everything, i.e. add no constraints
-  if (t > 0) {
-    for (int pos = int_of_position(MAX_ROW(), MAX_COL(), t-1); pos >= 0; pos--) {
-      root = adapter.make_node(pos, root, root);
-    }
+  for (int pos = int_of_position(MAX_ROW(), MAX_COL(), t-1); pos >= 0; pos--) {
+    root = adapter.make_node(pos, root, root);
   }
 
   // Finalize
