@@ -35,14 +35,18 @@ adiar::zdd knights_tour_closed(adiar_zdd_adapter &/*adapter*/)
 
   // Fix t = 1 to be (2,1)
   const int step1_position = int_of_position(closed_squares[1][0], closed_squares[1][1], 1);
-  const adiar::node_t step1_state = adiar::create_node(step1_position, 0, root, root);
+  const adiar::node_t step1_state = adiar::create_node(step1_position, 0,
+                                                       adiar::create_sink_ptr(false),
+                                                       root);
   out_writer << step1_state;
 
   root = step1_state.uid;
 
   // Fix t = 0 to be (0,0)
   const int step0_position = int_of_position(closed_squares[0][0], closed_squares[0][1], 0);
-  const adiar::node_t step0_state = adiar::create_node(step0_position, 0, root, root);
+  const adiar::node_t step0_state = adiar::create_node(step0_position, 0,
+                                                       adiar::create_sink_ptr(false),
+                                                       root);
   out_writer << step0_state;
 
   // const size_t nodecount = out_writer.size();
