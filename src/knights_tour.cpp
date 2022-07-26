@@ -146,14 +146,17 @@ bool ham_rel = false;
 template<typename adapter_t, bool incl_hamiltonian>
 typename adapter_t::dd_t knights_tour_iter_rel(adapter_t &adapter)
 {
+  // Reset 'largest_bdd'
   largest_bdd = 0;
 
   int t = MAX_TIME()-1;
 
+  // Initial aggregator value at final time step
   typename adapter_t::dd_t res = closed
     ? knights_tour_closed<adapter_t>(adapter)
     : knights_tour_rel<adapter_t>(adapter, t);
 
+  // Go backwards in time, aggregating all legal paths
   while (t-- > closed) {
     res &= incl_hamiltonian
       ? knights_tour_ham_rel<adapter_t>(adapter, t)
@@ -175,8 +178,10 @@ typename adapter_t::dd_t knights_tour_ham(adapter_t &adapter, int r, int c);
 template<typename adapter_t>
 void knights_tour_iter_ham(adapter_t &adapter, typename adapter_t::dd_t &paths)
 {
+  // Reset 'largest_bdd'
   largest_bdd = 0;
 
+  // Add hamiltonian constraints
   for (int r = 0; r < rows(); r++) {
     for (int c = 0; c < cols(); c++) {
       if (closed && is_closed_square(r,c)) { continue; }
