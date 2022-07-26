@@ -30,13 +30,13 @@ typename adapter_t::dd_t knights_tour_closed(adapter_t &adapter)
   const int step1_position = int_of_position(closed_squares[1][0],
                                              closed_squares[1][1],
                                              1);
-  root = adapter.make_node(step1_position, root, root);
+  root = adapter.make_node(step1_position, adapter.leaf_false(), root);
 
   // Fix t = 0 to be (0,0)
   const int step0_position = int_of_position(closed_squares[0][0],
                                              closed_squares[0][1],
                                              0);
-  root = adapter.make_node(step0_position, root, root);
+  root = adapter.make_node(step0_position, adapter.leaf_false(), root);
 
   const size_t nodecount = adapter.nodecount(root);
   largest_bdd = std::max(largest_bdd, nodecount);
