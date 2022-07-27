@@ -157,7 +157,7 @@ typename adapter_t::dd_t knights_tour_iter_rel(adapter_t &adapter)
     : knights_tour_rel<adapter_t>(adapter, t);
 
   // Go backwards in time, aggregating all legal paths
-  while (t-- > closed) {
+  for (; closed <= t ; t--) {
     res &= incl_hamiltonian
       ? knights_tour_ham_rel<adapter_t>(adapter, t)
       : knights_tour_rel<adapter_t>(adapter, t);
