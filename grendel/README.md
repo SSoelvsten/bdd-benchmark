@@ -46,3 +46,12 @@ for f in grendel/*_*_*.sh; do sbatch -p q48 $f; done
 Or with `grendel/<package>_*_*.sh` or `grendel/*_<benchmark>_*.sh` one
 can schedule only a particular subset of them to be run. The output of these
 runs will be appended to files at `/out/<benchmark>/<package>/<instance>.out`.
+
+## Checking current jobs
+
+To see the full list of all your jobs including the full name of each job, run
+the following command.
+
+```bash
+squeue --me --format "%i  %t   %j" 
+```
