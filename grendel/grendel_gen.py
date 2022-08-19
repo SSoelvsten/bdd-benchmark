@@ -28,7 +28,7 @@ def sbatch_str(jobname, time):
 #SBATCH --cpus-per-task=1
 #SBATCH --time={time}:00
 #SBATCH --exclusive
-#SBATCH --mail-type=END
+#SBATCH --mail-type=END,FAIL,REQUEUE
 #SBATCH --mail-user=soelvsten@cs.au.dk
 '''
 
