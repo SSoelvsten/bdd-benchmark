@@ -15,17 +15,17 @@ adiar::bdd construct_is_not_winning(adiar_bdd_adapter &/* mgr */, std::array<int
 {
   size_t idx = 4 - 1;
 
-  adiar::ptr_t no_Xs_false = adiar::create_sink_ptr(false);
-  adiar::ptr_t no_Xs_true = adiar::create_sink_ptr(true);
+  adiar::ptr_t no_Xs_false = adiar::create_terminal_ptr(false);
+  adiar::ptr_t no_Xs_true = adiar::create_terminal_ptr(true);
 
-  adiar::ptr_t some_Xs_true = adiar::create_sink_ptr(false);
+  adiar::ptr_t some_Xs_true = adiar::create_terminal_ptr(false);
 
   adiar::node_file out;
   adiar::node_writer out_writer(out);
 
   do {
     adiar::node_t some_Xs = adiar::create_node(line[idx], 1,
-                                               adiar::create_sink_ptr(true),
+                                               adiar::create_terminal_ptr(true),
                                                some_Xs_true);
 
     if (idx != 0) {
