@@ -208,7 +208,7 @@ CIRCUIT_PROBLEMS = [
 def script_str_picotrav(variant, problem_name, file_1, file_2, sylvan_M, time, variable_order):
     settings = sbatch_str(f'{variant}_{problem_name}', time)
 
-    output_dir = f'$SLURM_SUBMIT_DIR/out/picotrav/{variant}'
+    output_dir = f'$SLURM_SUBMIT_DIR/out/picotrav_bdd/{variant}'
     output_file = f'{output_dir}/{problem_name}.out'
 
     input_dir = f'$SLURM_SUBMIT_DIR/benchmarks/epfl'
@@ -229,7 +229,7 @@ echo -e "\\n=========  Started `date`  ==========\\n" | tee -a {output_file}
 {ENV_SETUP}
 
 cd $SLURM_SUBMIT_DIR/build/src/
-./{variant}_picotrav -f {input_file_1} -f {input_file_2} -M {memory} -o {variable_order} -t /scratch/$SLURM_JOB_ID 2>&1 | tee -a {output_file}
+./{variant}_picotrav_bdd -f {input_file_1} -f {input_file_2} -M {memory} -o {variable_order} -t /scratch/$SLURM_JOB_ID 2>&1 | tee -a {output_file}
 
 echo -e "\\nexit code: "$? | tee -a {output_file}
 
@@ -240,7 +240,7 @@ echo -e "\\n========= Finished `date` ==========\\n" | tee -a {output_file}
 # BUILD SCRIPT
 # =========================================================================== #
 
-BENCHMARKS_BDD = ["picotrav"] + [p[0] for p in N_PROBLEMS_BDD]
+BENCHMARKS_BDD = ["picotrav_bdd"] + [p[0] for p in N_PROBLEMS_BDD]
 BENCHMARKS_ZDD = [p[0] for p in N_PROBLEMS_ZDD]
 
 def script_str_build():
