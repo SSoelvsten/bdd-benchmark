@@ -13,8 +13,8 @@ adiar::zdd knights_tour_closed(adiar_zdd_adapter &/*adapter*/)
   // Fix t = MAX_TIME() to be (1,2)
   const int stepMax_position = int_of_position(closed_squares[2][0], closed_squares[2][1], MAX_TIME());
   const adiar::node_t stepMax_state = adiar::create_node(stepMax_position, 0,
-                                                         adiar::create_sink_ptr(false),
-                                                         adiar::create_sink_ptr(true));
+                                                         adiar::create_terminal_ptr(false),
+                                                         adiar::create_terminal_ptr(true));
   out_writer << stepMax_state;
 
   adiar::ptr_t root = stepMax_state.uid;
@@ -36,7 +36,7 @@ adiar::zdd knights_tour_closed(adiar_zdd_adapter &/*adapter*/)
   // Fix t = 1 to be (2,1)
   const int step1_position = int_of_position(closed_squares[1][0], closed_squares[1][1], 1);
   const adiar::node_t step1_state = adiar::create_node(step1_position, 0,
-                                                       adiar::create_sink_ptr(false),
+                                                       adiar::create_terminal_ptr(false),
                                                        root);
   out_writer << step1_state;
 
@@ -45,7 +45,7 @@ adiar::zdd knights_tour_closed(adiar_zdd_adapter &/*adapter*/)
   // Fix t = 0 to be (0,0)
   const int step0_position = int_of_position(closed_squares[0][0], closed_squares[0][1], 0);
   const adiar::node_t step0_state = adiar::create_node(step0_position, 0,
-                                                       adiar::create_sink_ptr(false),
+                                                       adiar::create_terminal_ptr(false),
                                                        root);
   out_writer << step0_state;
 
@@ -104,7 +104,7 @@ inline void __knights_tour_rel__post_chain<true>(adiar::node_writer &out_writer,
         : this_id;
 
       const adiar::ptr_t child = next_label > MAX_POSITION()
-        ? adiar::create_sink_ptr(true)
+        ? adiar::create_terminal_ptr(true)
         : adiar::create_node_ptr(next_label, next_id);
 
       out_writer << adiar::create_node(this_label, this_id, child, child);
@@ -122,7 +122,7 @@ inline void __knights_tour_rel__post_chain<false>(adiar::node_writer &out_writer
   const int next_reachable = next_reachable_position(row, col, time);
 
   const adiar::ptr_t next_ptr = this_label == max_reachable
-    ? adiar::create_sink_ptr(true)
+    ? adiar::create_terminal_ptr(true)
     : adiar::create_node_ptr(next_reachable, 0);
 
   out_writer << adiar::create_node(this_label, 0, next_ptr, next_ptr);
@@ -142,7 +142,7 @@ inline adiar::ptr_t __knights_tour_rel__post_root<true>(int t, int /*row*/, int 
     : int_of_position(row_t, col_t); // chain_id;
 
   return t+1 == MAX_TIME()
-    ? adiar::create_sink_ptr(true)
+    ? adiar::create_terminal_ptr(true)
     : adiar::create_node_ptr(hamiltonian_legal_root, hamiltonian_legal_id);
 }
 
@@ -150,7 +150,7 @@ template<>
 inline adiar::ptr_t __knights_tour_rel__post_root<false>(int t, int /*row*/, int /*col*/, int /*row_t*/, int /*col_t*/)
 {
   return t+1 == MAX_TIME()
-    ? adiar::create_sink_ptr(true)
+    ? adiar::create_terminal_ptr(true)
     : adiar::create_node_ptr(int_of_position(0,0,t+2), 0);
 }
 
@@ -186,7 +186,7 @@ inline adiar::zdd knights_tour_rel(int t)
           const adiar::ptr_t chain_root = __knights_tour_rel__post_root<incl_hamiltonian>(t, row, col, row_t, col_t);
 
           const adiar::ptr_t next_ptr = next_label == no_pos
-            ? adiar::create_sink_ptr(false)
+            ? adiar::create_terminal_ptr(false)
             : adiar::create_node_ptr(next_label, chain_id);
 
           out_writer << adiar::create_node(this_label, chain_id, next_ptr, chain_root);
@@ -198,7 +198,7 @@ inline adiar::zdd knights_tour_rel(int t)
   // Time-step t:
   //   For each position at time step 't', check whether we are "here" and go to
   //   the chain checking "where we go to" at 't+1'.
-  adiar::ptr_t root = adiar::create_sink_ptr(false);
+  adiar::ptr_t root = adiar::create_terminal_ptr(false);
 
   for (int row = MAX_ROW(); row >= 0; row--) {
     for (int col = MAX_COL(); col >= 0; col--) {
@@ -208,7 +208,7 @@ inline adiar::zdd knights_tour_rel(int t)
       const adiar::id_t chain_id = int_of_position(row, col);
 
       const adiar::ptr_t next_ptr = next_label == no_pos
-        ? adiar::create_sink_ptr(false)
+        ? adiar::create_terminal_ptr(false)
         : adiar::create_node_ptr(next_label, chain_id);
 
       const adiar::node_t n = adiar::create_node(this_label, 0, root, next_ptr);
@@ -256,8 +256,8 @@ adiar::zdd knights_tour_ham(adiar_zdd_adapter &/*adapter*/, int r, int c)
   adiar::node_file out;
   adiar::node_writer out_writer(out);
 
-  adiar::ptr_t root_never = adiar::create_sink_ptr(false);
-  adiar::ptr_t root_once = adiar::create_sink_ptr(true);
+  adiar::ptr_t root_never = adiar::create_terminal_ptr(false);
+  adiar::ptr_t root_once = adiar::create_terminal_ptr(true);
 
   for (int this_t = MAX_TIME(); this_t >= 0; this_t--) {
     for (int this_r = MAX_ROW(); this_r >= 0; this_r--) {

@@ -25,7 +25,7 @@ adiar::zdd construct_is_not_winning(adiar_zdd_adapter &/* mgr */,
   adiar::node_file out;
   adiar::node_writer out_writer(out);
 
-  typename adiar::ptr_t root = adiar::create_sink_ptr(true);
+  typename adiar::ptr_t root = adiar::create_terminal_ptr(true);
 
   // Post "don't care" chain
   for (int curr_level = 63; curr_level > line[3]; curr_level--) {
@@ -40,8 +40,8 @@ adiar::zdd construct_is_not_winning(adiar_zdd_adapter &/* mgr */,
 
   typename adiar::ptr_t safe = root;
 
-  typename adiar::ptr_t only_Xs = adiar::create_sink_ptr(false);
-  typename adiar::ptr_t no_Xs = adiar::create_sink_ptr(false);
+  typename adiar::ptr_t only_Xs = adiar::create_terminal_ptr(false);
+  typename adiar::ptr_t no_Xs = adiar::create_terminal_ptr(false);
 
   for (int curr_level = line[3]; curr_level > line[0]; curr_level--) {
     if (curr_level == line[line_idx]) {
