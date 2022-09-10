@@ -47,11 +47,19 @@ Or with `grendel/<package>_*_*.sh` or `grendel/*_<benchmark>_*.sh` one
 can schedule only a particular subset of them to be run. The output of these
 runs will be appended to files at `/out/<benchmark>/<package>/<instance>.out`.
 
-## Checking current jobs
+## Checking Current Jobs
 
 To see the full list of all your jobs including the full name of each job, run
 the following command.
 
 ```bash
 squeue --me --format "%i  %t   %j" 
+```
+
+## Download Output to your Local Machine
+
+Assuming you have a copy of the repository in the `~/bdd_benchmark/` folder with the results from the job scripts in this folder stored in `~/bdd_benchmark/out` (default), then you can download all the data to your local machine with the following command:
+
+```bash
+scp -r {username}@grendel.cscaa.dk:bdd-benchmark/out/ .
 ```
