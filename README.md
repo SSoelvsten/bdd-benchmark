@@ -135,6 +135,9 @@ All interactions have been made easy by use of the _makefile_ at the root.
 | `build` | Build all dependencies and all benchmarks |
 | `clean` | Remove all build artifacts                |
 
+To build all BDD packages with *statistics*, set the Make variable *STATS* to
+*ON* (default *OFF*).
+
 Each benchmark below also has its own _make_ target too for ease of use. You may
 specify as a make variable the instance size _N_ to solve, the amount of
 _M_emory (MiB) to use in, and the _V_ariant (i.e. BDD package). For example, to

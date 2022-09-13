@@ -18,10 +18,12 @@ N:=0
 # ============================================================================ #
 #  BUILD TARGETS
 # ============================================================================ #
+STATS:=OFF
+
 build:
   # Primary build
 	@echo "\nBuild"
-	@mkdir -p build/ && cd build/ && cmake ..
+	@mkdir -p build/ && cd build/ && cmake -D ADIAR_STATS_EXTRA=$(STATS) -D SYLVAN_STATS=$(STATS) ..
 
   # Installation of CUDD
 	@echo "\n\nInstall CUDD"
