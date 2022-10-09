@@ -646,7 +646,7 @@ typename adapter_t::dd_t construct_node_bdd(net_t &net,
     stats.sum_allocated += adapter.allocated_nodes();
   }
 
-  if (node_data.is_onset) {
+  if (!node_data.is_onset) {
     so_cover_bdd = adapter.negate(so_cover_bdd);
 
     // count negation
