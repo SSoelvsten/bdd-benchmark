@@ -518,6 +518,8 @@ void apply_variable_order(const variable_order &o, net_t &net_0, net_t &net_1, b
 struct bdd_statistics
 {
   size_t total_processed = 0;
+  size_t total_negations = 0;
+  size_t total_applys = 0;
   size_t max_bdd_size = 0;
   size_t curr_bdd_sizes = 0;
   size_t max_bdd_sizes = 0;
@@ -588,10 +590,27 @@ typename adapter_t::dd_t construct_node_bdd(net_t &net,
       switch (lval) {
       case logic_value::FALSE:
         tmp &= adapter.negate(dep_bdd);
+        {
+          const size_t tmp_nodecount =  adapter.nodecount(tmp);
+          stats.total_processed += tmp_nodecount;
+
+          stats.total_negations += lval == logic_value::FALSE;
+          stats.total_applys++;
+
+          stats.max_bdd_size = std::max(stats.max_bdd_size, tmp_nodecount);
+        }
         break;
 
       case logic_value::TRUE:
         tmp &= dep_bdd;
+        {
+          const size_t tmp_nodecount =  adapter.nodecount(tmp);
+          stats.total_processed += tmp_nodecount;
+
+          stats.total_applys++;
+
+          stats.max_bdd_size = std::max(stats.max_bdd_size, tmp_nodecount);
+        }
         break;
 
       case logic_value::DONT_CARE:
@@ -606,13 +625,6 @@ typename adapter_t::dd_t construct_node_bdd(net_t &net,
           stats.curr_bdd_sizes -= adapter.nodecount(dep_bdd);
         }
       }
-
-      // Count size of new nodes (assuming something was done)
-      if (lval != logic_value::DONT_CARE) {
-        const size_t tmp_nodecount =  adapter.nodecount(tmp);
-        stats.total_processed += tmp_nodecount;
-        stats.max_bdd_size = std::max(stats.max_bdd_size, tmp_nodecount);
-      }
     }
 
     so_cover_bdd |= tmp;
@@ -623,6 +635,8 @@ typename adapter_t::dd_t construct_node_bdd(net_t &net,
     stats.curr_bdd_sizes += so_nodecount;
 
     stats.total_processed += so_nodecount;
+    stats.total_applys++;
+
     stats.max_bdd_size = std::max(stats.max_bdd_size, so_nodecount);
 
     stats.max_bdd_sizes = std::max(stats.max_bdd_sizes, stats.curr_bdd_sizes);
@@ -632,12 +646,14 @@ typename adapter_t::dd_t construct_node_bdd(net_t &net,
     stats.sum_allocated += adapter.allocated_nodes();
   }
 
-  so_cover_bdd = node_data.is_onset ? so_cover_bdd : adapter.negate(so_cover_bdd);
+  if (node_data.is_onset) {
+    so_cover_bdd = adapter.negate(so_cover_bdd);
 
-  // count negation
-  // stats.sum_bdd_sizes += stats.curr_bdd_sizes;
-  // stats.max_allocated = std::max(stats.max_allocated, adapter.allocated_nodes());
-  // stats.sum_allocated += adapter.allocated_nodes();
+    // count negation
+    // stats.sum_bdd_sizes += stats.curr_bdd_sizes;
+    // stats.max_allocated = std::max(stats.max_allocated, adapter.allocated_nodes());
+    // stats.sum_allocated += adapter.allocated_nodes();
+  }
 
   cache.insert({ node_name, so_cover_bdd });
   stats.max_roots = std::max(stats.max_roots, cache.size());
@@ -688,6 +704,10 @@ void construct_net_bdd(const std::string &filename,
   INFO("   | | max w/ duplicates:    %zu\n", stats.max_bdd_sizes);
   INFO("   | | sum allocated:        %zu\n", stats.sum_allocated);
   INFO("   | | max allocated:        %zu\n", stats.max_allocated);
+
+  INFO("   | BDD operations:\n");
+  INFO("   | | Apply:                %zu\n", stats.total_applys);
+  INFO("   | | Negations:            %zu\n", stats.total_negations);
 }
 
 // ========================================================================== //
