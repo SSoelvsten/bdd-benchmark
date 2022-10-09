@@ -584,7 +584,8 @@ typename adapter_t::dd_t construct_node_bdd(net_t &net,
       typename adapter_t::dd_t dep_bdd = construct_node_bdd(net, dep_name, cache, adapter, stats);
 
       // Add to row accumulation in 'tmp'
-      switch (node_data.so_cover.at(row_idx).at(column_idx)) {
+      const logic_value lval = node_data.so_cover.at(row_idx).at(column_idx);
+      switch (lval) {
       case logic_value::FALSE:
         tmp &= adapter.negate(dep_bdd);
         break;
@@ -606,9 +607,12 @@ typename adapter_t::dd_t construct_node_bdd(net_t &net,
         }
       }
 
-      const size_t tmp_nodecount =  adapter.nodecount(tmp);
-      stats.total_processed += tmp_nodecount;
-      stats.max_bdd_size = std::max(stats.max_bdd_size, tmp_nodecount);
+      // Count size of new nodes (assuming something was done)
+      if (lval != logic_value::DONT_CARE) {
+        const size_t tmp_nodecount =  adapter.nodecount(tmp);
+        stats.total_processed += tmp_nodecount;
+        stats.max_bdd_size = std::max(stats.max_bdd_size, tmp_nodecount);
+      }
     }
 
     so_cover_bdd |= tmp;
