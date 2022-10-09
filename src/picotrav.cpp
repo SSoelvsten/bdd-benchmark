@@ -591,10 +591,10 @@ typename adapter_t::dd_t construct_node_bdd(net_t &net,
       case logic_value::FALSE:
         tmp &= adapter.negate(dep_bdd);
         {
-          const size_t tmp_nodecount =  adapter.nodecount(tmp);
+          const size_t tmp_nodecount = adapter.nodecount(tmp);
           stats.total_processed += tmp_nodecount;
 
-          stats.total_negations += lval == logic_value::FALSE;
+          stats.total_negations++;
           stats.total_applys++;
 
           stats.max_bdd_size = std::max(stats.max_bdd_size, tmp_nodecount);
@@ -604,7 +604,7 @@ typename adapter_t::dd_t construct_node_bdd(net_t &net,
       case logic_value::TRUE:
         tmp &= dep_bdd;
         {
-          const size_t tmp_nodecount =  adapter.nodecount(tmp);
+          const size_t tmp_nodecount = adapter.nodecount(tmp);
           stats.total_processed += tmp_nodecount;
 
           stats.total_applys++;
