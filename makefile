@@ -42,7 +42,7 @@ build:
 
   # Build all bdd benchmarks
 	@echo "\n\nBuild BDD Benchmarks"
-	@cd build/ && for package in 'adiar' 'buddy' 'sylvan' 'cudd' ; do \
+	@cd build/ && for package in 'adiar' 'buddy' 'cal' 'cudd' 'sylvan' ; do \
 		mkdir -p ../out/$$package ; \
 		mkdir -p ../out/$$package/bdd ; \
 		for benchmark in 'picotrav' 'queens' 'tic_tac_toe' ; do \

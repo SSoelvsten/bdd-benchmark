@@ -8,6 +8,10 @@ macro(add_bdd_benchmark NAME)
   target_include_directories(buddy_${NAME}_bdd PRIVATE "${BDD_SOURCE_DIR}")
   target_link_libraries(buddy_${NAME}_bdd PRIVATE bdd)
 
+  # CAL
+  add_executable(cal_${NAME}_bdd cal/${NAME}_bdd.cpp)
+  target_link_libraries(cal_${NAME}_bdd PRIVATE cal)
+
   # CUDD
   add_executable(cudd_${NAME}_bdd cudd/${NAME}_bdd.cpp)
   target_link_libraries(cudd_${NAME}_bdd PRIVATE "${CUDD_LIB_FILES}")
@@ -32,6 +36,7 @@ endmacro(add_zdd_benchmark)
 macro(link_bdd_extra NAME LIB_NAME)
   target_link_libraries(adiar_${NAME}_bdd  PRIVATE ${LIB_NAME})
   target_link_libraries(buddy_${NAME}_bdd  PRIVATE ${LIB_NAME})
+  target_link_libraries(cal_${NAME}_bdd    PRIVATE ${LIB_NAME})
   target_link_libraries(cudd_${NAME}_bdd   PRIVATE ${LIB_NAME})
   target_link_libraries(sylvan_${NAME}_bdd PRIVATE ${LIB_NAME})
 endmacro(link_bdd_extra)

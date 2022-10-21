@@ -41,6 +41,13 @@ libraries.
   up for building with CMake.
 
 
+- [**CAL**](https://github.com/SSoelvsten/cal):
+  A breadth-first implementation that exploits a specific level-by-level
+  locality of nodes on disk to improve performance when dealing with large BDDs.
+  Unlike Adiar it also supports sharing of nodes between BDDs at the cost of
+  memoization and garbage collection.
+
+
 - **CUDD**:
   The most popular BDD package. It uses depth-first algorithms and a unique node
   table and memoization and also supports complement edges, Zero-suppressed
