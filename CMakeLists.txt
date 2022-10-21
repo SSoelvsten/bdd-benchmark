@@ -39,7 +39,10 @@ add_subdirectory (external/adiar adiar)
 add_subdirectory (external/BuDDy bdd)
 set(BDD_SOURCE_DIR "${PROJECT_SOURCE_DIR}/external/BuDDy/src")
 
-# CUDD Package (Fabio Somenzi - University of Colorado Boulder, United States of America)
+# Cal Package (Jagesh Sanghavi, Rajeev Ranjan et al. - University of California, United States of America)
+add_subdirectory (external/cal cal)
+
+# Cudd Package (Fabio Somenzi - University of Colorado Boulder, United States of America)
 # Build separately in the 'make build' target.
 set(CUDD_SRC_DIR "${PROJECT_SOURCE_DIR}/external/cudd")
 set(CUDD_BUILD_DIR "${PROJECT_SOURCE_DIR}/build/cudd")

@@ -9,10 +9,13 @@
 	url = ../../trolando/sylvan
 [submodule "external/cudd"]
 	path = external/cudd
-	url = ../../SSoelvsten/cudd.git
+	url = ../../SSoelvsten/cudd
 [submodule "external/blifparse"]
 	path = external/blifparse
 	url = ../../SSoelvsten/libblifparse
 [submodule "benchmarks/epfl"]
 	path = benchmarks/epfl
-	url = ../../lsils/benchmarks.git
+	url = ../../lsils/benchmarks
+[submodule "external/cal"]
+	path = external/cal
+	url = ../../SSoelvsten/cal
