@@ -18,12 +18,16 @@ N:=0
 # ============================================================================ #
 #  BUILD TARGETS
 # ============================================================================ #
-STATS:=OFF
+BUILD_TYPE := Release
+STATS := OFF
 
 build:
   # Primary build
 	@echo "\nBuild"
-	@mkdir -p build/ && cd build/ && cmake -D ADIAR_STATS_EXTRA=$(STATS) -D SYLVAN_STATS=$(STATS) ..
+	@mkdir -p build/ && cd build/ && cmake -D CMAKE_BUILD_TYPE=$(BUILD_TYPE) \
+                                         -D ADIAR_STATS_EXTRA=$(STATS) \
+                                         -D SYLVAN_STATS=$(STATS) \
+                                   ..
 
   # Installation of CUDD
 	@echo "\n\nInstall CUDD"
