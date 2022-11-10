@@ -139,12 +139,22 @@ void run_tic_tac_toe(int argc, char** argv)
       const size_t nodecount = adapter.nodecount(res);
       largest_bdd = std::max(largest_bdd, nodecount);
       total_nodes += nodecount + 4 /* from construct_is_not_winning */;
+
+#ifdef BDD_BENCHMARK_STATS
+      INFO("   | [%i,%i,%i] %s: %zu DD nodes\n",
+           line[0], line[1], line[2],
+           std::string((line[0] < 10) + (line[1] < 10) + (line[2] < 10), ' ').c_str(),
+           nodecount);
+#endif // BDD_BENCHMARK_STATS
     }
 
     time_point t4 = get_timestamp();
 
     const time_duration constraints_time = duration_of(t3,t4);
 
+#ifdef BDD_BENCHMARK_STATS
+    INFO("   |\n");
+#endif // BDD_BENCHMARK_STATS
     INFO("   | total no. nodes:        %zu\n", total_nodes);
     INFO("   | largest size (nodes):   %zu\n", largest_bdd);
     INFO("   | final size (nodes):     %zu\n", adapter.nodecount(res));

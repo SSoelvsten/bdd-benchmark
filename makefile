@@ -1,19 +1,6 @@
-.PHONY: clean build test grendel
+.PHONY: build clean help grendel
 
 MAKE_FLAGS=-j $$(nproc)
-
-# ============================================================================ #
-#  VARIABLE DEFAULTS
-# ============================================================================ #
-
-# Variant (adiar, buddy, cudd, sylvan)
-V:=adiar
-
-# Memory
-M:=128
-
-# Instance size variable (custom default for every target below)
-N:=0
 
 # ============================================================================ #
 #  BUILD TARGETS
@@ -25,8 +12,7 @@ build:
   # Primary build
 	@echo "\nBuild"
 	@mkdir -p build/ && cd build/ && cmake -D CMAKE_BUILD_TYPE=$(BUILD_TYPE) \
-                                         -D ADIAR_STATS_EXTRA=$(STATS) \
-                                         -D SYLVAN_STATS=$(STATS) \
+                                         -D BDD_BENCHMARK_STATS=$(STATS) \
                                    ..
 
   # Installation of CUDD
@@ -72,7 +58,117 @@ clean/out:
 	@rm -f out/**/*.out
 
 # ============================================================================ #
-#  COMBINATORIAL PROBLEMS
+#  HELP
+# ============================================================================ #
+help:
+	@echo ""
+	@echo "BDD Benchmarks"
+	@echo "--------------"
+	@echo "A collection of benchmarks to experimentally compare BDD packages."
+	@echo "================================================================================"
+
+	@echo ""
+	@echo "Compilation"
+	@echo "--------------"
+
+	@echo ""
+	@echo "build:"
+	@echo "   Build all BDD packages and all benchmarks"
+	@echo ""
+	@echo "   + BUILD_TYPE=[Release, Debug, RelWithDebInfo, MinSizeRel] (default: Release)"
+	@echo "   | Type of build, i.e. the compiler settings to use."
+	@echo ""
+	@echo "   + STATS=[ON,OFF] (default: OFF)"
+	@echo "   | Whether to build all BDD packages with their statistics turned on. If 'ON'"
+	@echo "   | then time measurements are unusable."
+
+	@echo ""
+	@echo "clean:"
+	@echo "   Remove all build artifacts and the 'out/' folder."
+
+	@echo ""
+	@echo "clean/out:"
+	@echo "   Remove *.out files in the 'out/' folder."
+
+	@echo ""
+	@echo "--------------------------------------------------------------------------------"
+
+	@echo ""
+	@echo "Benchmarks"
+	@echo "--------------"
+
+	@echo "   All benchmarks below can be provided with the following two arguments."
+	@echo ""
+	@echo "   + V=[adiar, buddy, cal, cudd, sylvan] (default: adiar)"
+	@echo "   | BDD package to use."
+	@echo ""
+	@echo "   + M=<int> (default: 128)"
+	@echo "   | Memory (MiB) to dedicate to the BDD package."
+
+	@echo ""
+	@echo "combinatorial/knights_tour/[zdd]"
+	@echo "   Counts the number of Knight's Tours on a chessboard."
+	@echo ""
+	@echo "   + N=<int> (default: 10)"
+	@echo "   | The sum of the width and height of the chessboard."
+	@echo ""
+	@echo "   + O=[OPEN,CLOSED] (default: OPEN)"
+	@echo "   | Whether to count the hamiltonian paths (open) or only cycles (closed)."
+
+	@echo ""
+	@echo "combinatorial/queens/[bdd,zdd]"
+	@echo "   Solves the N-Queens problem"
+	@echo ""
+	@echo "   + N=<int> (default: 8)"
+	@echo "   | The size of the chessboard."
+
+	@echo ""
+	@echo "combinatorial/tic_tac_toe/[bdd,zdd]"
+	@echo "   Counts the number of draws of a Tic-Tac-Toe in a 4x4x4 cube."
+	@echo ""
+	@echo "   + N=<int> (default: 20)"
+	@echo "   | Number of crosses placed, i.e. count in a cube with (64-N) noughts."
+
+	@echo ""
+	@echo "verification/picotrav/[bdd]"
+	@echo "   Build BDDs that describe the output gates of circuits in a '.blif' format to"
+	@echo "   then verify whether two circuits are functionally equivalent."
+	@echo ""
+	@echo "   + F1=<file_path> (default: benchmarks/not_a.blif)"
+	@echo "   | File path (relative to this makefile) for a '*.blif' file"
+	@echo ""
+	@echo "   + F2=<file_path>"
+	@echo "   | File path (relative to this makefile) for a second '*.blif' file to compare"
+	@echo "   | to the first."
+	@echo ""
+	@echo "   + O=[INPUT, DFS, LEVEL, LEVEL_DFS, RANDOM]"
+	@echo "   | Variable order to precompute and use throughout computation."
+
+	@echo ""
+	@echo "--------------------------------------------------------------------------------"
+	@echo ""
+	@echo "Other"
+	@echo "--------------"
+	@echo ""
+	@echo "help:"
+	@echo "   Prints this hopefully helpful piece of text."
+
+
+# ============================================================================ #
+#  RUN:
+# ============================================================================ #
+
+# Variant (adiar, buddy, cal, cudd, sylvan)
+V:=adiar
+
+# Memory
+M:=128
+
+# Instance size variable (custom default for every target below)
+N:=0
+
+# ============================================================================ #
+#  RUN: COMBINATORIAL PROBLEMS
 # ============================================================================ #
 O := ""
 
@@ -107,7 +203,7 @@ combinatorial/tic_tac_toe/zdd:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_tic_tac_toe_zdd -N $(N) -M $(M) | tee -a out/VARIANT/zdd/tic_tac_toe.out)
 
 # ============================================================================ #
-#  VERIFICATION BENCHMARKS
+#  RUN: VERIFICATION BENCHMARKS
 # ============================================================================ #
 F1 := "benchmarks/not_a.blif"
 F2 := "benchmarks/not_b.blif"
