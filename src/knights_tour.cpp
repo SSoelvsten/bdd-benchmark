@@ -34,6 +34,13 @@ inline int row_of_position(int pos)
 inline int col_of_position(int pos)
 { return pos % cols(); }
 
+inline std::string pos_to_string(int r, int c)
+{
+  std::stringstream ss;
+  ss << (r+1) << (char) ('A'+c);
+  return ss.str();
+}
+
 // ========================================================================== //
 //                          Closed Tour Constraints                           //
 const int closed_squares [3][2] = {{0,0}, {1,2}, {2,1}};
@@ -156,6 +163,11 @@ typename adapter_t::dd_t knights_tour_iter_rel(adapter_t &adapter)
     ? knights_tour_closed<adapter_t>(adapter)
     : knights_tour_rel<adapter_t>(adapter, t);
 
+
+#ifdef BDD_BENCHMARK_STATS
+  INFO("   | [t = %i] : ??? DD nodes\n", t); // TODO
+#endif // BDD_BENCHMARK_STATS
+
   // Go backwards in time, aggregating all legal paths
   for (; closed <= t ; t--) {
     res &= incl_hamiltonian
@@ -165,8 +177,15 @@ typename adapter_t::dd_t knights_tour_iter_rel(adapter_t &adapter)
     const size_t nodecount = adapter.nodecount(res);
     largest_bdd = std::max(largest_bdd, nodecount);
     total_nodes += nodecount;
+
+#ifdef BDD_BENCHMARK_STATS
+    INFO("   | [t = %i] : %zu DD nodes\n", t, nodecount);
+#endif // BDD_BENCHMARK_STATS
   }
 
+#ifdef BDD_BENCHMARK_STATS
+  INFO("   |\n");
+#endif // BDD_BENCHMARK_STATS
   return res;
 }
 
@@ -191,8 +210,15 @@ void knights_tour_iter_ham(adapter_t &adapter, typename adapter_t::dd_t &paths)
       const size_t nodecount = adapter.nodecount(paths);
       largest_bdd = std::max(largest_bdd, nodecount);
       total_nodes += nodecount;
+
+#ifdef BDD_BENCHMARK_STATS
+      INFO("   | %s : %zu DD nodes\n", pos_to_string(r,c).c_str(), nodecount);
+#endif // BDD_BENCHMARK_STATS
     }
   }
+#ifdef BDD_BENCHMARK_STATS
+  INFO("   |\n");
+#endif // BDD_BENCHMARK_STATS
 }
 
 // ========================================================================== //

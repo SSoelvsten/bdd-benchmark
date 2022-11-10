@@ -66,7 +66,7 @@ public:
 public:
   buddy_bdd_adapter(int varcount)
   {
-#ifndef GRENDEL
+#ifndef BDD_BENCHMARK_GRENDEL
     const buddy_init_size init_size = compute_init_size();
     bdd_init(init_size.node_size, init_size.cache_size);
 

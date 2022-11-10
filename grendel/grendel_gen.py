@@ -269,7 +269,7 @@ echo -e "\\n=========  Started `date`  ==========\\n"
 # Build
 echo "Build"
 mkdir -p $SLURM_SUBMIT_DIR/build/ && cd $SLURM_SUBMIT_DIR/build/
-cmake -D GRENDEL=ON $SLURM_SUBMIT_DIR
+cmake -D BDD_BENCHMARK_GRENDEL=ON $SLURM_SUBMIT_DIR
 
 echo ""
 echo "Build CUDD"

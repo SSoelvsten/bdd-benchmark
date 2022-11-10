@@ -5,11 +5,18 @@ size_t largest_bdd = 0;
 size_t total_nodes = 0;
 
 // =============================================================================
-inline int label_of_position(int i, int j)
+inline int label_of_position(int r, int c)
 {
   assert(i >= 0 && j >= 0);
 
-  return (N * i) + j;
+  return (N * r) + c;
+}
+
+inline std::string pos_to_string(int r, int c)
+{
+  std::stringstream ss;
+  ss << (r+1) << (char) ('A'+c);
+  return ss.str();
 }
 
 // ========================================================================== //
@@ -20,16 +27,20 @@ typename adapter_t::dd_t queens_S(adapter_t &mgr, int i, int j);
 // ========================================================================== //
 //                              ROW CONSTRUCTION                              //
 template<typename adapter_t>
-typename adapter_t::dd_t queens_R(adapter_t &adapter, int row)
+typename adapter_t::dd_t queens_R(adapter_t &adapter, int r)
 {
-  typename adapter_t::dd_t out = queens_S(adapter, row, 0);
+  typename adapter_t::dd_t out = queens_S(adapter, r, 0);
 
-  for (int j = 1; j < N; j++) {
-    out |= queens_S(adapter, row, j);
+  for (int c = 1; c < N; c++) {
+    out |= queens_S(adapter, r, c);
 
     const size_t nodecount = adapter.nodecount(out);
     largest_bdd = std::max(largest_bdd, nodecount);
     total_nodes += nodecount;
+
+#ifdef BDD_BENCHMARK_STATS
+    INFO("   | | R(%s) : %zu DD nodes\n", pos_to_string(r,c).c_str(), nodecount);
+#endif // BDD_BENCHMARK_STATS
   }
   return out;
 }
@@ -44,13 +55,26 @@ typename adapter_t::dd_t queens_B(adapter_t &adapter)
   }
 
   typename adapter_t::dd_t out = queens_R(adapter, 0);
+  {
+#ifdef BDD_BENCHMARK_STATS
+    const size_t nodecount = adapter.nodecount(out);
+    largest_bdd = std::max(largest_bdd, nodecount);
+    total_nodes += nodecount;
 
-  for (int i = 1; i < N; i++) {
-    out &= queens_R(adapter, i);
+    INFO("   | B(%i) : %zu DD nodes\n", 0+1, nodecount);
+#endif // BDD_BENCHMARK_STATS
+  }
+
+  for (int r = 1; r < N; r++) {
+    out &= queens_R(adapter, r);
 
     const size_t nodecount = adapter.nodecount(out);
     largest_bdd = std::max(largest_bdd, nodecount);
     total_nodes += nodecount;
+
+#ifdef BDD_BENCHMARK_STATS
+    INFO("   | B(%i) : %zu DD nodes\n", r+1, nodecount);
+#endif // BDD_BENCHMARK_STATS
   }
   return out;
 }
@@ -79,13 +103,16 @@ void run_queens(int argc, char** argv)
   {
     // ========================================================================
     // Compute the bdd that represents the entire board
+    INFO("\n   Decision diagram construction:\n");
     time_point t1 = get_timestamp();
     typename adapter_t::dd_t res = queens_B(adapter);
     time_point t2 = get_timestamp();
 
     const time_duration construction_time = duration_of(t1,t2);
 
-    INFO("\n   Decision diagram construction:\n");
+#ifdef BDD_BENCHMARK_STATS
+    INFO("   |\n");
+#endif // BDD_BENCHMARK_STATS
     INFO("   | total no. nodes:        %zu\n", total_nodes);
     INFO("   | largest size (nodes):   %zu\n", largest_bdd);
     INFO("   | final size (nodes):     %zu\n", adapter.nodecount(res));
@@ -93,13 +120,13 @@ void run_queens(int argc, char** argv)
 
     // ========================================================================
     // Count number of solutions
+    INFO("\n   Counting solutions:\n");
     time_point t3 = get_timestamp();
     solutions = adapter.satcount(res);
     time_point t4 = get_timestamp();
 
     const time_duration counting_time = duration_of(t3,t4);
 
-    INFO("\n   Counting solutions:\n");
     INFO("   | number of solutions:    %zu\n", solutions);
     INFO("   | time (ms):              %zu\n", counting_time);
 
