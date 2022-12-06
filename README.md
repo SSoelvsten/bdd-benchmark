@@ -28,16 +28,16 @@ libraries.
 
 - [**Adiar**](https://github.com/ssoelvsten/adiar):
   An I/O Efficient implementation with iterative algorithms using priority
-  queues to exploit a special sorting of streamed from/to disk. These algorithms
-  have no need for memoization or garbage collection, but, on the other hand,
-  nodes are also not shareable between BDDs.
+  queues to exploit a special sorting of BDD nodes streamed from and to the
+  disk. These algorithms have no need for memoization or garbage collection, 
+  but, on the other hand, nodes are also not shareable between BDDs.
 
 
 - [**BuDDy**](http://vlsicad.eecs.umich.edu/BK/Slots/cache/www.itu.dk/research/buddy/):
   An easy-to-use yet extensive implementation with depth-first algorithms using
   a unique node table and memoization. It also supports variable reordering.
 
-  We use the version from [here](https://github.com/jgcoded/BuDDy) that is set
+  We use the version from [here](https://github.com/SSoelvsten/BuDDy) that is set
   up for building with CMake.
 
 
@@ -62,7 +62,7 @@ libraries.
   unique node table and memoization. It also uses complement edges and supports
   Zero-suppressed Decision Diagrams.
 
-  We will _not_ make use of the multi-core aspect to make the results
+  We will *not* make use of the multi-core aspect to make the results
   comparable.
 
 We hope to extend the number of packages. See
