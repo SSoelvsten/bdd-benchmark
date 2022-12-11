@@ -178,29 +178,29 @@ combinatorial/knights_tour:
 combinatorial/knights_tour/zdd: N := 10
 combinatorial/knights_tour/zdd: O := "OPEN"
 combinatorial/knights_tour/zdd:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_knights_tour_zdd -N $(N) -M $(M) -o $(O) | tee -a out/VARIANT/zdd/knights_tour.out)
+	@$(subst VARIANT,$(V),./build/src/VARIANT_knights_tour_zdd -N $(N) -M $(M) -o $(O) 2>&1 | tee -a out/VARIANT/zdd/knights_tour.out)
 
 combinatorial/queens:
 	$(MAKE) combinatorial/queens/bdd
 
 combinatorial/queens/bdd: N := 8
 combinatorial/queens/bdd:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_queens_bdd -N $(N) -M $(M) | tee -a out/VARIANT/bdd/queens.out)
+	@$(subst VARIANT,$(V),./build/src/VARIANT_queens_bdd -N $(N) -M $(M) 2>&1 | tee -a out/VARIANT/bdd/queens.out)
 
 combinatorial/queens/zdd: N := 8
 combinatorial/queens/zdd:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_queens_zdd -N $(N) -M $(M) | tee -a out/VARIANT/zdd/queens.out)
+	@$(subst VARIANT,$(V),./build/src/VARIANT_queens_zdd -N $(N) -M $(M) 2>&1 | tee -a out/VARIANT/zdd/queens.out)
 
 combinatorial/tic_tac_toe:
 	$(MAKE) combinatorial/tic_tac_toe/bdd
 
 combinatorial/tic_tac_toe/bdd: N := 20
 combinatorial/tic_tac_toe/bdd:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_tic_tac_toe_bdd -N $(N) -M $(M) | tee -a out/VARIANT/bdd/tic_tac_toe.out)
+	@$(subst VARIANT,$(V),./build/src/VARIANT_tic_tac_toe_bdd -N $(N) -M $(M) 2>&1 | tee -a out/VARIANT/bdd/tic_tac_toe.out)
 
 combinatorial/tic_tac_toe/zdd: N := 20
 combinatorial/tic_tac_toe/zdd:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_tic_tac_toe_zdd -N $(N) -M $(M) | tee -a out/VARIANT/zdd/tic_tac_toe.out)
+	@$(subst VARIANT,$(V),./build/src/VARIANT_tic_tac_toe_zdd -N $(N) -M $(M) 2>&1 | tee -a out/VARIANT/zdd/tic_tac_toe.out)
 
 # ============================================================================ #
 #  RUN: VERIFICATION BENCHMARKS
