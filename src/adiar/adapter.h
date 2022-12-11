@@ -35,10 +35,11 @@ class adiar_bdd_adapter : public adiar_adapter
 {
 public:
   inline static const std::string NAME = "Adiar [BDD]";
-
-  // Variable type
-public:
   typedef adiar::bdd dd_t;
+  typedef adiar::bdd_ptr build_node_t;
+
+private:
+  adiar::bdd_builder _builder;
 
   // Init and Deinit
 public:
@@ -67,16 +68,30 @@ public:
 
   inline uint64_t satcount(const adiar::bdd &b)
   { return adiar::bdd_satcount(b, varcount); }
+
+  // BDD Build Operations
+public:
+  inline adiar::bdd_ptr build_node(const bool value)
+  { return _builder.add_node(value); }
+
+  inline adiar::bdd_ptr build_node(const int label,
+                                   const adiar::bdd_ptr &low,
+                                   const adiar::bdd_ptr &high)
+  { return _builder.add_node(label, low, high); }
+
+  inline adiar::bdd build()
+  { return _builder.build(); }
 };
 
 class adiar_zdd_adapter : public adiar_adapter
 {
 public:
   inline static const std::string NAME = "Adiar [ZDD]";
-
-  // Variable type
-public:
   typedef adiar::zdd dd_t;
+  typedef adiar::zdd_ptr build_node_t;
+
+private:
+  adiar::zdd_builder _builder;
 
   // Init and Deinit
 public:
@@ -98,6 +113,19 @@ public:
 
   inline uint64_t satcount(const adiar::zdd &z)
   { return adiar::zdd_size(z); }
+
+  // ZDD Build Operations
+public:
+  inline adiar::zdd_ptr build_node(const bool value)
+  { return _builder.add_node(value); }
+
+  inline adiar::zdd_ptr build_node(const int label,
+                                   const adiar::zdd_ptr &low,
+                                   const adiar::zdd_ptr &high)
+  { return _builder.add_node(label, low, high); }
+
+  inline adiar::zdd build()
+  { return _builder.build(); }
 
   // Statistics
 public:

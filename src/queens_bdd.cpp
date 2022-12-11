@@ -5,9 +5,10 @@
 template<typename adapter_t>
 typename adapter_t::dd_t queens_S(adapter_t &adapter, int i, int j)
 {
-  int row = N - 1;
+  const auto terminal_F = adapter.build_node(false);
+  const auto terminal_T = adapter.build_node(true);
 
-  typename adapter_t::dd_t out = adapter.leaf_true();
+  auto latest = terminal_T;
 
   for (int row = N-1; row >= 0; row--) {
     int row_diff = std::max(row, i) - std::min(row, i);
@@ -17,28 +18,28 @@ typename adapter_t::dd_t queens_S(adapter_t &adapter, int i, int j)
         int label = label_of_position(row, column);
 
         if (column == j) {
-          out &= adapter.ithvar(label);
+          latest = adapter.build_node(label, terminal_F, latest);
         } else {
-          out &= adapter.nithvar(label);
+          latest = adapter.build_node(label, latest, terminal_F);
         }
       }
     } else {
       if (j + row_diff < N) {
         int label = label_of_position(row, j + row_diff);
-        out &= adapter.nithvar(label);
+        latest = adapter.build_node(label, latest, terminal_F);
       }
 
       int label = label_of_position(row, j);
-      out &= adapter.nithvar(label);
+      latest = adapter.build_node(label, latest, terminal_F);
 
       if (row_diff <= j) {
         int label = label_of_position(row, j - row_diff);
-        out &= adapter.nithvar(label);
+        latest = adapter.build_node(label, latest, terminal_F);
       }
     }
   }
 
+  typename adapter_t::dd_t out = adapter.build();
   total_nodes += adapter.nodecount(out);
-
   return out;
 }

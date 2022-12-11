@@ -37,15 +37,14 @@ size_t log2(size_t n)
 
 class sylvan_bdd_adapter
 {
-private:
-  int varcount;
-
 public:
   inline static const std::string NAME = "Sylvan";
-
-  // Variable type
-public:
   typedef sylvan::Bdd dd_t;
+  typedef sylvan::Bdd build_node_t;
+
+private:
+  int varcount;
+  sylvan::Bdd _latest_build;
 
   // Init and Deinit
 public:
@@ -63,6 +62,8 @@ public:
     sylvan::sylvan_set_granularity(1);
     sylvan::sylvan_init_package();
     sylvan::sylvan_init_bdd();
+
+    _latest_build = leaf_false();
   }
 
   ~sylvan_bdd_adapter()
@@ -85,9 +86,6 @@ public:
   inline sylvan::Bdd nithvar(int label)
   { return ~sylvan::Bdd::bddVar(label); }
 
-  inline sylvan::Bdd make_node(int label, const sylvan::Bdd &low, const sylvan::Bdd &high)
-  { return sylvan::Bdd::bddVar(label).Ite(high, low); }
-
   inline sylvan::Bdd negate(const sylvan::Bdd &b)
   { return ~b; }
 
@@ -95,13 +93,35 @@ public:
   { return b.ExistAbstract(sylvan::Bdd::bddVar(label)); }
 
   inline uint64_t nodecount(const dd_t &b)
-  {
-    // Sylvan also counts leaves (but complement edges makes it only 1)
-    return b.NodeCount() - 1;
-  }
+  { return b.NodeCount() - 1; }
 
   inline uint64_t satcount(const dd_t &b)
   { return b.SatCount(varcount); }
+
+  // BDD Build Operations
+  // BDD Build operations
+public:
+  inline sylvan::Bdd build_node(const bool value)
+  {
+    const sylvan::Bdd res = value ? leaf_true() : leaf_false();
+    if (_latest_build == leaf_false()) { _latest_build = res; }
+    return res;
+  }
+
+  inline sylvan::Bdd build_node(const int label,
+                                const sylvan::Bdd &low,
+                                const sylvan::Bdd &high)
+  {
+    _latest_build = sylvan::Bdd::bddVar(label).Ite(high, low);
+    return _latest_build;
+  }
+
+  inline sylvan::Bdd build()
+  {
+    const sylvan::Bdd res = _latest_build;
+    _latest_build = leaf_false(); // <-- Reset and free builder reference
+    return res;
+  }
 
   // Statistics
 public:
