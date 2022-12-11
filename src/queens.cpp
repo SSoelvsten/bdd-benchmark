@@ -7,8 +7,7 @@ size_t total_nodes = 0;
 // =============================================================================
 inline int label_of_position(int r, int c)
 {
-  assert(i >= 0 && j >= 0);
-
+  assert(r >= 0 && c >= 0);
   return (N * r) + c;
 }
 
