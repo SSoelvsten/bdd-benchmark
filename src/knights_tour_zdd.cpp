@@ -11,9 +11,9 @@ typename adapter_t::dd_t knights_tour_closed(adapter_t &adapter)
                                                closed_squares[2][1],
                                                MAX_TIME());
 
-  typename adapter_t::dd_t root = adapter.make_node(stepMax_position,
-                                                    adapter.leaf_false(),
-                                                    adapter.leaf_true());
+  auto root = adapter.build_node(stepMax_position,
+                                 adapter.build_node(false),
+                                 adapter.build_node(true));
 
   // All in between is as-is but takes the hamiltonian constraint into account.
   for (int t = MAX_TIME() - 1; t > 1; t--) {
@@ -21,7 +21,7 @@ typename adapter_t::dd_t knights_tour_closed(adapter_t &adapter)
       for (int c = MAX_COL(); c >= 0; c--) {
         if (is_closed_square(r,c)) { continue; }
 
-        root = adapter.make_node(int_of_position(r,c,t), root, root);
+        root = adapter.build_node(int_of_position(r,c,t), root, root);
       }
     }
   }
@@ -30,32 +30,34 @@ typename adapter_t::dd_t knights_tour_closed(adapter_t &adapter)
   const int step1_position = int_of_position(closed_squares[1][0],
                                              closed_squares[1][1],
                                              1);
-  root = adapter.make_node(step1_position, adapter.leaf_false(), root);
+  root = adapter.build_node(step1_position, adapter.build_node(false), root);
 
   // Fix t = 0 to be (0,0)
   const int step0_position = int_of_position(closed_squares[0][0],
                                              closed_squares[0][1],
                                              0);
-  root = adapter.make_node(step0_position, adapter.leaf_false(), root);
+  root = adapter.build_node(step0_position, adapter.build_node(false), root);
 
-  const size_t nodecount = adapter.nodecount(root);
+  typename adapter_t::dd_t out = adapter.build();
+
+  const size_t nodecount = adapter.nodecount(out);
   largest_bdd = std::max(largest_bdd, nodecount);
   total_nodes += nodecount;
 
-  return root;
+  return out;
 }
 
 // ========================================================================== //
 //                 Transition Relation + Hamiltonian Constraint               //
 template<typename adapter_t>
 void __knights_tour_rel__post_chain__simp(adapter_t &adapter,
-                                          std::vector<typename adapter_t::dd_t> &post_chains,
+                                          std::vector<typename adapter_t::build_node_t> &post_chains,
                                           int time, int row, int col)
 {
   const int this_label = int_of_position(row, col, time);
 
-  const typename adapter_t::dd_t res =
-    adapter.make_node(this_label, post_chains.at(0), post_chains.at(0));
+  const auto res =
+    adapter.build_node(this_label, post_chains.at(0), post_chains.at(0));
 
   for (int idx = 0; idx < rows() * cols(); idx++) {
     post_chains.at(idx) = res;
@@ -64,7 +66,7 @@ void __knights_tour_rel__post_chain__simp(adapter_t &adapter,
 
 template<typename adapter_t>
 void __knights_tour_rel__post_chain__ham(adapter_t &adapter,
-                                         std::vector<typename adapter_t::dd_t> &post_chains,
+                                         std::vector<typename adapter_t::build_node_t> &post_chains,
                                          int time, int row, int col)
 {
   // Hamiltonian constraint chain for each position reached at time step 't+1'
@@ -92,9 +94,9 @@ void __knights_tour_rel__post_chain__ham(adapter_t &adapter,
           && !(row_t == 0 && col_t == 0)) {
         post_chains.at(chain_idx) = post_chains.at(0);
       } else {
-        post_chains.at(chain_idx) = adapter.make_node(this_label,
-                                                      post_chains.at(chain_idx),
-                                                      post_chains.at(chain_idx));
+        post_chains.at(chain_idx) = adapter.build_node(this_label,
+                                                       post_chains.at(chain_idx),
+                                                       post_chains.at(chain_idx));
       }
     }
   }
@@ -103,7 +105,7 @@ void __knights_tour_rel__post_chain__ham(adapter_t &adapter,
 template<typename adapter_t, bool incl_hamiltonian>
 typename adapter_t::dd_t __knights_tour_rel(adapter_t &adapter, int t)
 {
-  std::vector<typename adapter_t::dd_t> post_chains(cols() * rows(), adapter.leaf_true());
+  std::vector<typename adapter_t::build_node_t> post_chains(cols() * rows(), adapter.build_node(true));
 
   // Time steps t' > t+1:
   for (int time = MAX_TIME(); time > t+1; time--) {
@@ -122,7 +124,7 @@ typename adapter_t::dd_t __knights_tour_rel(adapter_t &adapter, int t)
 
   // Time step t+1:
   //   Chain with each possible position reachable from some position at time 't'.
-  std::vector<typename adapter_t::dd_t> to_chains(cols() * rows(), adapter.leaf_false());
+  std::vector<typename adapter_t::build_node_t> to_chains(cols() * rows(), adapter.build_node(false));
 
   for (int row = MAX_ROW(); row >= 0; row--) {
     for (int col = MAX_COL(); col >= 0; col--) {
@@ -136,9 +138,9 @@ typename adapter_t::dd_t __knights_tour_rel(adapter_t &adapter, int t)
 
           const int vector_idx = int_of_position(row_t, col_t);
 
-          to_chains.at(vector_idx) = adapter.make_node(this_label,
-                                                       to_chains.at(vector_idx),
-                                                       post_chains.at(vector_idx));
+          to_chains.at(vector_idx) = adapter.build_node(this_label,
+                                                        to_chains.at(vector_idx),
+                                                        post_chains.at(vector_idx));
         }
       }
     }
@@ -147,7 +149,7 @@ typename adapter_t::dd_t __knights_tour_rel(adapter_t &adapter, int t)
   // Time step t:
   //   For each position at time step 't', check whether we are "here" and go to
   //   the chain checking "where we go to" at 't+1'.
-  typename adapter_t::dd_t root = adapter.leaf_false();
+  auto root = adapter.build_node(false);
 
   for (int row = MAX_ROW(); row >= 0; row--) {
     for (int col = MAX_COL(); col >= 0; col--) {
@@ -155,18 +157,23 @@ typename adapter_t::dd_t __knights_tour_rel(adapter_t &adapter, int t)
 
       const int this_label = int_of_position(row, col, t);
       const int to_chain_idx = int_of_position(row, col);
-      root = adapter.make_node(this_label, root, to_chains.at(to_chain_idx));
+      root = adapter.build_node(this_label, root, to_chains.at(to_chain_idx));
     }
   }
 
   // Time-step t' < t:
   //   Just allow everything, i.e. add no constraints
   for (int pos = int_of_position(MAX_ROW(), MAX_COL(), t-1); pos >= 0; pos--) {
-    root = adapter.make_node(pos, root, root);
+    root = adapter.build_node(pos, root, root);
   }
 
-  // Finalize
-  return root;
+  typename adapter_t::dd_t out = adapter.build();
+
+  const size_t nodecount = adapter.nodecount(out);
+  largest_bdd = std::max(largest_bdd, nodecount);
+  total_nodes += nodecount;
+
+  return out;
 }
 
 template<typename adapter_t>
@@ -186,8 +193,8 @@ typename adapter_t::dd_t knights_tour_ham_rel(adapter_t &adapter, int t)
 template<typename adapter_t>
 typename adapter_t::dd_t knights_tour_ham(adapter_t &adapter, int r, int c)
 {
-  typename adapter_t::dd_t out_never = adapter.leaf_false();
-  typename adapter_t::dd_t out_once = adapter.leaf_true();
+  auto out_never = adapter.build_node(false);
+  auto out_once = adapter.build_node(true);
 
   for (int this_t = MAX_TIME(); this_t >= 0; this_t--) {
     for (int this_r = MAX_ROW(); this_r >= 0; this_r--) {
@@ -196,19 +203,21 @@ typename adapter_t::dd_t knights_tour_ham(adapter_t &adapter, int r, int c)
         const bool is_rc = r == this_r && c == this_c;
 
         if (!is_rc && (this_t > 0 || this_r > r)) {
-          out_once = adapter.make_node(this_label, out_once, out_once);
+          out_once = adapter.build_node(this_label, out_once, out_once);
         }
 
-        out_never = adapter.make_node(this_label,
-                                      out_never,
-                                      is_rc ? out_once : out_never);
+        out_never = adapter.build_node(this_label,
+                                       out_never,
+                                       is_rc ? out_once : out_never);
       }
     }
   }
 
-  const size_t nodecount = adapter.nodecount(out_never);
+  typename adapter_t::dd_t out = adapter.build();
+
+  const size_t nodecount = adapter.nodecount(out);
   largest_bdd = std::max(largest_bdd, nodecount);
   total_nodes += nodecount;
 
-  return out_never;
+  return out;
 }

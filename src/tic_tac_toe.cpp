@@ -4,6 +4,9 @@
 #include "common.cpp"
 #include "expected.h"
 
+size_t largest_bdd = 0;
+size_t total_nodes = 0;
+
 // =============================================================================
 // Label index
 inline int label_of_position(int i, int j, int k)
@@ -116,7 +119,8 @@ void run_tic_tac_toe(int argc, char** argv)
 
     time_point t1 = get_timestamp();
     typename adapter_t::dd_t res = construct_init(adapter);
-    size_t initial_bdd = adapter.nodecount(res);
+    const size_t initial_bdd = adapter.nodecount(res);
+    total_nodes += initial_bdd;
     time_point t2 = get_timestamp();
 
     const time_duration init_time = duration_of(t1,t2);
@@ -128,9 +132,6 @@ void run_tic_tac_toe(int argc, char** argv)
     // Add constraints lines
     INFO("\n   Applying constraints:\n");
 
-    size_t largest_bdd = 0;
-    size_t total_nodes = initial_bdd;
-
     time_point t3 = get_timestamp();
 
     for (auto &line : lines) {
@@ -138,7 +139,7 @@ void run_tic_tac_toe(int argc, char** argv)
 
       const size_t nodecount = adapter.nodecount(res);
       largest_bdd = std::max(largest_bdd, nodecount);
-      total_nodes += nodecount + 4 /* from construct_is_not_winning */;
+      total_nodes += nodecount;
 
 #ifdef BDD_BENCHMARK_STATS
       INFO("   | [%i,%i,%i] %s: %zu DD nodes\n",

@@ -11,10 +11,12 @@ class cal_bdd_adapter
   // Variable type
  public:
   typedef BDD dd_t;
+  typedef BDD build_node_t;
 
 private:
   Cal __mgr;
   const int varcount;
+  BDD _latest_build;
 
 public:
   cal_bdd_adapter(const int bdd_varcount)
@@ -23,6 +25,8 @@ public:
   {
     // Disable dynamic variable reordering
     __mgr.DynamicReordering(Cal::ReorderTechnique::NONE);
+
+    _latest_build = leaf_false();
   }
 
   ~cal_bdd_adapter()
@@ -42,9 +46,6 @@ public:
   inline BDD nithvar(int i)
   { return ~__mgr.Id(i+1); }
 
-  inline BDD make_node(int label, BDD F, BDD T)
-  { return __mgr.ITE(__mgr.Id(label+1), T, F); }
-
   inline BDD negate(BDD f)
   { return ~f; }
 
@@ -56,6 +57,28 @@ public:
     const double satFrac = __mgr.SatisfyingFraction(f);
     const double numVars = varcount;
     return std::pow(2, numVars) * satFrac;
+  }
+
+  // BDD Build Operations
+public:
+  inline BDD build_node(const bool value)
+  {
+    const BDD res = value ? leaf_true() : leaf_false();
+    if (_latest_build == leaf_false()) { _latest_build = res; }
+    return res;
+  }
+
+  inline BDD build_node(const int label, const BDD &low, const BDD &high)
+  {
+    _latest_build = __mgr.ITE(__mgr.Id(label+1), high, low);
+    return _latest_build;
+  }
+
+  inline BDD build()
+  {
+    const BDD res = _latest_build;
+    _latest_build = leaf_false(); // <-- Reset and free builder reference
+    return res;
   }
 
   // Statistics

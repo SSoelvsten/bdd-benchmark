@@ -57,10 +57,11 @@ class buddy_bdd_adapter
 {
 public:
   inline static const std::string NAME = "BuDDy";
-
-  // Variable type
-public:
   typedef bdd dd_t;
+  typedef bdd build_node_t;
+
+private:
+  dd_t _latest_build;
 
   // Init and Deinit
 public:
@@ -92,6 +93,8 @@ public:
 
     // Disable dynamic variable reordering
     bdd_disable_reorder();
+
+    _latest_build = leaf_false();
   }
 
   ~buddy_bdd_adapter()
@@ -113,9 +116,6 @@ public:
   inline bdd nithvar(int label)
   { return bdd_nithvar(label); }
 
-  inline bdd make_node(int label, const bdd &low, const bdd &high)
-  { return bdd_ite(bdd_ithvar(label), high, low); }
-
   inline bdd negate(const bdd &b)
   { return bdd_not(b); }
 
@@ -127,6 +127,28 @@ public:
 
   inline uint64_t satcount(const dd_t &b)
   { return bdd_satcount(b); }
+
+  // BDD Build Operations
+public:
+  inline bdd build_node(const bool value)
+  {
+    const bdd res = value ? leaf_true() : leaf_false();
+    if (_latest_build == leaf_false()) { _latest_build = res; }
+    return res;
+  }
+
+  inline bdd build_node(const int label, const bdd &low, const bdd &high)
+  {
+    _latest_build = bdd_ite(bdd_ithvar(label), high, low);
+    return _latest_build;
+  }
+
+  inline bdd build()
+  {
+    const bdd res = _latest_build;
+    _latest_build = leaf_false(); // <-- Reset and free builder reference
+    return res;
+  }
 
   // Statistics
 public:
