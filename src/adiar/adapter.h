@@ -99,9 +99,7 @@ public:
   { }
 
   ~adiar_zdd_adapter()
-  {
-    adiar::adiar_deinit();
-  }
+  { }
 
   // ZDD Operations
 public:
