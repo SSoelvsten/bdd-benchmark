@@ -72,8 +72,22 @@ public:
     lace_stop();
   }
 
+private:
+  template<typename IT>
+  inline sylvan::Bdd make_cube(IT rbegin, IT rend)
+  {
+    sylvan::Bdd res = leaf_true();
+    while (rbegin != rend) {
+      res = sylvan::Bdd::bddVar(*(rbegin++)).Ite(res, leaf_false());
+    }
+    return res;
+  }
+
   // BDD Operations
 public:
+  inline sylvan::Bdd leaf(bool val)
+  { return val ? leaf_true() : leaf_false(); }
+
   inline sylvan::Bdd leaf_true()
   { return sylvan::Bdd::bddOne(); }
 
@@ -89,16 +103,55 @@ public:
   inline sylvan::Bdd negate(const sylvan::Bdd &b)
   { return ~b; }
 
+  inline sylvan::Bdd ite(const sylvan::Bdd &i,
+                         const sylvan::Bdd &t,
+                         const sylvan::Bdd &e)
+  { return i.Ite(t,e); }
+
   inline sylvan::Bdd exists(const sylvan::Bdd &b, int label)
   { return b.ExistAbstract(sylvan::Bdd::bddVar(label)); }
 
-  inline uint64_t nodecount(const dd_t &b)
+  template<typename IT>
+  inline sylvan::Bdd exists(const sylvan::Bdd &b, IT rbegin, IT rend)
+  { return b.ExistAbstract(make_cube(rbegin, rend)); }
+
+  inline sylvan::Bdd forall(const sylvan::Bdd &b, int label)
+  { return b.UnivAbstract(sylvan::Bdd::bddVar(label)); }
+
+  template<typename IT>
+  inline sylvan::Bdd forall(const sylvan::Bdd &b, IT rbegin, IT rend)
+  { return b.UnivAbstract(make_cube(rbegin, rend)); }
+
+  inline uint64_t nodecount(const sylvan::Bdd &b)
   { return b.NodeCount() - 1; }
 
-  inline uint64_t satcount(const dd_t &b)
+  inline uint64_t satcount(const sylvan::Bdd &b)
   { return b.SatCount(varcount); }
 
-  // BDD Build Operations
+  inline std::vector<std::pair<int, char>>
+  pickcube(const sylvan::Bdd &b)
+  {
+    std::vector<std::pair<int, char>> res;
+
+    sylvan::Bdd sat = b.PickOneCube();
+    while (!sat.isOne() && !sat.isZero()) {
+      const int var = sat.TopVar();
+      const sylvan::Bdd sat_low = sat.Else();
+      const sylvan::Bdd sat_high = sat.Then();
+
+      const bool go_high = !sat_high.isZero();
+      if (sat_low == sat_high) {
+        res.push_back({ var, '2' });
+      } else if (!sat_high.isZero()) {
+        res.push_back({ var, '1' });
+      } else { // !sat_low.isZero()
+        res.push_back({ var, '0' });
+      }
+      sat = go_high ? sat_high : sat_low;
+    }
+    return res;
+  }
+
   // BDD Build operations
 public:
   inline sylvan::Bdd build_node(const bool value)

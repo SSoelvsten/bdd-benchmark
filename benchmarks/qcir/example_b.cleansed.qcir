@@ -1,0 +1,9 @@
+#QCIR-G14 6
+
+forall(3)
+
+output(4)
+
+5 = and(1, 2, 3)
+6 = exists(1,2; 5)
+4 = or(3,6)

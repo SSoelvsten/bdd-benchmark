@@ -34,6 +34,9 @@ public:
 
   // BDD Operations
  public:
+  inline BDD leaf(bool val)
+  { return val ? leaf_true() : leaf_false(); }
+
   inline BDD leaf_true()
   { return __mgr.One(); }
 
@@ -48,6 +51,9 @@ public:
 
   inline BDD negate(BDD f)
   { return ~f; }
+
+  inline BDD ite(BDD i, BDD t, BDD e)
+  { return __mgr.ITE(i,t,e); }
 
   inline uint64_t nodecount(BDD f)
   { return __mgr.Size(f); }

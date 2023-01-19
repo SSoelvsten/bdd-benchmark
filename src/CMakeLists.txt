@@ -97,3 +97,5 @@ add_zdd_benchmark(knights_tour)
 # Verification
 add_bdd_benchmark(picotrav)
 link_bdd_extra(picotrav libblifparse)
+
+add_bdd_benchmark(qbf)

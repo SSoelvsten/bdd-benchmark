@@ -752,11 +752,11 @@ std::string option_help_str<variable_order>()
 template<>
 variable_order parse_option(const std::string &arg, bool &should_exit)
 {
-  if (arg == "INPUT") { return variable_order::INPUT; }
-  if (arg == "DFS") { return variable_order::DFS; }
-  if (arg == "LEVEL") { return variable_order::LEVEL; }
+  if (arg == "INPUT")     { return variable_order::INPUT; }
+  if (arg == "DFS")       { return variable_order::DFS; }
+  if (arg == "LEVEL")     { return variable_order::LEVEL; }
   if (arg == "LEVEL_DFS") { return variable_order::LEVEL_DFS; }
-  if (arg == "RANDOM") { return variable_order::RANDOM; }
+  if (arg == "RANDOM")    { return variable_order::RANDOM; }
 
   ERROR("Undefined variable ordering: %s\n", arg.c_str());
   should_exit = true;

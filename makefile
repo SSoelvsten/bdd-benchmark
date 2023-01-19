@@ -31,7 +31,7 @@ build:
 	@cd build/ && for package in 'adiar' 'buddy' 'cal' 'cudd' 'sylvan' ; do \
 		mkdir -p ../out/$$package ; \
 		mkdir -p ../out/$$package/bdd ; \
-		for benchmark in 'picotrav' 'queens' 'tic_tac_toe' ; do \
+		for benchmark in 'picotrav' 'qbf' 'queens' 'tic_tac_toe' ; do \
 			make ${MAKE_FLAGS} $$package'_'$$benchmark'_bdd' ; \
 		done ; \
 	done
@@ -145,6 +145,9 @@ help:
 	@echo "   | Variable order to precompute and use throughout computation."
 
 	@echo ""
+	@echo "verification/qbf/[bdd]"
+
+	@echo ""
 	@echo "--------------------------------------------------------------------------------"
 	@echo ""
 	@echo "Other"
@@ -205,12 +208,19 @@ combinatorial/tic_tac_toe/zdd:
 # ============================================================================ #
 #  RUN: VERIFICATION BENCHMARKS
 # ============================================================================ #
-F1 := "benchmarks/not_a.blif"
-F2 := "benchmarks/not_b.blif"
-
 verification/picotrav:
 	$(MAKE) verification/picotrav/bdd
 
 verification/picotrav/bdd: O := "INPUT"
+verification/picotrav/bdd: F1 := "benchmarks/picotrav/not_a.blif"
+verification/picotrav/bdd: F2 := "benchmarks/picotrav/not_b.blif"
 verification/picotrav/bdd:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_picotrav_bdd -f $(F1) -f $(F2) -M $(M) -o $(O) | tee -a out/VARIANT/bdd/picotrav.out)
+
+verification/qbf:
+	$(MAKE) verification/qbf/bdd
+
+verification/qbf/bdd: O := "INPUT"
+verification/qbf/bdd: F := "benchmarks/qcir/example_a.qcir"
+verification/qbf/bdd:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_qbf_bdd -f $(F) -M $(M) -o $(O) | tee -a out/VARIANT/bdd/qbf.out)

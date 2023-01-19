@@ -48,26 +48,84 @@ public:
 
   // BDD Operations
 public:
-  inline adiar::bdd leaf_true()
+  inline adiar::bdd
+  leaf(bool val)
+  { return adiar::bdd_terminal(val); }
+
+  inline adiar::bdd
+  leaf_true()
   { return adiar::bdd_true(); }
 
-  inline adiar::bdd leaf_false()
+  inline adiar::bdd
+  leaf_false()
   { return adiar::bdd_false(); }
 
-  inline adiar::bdd ithvar(int label)
+  inline adiar::bdd
+  ithvar(int label)
   { return adiar::bdd_ithvar(label); }
 
-  inline adiar::bdd negate(const adiar::bdd &b)
+  inline adiar::bdd
+  negate(const adiar::bdd &b)
   { return ~b; }
 
-  inline adiar::bdd exists(const adiar::bdd &b, int label)
+  inline adiar::bdd
+  ite(const adiar::bdd &i, const adiar::bdd &t, const adiar::bdd &e)
+  { return adiar::bdd_ite(i,t,e); }
+
+  inline adiar::bdd
+  exists(const adiar::bdd &b, int label)
   { return adiar::bdd_exists(b,label); }
 
-  inline uint64_t nodecount(const adiar::bdd &b)
+  template<class IT>
+  inline adiar::bdd
+  exists(const adiar::bdd &b, IT rbegin, IT rend)
+  {
+    adiar::bdd res = b;
+    while (rbegin != rend) {
+      res = exists(res, *(rbegin++));
+    }
+    return res;
+  }
+
+  inline adiar::bdd
+  forall(const adiar::bdd &b, int label)
+  { return adiar::bdd_forall(b,label); }
+
+  template<class IT>
+  inline adiar::bdd
+  forall(const adiar::bdd &b, IT rbegin, IT rend)
+  {
+    adiar::bdd res = b;
+    while (rbegin != rend) {
+      res = forall(res, *(rbegin++));
+    }
+    return res;
+  }
+
+  inline uint64_t
+  nodecount(const adiar::bdd &b)
   { return adiar::bdd_nodecount(b); }
 
-  inline uint64_t satcount(const adiar::bdd &b)
+  inline uint64_t
+  satcount(const adiar::bdd &b)
   { return adiar::bdd_satcount(b, varcount); }
+
+  inline std::vector<std::pair<int, char>>
+  pickcube(const adiar::bdd &b)
+  {
+    std::vector<std::pair<int, char>> res;
+
+    const auto satmin = adiar::bdd_satmin(b);
+    adiar::file_stream<adiar::map_pair<adiar::bdd::label_t, adiar::boolean>> s(satmin);
+    while (s.can_pull()) {
+      const auto p = s.pull();
+      const char val_char = '0' + p.is_true();
+
+      res.push_back(std::make_pair(p.key(), val_char));
+    }
+
+    return res;
+  }
 
   // BDD Build Operations
 public:
