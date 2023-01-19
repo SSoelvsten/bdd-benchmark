@@ -13,6 +13,10 @@ This folder contains a collection of input instances that can be used with the
 - **picotrav**:
   Simple minimal circuits to test the *Picotrav* benchmark.
 
+- **qcir**:
+  Simple minimal QBF circuits to test the *QBF* solver benchmark with. These are
+  the examples in the [standard](https://www.qbflib.org/qcir.pdf).
+
 ## Other Picotrav Benchmarks
 
 You can find more inputs for the *Picotrav* benchmark in the following places.

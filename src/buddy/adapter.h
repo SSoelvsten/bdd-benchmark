@@ -56,7 +56,7 @@ buddy_init_size compute_init_size()
 class buddy_bdd_adapter
 {
 public:
-  inline static const std::string NAME = "BuDDy";
+  inline static const std::string NAME = "BuDDy [BDD]";
   typedef bdd dd_t;
   typedef bdd build_node_t;
 
@@ -102,8 +102,22 @@ public:
     bdd_done();
   }
 
+private:
+  template<typename IT>
+  inline bdd make_cube(IT rbegin, IT rend)
+  {
+    bdd res = leaf_true();
+    while (rbegin != rend) {
+      res = bdd_ite(bdd_ithvar(*(rbegin++)), res, leaf_false());
+    }
+    return res;
+  }
+
   // BDD Operations
 public:
+  inline bdd leaf(bool val)
+  { return val ? leaf_true() : leaf_false(); }
+
   inline bdd leaf_true()
   { return bddtrue; }
 
@@ -119,14 +133,52 @@ public:
   inline bdd negate(const bdd &b)
   { return bdd_not(b); }
 
+  inline bdd ite(const bdd &i, const bdd &t, const bdd &e)
+  { return bdd_ite(i,t,e); }
+
   inline bdd exists(const bdd &b, int label)
   { return bdd_exist(b, bdd_ithvar(label)); }
 
-  inline uint64_t nodecount(const dd_t &b)
+  template<typename IT>
+  inline bdd exists(const bdd &b, IT rbegin, IT rend)
+  { return bdd_exist(b, make_cube(rbegin, rend)); }
+
+  inline bdd forall(const bdd &b, int label)
+  { return bdd_forall(b, bdd_ithvar(label)); }
+
+  template<typename IT>
+  inline bdd forall(const bdd &b, IT rbegin, IT rend)
+  { return bdd_forall(b, make_cube(rbegin, rend)); }
+
+  inline uint64_t nodecount(const bdd &b)
   { return bdd_nodecount(b); }
 
-  inline uint64_t satcount(const dd_t &b)
+  inline uint64_t satcount(const bdd &b)
   { return bdd_satcount(b); }
+
+  inline std::vector<std::pair<int, char>>
+  pickcube(const bdd &b)
+  {
+    std::vector<std::pair<int, char>> res;
+    bdd sat = bdd_satone(b);
+
+    while (sat != bddfalse && sat != bddtrue) {
+      const int var = bdd_var(sat);
+      const bdd sat_low = bdd_low(sat);
+      const bdd sat_high = bdd_high(sat);
+
+      const bool go_high = sat_high != bddfalse;
+      if (sat_low == sat_high) {
+        res.push_back({ var, '2' });
+      } else if (sat_high != bddfalse) {
+        res.push_back({ var, '1' });
+      } else { // sat_low != bddfalse
+        res.push_back({ var, '0' });
+      }
+      sat = go_high ? sat_high : sat_low;
+    }
+    return res;
+  }
 
   // BDD Build Operations
 public:
@@ -139,7 +191,7 @@ public:
 
   inline bdd build_node(const int label, const bdd &low, const bdd &high)
   {
-    _latest_build = bdd_ite(bdd_ithvar(label), high, low);
+    _latest_build = ite(bdd_ithvar(label), high, low);
     return _latest_build;
   }
 

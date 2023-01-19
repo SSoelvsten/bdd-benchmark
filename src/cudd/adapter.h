@@ -102,8 +102,22 @@ public:
     _latest_build = leaf_false();
   }
 
+private:
+  template<typename IT>
+  inline BDD make_cube(IT rbegin, IT rend)
+  {
+    BDD res = leaf_true();
+    while (rbegin != rend) {
+      res = __mgr.bddVar(*(rbegin++)).Ite(res, leaf_false());
+    }
+    return res;
+  }
+
   // BDD Operations
 public:
+  inline BDD leaf(bool val)
+  { return val ? leaf_true() : leaf_false(); }
+
   inline BDD leaf_true()
   { return __mgr.bddOne(); }
 
@@ -119,14 +133,45 @@ public:
   inline BDD negate(const BDD &b)
   { return ~b; }
 
+  inline BDD ite(const BDD &i, const BDD &t, const BDD &e)
+  { return i.Ite(t,e); }
+
   inline BDD exists(const BDD &b, int label)
   { return b.ExistAbstract(__mgr.bddVar(label)); }
+
+  template<typename IT>
+  inline BDD exists(const BDD &b, IT rbegin, IT rend)
+  { return b.ExistAbstract(make_cube(rbegin, rend)); }
+
+  inline BDD forall(const BDD &b, int label)
+  { return b.UnivAbstract(__mgr.bddVar(label)); }
+
+  template<typename IT>
+  inline BDD forall(const BDD &b, IT rbegin, IT rend)
+  { return b.UnivAbstract(make_cube(rbegin, rend)); }
 
   inline uint64_t nodecount(const BDD &b)
   { return b.nodeCount(); }
 
   inline uint64_t satcount(const BDD &b)
   { return b.CountMinterm(varcount); }
+
+  inline std::vector<std::pair<int, char>>
+  pickcube(const BDD &b)
+  {
+    std::string cudd_res('_', varcount);
+    b.PickOneCube(cudd_res.data());
+
+    std::vector<std::pair<int, char>> res;
+    for (int x = 0; x < varcount; ++x) {
+      const char cudd_val = cudd_res.at(x);
+      if (x == '_') { continue; }
+
+      res.push_back({ x, '0'+cudd_val });
+    }
+
+    return res;
+  }
 
   // BDD Build operations
 public:

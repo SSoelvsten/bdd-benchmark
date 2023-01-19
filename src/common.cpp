@@ -33,7 +33,6 @@ inline unsigned long int duration_of(const time_point &before, const time_point 
 #define INFO(s, ...) { fprintf(stdout, s, ##__VA_ARGS__); FLUSH() }
 #define ERROR(s, ...) { fprintf(stderr, s, ##__VA_ARGS__); FLUSH() }
 
-
 // =============================================================================
 // Input parsing
 #include <getopt.h>       // argument parsing
@@ -135,6 +134,24 @@ bool parse_input(int &argc, char* argv[], option_enum &option)
 
   optind = 0; // Reset getopt, such that it can be used again outside
   return exit;
+}
+
+// =============================================================================
+// based on: https://stackoverflow.com/a/313990/13300643
+char ascii_tolower(char in)
+{
+  if (in <= 'Z' && in >= 'A')
+    return in - ('Z' - 'z');
+  return in;
+}
+
+std::string ascii_tolower(const std::string &in)
+{
+  std::string out;
+  for (auto it = in.begin(); it != in.end(); it++) {
+    out.push_back(ascii_tolower(*it));
+  }
+  return out;
 }
 
 // =============================================================================

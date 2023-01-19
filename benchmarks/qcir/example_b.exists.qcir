@@ -1,0 +1,9 @@
+#QCIR-G14
+
+exists(z)
+
+output(g3)
+
+g1 = and(x1, x2, z)
+g2 = exists(x1, x2; g1)
+g3 = or(z, g2)
