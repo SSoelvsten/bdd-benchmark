@@ -417,7 +417,7 @@ private:
   /// \details If you want to find the Cleansed Input Variable from its name,
   ///          just use `m_gvar_map` to find the gate and its `var` member.
   //////////////////////////////////////////////////////////////////////////////
-  std::unordered_map<size_t, std::string> m_var_invmap;
+  std::vector<std::string> m_var_invmap;
 
   //////////////////////////////////////////////////////////////////////////////
   /// \brief List of gates.
@@ -834,7 +834,7 @@ public:
     if (vars() <= static_cast<unsigned int>(std::abs(i))) {
       throw std::out_of_range("Given 'i' is an unknown variable");
     }
-    return (i < 0 ? "-" : "") + (*m_var_invmap.find(std::abs(i))).second;
+    return (i < 0 ? "-" : "") + m_var_invmap.at(std::abs(i));
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -907,7 +907,7 @@ public:
     }
 
     const int cvar = m_vars++;
-    m_var_invmap.insert({ cvar, var });
+    m_var_invmap.push_back(var);
     return (negated ? -1 : 1) * __push_gate(unnegated_var, 0u, var_gate(cvar));
   }
 
