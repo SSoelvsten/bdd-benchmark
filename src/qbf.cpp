@@ -435,6 +435,10 @@ private:
   //////////////////////////////////////////////////////////////////////////////
   size_t m_roots = 0u;
 
+private:
+  // ======================================================================== //
+  static constexpr int const_idx[2] = { 1+false, 1+true };
+
 public:
   // ======================================================================== //
   // Constructors
@@ -449,8 +453,10 @@ public:
     m_circuit.push_back(dummy_gate);
 
     // Boolean Constant gates
-    __push_gate(0u, const_gate(false)); // <-- False at [1 + false]
-    __push_gate(0u, const_gate(true));  // <-- True  at [1 + true]
+    // - False at const_idx[false] = 1+false = 1
+    __push_gate(0u, const_gate(false));
+    // - True  at const_idx[true]  = 1+true  = 2
+    __push_gate(0u, const_gate(true));
 
     // Sanity Checks
     assert(m_circuit.size() == 1u + m_size);
@@ -854,8 +860,8 @@ public:
   size() const
   {
     return m_size
-      - (at(1 + false).refcount == 0u)
-      - (at(1 + true).refcount == 0u);
+      - (at(const_idx[false]).refcount == 0u)
+      - (at(const_idx[true]).refcount == 0u);
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -931,9 +937,9 @@ public:
     if (lits.size() == 0) {
       switch (ng_t) {
       case ngate::AND:
-        return static_cast<int>(true);
+        return const_idx[true];
       case ngate::OR:
-        return static_cast<int>(false);
+        return const_idx[false];
       case ngate::XOR:
         throw std::invalid_argument("Cannot create an XOR gate with 0 inputs.");
       }
