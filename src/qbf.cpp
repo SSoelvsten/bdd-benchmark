@@ -683,8 +683,7 @@ public:
   std::vector<gate>::iterator
   begin()
   {
-    auto i = m_circuit.begin();
-    return ++i;
+    return ++(m_circuit.begin());
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -693,8 +692,7 @@ public:
   std::vector<gate>::const_iterator
   cbegin() const
   {
-    auto i = m_circuit.cbegin();
-    return ++i;
+    return ++(m_circuit.cbegin());
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -763,8 +761,7 @@ public:
   std::vector<gate>::reverse_iterator
   rend()
   {
-    auto i = m_circuit.rend();
-    return --i;
+    return --(m_circuit.rend());
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -773,8 +770,7 @@ public:
   std::vector<gate>::const_reverse_iterator
   crend() const
   {
-    auto i = m_circuit.crend();
-    return --i;
+    return --(m_circuit.crend());
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -935,14 +931,10 @@ public:
     // --------------------------
     // Case: Empty lit-list
     if (lits.size() == 0) {
-      switch (ng_t) {
-      case ngate::AND:
-        return const_idx[true];
-      case ngate::OR:
-        return const_idx[false];
-      case ngate::XOR:
+      if (ng_t == ngate::XOR) { // TODO: remove and just allow empty XOR?
         throw std::invalid_argument("Cannot create an XOR gate with 0 inputs.");
       }
+      return const_idx[ng_t == ngate::AND];
     }
 
     // --------------------------
@@ -1136,6 +1128,9 @@ public:
   int
   add_output_gate(const int i)
   {
+    if (m_has_output_gate) {
+      throw std::invalid_argument("Cannot create two OUTPUT gates");
+    }
     if (m_roots > 1) {
       throw std::invalid_argument("Unreferenced gates after creation of output gate.");
     }
