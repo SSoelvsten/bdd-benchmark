@@ -17,6 +17,7 @@ one to compare implementations.
         - [Tic-Tac-Toe [BDD, ZDD]](#tic-tac-toe-bdd-zdd)
     - [Verification](#verification)
         - [Picotrav [BDD]](#picotrav-bdd)
+        - [QBF Solver [BDD]](#qbf-solver-bdd)
     - [License](#license)
     - [References](#references)
 
@@ -89,7 +90,7 @@ very simple after having initialised all submodules using the following command.
 git submodule update --init --recursive
 ```
 
-This also requires _CMake_ and a _C++_ compiler of your choice. The _Picotrav_
+This also requires *CMake* and a *C++* compiler of your choice. The *Picotrav*
 benchmark requires GNU Bison and Flex, which can be installed with.
 
 ```bash
@@ -98,7 +99,7 @@ apt install bison flex
 
 **Adiar**
 
-Adiar also has dependencies on the _Boost Library_, which can be installed as follows
+Adiar also has dependencies on the *Boost Library*, which can be installed as follows
 ```bash
 apt install libboost-all-dev
 ```
@@ -106,9 +107,10 @@ apt install libboost-all-dev
 **CUDD**
 
 The project has been built on Linux and tested on Ubuntu 18.04 and 20.04. On
-_Windows Subsystem for Linux_ or _Cygwin_ the automake installation will fail
-due to _\r\n_ line endings. To resolve this, first install dos2unix, then convert
-the line endings for the relevant files as shown below in the CUDD folder.
+*Windows Subsystem for Linux* or *Cygwin* the automake installation will fail
+due to _\r\n_ line endings. To resolve this, first install dos2unix, then
+convert the line endings for the relevant files as shown below in the CUDD
+folder.
 
 ```bash
 apt install dos2unix
@@ -126,8 +128,8 @@ sudo apt install texlive texlive-latex-extra
 
 **Sylvan**
 
-Sylvan also needs the _The GNU Multiple Precision Arithmetic_ and _Portable
-Hardware Locality_ libraries, which can be installed as follows
+Sylvan also needs the *The GNU Multiple Precision Arithmetic* and *Portable
+Hardware Locality* libraries, which can be installed as follows
 ```bash
 apt install libgmp-dev libhwloc-dev
 ```
@@ -135,7 +137,7 @@ apt install libgmp-dev libhwloc-dev
 
 ## Usage
 
-All interactions have been made easy by use of the _makefile_ at the root.
+All interactions have been made easy by use of the *makefile* at the root.
 
 | Target  | Description                               |
 |---------|-------------------------------------------|
@@ -145,11 +147,15 @@ All interactions have been made easy by use of the _makefile_ at the root.
 To build all BDD packages with *statistics*, set the Make variable *STATS* to
 *ON* (default *OFF*).
 
-Each benchmark below also has its own _make_ target too for ease of use. You may
-specify as a make variable the instance size _N_ to solve, the amount of
-_M_emory (MiB) to use in, and the _V_ariant (i.e. BDD package). For example, to
-solve the combinatorial Queens with CUDD for _N_ = 10 and with 256 MiB of memory
+Each benchmark below also has its own *make* target too for ease of use. You may
+specify as a make variable the instance size *N* to solve, the amount of
+_M_emory (MiB) to use in, and the *V*ariant (i.e. BDD package). For example, to
+solve the combinatorial Queens with CUDD for *N* = 10 and with 256 MiB of memory
 you run the following target.
+
+Note, that the memory you set is only for the BDD package. So, the program will
+either use swap or be killed if the BDD package takes up more memory in
+conjunction with the benchmark's auxiliary data structures.
 
 ```bash
 make combinatorial/queens V=cudd N=10 M=256
@@ -179,13 +185,12 @@ Solves the following problem:
 > Given N, then how many hamiltonian paths can a single Knight do across a chess
 > board of size (N/2)x(N-N/2)?
 
-Our implementation is based on Bryants implementation
-[here](https://github.com/rebryant/Cloud-BDD/blob/conjunction_streamlined/hamiltonian/hpath.py)
-using ZDDs. We represent all O(N<sup>4</sup>) states, i.e. position and time, as
-a separate variable; a transition relation then encodes the legal moves between
-two time steps. By intersecting moves at all time steps we obtain all paths.
-On-top of this, hamiltonian constraints are added and finally the size of the
-set of Knight's Tours is obtained.
+Our implementation is based on [[Bryant2021](#references)]. We represent all
+O(N<sup>4</sup>) states, i.e. position and time, as a separate variable; a
+transition relation then encodes the legal moves between two time steps. By
+intersecting moves at all time steps we obtain all paths. On-top of this,
+hamiltonian constraints are added and finally the size of the set of Knight's
+Tours is obtained.
 
 You may choose to include the hamiltonian constraint inside of the transition
 relation. This seems to result in slower running times, but slightly smaller
@@ -252,18 +257,19 @@ intermediate result.
 ## Verification
 
 ### Picotrav [BDD]
-This benchmark is a small recreation of the _Nanotrav_ example provided with the
-CUDD library. Given a hierarchical circuit in (a subset of the) [Berkeley Logic
-Interchange Format (BLIF)](https://course.ece.cmu.edu/~ee760/760docs/blif.pdf) a
-BDD is created for every net; dereferencing BDDs for intermediate nets after
-they have been used for the last time. If two _.blif_ files are given, then BDDs
-for both are constructed and every output net is compared for equality.
+This benchmark is a small recreation of the *Nanotrav* example provided with the
+CUDD library [[Somenzi2015](#references)]. Given a hierarchical circuit in (a
+subset of the) [Berkeley Logic Interchange Format
+(BLIF)](https://course.ece.cmu.edu/~ee760/760docs/blif.pdf) a BDD is created for
+every net; dereferencing BDDs for intermediate nets after they have been used
+for the last time. If two *.blif* files are given, then BDDs for both are
+constructed and every output net is compared for equality.
 
 BDD variables represent the value of inputs. Hence, a good variable ordering is
 important for a high performance. To this end, one can use various variable
 orderings derived from the given net.
 
-- `INPUT`: Use the order in which they are declared in the input _.blif_ file.
+- `INPUT`: Use the order in which they are declared in the input *.blif* file.
 
 - `DFS`: Variables are ordered based on a DFS traversal where non-input gates
   are recursed to first; thereby favouring deeper nodes.
@@ -276,17 +282,47 @@ orderings derived from the given net.
 
 - `RANDOM`: A randomized ordering of variables.
 
-The _.blif_ file(s) is given with the `-f` parameter (_F1_ and _F2_ Make
-variables) and the variable order with `-o` (_O_ for Make). You can find
-multiple inputs in the _benchmarks/_ folder.
+The *.blif* file(s) is given with the `-f` parameter (*F1* and *F2* Make
+variables) and the variable order with `-o` (*O* for Make). You can find
+multiple inputs in the *benchmarks/* folder.
 
 ```bash
 make verification/picotrav F1=benchmarks/not_a.blif F2=benchmarks/not_b.blif V=cudd O=LEVEL_DFS
 ```
 
-Note, that the memory you set is only for the BDD package. So, the program will
-either use swap or be killed if the BDD package takes up more memory in
-conjunction with auxiliary data structures.
+### QBF Solver [BDD]
+Based on Jaco van de Pol's Christmas holiday hobbyproject, this is an
+implementation of a QBF solver. Given an input in the
+[*qcir*](https://www.qbflib.org/qcir.pdf) format, the decision diagram
+representing each gate is computed bottom-up. The outermost quantifier in the
+*prenex* is not resolved with BDD operations. Instead, if the decision diagram
+has not already collapsed to a terminal, a witness/counter-example is obtained
+from the diagram.
+
+Each BDD variable corresponds to an input variables, i.e. a literal, of the
+*qcir* circuit. To keep the decision diagrams small, one can choose from using
+different variable orders; each of these are derived from the given circuit
+during initialisation.
+
+- `input`: Use the order in which variables are introduced in the *.qcir* file.
+
+- `df`/`depth-first`: Order variables based on their first occurence in a
+  depth-first traversal of the circuit.
+
+- `level`/`level_df`: Order variables first based on their deepest reference by
+  another gate. Ties are broken based on the depth-first (`df`) order.
+
+If the `input` ordering is used, then the gates of the circuit are also resolved
+in the order they were declared. Otherwise for `df` and `level`, gates are
+resolved in a bottom-up order based on their depth within the circuit.
+
+The *.qcir* file is given with the `-f` parameter (*F* Make variable) and the
+ordering with `-o` (*O* for Make). Some small inputs can be found in the
+*benchmarks/* folder.
+
+```bash
+make verification/qbf F=benchmarks/qcir/example_a.blif V=cudd O=LEVEL
+```
 
 ## License
 The software files in this repository are provided under the
@@ -295,17 +331,17 @@ The software files in this repository are provided under the
 
 ## References
 
+- [[Bryant2021](https://github.com/rebryant/Cloud-BDD/blob/conjunction_streamlined/hamiltonian/hpath.py)]
+  Bryant, Randal E. “*hpath.py*”. In: *Cloud-BDD* (GitHub). 2021
+
 - [[Kunkle10](https://dl.acm.org/doi/abs/10.1145/1837210.1837222)] Daniel
-  Kunkle, Vlad Slavici, Gene Cooperman. “_Parallel Disk-Based Computation for
-  Large, Monolithic Binary Decision Diagrams_”. In: _PASCO '10: Proceedings of
-  the 4th International Workshop on Parallel and Symbolic Computation_. 2010
+  Kunkle, Vlad Slavici, Gene Cooperman. “*Parallel Disk-Based Computation for
+  Large, Monolithic Binary Decision Diagrams*”. In: *PASCO '10: Proceedings of
+  the 4th International Workshop on Parallel and Symbolic Computation*. 2010
 
-- [[Pan04](https://link.springer.com/chapter/10.1007/11527695_19)] Guoqiang
-  Pan and Moshe Y. Vardi. “_Search vs. Symbolic Techniques in Satisfiability
-  Solving_”. In: _SAT 2004: Theory and Applications of Satisfiability Testing_.
-  2004
+- [[Bryant2021](https://github.com/rebryant/Cloud-BDD/blob/conjunction_streamlined/hamiltonian/hpath.py)]
+  Bryant, Randal E. “*hpath.py*”. In: *Cloud-BDD* (GitHub). 2021
 
-- [[Tveretina10](https://dl.acm.org/doi/abs/10.1145/1837210.1837222)] Olga
-  Tveretina, Carsten Sinz and Hans Zantema. “_Ordered Binary Decision Diagrams,
-  Pigeonhole Formulas and Beyond_”. In: _Journal on Satisfiability, Boolean
-  Modeling and Computation 1_. 2010
+- [[Somenzi2015](https://github.com/ssoelvsten/cudd)]
+  Somenzi, Fabio: *CUDD: CU decision diagram package, 3.0*. University
+  of Colorado at Boulder. 2015
