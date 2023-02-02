@@ -914,7 +914,7 @@ public:
     }
 
     const int cvar = m_vars++;
-    m_var_invmap.push_back(var);
+    m_var_invmap.push_back(unnegated_var);
     return (negated ? -1 : 1) * __push_gate(unnegated_var, 0u, var_gate(cvar));
   }
 
