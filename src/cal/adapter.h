@@ -55,6 +55,28 @@ public:
   inline BDD ite(BDD i, BDD t, BDD e)
   { return __mgr.ITE(i,t,e); }
 
+  inline BDD exists(const BDD &b, int label)
+  {
+    throw std::exception();
+  }
+
+  template<typename IT>
+  inline BDD exists(const BDD &b, IT rbegin, IT rend)
+  {
+    throw std::exception();
+  }
+
+  inline BDD forall(const BDD &b, int label)
+  {
+    throw std::exception();
+  }
+
+  template<typename IT>
+  inline BDD forall(const BDD &b, IT rbegin, IT rend)
+  {
+    throw std::exception();
+  }
+
   inline uint64_t nodecount(BDD f)
   { return __mgr.Size(f); }
 
@@ -63,6 +85,12 @@ public:
     const double satFrac = __mgr.SatisfyingFraction(f);
     const double numVars = varcount;
     return std::pow(2, numVars) * satFrac;
+  }
+
+  inline std::vector<std::pair<int, char>>
+  pickcube(const BDD &b)
+  {
+    throw std::exception();
   }
 
   // BDD Build Operations
