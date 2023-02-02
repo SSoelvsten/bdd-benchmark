@@ -7,6 +7,7 @@
 
 // Data Structures
 #include <array>
+#include <queue>
 #include <string>
 #include <set>
 #include <unordered_map>
@@ -1661,24 +1662,52 @@ solve(adapter_t& adapter, qcir& q,
        },
        [&adapter, &cache_get]
        (const qcir::ngate &g) -> typename adapter_t::dd_t {
-         auto g_it = g.lit_list.cbegin();
-         auto acc = cache_get(*(g_it++));
-
-         // TODO: pair-wise accumulation (FIFO queue)
-         while (g_it != g.lit_list.cend()) {
+         const auto apply = [&g]
+           (const typename adapter_t::dd_t &dd_1,
+            const typename adapter_t::dd_t &dd_2)
+         {
            switch (g.ngate_type) {
            case qcir::ngate::AND:
-             acc &= cache_get(*(g_it++));
-             break;
+             return dd_1 & dd_2;
            case qcir::ngate::OR:
-             acc |= cache_get(*(g_it++));
-             break;
+             return dd_1 | dd_2;
            case qcir::ngate::XOR:
-             acc ^= cache_get(*(g_it++));
-             break;
+             return dd_1 ^ dd_2;
+           }
+           throw std::invalid_argument("Unknown Operator");
+         };
+
+         std::queue<typename adapter_t::dd_t> tmp;
+
+         { // Populate FIFO queue with pairs of BDDs
+           auto g_it = g.lit_list.cbegin();
+           while (g_it != g.lit_list.cend()) {
+             const auto dd_1 = cache_get(*(g_it++));
+             if (g_it == g.lit_list.cend()) {
+               if (tmp.empty()) { return dd_1; }
+               tmp.push(dd_1);
+               break;
+             }
+
+             const auto dd_2 = cache_get(*(g_it++));
+             if (g_it == g.lit_list.cend() && tmp.empty()) {
+               return apply(dd_1, dd_2);
+             }
+
+             tmp.push(apply(dd_1, dd_2));
            }
          }
-         return acc;
+
+         // Merge pairs in the FIFO queue
+         while (true) {
+           const auto dd_1 = tmp.front(); tmp.pop();
+           const auto dd_2 = tmp.front(); tmp.pop();
+
+           if (tmp.empty()) {
+             return apply(dd_1, dd_2);
+           }
+           tmp.push(apply(dd_1, dd_2));
+         }
        },
        [&adapter, &cache_get]
        (const qcir::ite_gate &g) -> typename adapter_t::dd_t {
