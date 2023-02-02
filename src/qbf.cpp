@@ -817,7 +817,7 @@ public:
   ///        no-name, then the empty string is returned.
   //////////////////////////////////////////////////////////////////////////////
   std::string
-  gvar(int i) const
+  gvar(int i) const noexcept
   {
     const auto gvar_invmap_res = m_gvar_invmap.find(std::abs(i));
     if (gvar_invmap_res == m_gvar_invmap.end()) {
@@ -844,7 +844,7 @@ public:
   /// \brief Number of unique variables within the circuit.
   //////////////////////////////////////////////////////////////////////////////
   size_t
-  vars() const
+  vars() const noexcept
   {
     return m_vars;
   }
@@ -853,7 +853,7 @@ public:
   /// \brief Number of gates within the circuit.
   //////////////////////////////////////////////////////////////////////////////
   size_t
-  size() const
+  size() const noexcept
   {
     return m_size
       - (at(const_idx[false]).refcount == 0u)
@@ -864,7 +864,7 @@ public:
   /// \brief Depth of the circuit.
   //////////////////////////////////////////////////////////////////////////////
   size_t
-  depth() const
+  depth() const noexcept
   {
     return m_depth;
   }
@@ -873,7 +873,7 @@ public:
   /// \brief Number of roots in the circuit.
   //////////////////////////////////////////////////////////////////////////////
   size_t
-  roots() const
+  roots() const noexcept
   {
     return m_roots;
   }
@@ -881,6 +881,9 @@ public:
 public:
   // ======================================================================== //
   // Builder Functions
+
+  // TODO: Move 'gvar' variable to be the final parameter. This makes it more
+  //       natural to be an optional argument.
 
   //////////////////////////////////////////////////////////////////////////////
   /// \brief Add a Variable gate to the circuit. If it already exists, then the
@@ -920,7 +923,7 @@ public:
   /// \returns Unique identifier of the constructed gate.
   //////////////////////////////////////////////////////////////////////////////
   int
-  add_ngate(const std::string var,
+  add_ngate(const std::string gvar,
             const ngate::type_t& ng_t,
             const std::vector<int>& lits)
   {
@@ -934,7 +937,9 @@ public:
       if (ng_t == ngate::XOR) { // TODO: remove and just allow empty XOR?
         throw std::invalid_argument("Cannot create an XOR gate with 0 inputs.");
       }
-      return const_idx[ng_t == ngate::AND];
+      const int ret_idx = const_idx[ng_t == ngate::AND];
+      __assoc_idx(gvar, ret_idx);
+      return ret_idx;
     }
 
     // --------------------------
@@ -942,7 +947,9 @@ public:
     if (lits.size() == 1) {
       // For all three operations, we can just skip creating a gate and provide
       // the single child instead.
-      return lits.at(0);
+      const int ret_idx = lits.at(0);
+      __assoc_idx(gvar, ret_idx);
+      return ret_idx;
     }
 
     // --------------------------
@@ -953,20 +960,22 @@ public:
       __inc_refcount(g);
       g_depth = std::max(g_depth, g.depth + 1);
     }
-    return __push_gate(var, g_depth, ngate(ng_t, lits));
+    return __push_gate(gvar, g_depth, ngate(ng_t, lits));
   }
 
   int
-  add_ngate(const std::string var,
+  add_ngate(const std::string gvar,
             const std::string& ng_t,
             const std::vector<int>& lits)
-  { return add_ngate(var, ngate::parse_type(ng_t), lits); }
+  { return add_ngate(gvar, ngate::parse_type(ng_t), lits); }
 
   int
-  add_ngate(const std::string var,
+  add_ngate(const std::string gvar,
             const ngate::type_t& ng_t,
             const std::vector<std::string>& lits)
-  { return add_ngate(var, ng_t, __find_or_add(lits.begin(), lits.end())); }
+  { return add_ngate(gvar, ng_t, __find_or_add(lits.begin(), lits.end())); }
+
+  // TODO: 'add_ngate' without 'gvar' parameter
 
   //////////////////////////////////////////////////////////////////////////////
   /// \brief Adds an If-Then-Else gate.
@@ -975,7 +984,7 @@ public:
   //////////////////////////////////////////////////////////////////////////////
   template<typename lits_t>
   int
-  add_ite_gate(const std::string var,
+  add_ite_gate(const std::string gvar,
                const lits_t& lits)
   {
     if (m_has_output_gate) {
@@ -991,31 +1000,31 @@ public:
       __inc_refcount(g);
       g_depth = std::max(g_depth, g.depth + 1);
     }
-    return __push_gate(var, g_depth, ite_gate(lits[0], lits[1], lits[2]));
+    return __push_gate(gvar, g_depth, ite_gate(lits[0], lits[1], lits[2]));
   }
 
   int
-  add_ite_gate(const std::string var,
+  add_ite_gate(const std::string gvar,
                const std::vector<std::string> lits)
   {
-    return add_ite_gate(var, find(lits.begin(), lits.end()));
+    return add_ite_gate(gvar, find(lits.begin(), lits.end()));
   }
 
   int
-  add_ite_gate(const std::string var,
+  add_ite_gate(const std::string gvar,
                const int g_if,
                const int g_then,
                const int g_else)
-  { return add_ite_gate(var, std::array<int, 3>{ g_if, g_then, g_else }); }
+  { return add_ite_gate(gvar, std::array<int, 3>{ g_if, g_then, g_else }); }
 
 
   int
-  add_ite_gate(const std::string var,
+  add_ite_gate(const std::string gvar,
                const std::string g_if,
                const std::string g_then,
                const std::string g_else)
   {
-    return add_ite_gate(var, std::array<int, 3>{ __find_or_add(g_if),
+    return add_ite_gate(gvar, std::array<int, 3>{ __find_or_add(g_if),
                                                  __find_or_add(g_then),
                                                  __find_or_add(g_else) });
   }
@@ -1031,6 +1040,10 @@ public:
                  IT vars_begin, IT vars_end,
                  int i)
   {
+    if (m_has_output_gate && i != root_idx()) {
+      throw std::invalid_argument("'i' cannot point to anything but the root in the Prenex");
+    }
+
     // --------------------------
     // Case: Empty var-list
     if (vars_begin == vars_end) {
@@ -1069,6 +1082,14 @@ public:
       return i;
     }
 
+    // ---------------------------------------------------
+    // Case: Consecutively the same quantifier in Prenex
+    if (m_has_output_gate && i_gate.is<quant_gate>() && i_gate.as<quant_gate>().quant == Q) {
+      // TODO: add 'int_vars' to 'i_gate'
+    }
+
+    // ---------------------------------------------------
+    // Indeed, create a new gate
     __inc_refcount(i_gate);
     return __push_gate(g_depth, quant_gate(Q, int_vars, i));
   }
@@ -1096,29 +1117,29 @@ public:
 
   template<typename IT>
   int
-  add_quant_gate(const std::string var,
+  add_quant_gate(const std::string gvar,
                  const quant_gate::type_t Q,
                  IT vars_begin, IT vars_end,
                  int i)
   {
     const int idx = add_quant_gate(Q, vars_begin, vars_end, i);
-    __assoc_idx(var, idx);
+    __assoc_idx(gvar, idx);
     return idx;
   }
 
   int
-  add_quant_gate(const std::string var,
+  add_quant_gate(const std::string gvar,
                  const quant_gate::type_t Q,
                  std::vector<std::string> vars,
                  int i)
-  { return add_quant_gate(var, Q, vars.begin(), vars.end(), i); }
+  { return add_quant_gate(gvar, Q, vars.begin(), vars.end(), i); }
 
   int
-  add_quant_gate(const std::string var,
+  add_quant_gate(const std::string gvar,
                  const quant_gate::type_t Q,
                  std::vector<std::string> vars,
                  std::string i)
-  { return add_quant_gate(var, Q, vars.begin(), vars.end(), find(i)); }
+  { return add_quant_gate(gvar, Q, vars.begin(), vars.end(), find(i)); }
 
   //////////////////////////////////////////////////////////////////////////////
   /// \brief Adds an Output gate.
