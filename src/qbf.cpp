@@ -1185,10 +1185,12 @@ public:
     while (!dfs.empty()) {
       const int i = dfs.back();
       dfs.pop_back();
+
+      if (visited.at(std::abs(i))) { continue; }
       visited.at(std::abs(i)) = true;
 
       const gate &g = at(i);
-      if (!callback(std::abs(i),g)) { return; }
+      if (!callback(std::abs(i), g)) { return; }
 
       g.match
         ([&push_if_unvisited]
@@ -1687,7 +1689,7 @@ solve(adapter_t& adapter, qcir& q,
          const auto apply = [&g]
            (const typename adapter_t::dd_t &dd_1,
             const typename adapter_t::dd_t &dd_2)
-         {
+         { // TODO: move switch outside of lambda?
            switch (g.ngate_type) {
            case qcir::ngate::AND:
              return dd_1 & dd_2;
