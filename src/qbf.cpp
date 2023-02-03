@@ -728,14 +728,11 @@ public:
   { return m_circuit.size(); }
 
   //////////////////////////////////////////////////////////////////////////////
-  /// \brief Index of the root, i.e. `end_idx() - 1`.
-  ///
-  /// \pre `roots() == 1u`
+  /// \brief Index of a root. Specifically the root at `end_idx() - 1`.
   //////////////////////////////////////////////////////////////////////////////
   int
   root_idx() const
   { return end_idx() - 1; }
-
 
   //////////////////////////////////////////////////////////////////////////////
   /// \brief A reversed iterator to the beginning.
@@ -917,6 +914,8 @@ public:
     return (negated ? -1 : 1) * __push_gate(unnegated_var, 0u, var_gate(cvar));
   }
 
+  // TODO: var_gate without 'var' parameter
+
   //////////////////////////////////////////////////////////////////////////////
   /// \brief Adds a Binary Operator gate.
   ///
@@ -995,7 +994,7 @@ public:
     }
 
     size_t g_depth = 0u;
-    for (auto it = lits.begin(); it != lits.end(); it++) {
+    for (auto it = lits.begin(); it != lits.end(); ++it) {
       gate &g = __at(*it);
       __inc_refcount(g);
       g_depth = std::max(g_depth, g.depth + 1);
@@ -1028,6 +1027,8 @@ public:
                                                  __find_or_add(g_then),
                                                  __find_or_add(g_else) });
   }
+
+  // TODO: ite_gate without 'gvar' parameter
 
   //////////////////////////////////////////////////////////////////////////////
   /// \brief Adds Variable Quantification gate.
@@ -1152,30 +1153,79 @@ public:
     if (m_has_output_gate) {
       throw std::invalid_argument("Cannot create two OUTPUT gates");
     }
-    if (m_roots > 1) {
-      throw std::invalid_argument("Unreferenced gates after creation of output gate.");
-    }
+    const bool deref_unreachable = m_roots > 1 || i != root_idx();
+
     m_has_output_gate = true;
 
     gate &i_gate = __at(i);
     __inc_refcount(i_gate);
     const size_t g_depth = i_gate.depth + 1;
 
-    return __push_gate(g_depth, output_gate(i));
+    const int res_idx = __push_gate(g_depth, output_gate(i));
+
+    if (deref_unreachable) {
+      std::cerr << "Unreferenced gates after creation of output gate!" << std::endl;
+
+      // Find reachable set of gates
+      std::vector<int> reachable_indices = reachable(i);
+      std::sort(reachable_indices.begin(), reachable_indices.end(), std::less<int>());
+
+      // Dereference children of unreachable gates
+      int g_idx = const_idx[false];
+      auto it = reachable_indices.cbegin();
+
+      while (g_idx < res_idx) {
+        int next_reachable = it != reachable_indices.cend()
+          ? *(it++)
+          : res_idx;
+
+        // Forward 'g_idx' and deref everyone in the gap between the prior and
+        // the next reachable gate.
+        while (g_idx < next_reachable) {
+#ifdef BDD_BENCHMARK_STATS
+          std::cerr << "  " << g_idx << " : " << at(g_idx).to_string() << std::endl;
+#endif
+
+          __at(g_idx++).match
+            ([this](const ngate &g) -> void {
+              for (auto g_it = g.lit_list.cbegin(); g_it != g.lit_list.cend(); ++g_it) {
+                __dec_refcount(__at(*g_it));
+              }
+            },
+             [this](const ite_gate &g) -> void {
+               __dec_refcount(__at(g.lits[0]));
+               __dec_refcount(__at(g.lits[1]));
+               __dec_refcount(__at(g.lits[2]));
+             },
+             [this](const quant_gate &g) -> void {
+               __dec_refcount(__at(g.lit));
+             },
+             [](const auto &/*g*/) -> void { /* do nothing */ });
+        }
+
+        // Skip over the one that matches and should not be dereferenced
+        ++g_idx;
+      }
+    }
+    return res_idx;
   }
 
   int
   add_output_gate(const std::string i)
   { return add_output_gate(find(i)); }
 
+  // TODO: with a 'gvar'
+
 public:
-  // ======================================================================== //
-  // Traverses the circuit in a depth-first order
+  //////////////////////////////////////////////////////////////////////////////
+  /// \brief Traverses the circuit in a depth-first order.
+  //////////////////////////////////////////////////////////////////////////////
   void
-  dfs_trav(const std::function<bool(const int i, const gate &g)> &callback) const
+  dfs_trav(const std::function<bool(const int i, const gate &g)> &callback,
+           const int root_idx) const
   {
     std::vector<bool> visited(m_circuit.size(), false);
-    std::vector<int> dfs = { root_idx() };
+    std::vector<int> dfs = { root_idx };
 
     const auto push_if_unvisited = [&visited, &dfs](const int i) -> void {
       if (visited.at(std::abs(i))) { return; }
@@ -1195,7 +1245,7 @@ public:
       g.match
         ([&push_if_unvisited]
          (const ngate &g) -> void {
-           for (auto g_it = g.lit_list.cbegin(); g_it != g.lit_list.cend(); g_it++) {
+           for (auto g_it = g.lit_list.cbegin(); g_it != g.lit_list.cend(); ++g_it) {
              push_if_unvisited(*g_it);
            }
          },
@@ -1215,6 +1265,33 @@ public:
          },
          [](const auto &/*g*/) -> void { /* do nothing */ });
     }
+  }
+
+  void
+  dfs_trav(const std::function<bool(const int i, const gate &g)> &callback) const
+  {
+    dfs_trav(callback, root_idx());
+  }
+
+public:
+  //////////////////////////////////////////////////////////////////////////////
+  /// \brief Obtain a list of reachable gates indices in depth-first order.
+  //////////////////////////////////////////////////////////////////////////////
+  std::vector<int>
+  reachable(const int root_idx) const
+  {
+    std::vector<int> res;
+    dfs_trav([&res](const int i, const gate &/*g*/) {
+      res.push_back(i);
+        return true;
+    }, root_idx);
+    return res;
+  }
+
+  std::vector<int>
+  reachable() const
+  {
+    return reachable(root_idx());
   }
 
 public:
@@ -1252,6 +1329,15 @@ private:
   {
     if (g.refcount == 0u && !g.is<const_gate>()) { m_roots--; }
     g.refcount++;
+  }
+
+  void
+  __dec_refcount(gate &g)
+  {
+    if (g.refcount == 0u) {
+      throw std::underflow_error("Trying to decrement refcount below 0.");
+    }
+    g.refcount--;
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -1408,7 +1494,7 @@ obtain_var_order<LEVEL>(const qcir &q)
     g.match
       ([&dec_if_var, &depth]
        (const qcir::ngate &g) -> void {
-         for (auto g_it = g.lit_list.cbegin(); g_it != g.lit_list.cend(); g_it++) {
+         for (auto g_it = g.lit_list.cbegin(); g_it != g.lit_list.cend(); ++g_it) {
            dec_if_var(*g_it, depth);
          }
        },
@@ -1477,7 +1563,7 @@ obtain_var_order(const qcir &q, variable_order vo)
 // ========================================================================== //
 // Execution Order
 
-using exe_order = std::vector<size_t>;
+using exe_order = std::vector<int>;
 
 template<variable_order vo>
 exe_order
@@ -1487,11 +1573,8 @@ template<>
 exe_order
 obtain_exe_order<INPUT>(const qcir &q)
 {
-  exe_order res;
-  for (int i = q.begin_idx(); i < q.end_idx(); ++i) {
-    if (q.at(i).refcount == 0u && i != q.root_idx()) { continue; }
-    res.push_back(i);
-  }
+  exe_order res = q.reachable();
+  std::sort(res.begin(), res.end(), std::less<int>());
   return res;
 }
 
@@ -1499,7 +1582,7 @@ template<>
 exe_order
 obtain_exe_order<LEVEL>(const qcir &q)
 {
-  exe_order res = obtain_exe_order<INPUT>(q);
+  exe_order res = q.reachable();
   std::sort(res.begin(),
             res.end(),
             [&q](const int a, const int b) -> bool {

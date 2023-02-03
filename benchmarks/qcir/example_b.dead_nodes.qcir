@@ -1,0 +1,11 @@
+#QCIR-G14
+
+forall(z)
+
+output(g3)
+
+g1 = and(x1, x2, z)
+d1 = xor(x1, z)
+g2 = exists(x1, x2; g1)
+d2 = xor(d1, x2)
+g3 = or(z, g2)
