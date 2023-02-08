@@ -459,7 +459,7 @@ public:
     __push_gate(0u, const_gate(true));
 
     // Sanity Checks
-    assert(m_circuit.size() == 1u + m_size);
+    assert(m_circuit.size() == 3u + m_size);
     assert(m_roots = 0u);
   }
 
