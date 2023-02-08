@@ -1686,7 +1686,9 @@ solve(adapter_t& adapter, qcir& q,
 
   const var_order_map vom = obtain_var_order(q, vo);
 
-  const exe_order exo = obtain_exe_order(q, vo);
+  // TODO: Derive an execution order that minimises the cuts in the graph during
+  //       execution.
+  const exe_order exo = obtain_exe_order(q, variable_order::INPUT);
 
   const time_point t_prep_after = get_timestamp();
 
