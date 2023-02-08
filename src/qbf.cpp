@@ -1661,6 +1661,7 @@ public:
   witness_t witness;
 
   struct stats_t {
+    size_t prenex_time;
     size_t solve_time;
     struct cache_t {
       size_t max_size;
@@ -1737,6 +1738,7 @@ solve(adapter_t& adapter, qcir& q,
   size_t dd_max_size = 0u;
 
   const time_point t_solve_before = get_timestamp();
+  time_point t_prenex_before = t_solve_before;
 
 #ifdef BDD_BENCHMARK_STATS
   INFO("  | Matrix\n");
@@ -1846,8 +1848,9 @@ solve(adapter_t& adapter, qcir& q,
            ? adapter.exists(cache_get(g.lit), vars.crbegin(), vars.crend())
            : adapter.forall(cache_get(g.lit), vars.crbegin(), vars.crend());
        },
-       [&cache_get]
+       [&cache_get, &t_prenex_before]
        (const qcir::output_gate &g) -> typename adapter_t::dd_t {
+         t_prenex_before = get_timestamp();
          return cache_get(g.lit);
        });
 
@@ -1907,6 +1910,7 @@ solve(adapter_t& adapter, qcir& q,
       sat_res,
       witness,
       {
+        duration_of(t_prenex_before, t_solve_after),
         duration_of(t_solve_before, t_solve_after),
         {
           cache_max_size
@@ -1984,6 +1988,7 @@ void run_qbf(int argc, char** argv)
       solve(adapter, q, variable_order);
 
     INFO("  | solving time (ms):   %zu\n", stats.solve_time);
+    INFO("  | prenex time (ms):    %zu\n", stats.prenex_time);
     INFO("  | cache (max):         %zu\n", stats.cache.max_size);
 #ifdef BDD_BENCHMARK_STATS
     INFO("  | DD size (max):       %zu\n", stats.dd.max_size);
