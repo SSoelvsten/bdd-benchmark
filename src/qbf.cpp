@@ -1219,7 +1219,16 @@ public:
 public:
   //////////////////////////////////////////////////////////////////////////////
   /// \brief Traverses the circuit in a depth-first order.
+  ///
+  /// \tparam rtl Whether nodes should be visited in right-to-left order
+  ///             (default: `false`).
+  ///
+  /// \param callback Function to call for each node visited.
+  ///
+  /// \param root_idx Index of the root node to start the depth-first traversal
+  ///                 from (default: `root_idx()`).
   //////////////////////////////////////////////////////////////////////////////
+  template<bool rtl = false>
   void
   dfs_trav(const std::function<bool(const int i, const gate &g)> &callback,
            const int root_idx) const
@@ -1245,15 +1254,21 @@ public:
       g.match
         ([&push_if_unvisited]
          (const ngate &g) -> void {
-           for (auto g_it = g.lit_list.cbegin(); g_it != g.lit_list.cend(); ++g_it) {
-             push_if_unvisited(*g_it);
-           }
+          if constexpr (rtl) {
+            for (auto g_it = g.lit_list.cbegin(); g_it != g.lit_list.cend(); ++g_it) {
+              push_if_unvisited(*g_it);
+            }
+          } else { // if (!rtl)
+            for (auto g_it = g.lit_list.crbegin(); g_it != g.lit_list.crend(); ++g_it) {
+              push_if_unvisited(*g_it);
+            }
+          }
          },
          [&push_if_unvisited]
          (const ite_gate &g) -> void {
-           push_if_unvisited(g.lits[0]);
-           push_if_unvisited(g.lits[1]);
-           push_if_unvisited(g.lits[2]);
+           push_if_unvisited(g.lits[rtl ? 0 : 2]);
+           push_if_unvisited(g.lits[rtl ? 1 : 1]);
+           push_if_unvisited(g.lits[rtl ? 2 : 0]);
          },
          [&push_if_unvisited]
          (const quant_gate &g) -> void {
@@ -1267,10 +1282,11 @@ public:
     }
   }
 
+  template<bool rtl = false>
   void
   dfs_trav(const std::function<bool(const int i, const gate &g)> &callback) const
   {
-    dfs_trav(callback, root_idx());
+    dfs_trav<rtl>(callback, root_idx());
   }
 
 public:
@@ -1402,7 +1418,7 @@ private:
 
 // ========================================================================== //
 // Variable Orders
-enum variable_order { INPUT, DF, LEVEL };
+enum variable_order { INPUT, DF_LTR, DF_RTL, LEVEL };
 
 struct var_order_map
 {
@@ -1431,13 +1447,8 @@ public:
   { return map.size(); }
 };
 
-template<variable_order vo>
 var_order_map
-obtain_var_order(const qcir &q);
-
-template<>
-var_order_map
-obtain_var_order<INPUT>(const qcir &q)
+obtain_var_order__input(const qcir &q)
 {
   var_order_map vom;
   for (size_t x = 0; x < q.vars(); ++x) {
@@ -1446,13 +1457,13 @@ obtain_var_order<INPUT>(const qcir &q)
   return vom;
 }
 
-template<>
+template<bool rtl>
 var_order_map
-obtain_var_order<DF>(const qcir &q)
+obtain_var_order__df(const qcir &q)
 {
   var_order_map res;
 
-  q.dfs_trav([&q, &res](const int /*i*/, const qcir::gate &g) {
+  q.dfs_trav<rtl>([&q, &res](const int /*i*/, const qcir::gate &g) {
     bool keep_running = true;
     g.match
       ([&q, &res, &keep_running](const qcir::var_gate &g)  -> void {
@@ -1465,9 +1476,8 @@ obtain_var_order<DF>(const qcir &q)
   return res;
 }
 
-template<>
 var_order_map
-obtain_var_order<LEVEL>(const qcir &q)
+obtain_var_order__level(const qcir &q)
 {
   // Obtain lowest level something is used.
   std::unordered_map<int, size_t> var_depth;
@@ -1520,7 +1530,7 @@ obtain_var_order<LEVEL>(const qcir &q)
   }
 
   // Order vector of variables
-  const var_order_map tie_breaker = obtain_var_order<DF>(q);
+  const var_order_map tie_breaker = obtain_var_order__df<false>(q);
 
   std::vector<int> vars;
   for (size_t x = 0; x < q.vars(); ++x) {
@@ -1551,12 +1561,14 @@ obtain_var_order(const qcir &q, variable_order vo)
 {
   switch (vo) {
   case INPUT:
-    return obtain_var_order<INPUT>(q);
-  case DF:
-    return obtain_var_order<DF>(q);
-  default:
+    return obtain_var_order__input(q);
   case LEVEL:
-    return obtain_var_order<LEVEL>(q);
+    return obtain_var_order__level(q);
+  case DF_RTL:
+    return obtain_var_order__df<true>(q);
+  default:
+  case DF_LTR:
+    return obtain_var_order__df<false>(q);
   }
 }
 
@@ -1601,7 +1613,8 @@ obtain_exe_order(const qcir &q, variable_order exe_order)
   case INPUT:
     return obtain_exe_order<INPUT>(q);
   default:
-  case DF:
+  case DF_LTR:
+  case DF_RTL:
   case LEVEL:
     return obtain_exe_order<LEVEL>(q);
   }
@@ -1930,18 +1943,23 @@ std::string option_help_str<variable_order>()
 { return "Desired Variable ordering"; }
 
 template<>
-variable_order parse_option(const std::string &arg, bool &should_exit)
+variable_order parse_option(const std::string &ARG, bool &should_exit)
 {
-  const std::string arg_lowered = ascii_tolower(arg);
-  if (arg_lowered == "input" || arg_lowered == "matrix") {
+  const std::string arg = ascii_tolower(ARG);
+
+  if (arg == "input" || arg == "matrix") {
     return variable_order::INPUT;
   }
 
-  if (arg_lowered == "df" || arg_lowered == "depth-first" || arg_lowered == "depth_first") {
-    return variable_order::DF;
+  if (arg == "df" || arg == "df_ltr" || arg == "depth-first" || arg == "depth-first_ltr") {
+    return variable_order::DF_LTR;
   }
 
-  if (arg_lowered == "level" || arg_lowered == "level-df" || arg_lowered == "level_df") {
+  if (arg == "df_rtl" || arg == "depth-first_rtl") {
+    return variable_order::DF_RTL;
+  }
+
+  if (arg == "level" || "level-df") {
     return variable_order::LEVEL;
   }
 

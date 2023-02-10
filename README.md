@@ -309,6 +309,9 @@ during initialisation.
 - `df`/`depth-first`: Order variables based on their first occurence in a
   depth-first traversal of the circuit.
 
+- `df_rtl`/`depth-first_rtl`: Same as `df` but the depth-first traversal is
+  *right-to-left* for each gate in the circuit.
+
 - `level`/`level_df`: Order variables first based on their deepest reference by
   another gate. Ties are broken based on the depth-first (`df`) order.
 
