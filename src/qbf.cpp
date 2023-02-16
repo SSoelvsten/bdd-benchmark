@@ -1681,6 +1681,8 @@ public:
     } cache;
     struct dd_t {
       size_t max_size;
+      size_t matrix_max_size;
+      size_t prenex_max_size;
     } dd;
   } stats;
 };
@@ -1751,6 +1753,8 @@ solve(adapter_t& adapter, qcir& q,
 
   size_t cache_max_size = 0u;
   size_t dd_max_size = 0u;
+  size_t dd_matrix_max_size = 0u;
+  size_t dd_prenex_max_size = 0u;
 
   const time_point t_solve_before = get_timestamp();
   time_point t_prenex_before = t_solve_before;
@@ -1874,6 +1878,11 @@ solve(adapter_t& adapter, qcir& q,
 
     const size_t g_dd_size = adapter.nodecount(g_dd);
     dd_max_size = std::max(dd_max_size, g_dd_size);
+    if (t_prenex_before != t_solve_before) { // Matrix
+      dd_matrix_max_size = std::max(dd_matrix_max_size, g_dd_size);
+    } else { // Prenex
+      dd_prenex_max_size = std::max(dd_prenex_max_size, g_dd_size);
+    }
     INFO("  | | | DD size:         %zu\n", g_dd_size);
 
     INFO("  | | | time (ms):       %zu\n", duration_of(t_start,t_end));
@@ -1931,7 +1940,9 @@ solve(adapter_t& adapter, qcir& q,
           cache_max_size
         },
         {
-          dd_max_size
+          dd_max_size,
+          dd_matrix_max_size,
+          dd_prenex_max_size
         }
       }
     };
@@ -2008,10 +2019,13 @@ void run_qbf(int argc, char** argv)
       solve(adapter, q, variable_order);
 
     INFO("  | solving time (ms):   %zu\n", stats.solve_time);
-    INFO("  | prenex time (ms):    %zu\n", stats.prenex_time);
+    INFO("  | | matrix:            %zu\n", stats.solve_time - stats.prenex_time);
+    INFO("  | | prenex:            %zu\n", stats.prenex_time);
     INFO("  | cache (max):         %zu\n", stats.cache.max_size);
 #ifdef BDD_BENCHMARK_STATS
     INFO("  | DD size (max):       %zu\n", stats.dd.max_size);
+    INFO("  | | matrix:            %zu\n", stats.dd.matrix_max_size);
+    INFO("  | | prenex:            %zu\n", stats.dd.prenex_max_size);
 #endif
 
     if (sat_res) {
