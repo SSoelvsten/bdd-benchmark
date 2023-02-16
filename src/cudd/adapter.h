@@ -159,7 +159,7 @@ public:
   inline std::vector<std::pair<int, char>>
   pickcube(const BDD &b)
   {
-    std::string cudd_res('_', varcount);
+    std::string cudd_res(varcount, '_');
     b.PickOneCube(cudd_res.data());
 
     std::vector<std::pair<int, char>> res;
