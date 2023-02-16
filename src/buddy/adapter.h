@@ -170,9 +170,9 @@ public:
       const bool go_high = sat_high != bddfalse;
       if (sat_low == sat_high) {
         res.push_back({ var, '2' });
-      } else if (sat_high != bddfalse) {
+      } else if (go_high) {
         res.push_back({ var, '1' });
-      } else { // sat_low != bddfalse
+      } else { // !go_high
         res.push_back({ var, '0' });
       }
       sat = go_high ? sat_high : sat_low;
