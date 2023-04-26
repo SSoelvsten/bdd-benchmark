@@ -25,7 +25,7 @@ public:
 
   void print_stats()
   {
-    // Requires the "ADIAR_STATS" and/or "ADIAR_STATS_EXTRA" property to be ON in CMake
+    // Requires the "ADIAR_STATS" property to be ON in CMake
     INFO("\n");
     adiar::adiar_printstat();
   }
