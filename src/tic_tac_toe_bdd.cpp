@@ -36,17 +36,12 @@ typename adapter_t::dd_t construct_is_not_winning(adapter_t &adapter,
   auto no_Xs = adapter.build_node(false);
   auto only_Xs = adapter.build_node(false);
 
-  for (int idx = 4-1; idx >= 0; idx--) {
-    no_Xs = adapter.build_node(line[idx],
-                               no_Xs,
-                               idx == 0 ? only_Xs : adapter.build_node(true));
+  for (size_t idx = 4-1; 0 < idx; idx--) {
+    no_Xs   = adapter.build_node(line[idx], no_Xs, adapter.build_node(true));
 
-    if (idx > 0) {
-      only_Xs = adapter.build_node(line[idx],
-                                   adapter.build_node(true),
-                                   only_Xs);
-    }
+    only_Xs = adapter.build_node(line[idx], adapter.build_node(true), only_Xs);
   }
+  no_Xs = adapter.build_node(line[0], no_Xs, only_Xs);
 
   typename adapter_t::dd_t out = adapter.build();
   total_nodes += adapter.nodecount(out);
