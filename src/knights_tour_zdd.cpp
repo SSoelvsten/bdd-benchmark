@@ -193,8 +193,8 @@ typename adapter_t::dd_t knights_tour_ham_rel(adapter_t &adapter, int t)
 template<typename adapter_t>
 typename adapter_t::dd_t knights_tour_ham(adapter_t &adapter, int r, int c)
 {
-  auto out_never = adapter.build_node(false);
   auto out_once = adapter.build_node(true);
+  auto out_never = adapter.build_node(false);
 
   for (int this_t = MAX_TIME(); this_t >= 0; this_t--) {
     for (int this_r = MAX_ROW(); this_r >= 0; this_r--) {
