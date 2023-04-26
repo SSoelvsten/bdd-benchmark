@@ -460,7 +460,7 @@ public:
 
     // Sanity Checks
     assert(m_circuit.size() == 3u + m_size);
-    assert(m_roots = 0u);
+    assert(m_roots == 0u);
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -1372,8 +1372,6 @@ private:
   size_t
   __push_gate(const size_t d, const gate_t& g)
   {
-    assert(g.refcount == 0u);
-
     const size_t idx = m_circuit.size();
     m_circuit.push_back(gate(d, g));
 
