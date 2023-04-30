@@ -11,6 +11,7 @@ protected:
   {
     const size_t memory_bytes = static_cast<size_t>(M) * 1024u * 1024u;
     adiar::adiar_init(memory_bytes, temp_path);
+    adiar::adiar_set_domain(vc);
   }
 
   ~adiar_adapter()
@@ -49,15 +50,11 @@ public:
   // BDD Operations
 public:
   inline adiar::bdd
-  leaf(bool val)
-  { return adiar::bdd_terminal(val); }
-
-  inline adiar::bdd
-  leaf_true()
+  top()
   { return adiar::bdd_true(); }
 
   inline adiar::bdd
-  leaf_false()
+  bot()
   { return adiar::bdd_false(); }
 
   inline adiar::bdd
@@ -161,8 +158,17 @@ public:
 
   // ZDD Operations
 public:
+  inline adiar::zdd top()
+  { return adiar::zdd_powerset(adiar::adiar_get_domain()); }
+
+  inline adiar::zdd bot()
+  { return adiar::zdd_empty(); }
+
   inline adiar::zdd ithvar(int i)
   { return adiar::zdd_ithvar(i); }
+
+  inline adiar::zdd negate(const adiar::zdd &z)
+  { return ~z; }
 
   inline uint64_t nodecount(const adiar::zdd &z)
   { return adiar::zdd_nodecount(z); }

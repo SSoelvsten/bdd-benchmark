@@ -83,6 +83,11 @@ macro(link_bdd_extra NAME LIB_NAME)
   target_link_libraries(sylvan_${NAME}_bdd PRIVATE ${LIB_NAME})
 endmacro(link_bdd_extra)
 
+macro(link_zdd_extra NAME LIB_NAME)
+  target_link_libraries(adiar_${NAME}_zdd  PRIVATE ${LIB_NAME})
+  target_link_libraries(cudd_${NAME}_zdd   PRIVATE ${LIB_NAME})
+endmacro(link_zdd_extra)
+
 # ---------------------------------------------------------------------------- #
 # Combinatorial Benchmarks
 add_bdd_benchmark(queens)
@@ -97,5 +102,7 @@ add_zdd_benchmark(knights_tour)
 # Verification
 add_bdd_benchmark(picotrav)
 link_bdd_extra(picotrav libblifparse)
+add_zdd_benchmark(picotrav)
+link_zdd_extra(picotrav libblifparse)
 
 add_bdd_benchmark(qbf)

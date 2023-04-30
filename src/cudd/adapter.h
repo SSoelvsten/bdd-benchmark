@@ -91,7 +91,7 @@ public:
   typedef BDD build_node_t;
 
 private:
-  BDD _latest_build;
+  BDD __latest_build;
 
   // Init and Deinit
 public:
@@ -99,29 +99,26 @@ public:
   { // Disable dynamic ordering
     __mgr.AutodynDisable();
 
-    _latest_build = leaf_false();
+    __latest_build = bot();
   }
 
 private:
   template<typename IT>
   inline BDD make_cube(IT rbegin, IT rend)
   {
-    BDD res = leaf_true();
+    BDD res = top();
     while (rbegin != rend) {
-      res = __mgr.bddVar(*(rbegin++)).Ite(res, leaf_false());
+      res = __mgr.bddVar(*(rbegin++)).Ite(res, bot());
     }
     return res;
   }
 
   // BDD Operations
 public:
-  inline BDD leaf(bool val)
-  { return val ? leaf_true() : leaf_false(); }
-
-  inline BDD leaf_true()
+  inline BDD top()
   { return __mgr.bddOne(); }
 
-  inline BDD leaf_false()
+  inline BDD bot()
   { return __mgr.bddZero(); }
 
   inline BDD ithvar(int label)
@@ -177,21 +174,21 @@ public:
 public:
   inline BDD build_node(const bool value)
   {
-    const BDD res = value ? leaf_true() : leaf_false();
-    if (_latest_build == leaf_false()) { _latest_build = res; }
+    const BDD res = value ? top() : bot();
+    if (__latest_build == bot()) { __latest_build = res; }
     return res;
   }
 
   inline BDD build_node(const int label, const BDD &low, const BDD &high)
   {
-    _latest_build = __mgr.makeBddNode(label, high, low);
-    return _latest_build;
+    __latest_build = __mgr.makeBddNode(label, high, low);
+    return __latest_build;
   }
 
   inline BDD build()
   {
-    const BDD res = _latest_build;
-    _latest_build = leaf_false(); // <-- Reset and free builder reference
+    const BDD res = __latest_build;
+    __latest_build = bot(); // <-- Reset and free builder reference
     return res;
   }
 };
@@ -204,7 +201,10 @@ public:
   typedef ZDD build_node_t;
 
 private:
-  ZDD _latest_build;
+  ZDD __leaf0;
+  ZDD __leaf1;
+
+  ZDD __latest_build;
 
   // Init and Deinit
 public:
@@ -212,19 +212,24 @@ public:
   { // Disable dynamic ordering
     __mgr.AutodynDisableZdd();
 
-    _latest_build = leaf_false();
+    __leaf0 = __mgr.zddZero();
+    __leaf1 = __mgr.zddOne(std::numeric_limits<int>::max());
+    __latest_build = __mgr.zddZero();
   }
 
   // ZDD Operations
 public:
-  inline ZDD leaf_true()
-  { return __mgr.zddOne(std::numeric_limits<int>::max()); }
+  inline ZDD top()
+  { return __mgr.zddOne(0); }
 
-  inline ZDD leaf_false()
-  { return __mgr.zddZero(); }
+  inline ZDD bot()
+  { return __leaf0; }
 
-  inline ZDD ithvar(int label)
-  { return __mgr.makeZddNode(label, leaf_false(), leaf_true()); }
+  inline ZDD ithvar(const int i)
+  { return __mgr.zddVar(i); }
+
+  inline ZDD negate(const ZDD &z)
+  { return top() - z; }
 
   inline uint64_t nodecount(const ZDD &b)
   { return b.nodeCount(); }
@@ -236,21 +241,20 @@ public:
 public:
   inline ZDD build_node(const bool value)
   {
-    const ZDD res = value ? leaf_true() : leaf_false();
-    if (_latest_build == leaf_false()) { _latest_build = res; }
+    const ZDD res = value ? __leaf1 : __leaf0;
+    if (__latest_build == __leaf0) { __latest_build = res; }
     return res;
   }
 
   inline ZDD build_node(const int label, const ZDD &low, const ZDD &high)
   {
-    _latest_build = __mgr.makeZddNode(label, high, low);
-    return _latest_build;
+    return __latest_build = __mgr.makeZddNode(label, high, low);
   }
 
   inline ZDD build()
   {
-    const ZDD res = _latest_build;
-    _latest_build = leaf_false(); // <-- Reset and free builder reference
+    const ZDD res = __latest_build;
+    __latest_build = __leaf0; // <-- Reset and free builder reference
     return res;
   }
 };

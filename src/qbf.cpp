@@ -1777,7 +1777,7 @@ solve(adapter_t& adapter, qcir& q,
     const typename adapter_t::dd_t g_dd = g.match
       ([&adapter]
        (const qcir::const_gate &g) -> typename adapter_t::dd_t {
-        return adapter.leaf(g.val);
+        return g.val ? adapter.top() : adapter.bot();
        },
        [&adapter, &vom]
        (const qcir::var_gate &g)  -> typename adapter_t::dd_t {
@@ -1912,9 +1912,9 @@ solve(adapter_t& adapter, qcir& q,
   solve_res::sat_res_t sat_res;
   solve_res::witness_t witness;
 
-  if (res == adapter.leaf_false()) {
+  if (res == adapter.bot()) {
     sat_res = false;
-  } else if (res == adapter.leaf_true()) {
+  } else if (res == adapter.top()) {
     sat_res = true;
   } else { // res == non-leaf
     sat_res = root_quant == qcir::quant_gate::EXISTS;
