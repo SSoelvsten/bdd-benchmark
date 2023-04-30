@@ -30,6 +30,10 @@
 #include <stdexcept>
 #include <utility>
 
+// https://en.cppreference.com/w/cpp/utility/variant/visit
+template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
+template<class... Ts> overload(Ts...) -> overload<Ts...>;
+
 // ========================================================================== //
 // QCir Class and Construction
 
@@ -298,10 +302,6 @@ public:
   public:
     using variant_t =
       std::variant<const_gate, var_gate, ngate, ite_gate, quant_gate, output_gate>;
-
-    // https://en.cppreference.com/w/cpp/utility/variant/visit
-    template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
-    template<class... Ts> overload(Ts...) -> overload<Ts...>;
 
   public:
     ////////////////////////////////////////////////////////////////////////////
