@@ -63,7 +63,7 @@ public:
     sylvan::sylvan_init_package();
     sylvan::sylvan_init_bdd();
 
-    _latest_build = leaf_false();
+    _latest_build = bot();
   }
 
   ~sylvan_bdd_adapter()
@@ -76,22 +76,19 @@ private:
   template<typename IT>
   inline sylvan::Bdd make_cube(IT rbegin, IT rend)
   {
-    sylvan::Bdd res = leaf_true();
+    sylvan::Bdd res = top();
     while (rbegin != rend) {
-      res = sylvan::Bdd::bddVar(*(rbegin++)).Ite(res, leaf_false());
+      res = sylvan::Bdd::bddVar(*(rbegin++)).Ite(res, bot());
     }
     return res;
   }
 
   // BDD Operations
 public:
-  inline sylvan::Bdd leaf(bool val)
-  { return val ? leaf_true() : leaf_false(); }
-
-  inline sylvan::Bdd leaf_true()
+  inline sylvan::Bdd top()
   { return sylvan::Bdd::bddOne(); }
 
-  inline sylvan::Bdd leaf_false()
+  inline sylvan::Bdd bot()
   { return sylvan::Bdd::bddZero(); }
 
   inline sylvan::Bdd ithvar(int label)
@@ -156,8 +153,8 @@ public:
 public:
   inline sylvan::Bdd build_node(const bool value)
   {
-    const sylvan::Bdd res = value ? leaf_true() : leaf_false();
-    if (_latest_build == leaf_false()) { _latest_build = res; }
+    const sylvan::Bdd res = value ? top() : bot();
+    if (_latest_build == bot()) { _latest_build = res; }
     return res;
   }
 
@@ -172,7 +169,7 @@ public:
   inline sylvan::Bdd build()
   {
     const sylvan::Bdd res = _latest_build;
-    _latest_build = leaf_false(); // <-- Reset and free builder reference
+    _latest_build = bot(); // <-- Reset and free builder reference
     return res;
   }
 

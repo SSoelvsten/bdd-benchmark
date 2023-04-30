@@ -574,12 +574,12 @@ typename adapter_t::dd_t construct_node_bdd(net_t &net,
   assert (net.nodes.find(node_name) != net.nodes.end());
   const node_t &node_data = net.nodes.find(node_name) -> second;
 
-  typename adapter_t::dd_t so_cover_bdd = adapter.leaf_false();
+  typename adapter_t::dd_t so_cover_bdd = adapter.bot();
   size_t so_nodecount = adapter.nodecount(so_cover_bdd);
   assert(so_nodecount == 0);
 
   for (size_t row_idx = 0; row_idx < node_data.so_cover.size(); row_idx++) {
-    typename adapter_t::dd_t tmp = adapter.leaf_true();
+    typename adapter_t::dd_t tmp = adapter.top();
 
     for (size_t column_idx = 0; column_idx < node_data.nets.size(); column_idx++) {
       const std::string &dep_name = node_data.nets.at(column_idx);
@@ -590,6 +590,7 @@ typename adapter_t::dd_t construct_node_bdd(net_t &net,
       switch (lval) {
       case logic_value::FALSE:
         tmp &= adapter.negate(dep_bdd);
+        // TODO (ZDD): intermediate size of negation
         {
           const size_t tmp_nodecount = adapter.nodecount(tmp);
           stats.total_processed += tmp_nodecount;
@@ -649,10 +650,8 @@ typename adapter_t::dd_t construct_node_bdd(net_t &net,
   if (!node_data.is_onset) {
     so_cover_bdd = adapter.negate(so_cover_bdd);
 
-    // count negation
-    // stats.sum_bdd_sizes += stats.curr_bdd_sizes;
-    // stats.max_allocated = std::max(stats.max_allocated, adapter.allocated_nodes());
-    // stats.sum_allocated += adapter.allocated_nodes();
+    stats.total_negations++;
+    // TODO (ZDD): remaining statistics
   }
 
   cache.insert({ node_name, so_cover_bdd });

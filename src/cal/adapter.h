@@ -26,7 +26,7 @@ public:
     // Disable dynamic variable reordering
     __mgr.DynamicReordering(Cal::ReorderTechnique::NONE);
 
-    _latest_build = leaf_false();
+    _latest_build = bot();
   }
 
   ~cal_bdd_adapter()
@@ -34,13 +34,10 @@ public:
 
   // BDD Operations
  public:
-  inline BDD leaf(bool val)
-  { return val ? leaf_true() : leaf_false(); }
-
-  inline BDD leaf_true()
+  inline BDD top()
   { return __mgr.One(); }
 
-  inline BDD leaf_false()
+  inline BDD bot()
   { return __mgr.Zero(); }
 
   inline BDD ithvar(int i)
@@ -97,8 +94,8 @@ public:
 public:
   inline BDD build_node(const bool value)
   {
-    const BDD res = value ? leaf_true() : leaf_false();
-    if (_latest_build == leaf_false()) { _latest_build = res; }
+    const BDD res = value ? top() : bot();
+    if (_latest_build == bot()) { _latest_build = res; }
     return res;
   }
 
@@ -111,7 +108,7 @@ public:
   inline BDD build()
   {
     const BDD res = _latest_build;
-    _latest_build = leaf_false(); // <-- Reset and free builder reference
+    _latest_build = bot(); // <-- Reset and free builder reference
     return res;
   }
 

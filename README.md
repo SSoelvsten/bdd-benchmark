@@ -16,7 +16,7 @@ one to compare implementations.
         - [Queens [BDD, ZDD]](#queens-bdd-zdd)
         - [Tic-Tac-Toe [BDD, ZDD]](#tic-tac-toe-bdd-zdd)
     - [Verification](#verification)
-        - [Picotrav [BDD]](#picotrav-bdd)
+        - [Picotrav [BDD, ZDD]](#picotrav-bdd-zdd)
         - [QBF Solver [BDD]](#qbf-solver-bdd)
     - [License](#license)
     - [References](#references)
@@ -30,7 +30,7 @@ libraries.
 - [**Adiar**](https://github.com/ssoelvsten/adiar):
   An I/O Efficient implementation with iterative algorithms using priority
   queues to exploit a special sorting of BDD nodes streamed from and to the
-  disk. These algorithms have no need for memoization or garbage collection, 
+  disk. These algorithms have no need for memoization or garbage collection,
   but, on the other hand, nodes are also not shareable between BDDs.
 
 
@@ -256,7 +256,7 @@ intermediate result.
 
 ## Verification
 
-### Picotrav [BDD]
+### Picotrav [BDD, ZDD]
 This benchmark is a small recreation of the *Nanotrav* example provided with the
 CUDD library [[Somenzi2015](#references)]. Given a hierarchical circuit in (a
 subset of the) [Berkeley Logic Interchange Format

@@ -41,7 +41,7 @@ build:
 	@cd build/ && for package in 'adiar' 'cudd' ; do \
 		mkdir -p ../out/$$package ; \
 		mkdir -p ../out/$$package/zdd ; \
-		for benchmark in 'knights_tour' 'queens' 'tic_tac_toe' ; do \
+		for benchmark in 'picotrav' 'knights_tour' 'queens' 'tic_tac_toe' ; do \
 			make ${MAKE_FLAGS} $$package'_'$$benchmark'_zdd' ; \
 		done ; \
 	done
@@ -130,7 +130,7 @@ help:
 	@echo "   | Number of crosses placed, i.e. count in a cube with (64-N) noughts."
 
 	@echo ""
-	@echo "verification/picotrav/[bdd]"
+	@echo "verification/picotrav/[bdd,zdd]"
 	@echo "   Build BDDs that describe the output gates of circuits in a '.blif' format to"
 	@echo "   then verify whether two circuits are functionally equivalent."
 	@echo ""
@@ -216,6 +216,12 @@ verification/picotrav/bdd: F1 := "benchmarks/picotrav/not_a.blif"
 verification/picotrav/bdd: F2 := "benchmarks/picotrav/not_b.blif"
 verification/picotrav/bdd:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_picotrav_bdd -f $(F1) -f $(F2) -M $(M) -o $(O) | tee -a out/VARIANT/bdd/picotrav.out)
+
+verification/picotrav/zdd: O := "INPUT"
+verification/picotrav/zdd: F1 := "benchmarks/picotrav/not_a.blif"
+verification/picotrav/zdd: F2 := "benchmarks/picotrav/not_b.blif"
+verification/picotrav/zdd:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_picotrav_zdd -f $(F1) -f $(F2) -M $(M) -o $(O) | tee -a out/VARIANT/zdd/picotrav.out)
 
 verification/qbf:
 	$(MAKE) verification/qbf/bdd

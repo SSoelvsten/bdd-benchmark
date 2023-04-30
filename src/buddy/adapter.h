@@ -94,7 +94,7 @@ public:
     // Disable dynamic variable reordering
     bdd_disable_reorder();
 
-    _latest_build = leaf_false();
+    _latest_build = bot();
   }
 
   ~buddy_bdd_adapter()
@@ -106,22 +106,19 @@ private:
   template<typename IT>
   inline bdd make_cube(IT rbegin, IT rend)
   {
-    bdd res = leaf_true();
+    bdd res = top();
     while (rbegin != rend) {
-      res = bdd_ite(bdd_ithvar(*(rbegin++)), res, leaf_false());
+      res = bdd_ite(bdd_ithvar(*(rbegin++)), res, bot());
     }
     return res;
   }
 
   // BDD Operations
 public:
-  inline bdd leaf(bool val)
-  { return val ? leaf_true() : leaf_false(); }
-
-  inline bdd leaf_true()
+  inline bdd top()
   { return bddtrue; }
 
-  inline bdd leaf_false()
+  inline bdd bot()
   { return bddfalse; }
 
   inline bdd ithvar(int label)
@@ -184,8 +181,8 @@ public:
 public:
   inline bdd build_node(const bool value)
   {
-    const bdd res = value ? leaf_true() : leaf_false();
-    if (_latest_build == leaf_false()) { _latest_build = res; }
+    const bdd res = value ? top() : bot();
+    if (_latest_build == bot()) { _latest_build = res; }
     return res;
   }
 
@@ -198,7 +195,7 @@ public:
   inline bdd build()
   {
     const bdd res = _latest_build;
-    _latest_build = leaf_false(); // <-- Reset and free builder reference
+    _latest_build = bot(); // <-- Reset and free builder reference
     return res;
   }
 
