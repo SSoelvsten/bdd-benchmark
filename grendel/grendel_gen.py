@@ -211,10 +211,10 @@ CIRCUIT_PROBLEMS = [
     ]
 ]
 
-def script_str_picotrav(variant, problem_name, file_1, file_2, sylvan_M, time, variable_order):
+def script_str_picotrav(variant, dd_type, problem_name, file_1, file_2, sylvan_M, time, variable_order):
     settings = sbatch_str(f'{variant}_{problem_name}', time)
 
-    output_dir = f'$SLURM_SUBMIT_DIR/out/picotrav_bdd/{variant}'
+    output_dir = f'$SLURM_SUBMIT_DIR/out/picotrav_{dd_type}/{variant}'
     output_file = f'{output_dir}/{problem_name}.out'
 
     input_dir = f'$SLURM_SUBMIT_DIR/benchmarks/epfl'
@@ -235,7 +235,7 @@ echo -e "\\n=========  Started `date`  ==========\\n" | tee -a {output_file}
 {ENV_SETUP}
 
 cd $SLURM_SUBMIT_DIR/build/src/
-./{variant}_picotrav_bdd -f {input_file_1} -f {input_file_2} -M {memory} -o {variable_order} -t /scratch/$SLURM_JOB_ID 2>&1 | tee -a {output_file}
+./{variant}_picotrav_{dd_type} -f {input_file_1} -f {input_file_2} -M {memory} -o {variable_order} -t /scratch/$SLURM_JOB_ID 2>&1 | tee -a {output_file}
 
 echo -e "\\nexit code: "$? | tee -a {output_file}
 
@@ -247,7 +247,7 @@ echo -e "\\n========= Finished `date` ==========\\n" | tee -a {output_file}
 # =========================================================================== #
 
 BENCHMARKS_BDD = ["picotrav_bdd"] + [p[0] for p in N_PROBLEMS_BDD]
-BENCHMARKS_ZDD = [p[0] for p in N_PROBLEMS_ZDD]
+BENCHMARKS_ZDD = ["picotrav_zdd"] + [p[0] for p in N_PROBLEMS_ZDD]
 
 def script_str_build():
     settings = sbatch_str("bdd_benchmarks_build", "00-00:30")
@@ -335,11 +335,18 @@ for variant in VARIANTS_BDD:
                 time = instance_a[2][0 if instance_b == "size" else 1]
                 variable_order = instance_a[3]
 
-                filename = f"{variant}_{circuit_type}_{instance_a[0]}_{instance_b}.sh"
-                os.system(f"rm -f {filename} && touch {filename}")
+                filename_bdd = f"{variant}_{circuit_type}_bdd_{instance_a[0]}_{instance_b}.sh"
+                os.system(f"rm -f {filename_bdd} && touch {filename_bdd}")
 
-                with open(filename, "w") as file:
-                    file.write(script_str_picotrav(variant, problem_name, file_1, file_2, sylvan_M, time, variable_order))
+                with open(filename_bdd, "w") as file:
+                    file.write(script_str_picotrav(variant, "bdd", problem_name, file_1, file_2, sylvan_M, time, variable_order))
+
+                if variant in VARIANTS_ZDD:
+                    filename_zdd = f"{variant}_{circuit_type}_zdd_{instance_a[0]}_{instance_b}.sh"
+                    os.system(f"rm -f {filename_zdd} && touch {filename_zdd}")
+
+                    with open(filename_zdd, "w") as file:
+                        file.write(script_str_picotrav(variant, "zdd", problem_name, file_1, file_2, sylvan_M, time, variable_order))
 
 for variant in VARIANTS_ZDD:
     for problem in N_PROBLEMS_ZDD:
