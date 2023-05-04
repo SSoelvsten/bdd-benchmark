@@ -1,4 +1,4 @@
-.PHONY: build clean help grendel
+.PHONY: build clean help
 
 MAKE_FLAGS=-j $$(nproc)
 
