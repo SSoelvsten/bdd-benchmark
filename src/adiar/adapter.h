@@ -112,14 +112,9 @@ public:
   {
     std::vector<std::pair<int, char>> res;
 
-    const auto satmin = adiar::bdd_satmin(b);
-    adiar::file_stream<adiar::map_pair<adiar::bdd::label_t, adiar::boolean>> s(satmin);
-    while (s.can_pull()) {
-      const auto p = s.pull();
-      const char val_char = '0' + p.is_true();
-
-      res.push_back(std::make_pair(p.key(), val_char));
-    }
+    adiar::bdd_satmin(b, [&res](const size_t x, const bool v) {
+      res.push_back(std::make_pair(x, '0' + v));
+    });
 
     return res;
   }
