@@ -40,12 +40,12 @@ When the build is complete, then you can schedule all the generated shell files
 from the root directory of this repository with
 
 ```bash
-for f in grendel/*_*_*.sh; do sbatch -p q48 $f; done
+for f in grendel/benchmarks_*.sh; do sbatch -p q48 $f; done
 ```
 
-Or with `grendel/<package>_*_*.sh` or `grendel/*_<benchmark>_*.sh` one
-can schedule only a particular subset of them to be run. The output of these
-runs will be appended to files at `/out/<benchmark>/<package>/<instance>.out`.
+The name of the files `grendel/benchmarks_*.sh` have `*` be the time limit.
+Hence by specifying `grendel/benchmarks_00-*.sh*` you can choose to only
+schedule the jobs with a time limit of less than a single day.
 
 ## Checking Current Jobs
 
@@ -53,7 +53,7 @@ To see the full list of all your jobs including the full name of each job, run
 the following command.
 
 ```bash
-squeue --me --format "%i  %t   %j" 
+squeue --me --format "%i  %t   %j"
 ```
 
 ## Download Output to your Local Machine
