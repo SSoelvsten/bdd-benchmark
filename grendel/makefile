@@ -5,4 +5,5 @@ build: | clean
 	@chmod a+x *.sh
 
 clean:
+	@rm -f *.awk
 	@rm -f *.sh
