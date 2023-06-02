@@ -1,265 +1,414 @@
+# =========================================================================== #
+# BDD Packages and their supported Diagrams.
+# =========================================================================== #
+from enum import Enum
+
+dd_t = Enum('dd_t', ['bdd', 'zdd'])
+package_t = Enum('package_t', ['adiar', 'buddy', 'cal', 'cudd', 'sylvan'])
+
+package_features = {
+    package_t.adiar  : [dd_t.bdd, dd_t.zdd],
+    package_t.buddy  : [dd_t.bdd],
+    package_t.cal    : [dd_t.bdd],
+    package_t.cudd   : [dd_t.bdd, dd_t.zdd],
+    package_t.sylvan : [dd_t.bdd]
+}
+
+bdd_packages = [p for p in package_t if dd_t.bdd in package_features[p]]
+zdd_packages = [p for p in package_t if dd_t.zdd in package_features[p]]
+
+print("Implementations")
+print("  BDD:", list(map(lambda p : p.name, bdd_packages)))
+print("  ZDD:", list(map(lambda p : p.name, zdd_packages)))
+
+# =========================================================================== #
+# Benchmark Instances
+# =========================================================================== #
+
+# --------------------------------------------------------------------------- #
+# For the Picotrav benchmarks, we need to obtain the 'depth' and 'size'
+# optimised circuit for each of the given spec circuits.
+# --------------------------------------------------------------------------- #
 import os
 
-VARIANTS_BDD = ["adiar", "buddy", "cudd", "sylvan"]
-VARIANTS_ZDD = ["adiar", "cudd"]
+epfl_spec_t    = Enum('epfl_spec_t',    ['arithmetic', 'random_control'])
+epfl_opt_t     = Enum('epfl_opt_t',     ['depth', 'size'])
+picotrav_opt_t = Enum('picotrav_opt_t', ['DFS', 'INPUT', 'LEVEL', 'LEVEL_DFS', 'RANDOM'])
+
+def picotrav__spec(spec_t, circuit_name):
+    return f"benchmarks/epfl/{spec_t.name}/{circuit_name}.blif"
+
+def picotrav__opt(opt_t, circuit_name):
+    circuit_file = [f for f
+                      in os.listdir(f"../benchmarks/epfl/best_results/{opt_t.name}")
+                      if f.startswith(circuit_name)][0]
+    return f"benchmarks/epfl/best_results/{opt_t.name}/{circuit_file}"
+
+def picotrav__args(spec_t, opt_t, circuit_name, picotrav_opt):
+    return f"-o {picotrav_opt.name} -f {picotrav__spec(spec_t, circuit_name)} -f {picotrav__opt(opt_t, circuit_name)}"
+
+# --------------------------------------------------------------------------- #
+# Since we are testing BDD packages over such a wide spectrum, we have some
+# instances that require several days of computaiton time (closing into the 15
+# days time limit of the q48 nodes). Yet, the SLURM scheduler does (for good
+# reason) not give high priority to jobs with a 15 days time limit. Hence, for
+# every instance we should try and schedule it with a time limit that reflects
+# the actual computation time(ish).
+#
+# The following is a list of all instances including their timings.
+# --------------------------------------------------------------------------- #
+BENCHMARKS = {
+    # Benchmark Name
+    #    dd_t
+    #        Time Limit, Benchmark Arguments
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  #
+    #        [DD,HH,MM], "-? ..."
+    # ------------------------------------------------------------------------ #
+
+    # --------------------------------------------------------------------------
+    "queens": {
+        dd_t.bdd: [
+            [ [ 0, 0,10], "-N 4"  ],
+            [ [ 0, 0,10], "-N 5"  ],
+            [ [ 0, 0,10], "-N 6"  ],
+            [ [ 0, 0,10], "-N 7"  ],
+            [ [ 0, 0,10], "-N 8"  ],
+            [ [ 0, 0,10], "-N 9"  ],
+            [ [ 0, 0,10], "-N 10" ],
+            [ [ 0, 0,30], "-N 11" ],
+            [ [ 0, 1, 0], "-N 12" ],
+            [ [ 0, 2, 0], "-N 13" ],
+            [ [ 0, 3, 0], "-N 14" ],
+            [ [ 0, 3, 0], "-N 15" ],
+            [ [ 0,20, 0], "-N 16" ],
+            [ [ 9, 0, 0], "-N 17" ],
+         ],
+        dd_t.zdd: [
+            [ [ 0, 0,10], "-N 4"  ],
+            [ [ 0, 0,10], "-N 5"  ],
+            [ [ 0, 0,10], "-N 6"  ],
+            [ [ 0, 0,10], "-N 7"  ],
+            [ [ 0, 0,10], "-N 8"  ],
+            [ [ 0, 0,10], "-N 9"  ],
+            [ [ 0, 0,10], "-N 10" ],
+            [ [ 0, 0,30], "-N 11" ],
+            [ [ 0, 1, 0], "-N 12" ],
+            [ [ 0, 2, 0], "-N 13" ],
+            [ [ 0, 3, 0], "-N 14" ],
+            [ [ 0, 3, 0], "-N 15" ],
+            [ [ 0,20, 0], "-N 16" ],
+            [ [ 3, 0, 0], "-N 17" ],
+            [ [15, 0, 0], "-N 18" ],
+        ]
+    },
+    # --------------------------------------------------------------------------
+    "tic_tac_toe": {
+        dd_t.bdd: [
+            [ [ 0, 0,10], "-N 13" ],
+            [ [ 0, 0,10], "-N 14" ],
+            [ [ 0, 0,10], "-N 15" ],
+            [ [ 0, 0,10], "-N 16" ],
+            [ [ 0, 0,10], "-N 17" ],
+            [ [ 0, 0,10], "-N 18" ],
+            [ [ 0, 0,10], "-N 19" ],
+            [ [ 0, 0,10], "-N 20" ],
+            [ [ 0, 0,30], "-N 21" ],
+            [ [ 0, 2, 0], "-N 22" ],
+            [ [ 0, 4, 0], "-N 23" ],
+            [ [ 0,12, 0], "-N 24" ],
+            [ [ 1,12, 0], "-N 25" ],
+            [ [ 4, 0, 0], "-N 26" ],
+            [ [ 6, 0, 0], "-N 27" ],
+            [ [ 8, 0, 0], "-N 28" ],
+            [ [15,00, 0], "-N 29" ],
+        ],
+        dd_t.zdd: [
+            [ [ 0, 0,10], "-N 13" ],
+            [ [ 0, 0,10], "-N 14" ],
+            [ [ 0, 0,10], "-N 15" ],
+            [ [ 0, 0,10], "-N 16" ],
+            [ [ 0, 0,10], "-N 17" ],
+            [ [ 0, 0,10], "-N 18" ],
+            [ [ 0, 0,10], "-N 19" ],
+            [ [ 0, 0,10], "-N 20" ],
+            [ [ 0, 0,30], "-N 21" ],
+            [ [ 0, 2, 0], "-N 22" ],
+            [ [ 0, 4, 0], "-N 23" ],
+            [ [ 0,12, 0], "-N 24" ],
+            [ [ 1,12, 0], "-N 25" ],
+            [ [ 4, 0, 0], "-N 26" ],
+            [ [ 6, 0, 0], "-N 27" ],
+            [ [ 9, 0, 0], "-N 28" ],
+            [ [15,00, 0], "-N 29" ],
+        ]
+    },
+    # --------------------------------------------------------------------------
+    "knights_tour": {
+        dd_t.zdd: [
+            # Open Tours
+            [ [ 0, 0,10], "-o OPEN -N 1" ],
+            [ [ 0, 0,10], "-o OPEN -N 2" ],
+            [ [ 0, 0,10], "-o OPEN -N 3" ],
+            [ [ 0, 0,10], "-o OPEN -N 4" ],
+            [ [ 0, 0,10], "-o OPEN -N 5" ],
+            [ [ 0, 0,10], "-o OPEN -N 6" ],
+            [ [ 0, 0,10], "-o OPEN -N 7" ],
+            [ [ 0, 0,10], "-o OPEN -N 8" ],
+            [ [ 0, 0,10], "-o OPEN -N 9" ],
+            [ [ 0, 0,10], "-o OPEN -N 1" ],
+            [ [ 0, 1, 0], "-o OPEN -N 1" ],
+            [ [ 0, 4, 0], "-o OPEN -N 1" ],
+            [ [ 8, 0, 0], "-o OPEN -N 1" ],
+            [ [15, 0, 0], "-o OPEN -N 1" ],
+            [ [15, 0, 0], "-o OPEN -N 1" ],
+            [ [15, 0, 0], "-o OPEN -N 1" ],
+            # Closed Tours
+            [ [ 0, 0,10], "-o CLOSED -N 1" ],
+            [ [ 0, 0,10], "-o CLOSED -N 2" ],
+            [ [ 0, 0,10], "-o CLOSED -N 3" ],
+            [ [ 0, 0,10], "-o CLOSED -N 4" ],
+            [ [ 0, 0,10], "-o CLOSED -N 5" ],
+            [ [ 0, 0,10], "-o CLOSED -N 6" ],
+            [ [ 0, 0,10], "-o CLOSED -N 7" ],
+            [ [ 0, 0,10], "-o CLOSED -N 8" ],
+            [ [ 0, 0,10], "-o CLOSED -N 9" ],
+            [ [ 0, 0,10], "-o CLOSED -N 1" ],
+            [ [ 0, 0,10], "-o CLOSED -N 1" ],
+            [ [ 0, 0,30], "-o CLOSED -N 1" ],
+            [ [ 0, 2, 0], "-o CLOSED -N 1" ],
+            [ [ 0, 0,10], "-o CLOSED -N 1" ],
+            [ [15, 0, 0], "-o CLOSED -N 1" ],
+            [ [15, 0, 0], "-o CLOSED -N 1" ],
+        ]
+    },
+    # --------------------------------------------------------------------------
+    "picotrav": {
+        dd_t.bdd: [
+            # arithmetic
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "adder",      picotrav_opt_t.LEVEL_DFS) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "adder",      picotrav_opt_t.LEVEL_DFS) ],
+            [ [ 5, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "bar",        picotrav_opt_t.LEVEL_DFS) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "bar",        picotrav_opt_t.LEVEL_DFS) ],
+            [ [15, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "div",        picotrav_opt_t.LEVEL_DFS) ],
+            [ [15, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "div",        picotrav_opt_t.LEVEL_DFS) ],
+            [ [15, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "log2",       picotrav_opt_t.LEVEL_DFS) ],
+            [ [15, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "log2",       picotrav_opt_t.LEVEL_DFS) ],
+            [ [15, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "max",        picotrav_opt_t.LEVEL_DFS) ],
+            [ [ 6,12, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "max",        picotrav_opt_t.LEVEL_DFS) ],
+            [ [15, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "multiplier", picotrav_opt_t.LEVEL_DFS) ],
+            [ [15, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "multiplier", picotrav_opt_t.LEVEL_DFS) ],
+            [ [ 0, 3, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "sin",        picotrav_opt_t.LEVEL_DFS) ],
+            [ [ 5, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "sin",        picotrav_opt_t.LEVEL_DFS) ],
+            [ [15, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "sqrt",       picotrav_opt_t.LEVEL_DFS) ],
+            [ [15, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "sqrt",       picotrav_opt_t.LEVEL_DFS) ],
+            [ [15, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "square",     picotrav_opt_t.LEVEL_DFS) ],
+            [ [15, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "square",     picotrav_opt_t.LEVEL_DFS) ],
+            # random_control
+            [ [ 0, 1, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "arbiter",    picotrav_opt_t.LEVEL_DFS) ],
+            [ [ 0, 2, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "arbiter",    picotrav_opt_t.LEVEL_DFS) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "cavlc",      picotrav_opt_t.INPUT) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "cavlc",      picotrav_opt_t.INPUT) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "ctrl",       picotrav_opt_t.INPUT) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "ctrl",       picotrav_opt_t.INPUT) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "dec",        picotrav_opt_t.INPUT) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "dec",        picotrav_opt_t.INPUT) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "i2c",        picotrav_opt_t.INPUT) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "i2c",        picotrav_opt_t.INPUT) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "int2float",  picotrav_opt_t.INPUT) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "int2float",  picotrav_opt_t.INPUT) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "mem_ctrl",   picotrav_opt_t.LEVEL_DFS) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "mem_ctrl",   picotrav_opt_t.LEVEL_DFS) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "priority",   picotrav_opt_t.INPUT) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "priority",   picotrav_opt_t.INPUT) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "router",     picotrav_opt_t.INPUT) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "router",     picotrav_opt_t.INPUT) ],
+            [ [ 0, 2,00], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "voter",      picotrav_opt_t.LEVEL_DFS) ],
+            [ [ 0, 2,00], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "voter",      picotrav_opt_t.LEVEL_DFS) ],
+        ],
+        dd_t.zdd: [
+            # arithmetic
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "adder",      picotrav_opt_t.LEVEL_DFS) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "adder",      picotrav_opt_t.LEVEL_DFS) ],
+            [ [ 5, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "bar",        picotrav_opt_t.LEVEL_DFS) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "bar",        picotrav_opt_t.LEVEL_DFS) ],
+            [ [15, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "div",        picotrav_opt_t.LEVEL_DFS) ],
+            [ [15, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "div",        picotrav_opt_t.LEVEL_DFS) ],
+            [ [15, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "log2",       picotrav_opt_t.LEVEL_DFS) ],
+            [ [15, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "log2",       picotrav_opt_t.LEVEL_DFS) ],
+            [ [15, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "max",        picotrav_opt_t.LEVEL_DFS) ],
+            [ [ 6,12, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "max",        picotrav_opt_t.LEVEL_DFS) ],
+            [ [15, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "multiplier", picotrav_opt_t.LEVEL_DFS) ],
+            [ [15, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "multiplier", picotrav_opt_t.LEVEL_DFS) ],
+            [ [ 0, 3, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "sin",        picotrav_opt_t.LEVEL_DFS) ],
+            [ [ 5, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "sin",        picotrav_opt_t.LEVEL_DFS) ],
+            [ [15, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "sqrt",       picotrav_opt_t.LEVEL_DFS) ],
+            [ [15, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "sqrt",       picotrav_opt_t.LEVEL_DFS) ],
+            [ [15, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "square",     picotrav_opt_t.LEVEL_DFS) ],
+            [ [15, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "square",     picotrav_opt_t.LEVEL_DFS) ],
+            # random_control
+            [ [ 0, 1, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "arbiter",    picotrav_opt_t.LEVEL_DFS) ],
+            [ [ 0, 2, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "arbiter",    picotrav_opt_t.LEVEL_DFS) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "cavlc",      picotrav_opt_t.INPUT) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "cavlc",      picotrav_opt_t.INPUT) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "ctrl",       picotrav_opt_t.INPUT) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "ctrl",       picotrav_opt_t.INPUT) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "dec",        picotrav_opt_t.INPUT) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "dec",        picotrav_opt_t.INPUT) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "i2c",        picotrav_opt_t.INPUT) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "i2c",        picotrav_opt_t.INPUT) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "int2float",  picotrav_opt_t.INPUT) ],
+            [ [ 0, 2, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "int2float",  picotrav_opt_t.INPUT) ],
+            [ [ 0, 2, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "mem_ctrl",   picotrav_opt_t.LEVEL_DFS) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "mem_ctrl",   picotrav_opt_t.LEVEL_DFS) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "priority",   picotrav_opt_t.INPUT) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "priority",   picotrav_opt_t.INPUT) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "router",     picotrav_opt_t.INPUT) ],
+            [ [ 0, 0,10], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "router",     picotrav_opt_t.INPUT) ],
+            [ [ 0, 2,00], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "voter",      picotrav_opt_t.LEVEL_DFS) ],
+            [ [ 0,12,00], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "voter",      picotrav_opt_t.LEVEL_DFS) ],
+        ]
+    },
+    # --------------------------------------------------------------------------
+    "qbf": {
+        dd_t.bdd: [
+            # TODO
+        ]
+    },
+}
+
+BDD_BENCHMARKS = [b for b in BENCHMARKS.keys() if dd_t.bdd in BENCHMARKS[b].keys()]
+ZDD_BENCHMARKS = [b for b in BENCHMARKS.keys() if dd_t.zdd in BENCHMARKS[b].keys()]
+
+print("\nBenchmarks")
+print("  BDD: ", BDD_BENCHMARKS)
+print("  ZDD: ", ZDD_BENCHMARKS)
+
+# --------------------------------------------------------------------------- #
+# To get these benchmarks to not flood the SLURM manager, we need to group them
+# together by their time limit (creating an array of jobs for each time limit).
+# --------------------------------------------------------------------------- #
+def time_limit_str(t):
+    minutes = t[2]
+    if minutes < 10:
+        minutes = f"0{minutes}"
+
+    hours = t[1]
+    if hours < 10:
+        hours = f"0{hours}"
+
+    days = t[0]
+    if days < 10:
+        days = f"0{days}"
+
+    return f"{days}-{hours}:{minutes}:{0}{0}"
+
+grouped_instances = {}
+
+for benchmark in BENCHMARKS:
+    for dd in BENCHMARKS[benchmark]:
+        instances = BENCHMARKS[benchmark][dd]
+        for instance in instances:
+            for p in package_t:
+                if dd in package_features[p]:
+                    grouped_instances.setdefault(time_limit_str(instance[0]), []).append([p, benchmark, dd, instance[1]])
+
+# --------------------------------------------------------------------------- #
+# For each benchmark, we need to derive a unique name. This is used for the
+# executable and output file.
+# --------------------------------------------------------------------------- #
+
+def executable(package, benchmark, dd):
+    return f"{package.name}_{benchmark}_{dd.name}"
+
+def benchmark_uid(package, benchmark, dd, args):
+    args_suffix = '_'.join(args.replace('-', '').replace(' ', '_').split('/')[-1:]).split('.')[0][-32:]
+
+    return [package.name, benchmark, dd.name, args_suffix]
+
+def output_path(package, benchmark, dd, args):
+    b = benchmark_uid(package, benchmark, dd, args)
+    return f"out/{b[0]}/{b[1]}/{b[2]}/{b[3]}.out"
 
 # =========================================================================== #
-# Common strings for scripts
+# Script Strings
 # =========================================================================== #
 
-MODULE_LOAD = '''
-module load gcc/10.1.0
+MODULE_LOAD = '''module load gcc/10.1.0
 module load cmake/3.23.5 autoconf/2.71 automake/1.16.1
-module load boost/1.68.0 gmp/6.2.1
-'''
+module load boost/1.68.0 gmp/6.2.1'''
 
-ENV_SETUP = '''
-export CC=/comm/swstack/core/gcc/10.1.0/bin/gcc
+ENV_SETUP = '''export CC=/comm/swstack/core/gcc/10.1.0/bin/gcc
 export CXX=/comm/swstack/core/gcc/10.1.0/bin/c++
-export LC_ALL=C
-'''
+export LC_ALL=C'''
 
-def sbatch_str(jobname, time):
+def sbatch_str(jobname, time, is_exclusive):
     return f'''#SBATCH --job-name={jobname}
 #SBATCH --partition=q48
 #SBATCH --mem=350G
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
-#SBATCH --time={time}:00
-#SBATCH --exclusive
+#SBATCH --time={time}
 #SBATCH --mail-type=END,FAIL,REQUEUE
-#SBATCH --mail-user=soelvsten@cs.au.dk
-'''
+#SBATCH --mail-user=soelvsten@cs.au.dk''' + ("\n#SBATCH --exclusive" if is_exclusive else "")
 
-# =========================================================================== #
-# Combinatorial Problems with variable size N
-# =========================================================================== #
+def benchmark_awk_str(i):
+    # $1  = output file path
+    d1 = output_path(i[0], i[1], i[2], i[3])
 
-# List of problems, with [N, Sylvan_M, max-time] triples.
-#
-# The sylvan memory are some 10 MiB/GiB above the actual computed value.
-N_PROBLEMS_BDD = [
-    ["queens_bdd",
-     [[4,          64, "00-00:10"],
-      [5,          64, "00-00:10"],
-      [6,          64, "00-00:10"],
-      [7,          64, "00-00:10"],
-      [8,          64, "00-00:10"],
-      [9,          64, "00-00:10"],
-      [10,         64, "00-00:10"],
-      [11,        256, "00-00:30"],
-      [12,       1024, "00-01:00"],
-      [13,   4 * 1024, "00-02:00"],
-      [14,  32 * 1024, "00-02:30"],
-      [15, 256 * 1024, "00-03:00"],
-      [16, 330 * 1024, "00-20:00"],
-      [17, 330 * 1024, "08-00:00"],
-      ],
-     [None]
-    ],
+    # $2  = executable
+    d2 = executable(i[0], i[1], i[2])
 
-    ["tic_tac_toe_bdd",
-     [[13,        128, "00-00:10"],
-      [14,        128, "00-00:10"],
-      [15,        128, "00-00:10"],
-      [16,        128, "00-00:10"],
-      [17,        128, "00-00:10"],
-      [18,        128, "00-00:10"],
-      [19,        140, "00-00:10"],
-      [20,       1100, "00-00:10"],
-      [21,   4 * 1024, "00-00:20"],
-      [22,  32 * 1024, "00-02:00"],
-      [23, 128 * 1024, "00-04:00"],
-      [24, 256 * 1024, "00-12:00"],
-      [25, 330 * 1024, "01-08:00"],
-      [26, 330 * 1024, "04-00:00"],
-      [27, 330 * 1024, "06-00:00"],
-      [28, 330 * 1024, "08-00:00"],
-      [29, 330 * 1024, "15-00:00"],
-	  ],
-     [None]
-    ],
-]
+    # $3+ = arguments
+    ds = i[3]
 
-N_PROBLEMS_ZDD = [
-    ["queens_zdd",
-     [[4,          64, "00-00:10"],
-      [5,          64, "00-00:10"],
-      [6,          64, "00-00:10"],
-      [7,          64, "00-00:10"],
-      [8,          64, "00-00:10"],
-      [9,          64, "00-00:10"],
-      [10,         64, "00-00:10"],
-      [11,        256, "00-00:30"],
-      [12,       1024, "00-01:00"],
-      [13,   4 * 1024, "00-02:00"],
-      [14,  32 * 1024, "00-02:30"],
-      [15, 256 * 1024, "00-03:00"],
-      [16, 330 * 1024, "00-20:00"],
-      [17, 330 * 1024, "03-00:00"],
-      [18, 330 * 1024, "15-00:00"],
-      ],
-     [None]
-    ],
+    return f"{d1} {d2} {ds}"
 
-    ["tic_tac_toe_zdd",
-     [[13,        128, "00-00:10"],
-      [14,        128, "00-00:10"],
-      [15,        128, "00-00:10"],
-      [16,        128, "00-00:10"],
-      [17,        128, "00-00:10"],
-      [18,        128, "00-00:10"],
-      [19,        140, "00-00:10"],
-      [20,       1100, "00-00:10"],
-      [21,   4 * 1024, "00-00:20"],
-      [22,  32 * 1024, "00-02:00"],
-      [23, 128 * 1024, "00-04:00"],
-      [24, 256 * 1024, "00-12:00"],
-      [25, 330 * 1024, "01-08:00"],
-      [26, 330 * 1024, "04-00:00"],
-      [27, 330 * 1024, "06-00:00"],
-      [28, 330 * 1024, "09-00:00"],
-      [29, 330 * 1024, "15-00:00"],
-      ],
-     [None]
-     ],
+SLURM_ARRAY_ID = "$SLURM_ARRAY_TASK_ID"
+SLURM_JOB_ID   = "$SLURM_JOB_ID"
+SLURM_ORIGIN   = "$SLURM_SUBMIT_DIR"
 
-    ["knights_tour_zdd",
-     [[1,          64, "00-00:10"],
-      [2,          64, "00-00:10"],
-      [3,          64, "00-00:10"],
-      [4,          64, "00-00:10"],
-      [5,          64, "00-00:10"],
-      [6,          64, "00-00:10"],
-      [7,          64, "00-00:10"],
-      [8,         128, "00-00:10"],
-      [9,         512, "00-00:10"],
-      [10,       1024, "00-00:10"],
-      [11,   4 * 1024, "00-01:00"],
-      [12, 330 * 1024, "00-04:00"],
-      [13, 330 * 1024, "08-00:00"],
-      [14, 330 * 1024, "15-00:00"],
-      [15, 330 * 1024, "15-00:00"],
-      [16, 330 * 1024, "15-00:00"],
-	  ],
-     ["SPLIT_CLOSED", "SPLIT_OPEN", "COMBINED_CLOSED", "COMBINED_OPEN"]
-    ]
-]
+def benchmark_str(time, benchmarks):
+    slurm_job_name = f"benchmarks_{time.replace(':','-')}"
 
-def script_str_N(variant, problem_name, N, sylvan_M, time, option):
-    settings = sbatch_str(f'{variant}_{problem_name}_{N}', time)
+    # Array file to be read with AWK
+    awk_content = '\n'.join(list(map(benchmark_awk_str, benchmarks)))
+    awk_name    = slurm_job_name + ".awk"
 
-    output_dir = f'$SLURM_SUBMIT_DIR/out/{problem_name}/{variant}'
-    output_file = f'{output_dir}/{N}{"" if option == None else "_"+option}.out'
+    # SLURM Shell Script
+    slurm_job_name = f"benchmarks_{time.replace(':','-')}"
 
-    memory = sylvan_M if variant == "sylvan" else 300*1024
-    o_str  = "" if option == None else "-o "+option
+    awk_array_idx  = f"NR == {SLURM_ARRAY_ID}"
 
-    return f'''#!/bin/bash
-{settings}
+    args_length = max(map(lambda b : len(b[3].split()), benchmarks))
+    awk_args = '$' + ' $'.join(map(lambda b : str(b), range(3, args_length+3)))
 
-mkdir -p {output_dir}
-touch {output_file}
+    slurm_content = f'''#!/bin/bash
+{sbatch_str(slurm_job_name, time, True)}
+#SBATCH --array=1-{len(benchmarks)}
 
-echo -e "\\n=========  Started `date`  ==========\\n" | tee -a {output_file}
+awk '{awk_array_idx} {{ system(touch {SLURM_ORIGIN}/$1) }}' {SLURM_ORIGIN}/grendel/{awk_name}
+
+awk '{awk_array_idx} {{ system(echo -e "\\n=========  Started `date`  ==========\\n" | tee -a {SLURM_ORIGIN}/$1) }}' {SLURM_ORIGIN}/grendel/{awk_name}
 
 {MODULE_LOAD}
+
 {ENV_SETUP}
 
-cd $SLURM_SUBMIT_DIR/build/src/
-./{variant}_{problem_name} -N {N} -M {memory} {o_str} -t /scratch/$SLURM_JOB_ID 2>&1 | tee -a {output_file}
+cd {SLURM_ORIGIN}/build/src/
+awk '{awk_array_idx} {{ system(./$2 {awk_args} -M {300*1024} -t /scratch/{SLURM_JOB_ID} 2>&1 | tee -a {SLURM_ORIGIN}/$1 ) }}' {SLURM_ORIGIN}/grendel/{awk_name}
 
-echo -e "\\nexit code: "$? | tee -a {output_file}
+awk '{awk_array_idx} {{ system(echo -e "\\nexit code: "$? | tee -a {SLURM_ORIGIN}/$1) }}' {SLURM_ORIGIN}/grendel/{awk_name}
 
-echo -e "\\n========= Finished `date` ==========\\n" | tee -a {output_file}
+awk '{awk_array_idx} {{ system(echo -e "\\n=========  Finished `date`  ==========\\n" | tee -a {SLURM_ORIGIN}/$1) }}' {SLURM_ORIGIN}/grendel/{awk_name}
 '''
 
-# =========================================================================== #
-# CIRCUIT VERIFICATION PROBLEMS (Picotrav)
-# =========================================================================== #
+    # Return name and both file's content
+    return [[slurm_job_name + ".sh", slurm_content], [awk_name, awk_content]]
 
-CIRCUIT_PROBLEMS = [
-
-    # [ "name",       sylvan_M,   ["size",     "depth"],    "variable ordering"]
-    ["arithmetic",
-     [[ "adder",             140, ["00-00:10", "00-00:10"], "LEVEL_DFS" ],
-      [ "bar",        330 * 1024, ["05-00:00", "00-10:00"], "LEVEL_DFS" ],
-      [ "div",        330 * 1024, ["15-00:00", "15-00:00"], "LEVEL_DFS" ],
-      [ "hyp",        330 * 1024, ["15-00:00", "04-00:00"], "LEVEL_DFS" ],
-      [ "log2",       330 * 1024, ["15-00:00", "15-00:00"], "LEVEL_DFS" ],
-      [ "max",        330 * 1024, ["15-00:00", "06-12:00"], "LEVEL_DFS" ],
-      [ "multiplier", 330 * 1024, ["15-00:00", "15-00:00"], "LEVEL_DFS" ],
-      [ "sin",          5 * 1024, ["00-03:00", "04-16:00"], "LEVEL_DFS" ],
-      [ "sqrt",       330 * 1024, ["15-00:00", "15-00:00"], "LEVEL_DFS" ],
-      [ "square",     330 * 1024, ["15-00:00", "15-00:00"], "LEVEL_DFS" ],
-     ]
-    ],
-
-    ["random_control",
-     [[ "arbiter",    32 * 1024, ["00-01:00", "00-02:00"], "LEVEL_DFS" ],
-      [ "cavlc",            140, ["00-00:10", "00-00:10"], "INPUT" ],
-      [ "ctrl",             140, ["00-00:10", "00-00:10"], "INPUT" ],
-      [ "dec",              140, ["00-00:10", "00-00:10"], "INPUT" ],
-      [ "i2c",              140, ["00-00:10", "00-00:10"], "INPUT" ],
-      [ "int2float",        140, ["00-00:10", "00-00:10"], "INPUT" ],
-      [ "mem_ctrl",    2 * 1024, ["00-00:10", "00-00:10"], "LEVEL_DFS" ],
-      [ "priority",         140, ["00-00:10", "00-00:10"], "INPUT" ],
-      [ "router",           140, ["00-00:10", "00-00:10"], "INPUT" ],
-      [ "voter",      64 * 1024, ["00-01:00", "00-02:00"], "LEVEL_DFS" ],
-     ]
-    ]
-]
-
-def script_str_picotrav(variant, dd_type, problem_name, file_1, file_2, sylvan_M, time, variable_order):
-    settings = sbatch_str(f'{variant}_{problem_name}', time)
-
-    output_dir = f'$SLURM_SUBMIT_DIR/out/picotrav_{dd_type}/{variant}'
-    output_file = f'{output_dir}/{problem_name}.out'
-
-    input_dir = f'$SLURM_SUBMIT_DIR/benchmarks/epfl'
-    input_file_1 = f'{input_dir}/{file_1}'
-    input_file_2 = f'{input_dir}/{file_2}'
-
-    memory = sylvan_M if variant == "sylvan" else 300*1024
-
+def build_str():
     return f'''#!/bin/bash
-{settings}
-
-mkdir -p {output_dir}
-touch {output_file}
-
-echo -e "\\n=========  Started `date`  ==========\\n" | tee -a {output_file}
-
-{MODULE_LOAD}
-{ENV_SETUP}
-
-cd $SLURM_SUBMIT_DIR/build/src/
-./{variant}_picotrav_{dd_type} -f {input_file_1} -f {input_file_2} -M {memory} -o {variable_order} -t /scratch/$SLURM_JOB_ID 2>&1 | tee -a {output_file}
-
-echo -e "\\nexit code: "$? | tee -a {output_file}
-
-echo -e "\\n========= Finished `date` ==========\\n" | tee -a {output_file}
-'''
-
-# =========================================================================== #
-# BUILD SCRIPT
-# =========================================================================== #
-
-BENCHMARKS_BDD = ["picotrav_bdd"] + [p[0] for p in N_PROBLEMS_BDD]
-BENCHMARKS_ZDD = ["picotrav_zdd"] + [p[0] for p in N_PROBLEMS_ZDD]
-
-def script_str_build():
-    settings = sbatch_str("bdd_benchmarks_build", "00-00:30")
-
-    variants_bdd = ' '.join([f"'{v}'" for v in VARIANTS_BDD])
-    variants_zdd = ' '.join([f"'{v}'" for v in VARIANTS_ZDD])
-
-    benchmarks_bdd = ' '.join([f"'{b}'" for b in BENCHMARKS_BDD])
-    benchmarks_zdd = ' '.join([f"'{b}'" for b in BENCHMARKS_ZDD])
-
-    return f'''#!/bin/bash
-{settings}
+{sbatch_str("benchmarks_build", time_limit_str([ 0, 0,30]), False)}
 
 echo -e "\\n=========  Started `date`  ==========\\n"
 
@@ -268,30 +417,30 @@ echo -e "\\n=========  Started `date`  ==========\\n"
 
 # Build
 echo "Build"
-mkdir -p $SLURM_SUBMIT_DIR/build/ && cd $SLURM_SUBMIT_DIR/build/
-cmake -D BDD_BENCHMARK_GRENDEL=ON $SLURM_SUBMIT_DIR
+mkdir -p {SLURM_ORIGIN}/build/ && cd {SLURM_ORIGIN}/build/
+cmake -D BDD_BENCHMARK_GRENDEL=ON {SLURM_ORIGIN}
 
 echo ""
 echo "Build CUDD"
-cd $SLURM_SUBMIT_DIR/external/cudd
+cd {SLURM_ORIGIN}/external/cudd
 autoreconf
-./configure --prefix $SLURM_SUBMIT_DIR/build/cudd/ --enable-obj
+./configure --prefix {SLURM_ORIGIN}/build/cudd/ --enable-obj
 make && make install
 
-cd $SLURM_SUBMIT_DIR/build/
+cd {SLURM_ORIGIN}/build/
 
 echo ""
 echo "Build BDD Benchmarks"
-for package in {variants_bdd} ; do
-		for benchmark in {benchmarks_bdd} ; do
+for package in {' '.join([p.name for p in bdd_packages])} ; do
+		for benchmark in {' '.join([b for b in BDD_BENCHMARKS])} ; do
 			  make $package'_'$benchmark ;
 		done ;
 done
 
 echo ""
 echo "Build ZDD Benchmarks"
-for package in {variants_zdd} ; do
-		for benchmark in {benchmarks_zdd} ; do
+for package in {' '.join([p.name for p in zdd_packages])} ; do
+		for benchmark in {' '.join([b for b in ZDD_BENCHMARKS])} ; do
 			  make $package'_'$benchmark ;
 		done ;
 done
@@ -300,65 +449,18 @@ echo -e "\\n========= Finished `date` ==========\\n"
 '''
 
 # =========================================================================== #
-# RUN BUILD SCRIPTS
+# Run Script Strings and Save to Disk
 # =========================================================================== #
-
 with open("build.sh", "w") as file:
-    file.write(script_str_build())
+    file.write(build_str())
 
-for variant in VARIANTS_BDD:
-    for problem in N_PROBLEMS_BDD:
-        problem_name = problem[0]
+for (t,b) in grouped_instances.items():
+    for [filename, content] in benchmark_str(t,b):
+        with open(filename, "w") as file:
+            file.write(content)
 
-        for option in problem[2]:
-            for instance in problem[1]:
-                N = instance[0]
-                sylvan_M = instance[1]
-                time = instance[2]
-
-                filename = f'{variant}_{problem_name}_{N}{"" if option == None else "_"+option}.sh'
-                os.system(f"rm -f {filename} && touch {filename}")
-
-                with open(filename, "w") as file:
-                    file.write(script_str_N(variant, problem_name, N, sylvan_M, time, option))
-
-    for circuits_section in CIRCUIT_PROBLEMS:
-        circuit_type = circuits_section[0]
-        for instance_a in circuits_section[1]:
-            for instance_b in ["size", "depth"]:
-                problem_name = f"{instance_a[0]}_{instance_b}"
-
-                file_1_base = [f for f in os.listdir(f"../benchmarks/epfl/best_results/{instance_b}") if f.startswith(instance_a[0])][0]
-                file_1 = f"best_results/{instance_b}/{file_1_base}"
-                file_2 = f"{circuit_type}/{instance_a[0]}.blif"
-                sylvan_M = instance_a[1]
-                time = instance_a[2][0 if instance_b == "size" else 1]
-                variable_order = instance_a[3]
-
-                filename_bdd = f"{variant}_{circuit_type}_bdd_{instance_a[0]}_{instance_b}.sh"
-                os.system(f"rm -f {filename_bdd} && touch {filename_bdd}")
-
-                with open(filename_bdd, "w") as file:
-                    file.write(script_str_picotrav(variant, "bdd", problem_name, file_1, file_2, sylvan_M, time, variable_order))
-
-                if variant in VARIANTS_ZDD:
-                    filename_zdd = f"{variant}_{circuit_type}_zdd_{instance_a[0]}_{instance_b}.sh"
-                    os.system(f"rm -f {filename_zdd} && touch {filename_zdd}")
-
-                    with open(filename_zdd, "w") as file:
-                        file.write(script_str_picotrav(variant, "zdd", problem_name, file_1, file_2, sylvan_M, time, variable_order))
-
-for variant in VARIANTS_ZDD:
-    for problem in N_PROBLEMS_ZDD:
-        problem_name = problem[0]
-
-        for option in problem[2]:
-            for instance in problem[1]:
-                N = instance[0]
-                time = instance[2]
-
-                filename = f'{variant}_{problem_name}_{N}{"" if option == None else "_"+option}.sh'
-                os.system(f"rm -f {filename} && touch {filename}")
-
-                with open(filename, "w") as file:
-                    file.write(script_str_N(variant, problem_name, N, None, time, option))
+print("\nScripts")
+print("  Time Limits:      ", len(grouped_instances.keys()))
+print("  Minimum Array:    ", min(map(lambda x : len(x[1]), grouped_instances.items())))
+print("  Maximum Array:    ", max(map(lambda x : len(x[1]), grouped_instances.items())))
+print("  Total Benchmarks: ", sum(map(lambda x : len(x[1]), grouped_instances.items())))
