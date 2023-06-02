@@ -1,12 +1,24 @@
 # =========================================================================== #
+# User Inputs
+# =========================================================================== #
+yes_choices = ['yes', 'y']
+no_choices = ['no', 'n']
+
+# =========================================================================== #
 # BDD Packages and their supported Diagrams.
 # =========================================================================== #
 from enum import Enum
 
 dd_t = Enum('dd_t', ['bdd', 'zdd'])
+
+dd_choice = []
+for dd in dd_t:
+    if input(f"Include '{dd.name.upper()}' benchmarks? (yes/no): ").lower() in yes_choices:
+        dd_choice.append(dd)
+
 package_t = Enum('package_t', ['adiar', 'buddy', 'cal', 'cudd', 'sylvan'])
 
-package_features = {
+package_dd = {
     package_t.adiar  : [dd_t.bdd, dd_t.zdd],
     package_t.buddy  : [dd_t.bdd],
     package_t.cal    : [dd_t.bdd],
@@ -14,12 +26,20 @@ package_features = {
     package_t.sylvan : [dd_t.bdd]
 }
 
-bdd_packages = [p for p in package_t if dd_t.bdd in package_features[p]]
-zdd_packages = [p for p in package_t if dd_t.zdd in package_features[p]]
+print("")
 
-print("Implementations")
-print("  BDD:", list(map(lambda p : p.name, bdd_packages)))
-print("  ZDD:", list(map(lambda p : p.name, zdd_packages)))
+package_choice = []
+for p in package_t:
+    if any(dd in package_dd[p] for dd in dd_choice):
+        if input(f"Include '{p.name}' package? (yes/no): ").lower() in yes_choices:
+            package_choice.append(p)
+
+bdd_packages = [p for p in package_choice if dd_t.bdd in package_dd[p]] if dd_t.bdd in dd_choice else []
+zdd_packages = [p for p in package_choice if dd_t.zdd in package_dd[p]] if dd_t.zdd in dd_choice else []
+
+print("\nPackages")
+print("  BDD:", [p.name for p in bdd_packages])
+print("  ZDD:", [p.name for p in zdd_packages])
 
 # =========================================================================== #
 # Benchmark Instances
@@ -276,12 +296,20 @@ BENCHMARKS = {
     },
 }
 
-BDD_BENCHMARKS = [b for b in BENCHMARKS.keys() if dd_t.bdd in BENCHMARKS[b].keys()]
-ZDD_BENCHMARKS = [b for b in BENCHMARKS.keys() if dd_t.zdd in BENCHMARKS[b].keys()]
+print("")
+
+benchmark_choice = []
+for b in BENCHMARKS.keys():
+    if any(dd in BENCHMARKS[b].keys() for dd in dd_choice):
+        if input(f"Include '{b}' Benchmark? (yes/no): ").lower() in yes_choices:
+            benchmark_choice.append(b)
+
+bdd_benchmarks = [b for b in benchmark_choice if dd_t.bdd in BENCHMARKS[b].keys()] if dd_t.bdd in dd_choice else []
+zdd_benchmarks = [b for b in benchmark_choice if dd_t.zdd in BENCHMARKS[b].keys()] if dd_t.zdd in dd_choice else []
 
 print("\nBenchmarks")
-print("  BDD: ", BDD_BENCHMARKS)
-print("  ZDD: ", ZDD_BENCHMARKS)
+print("  BDD: ", bdd_benchmarks)
+print("  ZDD: ", zdd_benchmarks)
 
 # --------------------------------------------------------------------------- #
 # To get these benchmarks to not flood the SLURM manager, we need to group them
@@ -305,11 +333,17 @@ def time_limit_str(t):
 grouped_instances = {}
 
 for benchmark in BENCHMARKS:
+    if benchmark not in benchmark_choice: continue
+
     for dd in BENCHMARKS[benchmark]:
+        if dd not in dd_choice: continue
+
         instances = BENCHMARKS[benchmark][dd]
         for instance in instances:
             for p in package_t:
-                if dd in package_features[p]:
+                if p not in package_choice: continue
+
+                if dd in package_dd[p]:
                     grouped_instances.setdefault(time_limit_str(instance[0]), []).append([p, benchmark, dd, instance[1]])
 
 # --------------------------------------------------------------------------- #
@@ -407,7 +441,7 @@ awk '{awk_array_idx} {{ system(echo -e "\\n=========  Finished `date`  =========
     return [[slurm_job_name + ".sh", slurm_content], [awk_name, awk_content]]
 
 def build_str():
-    return f'''#!/bin/bash
+    prefix = f'''#!/bin/bash
 {sbatch_str("benchmarks_build", time_limit_str([ 0, 0,30]), False)}
 
 echo -e "\\n=========  Started `date`  ==========\\n"
@@ -419,7 +453,11 @@ echo -e "\\n=========  Started `date`  ==========\\n"
 echo "Build"
 mkdir -p {SLURM_ORIGIN}/build/ && cd {SLURM_ORIGIN}/build/
 cmake -D BDD_BENCHMARK_GRENDEL=ON {SLURM_ORIGIN}
+'''
 
+    cudd_build = ""
+    if package_t.cudd in package_choice:
+        cudd_build = f'''
 echo ""
 echo "Build CUDD"
 cd {SLURM_ORIGIN}/external/cudd
@@ -428,25 +466,39 @@ autoreconf
 make && make install
 
 cd {SLURM_ORIGIN}/build/
+'''
 
+    bdd_build = ""
+    if bdd_benchmarks:
+        assert(bdd_packages)
+        bdd_build = f'''
 echo ""
 echo "Build BDD Benchmarks"
 for package in {' '.join([p.name for p in bdd_packages])} ; do
-		for benchmark in {' '.join([b for b in BDD_BENCHMARKS])} ; do
+		for benchmark in {' '.join([b for b in bdd_benchmarks])} ; do
 			  make $package'_'$benchmark ;
 		done ;
 done
+'''
 
+    zdd_build = ""
+    if zdd_benchmarks:
+        assert(zdd_packages)
+        zdd_build = f'''
 echo ""
 echo "Build ZDD Benchmarks"
 for package in {' '.join([p.name for p in zdd_packages])} ; do
-		for benchmark in {' '.join([b for b in ZDD_BENCHMARKS])} ; do
+		for benchmark in {' '.join([b for b in zdd_benchmarks])} ; do
 			  make $package'_'$benchmark ;
 		done ;
 done
+'''
 
+    suffix = f'''
 echo -e "\\n========= Finished `date` ==========\\n"
 '''
+
+    return prefix + cudd_build + bdd_build + zdd_build + suffix
 
 # =========================================================================== #
 # Run Script Strings and Save to Disk
