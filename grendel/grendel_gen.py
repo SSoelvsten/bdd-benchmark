@@ -471,7 +471,10 @@ echo ""
 echo "Build BDD Benchmarks"
 for package in {' '.join([p.name for p in bdd_packages])} ; do
 		for benchmark in {' '.join([b for b in bdd_benchmarks])} ; do
-			  make $package'_'$benchmark'_bdd' ;
+			mkdir -p ../out/$package ; \
+			mkdir -p ../out/$package/$benchmark ; \
+			mkdir -p ../out/$package/$benchmark/bdd ; \
+			make $package'_'$benchmark'_bdd' ;
 		done ;
 done
 '''
@@ -484,7 +487,10 @@ echo ""
 echo "Build ZDD Benchmarks"
 for package in {' '.join([p.name for p in zdd_packages])} ; do
 		for benchmark in {' '.join([b for b in zdd_benchmarks])} ; do
-			  make $package'_'$benchmark'_zdd' ;
+			mkdir -p ../out/$package ; \
+			mkdir -p ../out/$package/$benchmark ; \
+			mkdir -p ../out/$package/$benchmark/zdd ; \
+			make $package'_'$benchmark'_zdd' ;
 		done ;
 done
 '''
