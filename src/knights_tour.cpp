@@ -1,8 +1,10 @@
 #include "common.cpp"
 #include "expected.h"
 
+#ifdef BDD_BENCHMARK_STATS
 size_t largest_bdd = 0;
 size_t total_nodes = 0;
+#endif // BDD_BENCHMARK_STATS
 
 // ========================================================================== //
 //                             Board Indexation                               //
@@ -154,7 +156,9 @@ template<typename adapter_t, bool incl_hamiltonian>
 typename adapter_t::dd_t knights_tour_iter_rel(adapter_t &adapter)
 {
   // Reset 'largest_bdd'
+#ifdef BDD_BENCHMARK_STATS
   largest_bdd = 0;
+#endif // BDD_BENCHMARK_STATS
 
   int t = MAX_TIME()-1;
 
@@ -162,7 +166,6 @@ typename adapter_t::dd_t knights_tour_iter_rel(adapter_t &adapter)
   typename adapter_t::dd_t res = closed
     ? knights_tour_closed<adapter_t>(adapter)
     : knights_tour_rel<adapter_t>(adapter, t);
-
 
 #ifdef BDD_BENCHMARK_STATS
   INFO("   | [t = %i] : ??? DD nodes\n", t); // TODO
@@ -174,11 +177,11 @@ typename adapter_t::dd_t knights_tour_iter_rel(adapter_t &adapter)
       ? knights_tour_ham_rel<adapter_t>(adapter, t)
       : knights_tour_rel<adapter_t>(adapter, t);
 
+#ifdef BDD_BENCHMARK_STATS
     const size_t nodecount = adapter.nodecount(res);
     largest_bdd = std::max(largest_bdd, nodecount);
     total_nodes += nodecount;
 
-#ifdef BDD_BENCHMARK_STATS
     INFO("   | [t = %i] : %zu DD nodes\n", t, nodecount);
 #endif // BDD_BENCHMARK_STATS
   }
@@ -198,7 +201,9 @@ template<typename adapter_t>
 void knights_tour_iter_ham(adapter_t &adapter, typename adapter_t::dd_t &paths)
 {
   // Reset 'largest_bdd'
+#ifdef BDD_BENCHMARK_STATS
   largest_bdd = 0;
+#endif // BDD_BENCHMARK_STATS
 
   // Add hamiltonian constraints
   for (int r = 0; r < rows(); r++) {
@@ -207,11 +212,11 @@ void knights_tour_iter_ham(adapter_t &adapter, typename adapter_t::dd_t &paths)
 
       paths &= knights_tour_ham<adapter_t>(adapter, r, c);
 
+#ifdef BDD_BENCHMARK_STATS
       const size_t nodecount = adapter.nodecount(paths);
       largest_bdd = std::max(largest_bdd, nodecount);
       total_nodes += nodecount;
 
-#ifdef BDD_BENCHMARK_STATS
       INFO("   | %s : %zu DD nodes\n", pos_to_string(r,c).c_str(), nodecount);
 #endif // BDD_BENCHMARK_STATS
     }
@@ -309,8 +314,10 @@ void run_knights_tour(int argc, char** argv)
 
     const time_duration paths_time = duration_of(t1,t2);
 
+#ifdef BDD_BENCHMARK_STATS
     INFO("   | total no. nodes:        %zu\n", total_nodes);
     INFO("   | largest size (nodes):   %zu\n", largest_bdd);
+#endif // BDD_BENCHMARK_STATS
     INFO("   | final size (nodes):     %zu\n", adapter.nodecount(res));
     INFO("   | time (ms):              %zu\n", paths_time);
 
@@ -325,8 +332,10 @@ void run_knights_tour(int argc, char** argv)
       time_point t4 = get_timestamp();
       hamiltonian_time = duration_of(t3,t4);
 
+#ifdef BDD_BENCHMARK_STATS
       INFO("   | total no. nodes:        %zu\n", total_nodes);
       INFO("   | largest size (nodes):   %zu\n", largest_bdd);
+#endif // BDD_BENCHMARK_STATS
       INFO("   | final size (nodes):     %zu\n", adapter.nodecount(res));
       INFO("   | time (ms):              %zu\n", hamiltonian_time);
     }
