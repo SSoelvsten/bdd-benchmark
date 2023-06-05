@@ -410,8 +410,6 @@ def benchmark_str(time, benchmarks):
     awk_name    = slurm_job_name + ".awk"
 
     # SLURM Shell Script
-    slurm_job_name = f"benchmarks_{time.replace(':','-')}"
-
     awk_array_idx  = f"NR == {SLURM_ARRAY_ID}"
 
     args_length = max(map(lambda b : len(b[3].split()), benchmarks))
@@ -432,9 +430,10 @@ awk '{awk_array_idx} {{ system(echo -e "\\nexit code: "$? | tee -a {SLURM_ORIGIN
 
 awk '{awk_array_idx} {{ system(echo -e "\\n=========  Finished `date`  ==========\\n" | tee -a {SLURM_ORIGIN}/$1) }}' {SLURM_ORIGIN}/grendel/{awk_name}
 '''
+    slurm_name = slurm_job_name + ".sh"
 
     # Return name and both file's content
-    return [[slurm_job_name + ".sh", slurm_content], [awk_name, awk_content]]
+    return [[slurm_name, slurm_content], [awk_name, awk_content]]
 
 def build_str():
     prefix = f'''#!/bin/bash
