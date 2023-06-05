@@ -49,16 +49,33 @@ schedule the jobs with a time limit of less than a single day.
 
 ## Checking Current Jobs
 
-To see the full list of all your jobs including the full name of each job, run
-the following command.
+The following is Grendel's own command to see the current status of your jobs
+
+```bash
+mj
+```
+
+If you want some more control over formatting (e.g. see the names in full), then
+you should instead use something like the following.
 
 ```bash
 squeue --me --format "%i  %t   %j"
 ```
 
+## Cancel all jobs
+
+To cancel all jobs, run the following bash one-liner.
+
+```bash
+mj | tail -n +3 | while read line ; do echo $line | cut -c1-7 | xargs scancel ; done
+```
+
 ## Download Output to your Local Machine
 
-Assuming you have a copy of the repository in the `~/bdd_benchmark/` folder with the results from the job scripts in this folder stored in `~/bdd_benchmark/out` (default), then you can download all the data to your local machine with the following command:
+Assuming you have a copy of the repository in the `~/bdd_benchmark/` folder with
+the results from the job scripts in this folder stored in `~/bdd_benchmark/out`
+(default), then you can download all the data to your local machine with the
+following command:
 
 ```bash
 scp -r {username}@grendel.cscaa.dk:bdd-benchmark/out/ .
