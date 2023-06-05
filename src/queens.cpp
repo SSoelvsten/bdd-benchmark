@@ -1,8 +1,10 @@
 #include "common.cpp"
 #include "expected.h"
 
+#ifdef BDD_BENCHMARK_STATS
 size_t largest_bdd = 0;
 size_t total_nodes = 0;
+#endif // BDD_BENCHMARK_STATS
 
 // =============================================================================
 inline int label_of_position(int r, int c)
@@ -33,11 +35,11 @@ typename adapter_t::dd_t queens_R(adapter_t &adapter, int r)
   for (int c = 1; c < N; c++) {
     out |= queens_S(adapter, r, c);
 
+#ifdef BDD_BENCHMARK_STATS
     const size_t nodecount = adapter.nodecount(out);
     largest_bdd = std::max(largest_bdd, nodecount);
     total_nodes += nodecount;
 
-#ifdef BDD_BENCHMARK_STATS
     INFO("   | | R(%s) : %zu DD nodes\n", pos_to_string(r,c).c_str(), nodecount);
 #endif // BDD_BENCHMARK_STATS
   }
@@ -67,11 +69,11 @@ typename adapter_t::dd_t queens_B(adapter_t &adapter)
   for (int r = 1; r < N; r++) {
     out &= queens_R(adapter, r);
 
+#ifdef BDD_BENCHMARK_STATS
     const size_t nodecount = adapter.nodecount(out);
     largest_bdd = std::max(largest_bdd, nodecount);
     total_nodes += nodecount;
 
-#ifdef BDD_BENCHMARK_STATS
     INFO("   | B(%i) : %zu DD nodes\n", r+1, nodecount);
 #endif // BDD_BENCHMARK_STATS
   }
@@ -111,9 +113,9 @@ void run_queens(int argc, char** argv)
 
 #ifdef BDD_BENCHMARK_STATS
     INFO("   |\n");
-#endif // BDD_BENCHMARK_STATS
     INFO("   | total no. nodes:        %zu\n", total_nodes);
     INFO("   | largest size (nodes):   %zu\n", largest_bdd);
+#endif // BDD_BENCHMARK_STATS
     INFO("   | final size (nodes):     %zu\n", adapter.nodecount(res));
     INFO("   | time (ms):              %zu\n", construction_time);
 

@@ -21,7 +21,9 @@ typename adapter_t::dd_t construct_init(adapter_t &adapter)
   }
 
   typename adapter_t::dd_t out = adapter.build();
+#ifdef BDD_BENCHMARK_STATS
   total_nodes += adapter.nodecount(out);
+#endif // BDD_BENCHMARK_STATS
   return out;
 }
 
@@ -71,6 +73,8 @@ typename adapter_t::dd_t construct_is_not_winning(adapter_t &adapter,
   }
 
   typename adapter_t::dd_t out = adapter.build();
+#ifdef BDD_BENCHMARK_STATS
   total_nodes += adapter.nodecount(out);
+#endif // BDD_BENCHMARK_STATS
   return out;
 }

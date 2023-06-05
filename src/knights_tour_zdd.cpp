@@ -40,9 +40,11 @@ typename adapter_t::dd_t knights_tour_closed(adapter_t &adapter)
 
   typename adapter_t::dd_t out = adapter.build();
 
+#ifdef BDD_BENCHMARK_STATS
   const size_t nodecount = adapter.nodecount(out);
   largest_bdd = std::max(largest_bdd, nodecount);
   total_nodes += nodecount;
+#endif // BDD_BENCHMARK_STATS
 
   return out;
 }
@@ -169,9 +171,11 @@ typename adapter_t::dd_t __knights_tour_rel(adapter_t &adapter, int t)
 
   typename adapter_t::dd_t out = adapter.build();
 
+#ifdef BDD_BENCHMARK_STATS
   const size_t nodecount = adapter.nodecount(out);
   largest_bdd = std::max(largest_bdd, nodecount);
   total_nodes += nodecount;
+#endif // BDD_BENCHMARK_STATS
 
   return out;
 }
@@ -215,9 +219,11 @@ typename adapter_t::dd_t knights_tour_ham(adapter_t &adapter, int r, int c)
 
   typename adapter_t::dd_t out = adapter.build();
 
+#ifdef BDD_BENCHMARK_STATS
   const size_t nodecount = adapter.nodecount(out);
   largest_bdd = std::max(largest_bdd, nodecount);
   total_nodes += nodecount;
+#endif // BDD_BENCHMARK_STATS
 
   return out;
 }

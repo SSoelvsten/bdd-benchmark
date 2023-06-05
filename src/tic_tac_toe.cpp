@@ -4,8 +4,10 @@
 #include "common.cpp"
 #include "expected.h"
 
+#ifdef BDD_BENCHMARK_STATS
 size_t largest_bdd = 0;
 size_t total_nodes = 0;
+#endif // BDD_BENCHMARK_STATS
 
 // =============================================================================
 // Label index
@@ -119,13 +121,15 @@ void run_tic_tac_toe(int argc, char** argv)
 
     time_point t1 = get_timestamp();
     typename adapter_t::dd_t res = construct_init(adapter);
-    const size_t initial_bdd = adapter.nodecount(res);
-    total_nodes += initial_bdd;
     time_point t2 = get_timestamp();
 
-    const time_duration init_time = duration_of(t1,t2);
-
+    const size_t initial_bdd = adapter.nodecount(res);
+#ifdef BDD_BENCHMARK_STATS
+    total_nodes += initial_bdd;
+#endif // BDD_BENCHMARK_STATS
     INFO("   | size (nodes):           %zu\n", initial_bdd);
+
+    const time_duration init_time = duration_of(t1,t2);
     INFO("   | time (ms):              %zu\n", init_time);
 
     // =========================================================================
@@ -137,11 +141,11 @@ void run_tic_tac_toe(int argc, char** argv)
     for (auto &line : lines) {
       res &= construct_is_not_winning(adapter, line);
 
+#ifdef BDD_BENCHMARK_STATS
       const size_t nodecount = adapter.nodecount(res);
       largest_bdd = std::max(largest_bdd, nodecount);
       total_nodes += nodecount;
 
-#ifdef BDD_BENCHMARK_STATS
       INFO("   | [%i,%i,%i] %s: %zu DD nodes\n",
            line[0], line[1], line[2],
            std::string((line[0] < 10) + (line[1] < 10) + (line[2] < 10), ' ').c_str(),
@@ -155,9 +159,9 @@ void run_tic_tac_toe(int argc, char** argv)
 
 #ifdef BDD_BENCHMARK_STATS
     INFO("   |\n");
-#endif // BDD_BENCHMARK_STATS
     INFO("   | total no. nodes:        %zu\n", total_nodes);
     INFO("   | largest size (nodes):   %zu\n", largest_bdd);
+#endif // BDD_BENCHMARK_STATS
     INFO("   | final size (nodes):     %zu\n", adapter.nodecount(res));
     INFO("   | time (ms):              %zu\n", constraints_time);
 

@@ -517,6 +517,7 @@ void apply_variable_order(const variable_order &o, net_t &net_0, net_t &net_1, b
 
 struct bdd_statistics
 {
+#ifdef BDD_BENCHMARK_STATS
   size_t total_processed = 0;
   size_t total_negations = 0;
   size_t total_applys = 0;
@@ -527,6 +528,7 @@ struct bdd_statistics
   size_t max_roots = 0;
   size_t max_allocated = 0;
   size_t sum_allocated = 0;
+#endif // BDD_BENCHMARK_STATS
 };
 
 template<typename adapter_t>
@@ -575,8 +577,10 @@ typename adapter_t::dd_t construct_node_bdd(net_t &net,
   const node_t &node_data = net.nodes.find(node_name) -> second;
 
   typename adapter_t::dd_t so_cover_bdd = adapter.bot();
+#ifdef BDD_BENCHMARK_STATS
   size_t so_nodecount = adapter.nodecount(so_cover_bdd);
   assert(so_nodecount == 0);
+#endif // BDD_BENCHMARK_STATS
 
   for (size_t row_idx = 0; row_idx < node_data.so_cover.size(); row_idx++) {
     typename adapter_t::dd_t tmp = adapter.top();
@@ -590,6 +594,7 @@ typename adapter_t::dd_t construct_node_bdd(net_t &net,
       switch (lval) {
       case logic_value::FALSE:
         tmp &= adapter.negate(dep_bdd);
+#ifdef BDD_BENCHMARK_STATS
         // TODO (ZDD): intermediate size of negation
         {
           const size_t tmp_nodecount = adapter.nodecount(tmp);
@@ -600,10 +605,12 @@ typename adapter_t::dd_t construct_node_bdd(net_t &net,
 
           stats.max_bdd_size = std::max(stats.max_bdd_size, tmp_nodecount);
         }
+#endif // BDD_BENCHMARK_STATS
         break;
 
       case logic_value::TRUE:
         tmp &= dep_bdd;
+#ifdef BDD_BENCHMARK_STATS
         {
           const size_t tmp_nodecount = adapter.nodecount(tmp);
           stats.total_processed += tmp_nodecount;
@@ -612,6 +619,7 @@ typename adapter_t::dd_t construct_node_bdd(net_t &net,
 
           stats.max_bdd_size = std::max(stats.max_bdd_size, tmp_nodecount);
         }
+#endif // BDD_BENCHMARK_STATS
         break;
 
       case logic_value::DONT_CARE:
@@ -623,13 +631,16 @@ typename adapter_t::dd_t construct_node_bdd(net_t &net,
       if (row_idx == node_data.so_cover.size() - 1) {
         if (decrease_ref_count(net, dep_name)) {
           cache.erase(dep_name);
+#ifdef BDD_BENCHMARK_STATS
           stats.curr_bdd_sizes -= adapter.nodecount(dep_bdd);
+#endif // BDD_BENCHMARK_STATS
         }
       }
     }
 
     so_cover_bdd |= tmp;
 
+#ifdef BDD_BENCHMARK_STATS
     assert(so_nodecount <= stats.curr_bdd_sizes);
     stats.curr_bdd_sizes -= so_nodecount;
     so_nodecount = adapter.nodecount(so_cover_bdd);
@@ -645,17 +656,21 @@ typename adapter_t::dd_t construct_node_bdd(net_t &net,
 
     stats.max_allocated = std::max(stats.max_allocated, adapter.allocated_nodes());
     stats.sum_allocated += adapter.allocated_nodes();
+#endif // BDD_BENCHMARK_STATS
   }
 
   if (!node_data.is_onset) {
     so_cover_bdd = adapter.negate(so_cover_bdd);
-
+#ifdef BDD_BENCHMARK_STATS
     stats.total_negations++;
+#endif // BDD_BENCHMARK_STATS
     // TODO (ZDD): remaining statistics
   }
 
   cache.insert({ node_name, so_cover_bdd });
+#ifdef BDD_BENCHMARK_STATS
   stats.max_roots = std::max(stats.max_roots, cache.size());
+#endif // BDD_BENCHMARK_STATS
   return so_cover_bdd;
 }
 
@@ -682,7 +697,9 @@ void construct_net_bdd(const std::string &filename,
   const time_point t_construct_after = get_timestamp();
 
   INFO("   | time (ms):              %zu\n", duration_of(t_construct_before, t_construct_after));
+#ifdef BDD_BENCHMARK_STATS
   INFO("   | total no. nodes:        %zu\n", stats.total_processed);
+#endif // BDD_BENCHMARK_STATS
 
   size_t sum_final_sizes = 0;
   size_t max_final_size = 0;
@@ -696,6 +713,7 @@ void construct_net_bdd(const std::string &filename,
   INFO("   | | w/ duplicates:        %zu\n", sum_final_sizes);
   INFO("   | | allocated:            %zu\n", adapter.allocated_nodes());
 
+#ifdef BDD_BENCHMARK_STATS
   INFO("   | life-time BDDs:\n");
   INFO("   | | max no. roots:        %zu\n", stats.max_roots);
   INFO("   | | max BDD size:         %zu\n", stats.max_bdd_size);
@@ -707,6 +725,7 @@ void construct_net_bdd(const std::string &filename,
   INFO("   | BDD operations:\n");
   INFO("   | | Apply:                %zu\n", stats.total_applys);
   INFO("   | | Negations:            %zu\n", stats.total_negations);
+#endif // BDD_BENCHMARK_STATS
 }
 
 // ========================================================================== //

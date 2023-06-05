@@ -35,6 +35,8 @@ typename adapter_t::dd_t queens_S(adapter_t &adapter, int i, int j)
   }
 
   typename adapter_t::dd_t out = adapter.build();
+#ifdef BDD_BENCHMARK_STATS
   total_nodes += adapter.nodecount(out);
+#endif // BDD_BENCHMARK_STATS
   return out;
 }
