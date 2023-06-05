@@ -434,7 +434,10 @@ awk '{awk_array_idx} {{ system("echo -e \\"\\n=========  Finished `date`  ======
     # Return name and both file's content
     return [[slurm_name, slurm_content], [awk_name, awk_content]]
 
-def build_str():
+CMAKE_STATS        = "BDD_BENCHMARK_STATS"
+CMAKE_GRENDEL_FLAG = "BDD_BENCHMARK_GRENDEL"
+
+def build_str(stats):
     prefix = f'''#!/bin/bash
 {sbatch_str("benchmarks_build", time_limit_str([ 0, 0,30]), False)}
 
@@ -446,7 +449,7 @@ echo -e "\\n=========  Started `date`  ==========\\n"
 # Build
 echo "Build"
 mkdir -p {SLURM_ORIGIN}/build/ && cd {SLURM_ORIGIN}/build/
-cmake -D BDD_BENCHMARK_GRENDEL=ON {SLURM_ORIGIN}
+cmake -D {CMAKE_GRENDEL_FLAG}=ON -D {CMAKE_STATS}={"ON" if stats else "OFF"} {SLURM_ORIGIN}
 '''
 
     cudd_build = ""
@@ -503,8 +506,10 @@ echo -e "\\n========= Finished `date` ==========\\n"
 # =========================================================================== #
 # Run Script Strings and Save to Disk
 # =========================================================================== #
+print("")
+
 with open("build.sh", "w") as file:
-    file.write(build_str())
+    file.write(build_str(input(f"Include Statistics? (yes/no): ").lower() in yes_choices))
 
 for (t,b) in grouped_instances.items():
     for [filename, content] in benchmark_str(t,b):
