@@ -425,10 +425,6 @@ awk '{awk_array_idx} {{ system(touch {SLURM_ORIGIN}/$1) }}' {SLURM_ORIGIN}/grend
 
 awk '{awk_array_idx} {{ system(echo -e "\\n=========  Started `date`  ==========\\n" | tee -a {SLURM_ORIGIN}/$1) }}' {SLURM_ORIGIN}/grendel/{awk_name}
 
-{MODULE_LOAD}
-
-{ENV_SETUP}
-
 cd {SLURM_ORIGIN}/build/src/
 awk '{awk_array_idx} {{ system(./$2 {awk_args} -M {300*1024} -t /scratch/{SLURM_JOB_ID} 2>&1 | tee -a {SLURM_ORIGIN}/$1 ) }}' {SLURM_ORIGIN}/grendel/{awk_name}
 
