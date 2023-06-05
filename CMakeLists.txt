@@ -35,7 +35,7 @@ message(STATUS "")
 # BDD Packages
 # Adiar Package (Steffan Sølvsten - Aarhus University, Denmark)
 if (BDD_BENCHMARK_STATS)
-  set(ADIAR_STATS_EXTRA ON)
+  set(ADIAR_STATS ON)
 endif(BDD_BENCHMARK_STATS)
 
 add_subdirectory (external/adiar adiar)
