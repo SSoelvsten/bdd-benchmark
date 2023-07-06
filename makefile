@@ -10,13 +10,14 @@ STATS := OFF
 
 build:
   # Primary build
-	@echo "\nBuild"
+	@echo -e "\nBuild"
 	@mkdir -p build/ && cd build/ && cmake -D CMAKE_BUILD_TYPE=$(BUILD_TYPE) \
                                          -D BDD_BENCHMARK_STATS=$(STATS) \
+																				 -D CMAKE_EXPORT_COMPILE_COMMANDS=1 \
                                    ..
 
   # Installation of CUDD
-	@echo "\n\nInstall CUDD"
+	@echo -e "\n\nInstall CUDD"
 	@[ -d "build/cudd/" ] || (cd external/cudd \
 														&& autoreconf \
 														&& ./configure --prefix ${CURDIR}/build/cudd/ --enable-obj \
@@ -27,17 +28,17 @@ build:
 	@mkdir -p out/
 
   # Build all bdd benchmarks
-	@echo "\n\nBuild BDD Benchmarks"
+	@echo -e "\n\nBuild BDD Benchmarks"
 	@cd build/ && for package in 'adiar' 'buddy' 'cal' 'cudd' 'sylvan' ; do \
 		mkdir -p ../out/$$package ; \
 		mkdir -p ../out/$$package/bdd ; \
-		for benchmark in 'picotrav' 'qbf' 'queens' 'tic_tac_toe' ; do \
+		for benchmark in 'picotrav' 'qbf' 'queens' 'tic_tac_toe' 'cnf' ; do \
 			make ${MAKE_FLAGS} $$package'_'$$benchmark'_bdd' ; \
 		done ; \
 	done
 
   # Build all zdd benchmarks
-	@echo "\n\nBuild ZDD Benchmarks"
+	@echo -e "\n\nBuild ZDD Benchmarks"
 	@cd build/ && for package in 'adiar' 'cudd' ; do \
 		mkdir -p ../out/$$package ; \
 		mkdir -p ../out/$$package/zdd ; \
@@ -47,7 +48,7 @@ build:
 	done
 
   # Add space after finishing the build process
-	@echo "\n"
+	@echo -e "\n"
 
 clean:
 	@cd external/cudd && git clean -qdf && git checkout .
