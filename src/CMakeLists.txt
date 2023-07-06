@@ -43,7 +43,7 @@ macro(add_bdd_benchmark NAME)
 
   # Sylvan
   add_executable(sylvan_${NAME}_bdd sylvan/${NAME}_bdd.cpp)
-  target_link_libraries(sylvan_${NAME}_bdd PRIVATE Sylvan::Sylvan)
+  target_link_libraries(sylvan_${NAME}_bdd PRIVATE sylvan)
   if (BDD_BENCHMARK_GRENDEL)
     target_compile_definitions(sylvan_${NAME}_bdd PRIVATE BDD_BENCHMARK_GRENDEL)
   endif()
