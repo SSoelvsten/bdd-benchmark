@@ -67,10 +67,10 @@ public:
 
 public:
   // Sets current filename
-  void filename(std::string fn) { fname = fn; }
+  void filename(std::string fn) override { fname = fn; }
 
   // Sets current line number
-  void lineno(int ln) { line_num = ln; }
+  void lineno(int ln) override { line_num = ln; }
 
   // Create the input set with the ordering as given in the input file.
   void inputs(std::vector<std::string> inputs) override
