@@ -403,7 +403,11 @@ SLURM_JOB_ID   = "$SLURM_JOB_ID"
 SLURM_ORIGIN   = "$SLURM_SUBMIT_DIR"
 
 def benchmark_str(time, benchmarks):
-    slurm_job_prefix = ""
+    current_dir = os.getcwd()
+    parent_dir  = os.path.dirname(current_dir)
+    parent_dir_name = os.path.basename(parent_dir)
+
+    slurm_job_prefix = parent_dir_name
     slurm_job_suffix = time.replace(':','-')
 
     # Array file to be read with AWK
@@ -417,7 +421,7 @@ def benchmark_str(time, benchmarks):
     awk_args = '" "$' + '" "$'.join(map(lambda b : str(b), range(3, args_length+3)))
 
     slurm_content = f'''#!/bin/bash
-{sbatch_str(f"{slurm_job_prefix}_{slurm_job_suffix}", time, True)}
+{sbatch_str(f"{slurm_job_prefix}__{slurm_job_suffix}", time, True)}
 #SBATCH --array=1-{len(benchmarks)}
 
 awk '{awk_array_idx} {{ system("touch {SLURM_ORIGIN}/"$1) }}' {SLURM_ORIGIN}/grendel/{awk_name}
