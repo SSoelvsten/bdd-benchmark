@@ -403,11 +403,12 @@ SLURM_JOB_ID   = "$SLURM_JOB_ID"
 SLURM_ORIGIN   = "$SLURM_SUBMIT_DIR"
 
 def benchmark_str(time, benchmarks):
-    slurm_job_name = f"benchmarks_{time.replace(':','-')}"
+    slurm_job_prefix = ""
+    slurm_job_suffix = time.replace(':','-')
 
     # Array file to be read with AWK
     awk_content = '\n'.join(list(map(benchmark_awk_str, benchmarks)))
-    awk_name    = slurm_job_name + ".awk"
+    awk_name    = slurm_job_suffix + ".awk"
 
     # SLURM Shell Script
     awk_array_idx  = f"NR == '{SLURM_ARRAY_ID}'"
@@ -416,7 +417,7 @@ def benchmark_str(time, benchmarks):
     awk_args = '" "$' + '" "$'.join(map(lambda b : str(b), range(3, args_length+3)))
 
     slurm_content = f'''#!/bin/bash
-{sbatch_str(slurm_job_name, time, True)}
+{sbatch_str(f"{slurm_job_prefix}_{slurm_job_suffix}", time, True)}
 #SBATCH --array=1-{len(benchmarks)}
 
 awk '{awk_array_idx} {{ system("touch {SLURM_ORIGIN}/"$1) }}' {SLURM_ORIGIN}/grendel/{awk_name}
@@ -429,7 +430,7 @@ awk '{awk_array_idx} {{ system("echo -e \\"\\nexit code: \\"$? | tee -a {SLURM_O
 
 awk '{awk_array_idx} {{ system("echo -e \\"\\n=========  Finished `date`  ==========\\n\\" | tee -a {SLURM_ORIGIN}/"$1) }}' {SLURM_ORIGIN}/grendel/{awk_name}
 '''
-    slurm_name = slurm_job_name + ".sh"
+    slurm_name = slurm_job_suffix + ".sh"
 
     # Return name and both file's content
     return [[slurm_name, slurm_content], [awk_name, awk_content]]
