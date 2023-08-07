@@ -36,7 +36,10 @@ class adiar_bdd_adapter : public adiar_adapter
 {
 public:
   inline static const std::string NAME = "Adiar [BDD]";
+
   typedef adiar::bdd dd_t;
+  typedef adiar::__bdd __dd_t;
+
   typedef adiar::bdd_ptr build_node_t;
 
 private:
@@ -137,7 +140,10 @@ class adiar_zdd_adapter : public adiar_adapter
 {
 public:
   inline static const std::string NAME = "Adiar [ZDD]";
+
   typedef adiar::zdd dd_t;
+  typedef adiar::__zdd __dd_t;
+
   typedef adiar::zdd_ptr build_node_t;
 
 private:
