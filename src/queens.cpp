@@ -6,6 +6,9 @@ size_t largest_bdd = 0;
 size_t total_nodes = 0;
 #endif // BDD_BENCHMARK_STATS
 
+time_duration apply_time = 0;
+time_duration reduce_time = 0;
+
 // =============================================================================
 inline int label_of_position(int r, int c)
 {
@@ -33,7 +36,15 @@ typename adapter_t::dd_t queens_R(adapter_t &adapter, int r)
   typename adapter_t::dd_t out = queens_S(adapter, r, 0);
 
   for (int c = 1; c < N; c++) {
-    out |= queens_S(adapter, r, c);
+    const time_point t1 = get_timestamp();
+    typename adapter_t::__dd_t unreduced = std::move(out) | queens_S(adapter, r, c);
+    const time_point t2 = get_timestamp();
+    apply_time += duration_of(t1,t2);
+
+    const time_point t3 = get_timestamp();
+    out = std::move(unreduced);
+    const time_point t4 = get_timestamp();
+    reduce_time += duration_of(t3,t4);
 
 #ifdef BDD_BENCHMARK_STATS
     const size_t nodecount = adapter.nodecount(out);
@@ -67,7 +78,15 @@ typename adapter_t::dd_t queens_B(adapter_t &adapter)
   }
 
   for (int r = 1; r < N; r++) {
-    out &= queens_R(adapter, r);
+    const time_point t1 = get_timestamp();
+    typename adapter_t::__dd_t unreduced = std::move(out) & queens_R(adapter, r);
+    const time_point t2 = get_timestamp();
+    apply_time += duration_of(t1,t2);
+
+    const time_point t3 = get_timestamp();
+    out = std::move(unreduced);
+    const time_point t4 = get_timestamp();
+    reduce_time += duration_of(t3,t4);
 
 #ifdef BDD_BENCHMARK_STATS
     const size_t nodecount = adapter.nodecount(out);
@@ -134,6 +153,12 @@ void run_queens(int argc, char** argv)
     // ========================================================================
     INFO("\n   total time (ms):          %zu\n", construction_time + counting_time);
   }
+
+  INFO("\n   phases (ms):              %zu\n", apply_time + reduce_time);
+  INFO("   | apply:                  %zu\n", apply_time);
+  INFO("   | reduce:                 %zu\n", reduce_time);
+
+  // ========================================================================
 
   adapter.print_stats();
 
