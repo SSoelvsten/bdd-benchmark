@@ -1,6 +1,6 @@
 # Grendel
 This folder contains the generation of shell scripts, with which one can run the
-benchmarks on the GRENDEL-S cluster running the SLURM queueing system at [CSCAA,
+benchmarks on the GRENDEL cluster running the SLURM queueing system at [CSCAA,
 Aarhus University](http://www.cscaa.dk/). Since _Adiar_ makes use of disk, then
 one needs to use the newly acquired _q48_ nodes with 3.0 GHz CPUs, 384 GB of
 memory, and 3.5 TB of SSD disk available for temporary files in a _scratch/_
@@ -40,12 +40,12 @@ When the build is complete, then you can schedule all the generated shell files
 from the root directory of this repository with
 
 ```bash
-for f in grendel/benchmarks_*.sh; do sbatch -p q48 $f; done
+for f in grendel/*-*-*-*.sh; do sbatch -p q48 $f; done
 ```
 
-The name of the files `grendel/benchmarks_*.sh` have `*` be the time limit.
-Hence by specifying `grendel/benchmarks_00-*.sh*` you can choose to only
-schedule the jobs with a time limit of less than a single day.
+The `*` are the different time limits genereated. Hence, by specifying
+`grendel/00-*.sh*` you can choose to only schedule the jobs with a time limit of
+less than a single day.
 
 ## Checking Current Jobs
 
