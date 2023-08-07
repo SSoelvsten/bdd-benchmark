@@ -94,9 +94,9 @@ void run_queens(int argc, char** argv)
 
   // ========================================================================
   // Initialise package manager
-  time_point t_init_before = get_timestamp();
+  const time_point t_init_before = get_timestamp();
   adapter_t adapter(N*N);
-  time_point t_init_after = get_timestamp();
+  const time_point t_init_after = get_timestamp();
   INFO("\n   %s initialisation:\n", adapter_t::NAME.c_str());
   INFO("   | time (ms):              %zu\n", duration_of(t_init_before, t_init_after));
 
@@ -105,9 +105,9 @@ void run_queens(int argc, char** argv)
     // ========================================================================
     // Compute the bdd that represents the entire board
     INFO("\n   Decision diagram construction:\n");
-    time_point t1 = get_timestamp();
+    const time_point t1 = get_timestamp();
     typename adapter_t::dd_t res = queens_B(adapter);
-    time_point t2 = get_timestamp();
+    const time_point t2 = get_timestamp();
 
     const time_duration construction_time = duration_of(t1,t2);
 
@@ -122,9 +122,9 @@ void run_queens(int argc, char** argv)
     // ========================================================================
     // Count number of solutions
     INFO("\n   Counting solutions:\n");
-    time_point t3 = get_timestamp();
+    const time_point t3 = get_timestamp();
     solutions = adapter.satcount(res);
-    time_point t4 = get_timestamp();
+    const time_point t4 = get_timestamp();
 
     const time_duration counting_time = duration_of(t3,t4);
 
