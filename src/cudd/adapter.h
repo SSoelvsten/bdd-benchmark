@@ -38,16 +38,16 @@ cudd_memorysize()
 class cudd_adapter
 {
 protected:
-  Cudd __mgr;
-  const int varcount;
+  Cudd _mgr;
+  const int _varcount;
 
 protected:
   cudd_adapter(const int bdd_varcount, const int zdd_varcount)
-    : __mgr(bdd_varcount, zdd_varcount,
-            CUDD_UNIQUE_SLOTS,
-            cudd_cachesize(bdd_varcount + zdd_varcount),
-            cudd_memorysize()),
-      varcount(bdd_varcount + zdd_varcount)
+    : _mgr(bdd_varcount, zdd_varcount,
+           CUDD_UNIQUE_SLOTS,
+           cudd_cachesize(bdd_varcount + zdd_varcount),
+           cudd_memorysize()),
+      _varcount(bdd_varcount + zdd_varcount)
   { }
 
   ~cudd_adapter()
@@ -57,29 +57,29 @@ protected:
   // Statistics
 public:
   inline size_t allocated_nodes()
-  { return __mgr.ReadKeys(); }
+  { return _mgr.ReadKeys(); }
 
   void print_stats()
   {
     INFO("\nCUDD Statistics:\n");
 
     INFO("   Table:\n");
-    INFO("   | peak node count:     %zu\n", __mgr.ReadPeakNodeCount());
-    INFO("   | node count (bdd):    %zu\n", __mgr.ReadNodeCount());
-    INFO("   | node count (zdd):    %zu\n", __mgr.zddReadNodeCount());
-    INFO("   | keys:                %u\n",  __mgr.ReadKeys());
-    INFO("   | dead:                %u\n",  __mgr.ReadDead());
+    INFO("   | peak node count:     %zu\n", _mgr.ReadPeakNodeCount());
+    INFO("   | node count (bdd):    %zu\n", _mgr.ReadNodeCount());
+    INFO("   | node count (zdd):    %zu\n", _mgr.zddReadNodeCount());
+    INFO("   | keys:                %u\n",  _mgr.ReadKeys());
+    INFO("   | dead:                %u\n",  _mgr.ReadDead());
 
     // Commented lines are only available if 'DD_STATS' flag is set in CUDD compilation
 
     // INFO(" | Cache:\n");
-    // INFO(" | | slots:               %zu\n", __mgr.ReadCacheUsedSlots());
-    // INFO(" | | lookups:             %zu\n", __mgr.ReadCacheLookUps());
-    // INFO(" | | hits:                %zu\n", __mgr.ReadCacheHits());
+    // INFO(" | | slots:               %zu\n", _mgr.ReadCacheUsedSlots());
+    // INFO(" | | lookups:             %zu\n", _mgr.ReadCacheLookUps());
+    // INFO(" | | hits:                %zu\n", _mgr.ReadCacheHits());
 
     INFO("   Garbage Collections:\n");
-    INFO("   | runs:                %u\n",  __mgr.ReadGarbageCollections());
-    INFO("   | time (ms):           %zu\n", __mgr.ReadGarbageCollectionTime());
+    INFO("   | runs:                %u\n",  _mgr.ReadGarbageCollections());
+    INFO("   | time (ms):           %zu\n", _mgr.ReadGarbageCollectionTime());
   }
 };
 
@@ -91,15 +91,15 @@ public:
   typedef BDD build_node_t;
 
 private:
-  BDD __latest_build;
+  BDD _latest_build;
 
   // Init and Deinit
 public:
   cudd_bdd_adapter(int varcount) : cudd_adapter(varcount, 0)
   { // Disable dynamic ordering
-    __mgr.AutodynDisable();
+    _mgr.AutodynDisable();
 
-    __latest_build = bot();
+    _latest_build = bot();
   }
 
 private:
@@ -108,7 +108,7 @@ private:
   {
     BDD res = top();
     while (rbegin != rend) {
-      res = __mgr.bddVar(*(rbegin++)).Ite(res, bot());
+      res = _mgr.bddVar(*(rbegin++)).Ite(res, bot());
     }
     return res;
   }
@@ -116,16 +116,16 @@ private:
   // BDD Operations
 public:
   inline BDD top()
-  { return __mgr.bddOne(); }
+  { return _mgr.bddOne(); }
 
   inline BDD bot()
-  { return __mgr.bddZero(); }
+  { return _mgr.bddZero(); }
 
   inline BDD ithvar(int label)
-  { return __mgr.bddVar(label); }
+  { return _mgr.bddVar(label); }
 
   inline BDD nithvar(int label)
-  { return ~__mgr.bddVar(label); }
+  { return ~_mgr.bddVar(label); }
 
   inline BDD negate(const BDD &b)
   { return ~b; }
@@ -134,14 +134,14 @@ public:
   { return i.Ite(t,e); }
 
   inline BDD exists(const BDD &b, int label)
-  { return b.ExistAbstract(__mgr.bddVar(label)); }
+  { return b.ExistAbstract(_mgr.bddVar(label)); }
 
   template<typename IT>
   inline BDD exists(const BDD &b, IT rbegin, IT rend)
   { return b.ExistAbstract(make_cube(rbegin, rend)); }
 
   inline BDD forall(const BDD &b, int label)
-  { return b.UnivAbstract(__mgr.bddVar(label)); }
+  { return b.UnivAbstract(_mgr.bddVar(label)); }
 
   template<typename IT>
   inline BDD forall(const BDD &b, IT rbegin, IT rend)
@@ -151,16 +151,16 @@ public:
   { return b.nodeCount(); }
 
   inline uint64_t satcount(const BDD &b)
-  { return b.CountMinterm(varcount); }
+  { return b.CountMinterm(_varcount); }
 
   inline std::vector<std::pair<int, char>>
   pickcube(const BDD &b)
   {
-    std::string cudd_res(varcount, '_');
+    std::string cudd_res(_varcount, '_');
     b.PickOneCube(cudd_res.data());
 
     std::vector<std::pair<int, char>> res;
-    for (int x = 0; x < varcount; ++x) {
+    for (int x = 0; x < _varcount; ++x) {
       const char cudd_val = cudd_res.at(x);
       if (x == '_') { continue; }
 
@@ -175,20 +175,20 @@ public:
   inline BDD build_node(const bool value)
   {
     const BDD res = value ? top() : bot();
-    if (__latest_build == bot()) { __latest_build = res; }
+    if (_latest_build == bot()) { _latest_build = res; }
     return res;
   }
 
   inline BDD build_node(const int label, const BDD &low, const BDD &high)
   {
-    __latest_build = __mgr.makeBddNode(label, high, low);
-    return __latest_build;
+    _latest_build = _mgr.makeBddNode(label, high, low);
+    return _latest_build;
   }
 
   inline BDD build()
   {
-    const BDD res = __latest_build;
-    __latest_build = bot(); // <-- Reset and free builder reference
+    const BDD res = _latest_build;
+    _latest_build = bot(); // <-- Reset and free builder reference
     return res;
   }
 };
@@ -201,32 +201,32 @@ public:
   typedef ZDD build_node_t;
 
 private:
-  ZDD __leaf0;
-  ZDD __leaf1;
+  ZDD _leaf0;
+  ZDD _leaf1;
 
-  ZDD __latest_build;
+  ZDD _latest_build;
 
   // Init and Deinit
 public:
   cudd_zdd_adapter(int varcount) : cudd_adapter(0, varcount)
   { // Disable dynamic ordering
-    __mgr.AutodynDisableZdd();
+    _mgr.AutodynDisableZdd();
 
-    __leaf0 = __mgr.zddZero();
-    __leaf1 = __mgr.zddOne(std::numeric_limits<int>::max());
-    __latest_build = __mgr.zddZero();
+    _leaf0 = _mgr.zddZero();
+    _leaf1 = _mgr.zddOne(std::numeric_limits<int>::max());
+    _latest_build = _mgr.zddZero();
   }
 
   // ZDD Operations
 public:
   inline ZDD top()
-  { return __mgr.zddOne(0); }
+  { return _mgr.zddOne(0); }
 
   inline ZDD bot()
-  { return __leaf0; }
+  { return _leaf0; }
 
   inline ZDD ithvar(const int i)
-  { return __mgr.zddVar(i); }
+  { return _mgr.zddVar(i); }
 
   inline ZDD negate(const ZDD &z)
   { return top() - z; }
@@ -235,26 +235,26 @@ public:
   { return b.nodeCount(); }
 
   inline uint64_t satcount(const ZDD &b)
-  { return b.CountMinterm(varcount); }
+  { return b.CountMinterm(_varcount); }
 
   // ZDD Build operations
 public:
   inline ZDD build_node(const bool value)
   {
-    const ZDD res = value ? __leaf1 : __leaf0;
-    if (__latest_build == __leaf0) { __latest_build = res; }
+    const ZDD res = value ? _leaf1 : _leaf0;
+    if (_latest_build == _leaf0) { _latest_build = res; }
     return res;
   }
 
   inline ZDD build_node(const int label, const ZDD &low, const ZDD &high)
   {
-    return __latest_build = __mgr.makeZddNode(label, high, low);
+    return _latest_build = _mgr.makeZddNode(label, high, low);
   }
 
   inline ZDD build()
   {
-    const ZDD res = __latest_build;
-    __latest_build = __leaf0; // <-- Reset and free builder reference
+    const ZDD res = _latest_build;
+    _latest_build = _leaf0; // <-- Reset and free builder reference
     return res;
   }
 };
