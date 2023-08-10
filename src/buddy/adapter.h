@@ -50,7 +50,10 @@ buddy_init_size compute_init_size()
   const size_t x = memory_bytes / ((24u * CACHE_RATIO + 16u) / CACHE_RATIO);
   const size_t y = x / CACHE_RATIO;
 
-  return { std::min(x, MAX_INT), std::min(y, MAX_INT / CACHE_RATIO) };
+  return {
+    static_cast<int>(std::min(x, MAX_INT)),
+    static_cast<int>(std::min(y, MAX_INT / CACHE_RATIO))
+  };
 }
 
 class buddy_bdd_adapter
