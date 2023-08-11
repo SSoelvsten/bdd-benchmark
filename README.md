@@ -19,6 +19,7 @@ one to compare implementations.
         - [Picotrav [BDD, ZDD]](#picotrav-bdd-zdd)
         - [QBF Solver [BDD]](#qbf-solver-bdd)
     - [License](#license)
+    - [Citation](#citation)
     - [References](#references)
 
 <!-- markdown-toc end -->
@@ -331,6 +332,30 @@ make verification/qbf F=benchmarks/qcir/example_a.blif V=cudd O=LEVEL
 The software files in this repository are provided under the
 [MIT License](/LICENSE.md).
 
+## Citation
+If you use this repository in your work, we sadly do not yet have written a
+paper on this repository alone (this will be done though). In the meantime,
+please cite the initial paper on *Adiar*.
+```bibtex
+@InProceedings{soelvsten2022:TACAS,
+  title         = {Adiar: Binary Decision Diagrams in External Memory},
+  author        = {S{\o}lvsten, Steffan Christ
+               and van de Pol, Jaco
+               and Jakobsen, Anna Blume
+               and Thomasen, Mathias Weller Berg},
+  year          = {2022},
+  booktitle     = {Tools and Algorithms for the Construction and Analysis of Systems},
+  editor        = {Fisman, Dana
+               and Rosu, Grigore},
+  pages         = {295--313},
+  numPages      = {19},
+  publisher     = {Springer},
+  series        = {Lecture Notes in Computer Science},
+  volume        = {13244},
+  isbn          = {978-3-030-99527-0},
+  doi           = {10.1007/978-3-030-99527-0\_16},
+}
+```
 
 ## References
 
