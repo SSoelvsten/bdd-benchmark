@@ -15,7 +15,7 @@ message(STATUS "    C Flags:   ${CMAKE_C_FLAGS}")
 message(STATUS "    CXX Flags: ${CMAKE_CXX_FLAGS}")
 message(STATUS "")
 
-option(BDD_BENCHMAKR_STATS "Build with printing of verbose statistics (ruins time measurements)." OFF)
+option(BDD_BENCHMARK_STATS "Build with printing of verbose statistics (ruins time measurements)." OFF)
 message(STATUS "  Compiled with verbose Statistics: ${BDD_BENCHMARK_STATS}")
 if (BDD_BENCHMARK_STATS)
   message(WARN "    NOTE: THIS MAKES ANY REPORTED TIME MEASUREMENTS NOT REPRESENTATIVE!")
