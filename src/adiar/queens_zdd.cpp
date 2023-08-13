@@ -4,5 +4,5 @@
 
 int main(int argc, char** argv)
 {
-  run_queens<adiar_zdd_adapter>(argc, argv);
+  return run_queens<adiar_zdd_adapter>(argc, argv);
 }

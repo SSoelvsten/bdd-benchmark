@@ -209,13 +209,13 @@ public:
 
   void print_stats()
   {
-    INFO("\nBuDDy statistics:\n");
+    std::cout << "\nBuDDy statistics:\n";
 
     bddStat stats;
     bdd_stats(&stats);
 
-    INFO("   Table:\n");
-    INFO("   | total produced:      %zu\n", stats.produced);
+    std::cout << "   Table:\n"
+              << "   | total produced:      " << stats.produced << "\n"
 
     // Commented lines are only available if 'CACHESTATS' flag is set
     // bddCacheStat cache_stats;
@@ -228,6 +228,6 @@ public:
     // INFO(" | | hits:                %zu\n", cache_stats.opHit);
     // INFO(" | | miss:                %zu\n", cache_stats.opMiss);
 
-    INFO("   Garbage Collections:   %u\n",  stats.gbcnum);
+              << "   Garbage Collections:   " << stats.gbcnum << "\n";
   }
 };

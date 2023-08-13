@@ -1721,8 +1721,8 @@ solve(adapter_t& adapter, qcir& q,
   if (q.size() > max_print) { std::cout << "..."; }
   std::cout << "]" << std::endl;
 
-  INFO("  | max solve idx:       %i\n", max_q_idx);
-  INFO("  | setup time (ms):     %zu\n\n", duration_of(t_prep_before, t_prep_after));
+  std::cout << "  | max solve idx:       " << max_q_idx << "\n"
+            << "  | setup time (ms):     " << duration_of(t_prep_before, t_prep_after) << "\n\n";
 
   // Set-up BDD computation cache
   std::unordered_map<int, std::pair<typename adapter_t::dd_t, size_t>> cache;
@@ -1758,7 +1758,7 @@ solve(adapter_t& adapter, qcir& q,
   time_point t_prenex_before = t_solve_before;
 
 #ifdef BDD_BENCHMARK_STATS
-  INFO("  | Matrix\n");
+  std::cout << "  | Matrix\n";
 #endif
 
   // TODO: bail out, if collapsing to a terminal (and the output gate has been
@@ -1770,7 +1770,7 @@ solve(adapter_t& adapter, qcir& q,
     const qcir::gate& g = q.at(q_idx);
 
 #ifdef BDD_BENCHMARK_STATS
-    INFO("  | | %i : %s\n", q_idx, g.to_string().c_str());
+    std::cout << "  | | " << q_idx << " : " << g.to_string() << "\n";
     const time_point t_start = get_timestamp();
 #endif
 
@@ -1782,7 +1782,7 @@ solve(adapter_t& adapter, qcir& q,
        [&adapter, &vom]
        (const qcir::var_gate &g)  -> typename adapter_t::dd_t {
 #ifdef BDD_BENCHMARK_STATS
-         INFO("  | | | DD var:          %i\n", vom.dd_var(g.var));
+         std::cout << "  | | | DD var:          " << vom.dd_var(g.var) << "\n";
 #endif
          return adapter.ithvar(vom.dd_var(g.var));
        },
@@ -1849,16 +1849,16 @@ solve(adapter_t& adapter, qcir& q,
          for (const int x : g.vars) { vars.insert(vom.dd_var(x)); }
 
 #ifdef BDD_BENCHMARK_STATS
-         INFO("  | | | DD vars:         [ ");
+         std::cout << "  | | | DD vars:         [ ";
          size_t out_counter = 0;
          for (auto it = vars.begin(); it != vars.end(); ++it) {
            if (++out_counter > max_print) {
-             INFO("... ");
+             std::cout << "... ";
              break;
            }
-           INFO("%i ", *it);
+           std::cout << *it << " ";
          }
-         INFO("]\n");
+         std::cout << "]\n";
 #endif
 
          return g.quant == qcir::quant_gate::EXISTS
@@ -1881,12 +1881,11 @@ solve(adapter_t& adapter, qcir& q,
     } else { // Prenex
       dd_prenex_max_size = std::max(dd_prenex_max_size, g_dd_size);
     }
-    INFO("  | | | DD size:         %zu\n", g_dd_size);
-
-    INFO("  | | | time (ms):       %zu\n", duration_of(t_start,t_end));
+    std::cout << "  | | | DD size:         " << g_dd_size << "\n"
+              << "  | | | time (ms):       " << duration_of(t_start,t_end);
 
     if (g.is<qcir::output_gate>()) {
-      INFO("  | Prefix\n");
+      std::cout << "  | Prefix\n";
     }
 #endif
 
@@ -1894,7 +1893,7 @@ solve(adapter_t& adapter, qcir& q,
     cache_max_size = std::max(cache_max_size, cache.size());
   }
 #ifdef BDD_BENCHMARK_STATS
-  INFO("\n");
+  std::cout << "\n";
 #endif
 
   const auto res = cache_get(max_q_idx);
@@ -1972,79 +1971,78 @@ variable_order parse_option(const std::string &ARG, bool &should_exit)
     return variable_order::LEVEL;
   }
 
-  ERROR("Undefined variable/execution ordering: %s\n", arg.c_str());
+  std::cerr << "Undefined variable/execution ordering: " << arg.c_str() << "\n";
   should_exit = true;
 
   return variable_order::INPUT;
 }
 
 template<typename adapter_t>
-void run_qbf(int argc, char** argv)
+int run_qbf(int argc, char** argv)
 {
   variable_order variable_order = variable_order::INPUT;
   bool should_exit = parse_input(argc, argv, variable_order);
 
   if (input_files.size() == 0) {
-    ERROR("Input file(s) not specified\n");
+    std::cerr << "Input file(s) not specified\n";
     should_exit = true;
   }
 
-  if (should_exit) { EXIT(-1); }
+  if (should_exit) { return -1; }
 
   // =========================================================================
   {
-    INFO("QBF Solver (%s %i MiB):\n", adapter_t::NAME.c_str(), M);
+    std::cout << "QBF Solver (" << adapter_t::NAME << " " << M << " MiB):\n";
 
     // Parse QCir Input
     const std::string input_file = input_files.at(0);
-    INFO("\n  Circuit: %s\n", input_file.c_str());
+    std::cout << "\n  Circuit: " << input_file << "\n";
 
     qcir q(input_file);
 
-    INFO("  | depth: %zu\n", q.depth());
-    INFO("  | size:  %zu\n", q.size());
-    INFO("  | vars:  %zu\n", q.vars());
+    std::cout << "  | depth: " << q.depth() << "\n"
+              << "  | size:  " << q.size() << "\n"
+              << "  | vars:  " << q.vars() << "\n"
+              << std::flush;
 
     const time_point t_init_before = get_timestamp();
     adapter_t adapter(q.vars());
     const time_point t_init_after = get_timestamp();
 
     // Initialise BDD package
-    INFO("\n  BDD init (ms):         %zu\n", duration_of(t_init_before, t_init_after));
+    std::cout << "\n  BDD init (ms):         " << duration_of(t_init_before, t_init_after) << "\n"
+              << "\n"
+              << "  Solving Circuit\n"
+              << std::flush;
 
-    INFO("\n  Solving Circuit\n");
-    const auto [ sat_res, witness, stats ] =
-      solve(adapter, q, variable_order);
+    const auto [ sat_res, witness, stats ] = solve(adapter, q, variable_order);
 
-    INFO("  | solving time (ms):   %zu\n", stats.solve_time);
-    INFO("  | | matrix:            %zu\n", stats.solve_time - stats.prenex_time);
-    INFO("  | | prenex:            %zu\n", stats.prenex_time);
-    INFO("  | cache (max):         %zu\n", stats.cache.max_size);
+    std::cout << "  | solving time (ms):   " << stats.solve_time << "\n"
+              << "  | | matrix:            " << (stats.solve_time - stats.prenex_time) << "\n"
+              << "  | | prenex:            " << stats.prenex_time << "\n"
+              << "  | cache (max):         " << stats.cache.max_size << "\n"
 #ifdef BDD_BENCHMARK_STATS
-    INFO("  | DD size (max):       %zu\n", stats.dd.max_size);
-    INFO("  | | matrix:            %zu\n", stats.dd.matrix_max_size);
-    INFO("  | | prenex:            %zu\n", stats.dd.prenex_max_size);
+              << "  | DD size (max):       " << stats.dd.max_size << "\n"
+              << "  | | matrix:            " << stats.dd.matrix_max_size << "\n"
+              << "  | | prenex:            " << stats.dd.prenex_max_size << "\n"
 #endif
+      ;
 
-    if (sat_res) {
-      INFO("  | result:              SAT");
-    } else {
-      INFO("  | result:              UNSAT");
-    }
+    std::cout << "  | result:              " << (sat_res ? "SAT" : "UNSAT");
 
     if (witness.size() > 0) {
-      INFO(" [ ");
+      std::cout << " [ ";
       for (const auto &xv : witness) {
         const std::string var_name = q.var(xv.first);
         const char var_value = xv.second;
-        INFO("%s=%c ", var_name.c_str(), var_value);
+        std::cout << var_name << "=" << var_value << " ";
       }
-      INFO("]");
+      std::cout << "]";
     }
-    INFO("\n");
+    std::cout << "\n"
+              << std::flush;
 
     adapter.print_stats();
   }
-
-  EXIT(0);
+  return 0;
 }

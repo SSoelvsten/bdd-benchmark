@@ -95,21 +95,22 @@ typename adapter_t::dd_t construct_is_not_winning(adapter_t &adapter,
 
 // =============================================================================
 template<typename adapter_t>
-void run_tic_tac_toe(int argc, char** argv)
+int run_tic_tac_toe(int argc, char** argv)
 {
   no_options option = no_options::NONE;
   N = 20;
   bool should_exit = parse_input(argc, argv, option);
-  if (should_exit) { exit(-1); }
+  if (should_exit) { return -1; }
 
   // =========================================================================
-  INFO("Tic-Tac-Toe with %i crosses (%s %i MiB):\n", N, adapter_t::NAME.c_str(), M);
+  std::cout << "Tic-Tac-Toe with " << N << " crosses (" << adapter_t::NAME << " " << M << " MiB):\n";
 
   time_point t_init_before = get_timestamp();
   adapter_t adapter(64);
   time_point t_init_after = get_timestamp();
-  INFO("\n   %s initialisation:\n", adapter_t::NAME.c_str());
-  INFO("   | time (ms):              %zu\n", duration_of(t_init_before, t_init_after));
+  std::cout << "\n"
+            << "   " << adapter_t::NAME << " initialisation:\n"
+            << "   | time (ms):              " << duration_of(t_init_before, t_init_after) << "\n";
 
   construct_lines();
 
@@ -117,24 +118,29 @@ void run_tic_tac_toe(int argc, char** argv)
   {
     // =========================================================================
     // Construct is_equal_N
-    INFO("\n   Initial decision diagram:\n");
+    std::cout << "\n"
+              << "   Initial decision diagram:\n"
+              << std::flush;
 
     time_point t1 = get_timestamp();
     typename adapter_t::dd_t res = construct_init(adapter);
     time_point t2 = get_timestamp();
 
     const size_t initial_bdd = adapter.nodecount(res);
+    const time_duration init_time = duration_of(t1,t2);
+
 #ifdef BDD_BENCHMARK_STATS
     total_nodes += initial_bdd;
 #endif // BDD_BENCHMARK_STATS
-    INFO("   | size (nodes):           %zu\n", initial_bdd);
-
-    const time_duration init_time = duration_of(t1,t2);
-    INFO("   | time (ms):              %zu\n", init_time);
+    std::cout << "   | size (nodes):           " << initial_bdd << "\n"
+              << "   | time (ms):              " << init_time << "\n"
+              << std::flush;
 
     // =========================================================================
     // Add constraints lines
-    INFO("\n   Applying constraints:\n");
+    std::cout << "\n"
+              << "   Applying constraints:\n"
+              << std::flush;
 
     time_point t3 = get_timestamp();
 
@@ -146,10 +152,9 @@ void run_tic_tac_toe(int argc, char** argv)
       largest_bdd = std::max(largest_bdd, nodecount);
       total_nodes += nodecount;
 
-      INFO("   | [%i,%i,%i] %s: %zu DD nodes\n",
-           line[0], line[1], line[2],
-           std::string((line[0] < 10) + (line[1] < 10) + (line[2] < 10), ' ').c_str(),
-           nodecount);
+      std::cout << "   | [" << line[0] << "," << line[1] << "," << line[2] << "] "
+                << std::string((line[0] < 10) + (line[1] < 10) + (line[2] < 10), ' ') << ": "
+                << nodecount << " DD nodes\n";
 #endif // BDD_BENCHMARK_STATS
     }
 
@@ -158,16 +163,19 @@ void run_tic_tac_toe(int argc, char** argv)
     const time_duration constraints_time = duration_of(t3,t4);
 
 #ifdef BDD_BENCHMARK_STATS
-    INFO("   |\n");
-    INFO("   | total no. nodes:        %zu\n", total_nodes);
-    INFO("   | largest size (nodes):   %zu\n", largest_bdd);
+    std::cout << "   |\n"
+              << "   | total no. nodes:        " << total_nodes << "\n"
+              << "   | largest size (nodes):   " << largest_bdd << "\n";
 #endif // BDD_BENCHMARK_STATS
-    INFO("   | final size (nodes):     %zu\n", adapter.nodecount(res));
-    INFO("   | time (ms):              %zu\n", constraints_time);
+    std::cout << "   | final size (nodes):     " << adapter.nodecount(res) << "\n"
+              << "   | time (ms):              " << constraints_time << "\n"
+              << std::flush;
 
     // =========================================================================
     // Count number of solutions
-    INFO("\n   counting solutions:\n");
+    std::cout << "\n"
+              << "   counting solutions:\n"
+              << std::flush;
 
     time_point t5 = get_timestamp();
     solutions = adapter.satcount(res);
@@ -176,15 +184,20 @@ void run_tic_tac_toe(int argc, char** argv)
     const time_duration counting_time = duration_of(t5,t6);
 
     // =========================================================================
-    INFO("   | number of solutions:    %zu\n", solutions);
-    INFO("   | time (ms):              %zu\n", counting_time);
+    std::cout << "   | number of solutions:    " << solutions << "\n"
+              << "   | time (ms):              " << counting_time << "\n"
+              << std::flush;
 
     // =========================================================================
-    INFO("\n   total time (ms):          %zu\n", init_time + constraints_time + counting_time);
+    std::cout << "\n"
+              << "   total time (ms):          " << (init_time + constraints_time + counting_time) << "\n"
+              << std::flush;
   }
 
   adapter.print_stats();
 
-  if (N < size(expected_tic_tac_toe) && solutions != expected_tic_tac_toe[N]) { EXIT(-1); }
-  FLUSH();
+  if (N < size(expected_tic_tac_toe) && solutions != expected_tic_tac_toe[N]) {
+    return -1;
+  }
+  return 0;
 }

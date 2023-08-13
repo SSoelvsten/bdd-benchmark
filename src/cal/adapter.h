@@ -125,7 +125,7 @@ public:
 
   void print_stats()
   {
-    INFO("\n");
+    std::cout << "\n";
     _mgr.Stats(stdout);
   }
 };

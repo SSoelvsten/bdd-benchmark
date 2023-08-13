@@ -1,6 +1,7 @@
 #include <cmath>
 #include <algorithm>
 #include <assert.h>
+#include <ostream>
 
 // =============================================================================
 // Global constants
@@ -24,14 +25,6 @@ typedef unsigned long int time_duration;
 inline unsigned long int duration_of(const time_point &before, const time_point &after) {
   return std::chrono::duration_cast<std::chrono::milliseconds>(after - before).count();
 }
-
-// =============================================================================
-// Common printing macros
-#define FLUSH() { fflush(stdout); fflush(stderr); }
-#define EXIT(e) { FLUSH(); exit(e); }
-
-#define INFO(s, ...) { fprintf(stdout, s, ##__VA_ARGS__); FLUSH() }
-#define ERROR(s, ...) { fprintf(stderr, s, ##__VA_ARGS__); FLUSH() }
 
 // =============================================================================
 // Input parsing
@@ -60,7 +53,7 @@ enum no_options { NONE };
 template<>
 no_options parse_option(const std::string &, bool &should_exit)
 {
-  ERROR("Variable ordering is undefined for this benchmark\n");
+  std::cerr << "Variable ordering is undefined for this benchmark\n";
   should_exit = true;
   return no_options::NONE;
 }
@@ -87,7 +80,7 @@ bool parse_input(int &argc, char* argv[], option_enum &option)
       case 'M':
         M = std::stoi(optarg);
         if (M == 0) {
-          ERROR("  Must specify positive amount of memory (-M)\n");
+          std::cerr << "  Must specify positive amount of memory (-M)\n";
           exit = true;
         }
         continue;
@@ -107,7 +100,7 @@ bool parse_input(int &argc, char* argv[], option_enum &option)
         continue;
 
       case '?': // All parameters not defined above will be overwritten to be the '?' character
-        ERROR("Undefined flag parameter used\n\n");
+        std::cerr << "Undefined flag parameter used\n\n";
         [[fallthrough]]; // Let the compiler know, that we intend to fall through to 'h' case
 
       case 'h':
@@ -124,10 +117,10 @@ bool parse_input(int &argc, char* argv[], option_enum &option)
         return true;
       }
     } catch (std::invalid_argument const &ex) {
-      ERROR("Invalid number: %s\n", ex.what());
+      std::cerr << "Invalid number: " << ex.what() << "\n";
       exit = true;
     } catch (std::out_of_range const &ex) {
-      ERROR("Number out of range: %s", ex.what());
+      std::cerr << "Number out of range: " << ex.what() << "\n";
       exit = true;
     }
   }

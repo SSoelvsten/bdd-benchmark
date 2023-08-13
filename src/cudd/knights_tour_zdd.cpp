@@ -2,8 +2,7 @@
 
 #include "adapter.h"
 
-// ========================================================================== //
 int main(int argc, char** argv)
 {
-  run_knights_tour<cudd_zdd_adapter>(argc, argv);
+  return run_knights_tour<cudd_zdd_adapter>(argc, argv);
 }

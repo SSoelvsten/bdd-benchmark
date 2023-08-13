@@ -40,7 +40,7 @@ typename adapter_t::dd_t queens_R(adapter_t &adapter, int r)
     largest_bdd = std::max(largest_bdd, nodecount);
     total_nodes += nodecount;
 
-    INFO("   | | R(%s) : %zu DD nodes\n", pos_to_string(r,c).c_str(), nodecount);
+    std::cout << "   | | R(" << pos_to_string(r,c) << ") : " << nodecount << " DD nodes\n";
 #endif // BDD_BENCHMARK_STATS
   }
   return out;
@@ -62,7 +62,7 @@ typename adapter_t::dd_t queens_B(adapter_t &adapter)
     largest_bdd = std::max(largest_bdd, nodecount);
     total_nodes += nodecount;
 
-    INFO("   | B(%i) : %zu DD nodes\n", 0+1, nodecount);
+    std::cout << "   | B(" << 0+1 << ") : " << nodecount << " DD nodes\n";
 #endif // BDD_BENCHMARK_STATS
   }
 
@@ -74,7 +74,7 @@ typename adapter_t::dd_t queens_B(adapter_t &adapter)
     largest_bdd = std::max(largest_bdd, nodecount);
     total_nodes += nodecount;
 
-    INFO("   | B(%i) : %zu DD nodes\n", r+1, nodecount);
+    std::cout << "   | B(" << r+1 << ") : " << nodecount << " DD nodes\n";
 #endif // BDD_BENCHMARK_STATS
   }
   return out;
@@ -82,29 +82,33 @@ typename adapter_t::dd_t queens_B(adapter_t &adapter)
 
 // ========================================================================== //
 template<typename adapter_t>
-void run_queens(int argc, char** argv)
+int run_queens(int argc, char** argv)
 {
   no_options option = no_options::NONE;
   N = 8; // Default N value
   bool should_exit = parse_input(argc, argv, option);
-  if (should_exit) { exit(-1); }
+  if (should_exit) { return -1; }
 
   // =========================================================================
-  INFO("%i-Queens (%s %i MiB):\n", N, adapter_t::NAME.c_str(), M);
+  std::cout << N << "-Queens (" << adapter_t::NAME << " " << M << " MiB):\n";
 
   // ========================================================================
   // Initialise package manager
   const time_point t_init_before = get_timestamp();
   adapter_t adapter(N*N);
   const time_point t_init_after = get_timestamp();
-  INFO("\n   %s initialisation:\n", adapter_t::NAME.c_str());
-  INFO("   | time (ms):              %zu\n", duration_of(t_init_before, t_init_after));
+  std::cout << "\n"
+            << "   " << adapter_t::NAME << " initialisation:\n"
+            << "   | time (ms):              " << duration_of(t_init_before, t_init_after) << "\n";
 
   uint64_t solutions;
   {
     // ========================================================================
     // Compute the bdd that represents the entire board
-    INFO("\n   Decision diagram construction:\n");
+    std::cout << "\n"
+              << "   Decision diagram construction:\n"
+              << std::flush;
+
     const time_point t1 = get_timestamp();
     typename adapter_t::dd_t res = queens_B(adapter);
     const time_point t2 = get_timestamp();
@@ -112,34 +116,40 @@ void run_queens(int argc, char** argv)
     const time_duration construction_time = duration_of(t1,t2);
 
 #ifdef BDD_BENCHMARK_STATS
-    INFO("   |\n");
-    INFO("   | total no. nodes:        %zu\n", total_nodes);
-    INFO("   | largest size (nodes):   %zu\n", largest_bdd);
+    std::cout << "   |\n"
+              << "   | total no. nodes:        " << total_nodes << "\n"
+              << "   | largest size (nodes):   " << largest_bdd << "\n";
 #endif // BDD_BENCHMARK_STATS
-    INFO("   | final size (nodes):     %zu\n", adapter.nodecount(res));
-    INFO("   | time (ms):              %zu\n", construction_time);
+    std::cout << "   | final size (nodes):     " << adapter.nodecount(res) << "\n"
+              << "   | time (ms):              " << construction_time << "\n"
+              << std::flush;
 
     // ========================================================================
     // Count number of solutions
-    INFO("\n   Counting solutions:\n");
+    std::cout << "\n"
+              << "   Counting solutions:\n"
+              << std::flush;
+
     const time_point t3 = get_timestamp();
     solutions = adapter.satcount(res);
     const time_point t4 = get_timestamp();
 
     const time_duration counting_time = duration_of(t3,t4);
 
-    INFO("   | number of solutions:    %zu\n", solutions);
-    INFO("   | time (ms):              %zu\n", counting_time);
+    std::cout << "   | number of solutions:    " << solutions << "\n"
+              << "   | time (ms):              " << counting_time << "\n"
+              << std::flush;
 
     // ========================================================================
-    INFO("\n   total time (ms):          %zu\n", construction_time + counting_time);
+    std::cout << "\n"
+              << "   total time (ms):          " << (construction_time + counting_time) << "\n"
+              << std::flush;
   }
 
   adapter.print_stats();
 
   if (N < size(expected_queens) && solutions != expected_queens[N]) {
-    EXIT(-1);
+    return -1;
   }
-  FLUSH();
+  return 0;
 }
-
