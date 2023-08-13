@@ -32,7 +32,7 @@ build:
 	@cd build/ && for package in 'adiar' 'buddy' 'cal' 'cudd' 'sylvan' ; do \
 		mkdir -p ../out/$$package ; \
 		mkdir -p ../out/$$package/bdd ; \
-		for benchmark in 'picotrav' 'qbf' 'queens' 'tic_tac_toe' 'cnf' ; do \
+		for benchmark in 'picotrav' 'qbf' 'queens' 'tic_tac_toe' ; do \
 			make ${MAKE_FLAGS} $$package'_'$$benchmark'_bdd' ; \
 		done ; \
 	done
