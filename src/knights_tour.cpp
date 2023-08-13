@@ -168,7 +168,7 @@ typename adapter_t::dd_t knights_tour_iter_rel(adapter_t &adapter)
     : knights_tour_rel<adapter_t>(adapter, t);
 
 #ifdef BDD_BENCHMARK_STATS
-  INFO("   | [t = %i] : ??? DD nodes\n", t); // TODO
+  std::cout << "   | [t = " << t << "] : ??? DD nodes\n"; // TODO
 #endif // BDD_BENCHMARK_STATS
 
   // Go backwards in time, aggregating all legal paths
@@ -182,12 +182,12 @@ typename adapter_t::dd_t knights_tour_iter_rel(adapter_t &adapter)
     largest_bdd = std::max(largest_bdd, nodecount);
     total_nodes += nodecount;
 
-    INFO("   | [t = %i] : %zu DD nodes\n", t, nodecount);
+    std::cout << "   | [t = " t << "] : " << nodecount<< " DD nodes\n";
 #endif // BDD_BENCHMARK_STATS
   }
 
 #ifdef BDD_BENCHMARK_STATS
-  INFO("   |\n");
+  std::cout << "   |\n";
 #endif // BDD_BENCHMARK_STATS
   return res;
 }
@@ -217,12 +217,12 @@ void knights_tour_iter_ham(adapter_t &adapter, typename adapter_t::dd_t &paths)
       largest_bdd = std::max(largest_bdd, nodecount);
       total_nodes += nodecount;
 
-      INFO("   | %s : %zu DD nodes\n", pos_to_string(r,c).c_str(), nodecount);
+      std::cout << "   | " << pos_to_string(r,c) << " : %zu DD nodes\n" << nodecount;
 #endif // BDD_BENCHMARK_STATS
     }
   }
 #ifdef BDD_BENCHMARK_STATS
-  INFO("   |\n");
+  std::cout << "   |\n";
 #endif // BDD_BENCHMARK_STATS
 }
 
@@ -248,7 +248,7 @@ iter_opt parse_option(const std::string &arg, bool &should_exit)
   if (arg == "COMBINED_CLOSED")
   { return iter_opt::COMBINED_CLOSED; }
 
-  ERROR("Undefined option: %s\n", arg.c_str());
+  std::cerr << "Undefined option: " << arg << "\n";
   should_exit = true;
 
   return iter_opt::SPLIT_OPEN;
@@ -257,31 +257,33 @@ iter_opt parse_option(const std::string &arg, bool &should_exit)
 // ========================================================================== //
 
 template<typename adapter_t>
-void run_knights_tour(int argc, char** argv)
+int run_knights_tour(int argc, char** argv)
 {
   iter_opt opt = iter_opt::SPLIT_OPEN; // Default strategy
   N = 12; // Default N value for a 6x6 sized chess board
 
   bool should_exit = parse_input(argc, argv, opt);
-  if (should_exit) { exit(-1); }
+  if (should_exit) { return -1; }
 
   closed  = opt == iter_opt::SPLIT_CLOSED || opt == iter_opt::COMBINED_CLOSED;
   ham_rel = opt == iter_opt::COMBINED_OPEN || opt == iter_opt::COMBINED_CLOSED;
 
   // =========================================================================
-  INFO("%i x %i - Knight's Tour (%s %i MiB):\n", rows(), cols(), adapter_t::NAME.c_str(), M);
-  INFO("   | Tour type:              %s\n", closed ? "Closed tours only" : "Open (all) tours");
-  INFO("   | Computation pattern:    Transitions %s Hamiltonian\n", ham_rel ? "||" : ";");
+  std::cout << rows() << " x " << cols() << " - Knight's Tour (" << adapter_t::NAME << " " << M << " MiB):\n"
+            << "   | Tour type:              " << (closed ? "Closed tours only" : "Open (all) tours") << "\n"
+            << "   | Computation pattern:    Transitions " << (ham_rel ? "||" : ";") << " Hamiltonian\n";
 
   if (rows() == 0 || cols() == 0) {
-    INFO("\n  The board has no cells. Please provide an N > 1 (-N)\n");
-    exit(0);
+    std::cout << "\n"
+              << "  The board has no cells. Please provide an N > 1 (-N)\n";
+    return 0;
   }
 
   if (closed && (rows() < 3 || cols() < 3) && rows() != 1 && cols() != 1) {
-    INFO("\n  There cannot exist closed tours on boards smaller than 3 x 3\n");
-    INFO("  Aborting computation...\n");
-    exit(0);
+    std::cout << "\n"
+              << "  There cannot exist closed tours on boards smaller than 3 x 3\n"
+              << "  Aborting computation...\n";
+    return 0;
   }
 
   // ========================================================================
@@ -289,20 +291,20 @@ void run_knights_tour(int argc, char** argv)
   time_point t_init_before = get_timestamp();
   adapter_t adapter(MAX_POSITION()+1);
   time_point t_init_after = get_timestamp();
-  INFO("\n   %s initialisation:\n", adapter_t::NAME.c_str());
-  INFO("   | time (ms):              %zu\n", duration_of(t_init_before, t_init_after));
+
+  std::cout << "\n   " << adapter_t::NAME << " initialisation:\n"
+            << "   | time (ms):              " << duration_of(t_init_before, t_init_after)
+            << std::flush;
 
   uint64_t solutions;
   {
     // ========================================================================
     // Compute the decision diagram that represents all hamiltonian paths
-    time_point t1 = get_timestamp();
+    std::cout << "\n"
+              << "   " << (ham_rel ? "Paths + Hamiltonian construction" : "Paths construction") << ":\n"
+              << std::flush;
 
-    if (ham_rel) {
-      INFO("\n   Paths + Hamiltonian construction:\n");
-    } else {
-      INFO("\n   Paths construction:\n");
-    }
+    time_point t1 = get_timestamp();
 
     typename adapter_t::dd_t res = rows() == 1 && cols() == 1
       ? adapter.ithvar(int_of_position(0,0,0))
@@ -315,17 +317,20 @@ void run_knights_tour(int argc, char** argv)
     const time_duration paths_time = duration_of(t1,t2);
 
 #ifdef BDD_BENCHMARK_STATS
-    INFO("   | total no. nodes:        %zu\n", total_nodes);
-    INFO("   | largest size (nodes):   %zu\n", largest_bdd);
+    std::cout << "   | total no. nodes:        " << total_nodes << "\n"
+              << "   | largest size (nodes):   " << largest_bdd << "\n";
 #endif // BDD_BENCHMARK_STATS
-    INFO("   | final size (nodes):     %zu\n", adapter.nodecount(res));
-    INFO("   | time (ms):              %zu\n", paths_time);
+    std::cout << "   | final size (nodes):     " << adapter.nodecount(res) << "\n"
+              << "   | time (ms):              " << paths_time << "\n"
+              << std::flush;
 
     // ========================================================================
     // Hamiltonian constraints (if requested seperately)
     time_duration hamiltonian_time = 0;
     if (!ham_rel) {
-      INFO("\n   Applying Hamiltonian constraints:\n");
+      std::cout << "\n"
+                << "  Applying Hamiltonian constraints:\n"
+                << std::flush;
 
       time_point t3 = get_timestamp();
       knights_tour_iter_ham(adapter, res);
@@ -333,11 +338,12 @@ void run_knights_tour(int argc, char** argv)
       hamiltonian_time = duration_of(t3,t4);
 
 #ifdef BDD_BENCHMARK_STATS
-      INFO("   | total no. nodes:        %zu\n", total_nodes);
-      INFO("   | largest size (nodes):   %zu\n", largest_bdd);
+      std::cout << "   | total no. nodes:        " << total_nodes << "\n"
+                << "   | largest size (nodes):   " << largest_bdd << "\n";
 #endif // BDD_BENCHMARK_STATS
-      INFO("   | final size (nodes):     %zu\n", adapter.nodecount(res));
-      INFO("   | time (ms):              %zu\n", hamiltonian_time);
+      std::cout << "   | final size (nodes):     " << adapter.nodecount(res) << "\n"
+                << "   | time (ms):              " << hamiltonian_time << "\n"
+                << std::flush;
     }
 
     // ========================================================================
@@ -348,24 +354,28 @@ void run_knights_tour(int argc, char** argv)
 
     const time_duration counting_time = duration_of(t5,t6);
 
-    INFO("\n   Counting solutions:\n");
-    INFO("   | number of solutions:    %zu\n", solutions);
-    INFO("   | time (ms):              %zu\n", counting_time);
+    std::cout << "\n"
+              << "   Counting solutions:\n"
+              << "   | number of solutions:    " << solutions << "\n"
+              << "   | time (ms):              " << counting_time << "\n"
+              << std::flush;
 
     // ========================================================================
-    INFO("\n   total time (ms):          %zu\n", paths_time + hamiltonian_time + counting_time);
+    std::cout << "\n"
+              << "total time (ms):          " << (paths_time + hamiltonian_time + counting_time) << "\n"
+              << std::flush;
   }
 
   adapter.print_stats();
 
   if (!closed && N < size(expected_knights_tour_open)
       && expected_knights_tour_open[N] != UNKNOWN && solutions != expected_knights_tour_open[N]) {
-    EXIT(-1);
+    return -1;
   }
 
   if (closed && N < size(expected_knights_tour_closed)
       && expected_knights_tour_closed[N] != UNKNOWN && solutions != expected_knights_tour_closed[N]) {
-    EXIT(-1);
+    return -1;
   }
-  FLUSH();
+  return 0;
 }

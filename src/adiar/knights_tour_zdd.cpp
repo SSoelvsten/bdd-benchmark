@@ -4,5 +4,5 @@
 
 int main(int argc, char** argv)
 {
-  run_knights_tour<adiar_zdd_adapter>(argc, argv);
+  return run_knights_tour<adiar_zdd_adapter>(argc, argv);
 }

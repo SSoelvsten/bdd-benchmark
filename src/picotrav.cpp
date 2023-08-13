@@ -217,14 +217,14 @@ public:
   }
 
   void parse_error(const int curr_lineno, const std::string& near_text, const std::string& msg) override {
-    ERROR("Parsing error at line %d near '%s': %s\n", curr_lineno, near_text.c_str(), msg.c_str());
+    std::cerr << "Parsing error at line " << curr_lineno << " near '" << near_text << "': " << msg << "\n";
     has_error_ = true;
   }
 };
 
 bool construct_net(std::string &filename, net_t &net)
 {
-  INFO("   Parsing '%s'\n", filename.c_str());
+  std::cout << "   Parsing '" << filename << "'\n";
   construct_net_callback callback(net);
   blifparse::blif_parse_filename(filename, callback);
   return callback.has_error();
@@ -242,9 +242,9 @@ bool is_acyclic_rec(const std::string &node_name,
 
   const auto lookup_pth_visited = pth_visited.find(node_name);
   if (lookup_pth_visited != pth_visited.end()) {
-    ERROR("Net is cyclic: ");
-    for (const std::string &n : pth) { ERROR("%s -> ", n.c_str()); }
-    ERROR("%s\n", node_name.c_str());
+    std::cerr << "Net is cyclic: ";
+    for (const std::string &n : pth) { std::cerr << n << " -> "; }
+    std::cerr << node_name << "\n";
 
     return false;
   }
@@ -259,9 +259,10 @@ bool is_acyclic_rec(const std::string &node_name,
   pth.push_back(node_name);
 
   const auto lookup_node = net.nodes.find(node_name);
+
   if (lookup_node == net.nodes.end()) {
-    ERROR("Referenced net '%s' is undefined.\n", node_name.c_str());
-    EXIT(-1);
+    std::cerr << "Referenced net '" << node_name << "' is undefined." << std::endl;
+    exit(-1);
   }
 
   const node_t n = lookup_node -> second;
@@ -471,35 +472,36 @@ enum variable_order { INPUT, DFS, LEVEL, LEVEL_DFS, RANDOM };
 void apply_variable_order(const variable_order &o, net_t &net_0, net_t &net_1, bool print = true)
 {
   std::unordered_map<int, int> new_ordering;
-  INFO("\n   Variable order: ");
+  std::cout << "\n"
+            << "Variable order: ";
 
   switch (o) {
   case INPUT:
-    if (print) { INFO("INPUT\n"); }
+    if (print) { std::cout << "INPUT\n"; }
     // Keep as is
     return;
 
   case DFS: {
-    if (print) { INFO("DFS\n"); }
+    if (print) { std::cout << "DFS\n"; }
     new_ordering = dfs_variable_order(net_0);
     break;
   }
 
   case LEVEL: {
-    if (print) { INFO("LEVEL\n"); }
+    if (print) { std::cout << "LEVEL\n"; }
     new_ordering = level_variable_order(net_0);
     break;
   }
 
   case LEVEL_DFS: {
-    if (print) { INFO("LEVEL / DFS\n"); }
+    if (print) { std::cout << "LEVEL / DFS\n"; }
     apply_variable_order(variable_order::DFS, net_0, net_1, false);
     new_ordering = level_variable_order(net_0);
     break;
   }
 
   case RANDOM: {
-    if (print) { INFO("RANDOM\n"); }
+    if (print) { std::cout << "RANDOM\n"; }
     new_ordering = random_variable_order(net_0);
     break;
   }
@@ -509,7 +511,7 @@ void apply_variable_order(const variable_order &o, net_t &net_0, net_t &net_1, b
   if (net_1.inputs_w_order.size() == net_0.inputs_w_order.size()) {
     update_order(net_1, new_ordering);
   }
-  if (print) { INFO("   | derived\n"); }
+  if (print) { std::cout << "   | derived\n"; }
 }
 
 // ========================================================================== //
@@ -540,8 +542,9 @@ bool decrease_ref_count(net_t &net, const std::string &node_name)
   if (net.is_output(node_name)) { return false; }
 
   const auto lookup_ref_count = net.ref_count.find(node_name);
+
   if (lookup_ref_count == net.ref_count.end()) {
-    std::cerr << "Decreasing reference count on '" << node_name << "' not in reference table";
+    std::cerr << "Decreasing reference count on '" << node_name << "' not in reference table" << std::endl;
     exit(-1);
   }
 
@@ -677,17 +680,18 @@ typename adapter_t::dd_t construct_node_bdd(net_t &net,
 // ========================================================================== //
 // Construct the BDD for each output gate
 template<typename adapter_t>
-void construct_net_bdd(const std::string &filename,
-                       net_t &net,
-                       bdd_cache<adapter_t> &cache,
-                       adapter_t &adapter)
+int construct_net_bdd(const std::string &filename,
+                      net_t &net,
+                      bdd_cache<adapter_t> &cache,
+                      adapter_t &adapter)
 {
   if (cache.size() > 0) {
-    ERROR("Given BDD cache is non-empty");
-    EXIT(-1);
+    std::cerr << "Given BDD cache is non-empty";
+    return 42;
   }
 
-  INFO("\n   Constructing BDD%s for '%s'\n", net.outputs.size() > 1 ? "s" : "", filename.c_str());
+  std::cout << "\n"
+            << "   Constructing BDD" << (net.outputs.size() > 1 ? "s" : "") << " for '" << filename << "'\n";
 
   const time_point t_construct_before = get_timestamp();
   bdd_statistics stats;
@@ -696,9 +700,9 @@ void construct_net_bdd(const std::string &filename,
   }
   const time_point t_construct_after = get_timestamp();
 
-  INFO("   | time (ms):              %zu\n", duration_of(t_construct_before, t_construct_after));
+  std::cout << "   | time (ms):              " << duration_of(t_construct_before, t_construct_after) << "\n";
 #ifdef BDD_BENCHMARK_STATS
-  INFO("   | total no. nodes:        %zu\n", stats.total_processed);
+  std::cout << "   | total no. nodes:        \n" << stats.total_processed << "\n";
 #endif // BDD_BENCHMARK_STATS
 
   size_t sum_final_sizes = 0;
@@ -708,24 +712,26 @@ void construct_net_bdd(const std::string &filename,
     sum_final_sizes += nodecount;
     max_final_size = std::max(max_final_size, nodecount);
   }
-  INFO("   | final BDDs:\n");
-  INFO("   | | max BDD size:         %zu\n", max_final_size);
-  INFO("   | | w/ duplicates:        %zu\n", sum_final_sizes);
-  INFO("   | | allocated:            %zu\n", adapter.allocated_nodes());
+  std::cout << "   | final BDDs:\n"
+            << "   | | max BDD size:         " << max_final_size << "\n"
+            << "   | | w/ duplicates:        " << sum_final_sizes << "\n"
+            << "   | | allocated:            " << adapter.allocated_nodes() << "\n";
 
 #ifdef BDD_BENCHMARK_STATS
-  INFO("   | life-time BDDs:\n");
-  INFO("   | | max no. roots:        %zu\n", stats.max_roots);
-  INFO("   | | max BDD size:         %zu\n", stats.max_bdd_size);
-  INFO("   | | sum w/ duplicates:    %zu\n", stats.sum_bdd_sizes);
-  INFO("   | | max w/ duplicates:    %zu\n", stats.max_bdd_sizes);
-  INFO("   | | sum allocated:        %zu\n", stats.sum_allocated);
-  INFO("   | | max allocated:        %zu\n", stats.max_allocated);
+  std::cout << "   | life-time BDDs:\n"
+            << "   | | max no. roots:        " << stats.max_roots << "\n"
+            << "   | | max BDD size:         " << stats.max_bdd_size << "\n"
+            << "   | | sum w/ duplicates:    " << stats.sum_bdd_sizes << "\n"
+            << "   | | max w/ duplicates:    " << stats.max_bdd_size << "\n"
+            << "   | | sum allocated:        " << stats.sum_allocate << "\n"
+            << "   | | max allocated:        " << stats.max_allocate << "\n";
 
-  INFO("   | BDD operations:\n");
-  INFO("   | | Apply:                %zu\n", stats.total_applys);
-  INFO("   | | Negations:            %zu\n", stats.total_negations);
+  std::cout << "   | BDD operations:\n"
+            << "   | | Apply:                " <<  stats.total_applys << "\n"
+            << "   | | Negations:            " << stats.total_negations << "\n";
 #endif // BDD_BENCHMARK_STATS
+  std::cout << std::flush;
+  return 0;
 }
 
 // ========================================================================== //
@@ -737,8 +743,11 @@ bool verify_outputs(const net_t& net_0, const bdd_cache<adapter_t>& cache_0,
   assert(net_0.outputs_in_order.size() == cache_0.size());
   assert(net_1.outputs_in_order.size() == cache_1.size());
   assert(net_0.outputs_in_order.size() == net_1.outputs_in_order.size());
-  INFO("\n   Verifying equality:\n");
-  INFO("   | result:\n");
+
+  std::cout << "\n"
+            << "   Verifying equality:\n"
+            << "   | result:\n"
+            << std::flush;
 
   const time_point t_compare_before = get_timestamp();
   bool ret_value = true;
@@ -751,14 +760,17 @@ bool verify_outputs(const net_t& net_0, const bdd_cache<adapter_t>& cache_0,
     const typename adapter_t::dd_t bdd_1 = cache_1.find(output_1) -> second;
 
     if (bdd_0 != bdd_1) {
-      INFO("   | | output differ in ['%s' / '%s']\n", output_0.c_str(), output_1.c_str());
+      std::cout << "   | | output differ in ['" << output_0 << "' / '" << output_1 << "']\n";
       ret_value = false;
     }
   }
   const time_point t_compare_after = get_timestamp();
-  if (ret_value) { INFO("   | | all outputs match!\n"); }
+  if (ret_value) {
+    std::cout << "   | | all outputs match!\n";
+  }
 
-  INFO("   | time (ms):            %zu\n", duration_of(t_compare_before, t_compare_after));
+  std::cout << "   | time (ms):            " << duration_of(t_compare_before, t_compare_after) << "\n"
+            << std::flush;
   return ret_value;
 }
 
@@ -776,72 +788,74 @@ variable_order parse_option(const std::string &arg, bool &should_exit)
   if (arg == "LEVEL_DFS") { return variable_order::LEVEL_DFS; }
   if (arg == "RANDOM")    { return variable_order::RANDOM; }
 
-  ERROR("Undefined variable ordering: %s\n", arg.c_str());
+  std::cerr << "Undefined variable ordering: " << arg << "\n";
   should_exit = true;
 
   return variable_order::INPUT;
 }
 
 template<typename adapter_t>
-void run_picotrav(int argc, char** argv)
+int run_picotrav(int argc, char** argv)
 {
   variable_order variable_order = variable_order::INPUT;
   bool should_exit = parse_input(argc, argv, variable_order);
 
   if (input_files.size() == 0) {
-    ERROR("Input file(s) not specified\n");
+    std::cerr << "Input file(s) not specified\n";
     should_exit = true;
   }
 
-  if (should_exit) { EXIT(-1); }
+  if (should_exit) { return -1; }
 
   bool verify_networks = input_files.size() > 1;
 
   // =========================================================================
-  INFO("Picotrav (%s %i MiB):\n", adapter_t::NAME.c_str(), M);
+  std::cout << "Picotrav (" << adapter_t::NAME << " " << M << " MiB):\n";
 
   // =========================================================================
   // Read file(s) and construct Nets
   net_t net_0;
 
   const bool parsing_error_0 = construct_net(input_files.at(0), net_0);
-  INFO("   | input validation:\n");
-  INFO("   | | [%s] parsing\n", parsing_error_0 ? " " : "x");
-  if(parsing_error_0) { EXIT(-1); }
+  std::cout << "   | input validation:\n";
+  std::cout << "   | | [" << (parsing_error_0 ? " " : "x") << "] parsing\n";
+  if(parsing_error_0) { return -1; }
 
   const bool is_not_cyclic_0 = is_acyclic(net_0);
-  INFO("   | | [%s] acyclic\n", is_not_cyclic_0 ? "x" : " ");
-  if(!is_not_cyclic_0) { EXIT(-1); }
+  std::cout << "   | | [" << (is_not_cyclic_0 ? "x" : " ") << "] acyclic\n";
+  if(!is_not_cyclic_0) { return -1; }
 
-  INFO("   | net info:\n");
-  INFO("   | | inputs:                 %zu\n", net_0.inputs_w_order.size());
-  INFO("   | | outputs:                %zu\n", net_0.outputs_in_order.size());
-  INFO("   | | internal nodes:         %zu\n", net_0.nodes.size());
+  std::cout << "   | net info:\n"
+            << "   | | inputs:                 " << net_0.inputs_w_order.size() << "\n"
+            << "   | | outputs:                " << net_0.outputs_in_order.size() << "\n"
+            << "   | | internal nodes:         " << net_0.nodes.size() << "\n"
+            << std::flush;
 
   net_t net_1;
   if (verify_networks) {
     const bool parsing_error_1 = construct_net(input_files.at(1), net_1);
-    INFO("   | input validation:\n");
-    INFO("   | | [%s] parsing\n", parsing_error_1 ? " " : "x");
+    std::cout << "   | input validation:\n"
+              << "   | | [" << (parsing_error_1 ? " " : "x") << "] parsing\n";
     verify_networks &= !parsing_error_1;
 
     const bool is_not_cyclic_1 = is_acyclic(net_1);
-    INFO("   | | [%s] acyclic\n", is_not_cyclic_1 ? "x" : " ");
+    std::cout << "   | | [" << (is_not_cyclic_1 ? "x" : " ") << "] acyclic\n";
     verify_networks &= is_not_cyclic_1;
 
     const bool inputs_match = net_0.inputs_w_order.size() == net_1.inputs_w_order.size();
-    INFO("   | | [%s] number of inputs match\n", inputs_match ? "x" : " ");
+    std::cout << "   | | [" << (inputs_match ? "x" : " ") << "] number of inputs match\n";
     verify_networks &= inputs_match;
 
     const bool outputs_match = net_0.outputs_in_order.size() == net_1.outputs_in_order.size();
-    INFO("   | | [%s] number of outputs match\n", outputs_match ? "x" : " ");
+    std::cout << "   | | [" << (outputs_match ? "x" : " ") << "] number of outputs match\n";
     verify_networks &= outputs_match;
   }
 
-  INFO("   | net info:\n");
-  INFO("   | | inputs:                 %zu\n", net_1.inputs_w_order.size());
-  INFO("   | | outputs:                %zu\n", net_1.outputs_in_order.size());
-  INFO("   | | internal nodes:         %zu\n", net_1.nodes.size());
+  std::cout << "   | net info:\n"
+            << "   | | inputs:                 " << net_1.inputs_w_order.size() << "\n"
+            << "   | | outputs:                " << net_1.outputs_in_order.size() << "\n"
+            << "   | | internal nodes:         " << net_1.nodes.size() << "\n"
+            << std::flush;
 
   // Nanotrav sorts the output in ascending order by their level. The same is
   // possible here, but experiments show this at times decreases and other
@@ -857,23 +871,34 @@ void run_picotrav(int argc, char** argv)
   const time_point t_init_before = get_timestamp();
   adapter_t adapter(varcount);
   const time_point t_init_after = get_timestamp();
-  INFO("\n   %s init (ms):      %zu\n", adapter_t::NAME.c_str(), duration_of(t_init_before, t_init_after));
+
+  std::cout << "\n"
+            << adapter_t::NAME << " init (ms):      " << duration_of(t_init_before, t_init_after) << "\n"
+            << std::flush;
 
   // ========================================================================
   // Construct BDD for net(s)
   bdd_cache<adapter_t> cache_0;
-  construct_net_bdd(input_files.at(0), net_0, cache_0, adapter);
 
+  int errcode_0 = 0;
+  int errcode_1 = 0;
   bool networks_equal = true;
+
+  errcode_0 = construct_net_bdd(input_files.at(0), net_0, cache_0, adapter);
+
+  if (errcode_0) { return errcode_0; }
+
   if (verify_networks) {
     bdd_cache<adapter_t> cache_1;
-    construct_net_bdd(input_files.at(1), net_1, cache_1, adapter);
+    errcode_1 = construct_net_bdd(input_files.at(1), net_1, cache_1, adapter);
+
+    if (errcode_1) { return errcode_1; }
 
     networks_equal = verify_outputs<adapter_t>(net_0, cache_0, net_1, cache_1);
   }
 
   adapter.print_stats();
 
-  if (verify_networks && !networks_equal) { EXIT(-1); }
-  FLUSH();
+  if (verify_networks && !networks_equal) { return -1; }
+  return 0;
 }

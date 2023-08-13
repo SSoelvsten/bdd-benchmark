@@ -4,5 +4,5 @@
 
 int main(int argc, char** argv)
 {
-  run_tic_tac_toe<adiar_bdd_adapter>(argc, argv);
+  return run_tic_tac_toe<adiar_bdd_adapter>(argc, argv);
 }

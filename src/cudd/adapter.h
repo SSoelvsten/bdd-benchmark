@@ -61,14 +61,15 @@ public:
 
   void print_stats()
   {
-    INFO("\nCUDD Statistics:\n");
+    std::cout << "\n"
+              << "CUDD Statistics:\n"
 
-    INFO("   Table:\n");
-    INFO("   | peak node count:     %zu\n", _mgr.ReadPeakNodeCount());
-    INFO("   | node count (bdd):    %zu\n", _mgr.ReadNodeCount());
-    INFO("   | node count (zdd):    %zu\n", _mgr.zddReadNodeCount());
-    INFO("   | keys:                %u\n",  _mgr.ReadKeys());
-    INFO("   | dead:                %u\n",  _mgr.ReadDead());
+              << "   Table:\n"
+              << "   | peak node count:     " << _mgr.ReadPeakNodeCount() << "\n"
+              << "   | node count (bdd):    " << _mgr.ReadNodeCount() << "\n"
+              << "   | node count (zdd):    " << _mgr.zddReadNodeCount() << "\n"
+              << "   | keys:                " << _mgr.ReadKeys() << "\n"
+              << "   | dead:                " <<  _mgr.ReadDead() << "\n"
 
     // Commented lines are only available if 'DD_STATS' flag is set in CUDD compilation
 
@@ -77,9 +78,9 @@ public:
     // INFO(" | | lookups:             %zu\n", _mgr.ReadCacheLookUps());
     // INFO(" | | hits:                %zu\n", _mgr.ReadCacheHits());
 
-    INFO("   Garbage Collections:\n");
-    INFO("   | runs:                %u\n",  _mgr.ReadGarbageCollections());
-    INFO("   | time (ms):           %zu\n", _mgr.ReadGarbageCollectionTime());
+              << "   Garbage Collections:\n"
+              << "   | runs:                " << _mgr.ReadGarbageCollections() << "\n"
+              << "   | time (ms):           " << _mgr.ReadGarbageCollectionTime() << "\n";
   }
 };
 

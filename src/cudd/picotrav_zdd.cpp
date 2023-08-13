@@ -4,5 +4,5 @@
 
 int main(int argc, char** argv)
 {
-  run_picotrav<cudd_zdd_adapter>(argc, argv);
+  return run_picotrav<cudd_zdd_adapter>(argc, argv);
 }
