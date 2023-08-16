@@ -53,24 +53,36 @@ public:
 
   inline BDD exists(const BDD &b, int label)
   {
-    throw std::exception();
+    std::vector<int> i;
+    i.push_back(label);
+    return exists(b, i.begin(), i.end());
   }
 
   template<typename IT>
   inline BDD exists(const BDD &b, IT rbegin, IT rend)
   {
-    throw std::exception();
+    const int assoc = convert_to_association_list(rbegin, rend);
+    _mgr.AssociationSetCurrent(assoc);
+    const BDD res = _mgr.Exists(b);
+    _mgr.AssociationQuit(assoc);
+    return res;
   }
 
   inline BDD forall(const BDD &b, int label)
   {
-    throw std::exception();
+    std::vector<int> i;
+    i.push_back(label);
+    return forall(b, i.begin(), i.end());
   }
 
   template<typename IT>
   inline BDD forall(const BDD &b, IT rbegin, IT rend)
   {
-    throw std::exception();
+    const int assoc = convert_to_association_list(rbegin, rend);
+    _mgr.AssociationSetCurrent(assoc);
+    const BDD res = _mgr.Exists(b);
+    _mgr.AssociationQuit(assoc);
+    return res;
   }
 
   inline uint64_t nodecount(BDD f)
@@ -86,7 +98,37 @@ public:
   inline std::vector<std::pair<int, char>>
   pickcube(const BDD &b)
   {
-    throw std::exception();
+    BDD support = _mgr.SatisfySupport(b);
+    std::vector<std::pair<int, char>> res;
+
+    while (support != _mgr.One() && support != _mgr.Zero()) {
+      const int  i = support.Id()-1;
+      const char v = '0' + (support.Then() != _mgr.Zero())
+                         + (support.Then() == support.Else());
+
+      res.push_back({i,v});
+
+      support = v != '0' ? support.Then() : support.Else();
+    }
+
+    return res;
+  }
+
+private:
+  bool is_complemented(const BDD &b)
+  { return b != _mgr.Regular(b); }
+
+  template<typename IT>
+  int convert_to_association_list(IT begin, IT end)
+  {
+    std::vector<BDD> vec;
+    vec.reserve(std::distance(begin, end));
+
+    while (begin != end) {
+      vec.push_back(ithvar(*(begin++)));
+    }
+
+    return _mgr.AssociationInit(vec.begin(), vec.end());
   }
 
   // BDD Build Operations
