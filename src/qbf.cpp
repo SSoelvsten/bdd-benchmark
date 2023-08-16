@@ -1722,7 +1722,8 @@ solve(adapter_t& adapter, qcir& q,
   std::cout << "]" << std::endl;
 
   std::cout << "  | max solve idx:       " << max_q_idx << "\n"
-            << "  | setup time (ms):     " << duration_of(t_prep_before, t_prep_after) << "\n\n";
+            << "  | setup time (ms):     " << duration_of(t_prep_before, t_prep_after) << "\n\n"
+            << std::flush;
 
   // Set-up BDD computation cache
   std::unordered_map<int, std::pair<typename adapter_t::dd_t, size_t>> cache;
