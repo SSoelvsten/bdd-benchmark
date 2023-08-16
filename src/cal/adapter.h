@@ -14,14 +14,7 @@ class cal_bdd_adapter
   typedef BDD build_node_t;
 
 private:
-  // HACK: the destructor of the 'Cal' class creates a segmentation fault.
-  //       Hence, we wrap it such that we create a memory leak by NOT calling
-  //       the destructor.
-  //
-  //       See also: https://github.com/SSoelvsten/cal/issues/3
-  union {
-    Cal _mgr;
-  };
+  Cal _mgr;
   const int _varcount;
   BDD _latest_build;
 
