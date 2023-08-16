@@ -182,7 +182,7 @@ typename adapter_t::dd_t knights_tour_iter_rel(adapter_t &adapter)
     largest_bdd = std::max(largest_bdd, nodecount);
     total_nodes += nodecount;
 
-    std::cout << "   | [t = " t << "] : " << nodecount<< " DD nodes\n";
+    std::cout << "   | [t = " << t << "] : " << nodecount<< " DD nodes\n";
 #endif // BDD_BENCHMARK_STATS
   }
 
