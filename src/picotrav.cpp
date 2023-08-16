@@ -723,8 +723,8 @@ int construct_net_bdd(const std::string &filename,
             << "   | | max BDD size:         " << stats.max_bdd_size << "\n"
             << "   | | sum w/ duplicates:    " << stats.sum_bdd_sizes << "\n"
             << "   | | max w/ duplicates:    " << stats.max_bdd_size << "\n"
-            << "   | | sum allocated:        " << stats.sum_allocate << "\n"
-            << "   | | max allocated:        " << stats.max_allocate << "\n";
+            << "   | | sum allocated:        " << stats.sum_allocated << "\n"
+            << "   | | max allocated:        " << stats.max_allocated << "\n";
 
   std::cout << "   | BDD operations:\n"
             << "   | | Apply:                " <<  stats.total_applys << "\n"
