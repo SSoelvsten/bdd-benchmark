@@ -98,17 +98,19 @@ public:
   inline std::vector<std::pair<int, char>>
   pickcube(const BDD &b)
   {
-    BDD support = _mgr.SatisfySupport(b);
     std::vector<std::pair<int, char>> res;
 
-    while (support != _mgr.One() && support != _mgr.Zero()) {
-      const int  i = support.Id()-1;
-      const char v = '0' + (support.Then() != _mgr.Zero())
-                         + (support.Then() == support.Else());
+    BDD sat = _mgr.SatisfySupport(b);
+    while (sat != _mgr.One() && sat != _mgr.Zero()) {
+      const int  var       = sat.Id()-1;
 
-      res.push_back({i,v});
+      const BDD  sat_low  = sat.Else();
+      const BDD  sat_high = sat.Then();
 
-      support = v != '0' ? support.Then() : support.Else();
+      const bool go_high = sat.Then() != _mgr.Zero();
+      res.push_back({ var, '0'+go_high });
+
+      sat = go_high ? sat.Then() : sat.Else();
     }
 
     return res;

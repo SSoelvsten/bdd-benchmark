@@ -168,13 +168,8 @@ public:
       const bdd sat_high = bdd_high(sat);
 
       const bool go_high = sat_high != bddfalse;
-      if (sat_low == sat_high) {
-        res.push_back({ var, '2' });
-      } else if (go_high) {
-        res.push_back({ var, '1' });
-      } else { // !go_high
-        res.push_back({ var, '0' });
-      }
+      res.push_back({ var, '0' + go_high });
+
       sat = go_high ? sat_high : sat_low;
     }
     return res;
