@@ -76,6 +76,10 @@ public:
   exists(const adiar::bdd &b, int label)
   { return adiar::bdd_exists(b,label); }
 
+  inline adiar::bdd
+  exists(const adiar::bdd &b, const std::function<bool(int)> &pred)
+  { return adiar::bdd_exists(b, pred); }
+
   template<class IT>
   inline adiar::bdd
   exists(const adiar::bdd &b, IT rbegin, IT rend)
@@ -84,6 +88,10 @@ public:
   inline adiar::bdd
   forall(const adiar::bdd &b, int label)
   { return adiar::bdd_forall(b,label); }
+
+  inline adiar::bdd
+  forall(const adiar::bdd &b, const std::function<bool(int)> &pred)
+  { return adiar::bdd_forall(b, pred); }
 
   template<class IT>
   inline adiar::bdd

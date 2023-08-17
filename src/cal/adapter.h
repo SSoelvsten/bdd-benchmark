@@ -58,6 +58,15 @@ public:
     return exists(b, i.begin(), i.end());
   }
 
+  inline BDD exists(const BDD &b, const std::function<bool(int)> &pred)
+  {
+    const int assoc = convert_to_association_list(pred);
+    _mgr.AssociationSetCurrent(assoc);
+    const BDD res = _mgr.Exists(b);
+    _mgr.AssociationQuit(assoc);
+    return res;
+  }
+
   template<typename IT>
   inline BDD exists(const BDD &b, IT rbegin, IT rend)
   {
@@ -73,6 +82,15 @@ public:
     std::vector<int> i;
     i.push_back(label);
     return forall(b, i.begin(), i.end());
+  }
+
+  inline BDD forall(const BDD &b, const std::function<bool(int)> &pred)
+  {
+    const int assoc = convert_to_association_list(pred);
+    _mgr.AssociationSetCurrent(assoc);
+    const BDD res = _mgr.ForAll(b);
+    _mgr.AssociationQuit(assoc);
+    return res;
   }
 
   template<typename IT>
@@ -128,6 +146,19 @@ private:
 
     while (begin != end) {
       vec.push_back(ithvar(*(begin++)));
+    }
+
+    return _mgr.AssociationInit(vec.begin(), vec.end());
+  }
+
+  int convert_to_association_list(const std::function<bool(int)> &pred)
+  {
+    std::vector<BDD> vec;
+
+    for (int i = 0; i < _varcount; ++i) {
+      if (pred(i)) {
+        vec.push_back(ithvar(i));
+      }
     }
 
     return _mgr.AssociationInit(vec.begin(), vec.end());
