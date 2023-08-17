@@ -43,12 +43,13 @@ public:
   typedef sylvan::Bdd build_node_t;
 
 private:
-  int varcount;
+  const int _varcount;
   sylvan::Bdd _latest_build;
 
   // Init and Deinit
 public:
-  sylvan_bdd_adapter(int varcount) : varcount(varcount)
+  sylvan_bdd_adapter(int varcount)
+    : _varcount(varcount)
   {
     // Init LACE
     lace_start(1, 1000000);
@@ -123,7 +124,7 @@ public:
   { return b.NodeCount() - 1; }
 
   inline uint64_t satcount(const sylvan::Bdd &b)
-  { return b.SatCount(varcount); }
+  { return b.SatCount(_varcount); }
 
   inline std::vector<std::pair<int, char>>
   pickcube(const sylvan::Bdd &b)
