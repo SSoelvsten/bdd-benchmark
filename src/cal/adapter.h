@@ -100,7 +100,7 @@ public:
   {
     std::vector<std::pair<int, char>> res;
 
-    BDD sat = _mgr.SatisfySupport(b);
+    BDD sat = _mgr.Satisfy(b);
     while (sat != _mgr.One() && sat != _mgr.Zero()) {
       const int  var       = sat.Id()-1;
 
