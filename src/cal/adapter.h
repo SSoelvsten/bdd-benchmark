@@ -80,7 +80,7 @@ public:
   {
     const int assoc = convert_to_association_list(rbegin, rend);
     _mgr.AssociationSetCurrent(assoc);
-    const BDD res = _mgr.Exists(b);
+    const BDD res = _mgr.ForAll(b);
     _mgr.AssociationQuit(assoc);
     return res;
   }
