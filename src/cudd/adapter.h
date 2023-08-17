@@ -114,6 +114,17 @@ private:
     return res;
   }
 
+  inline BDD make_cube(const std::function<bool(int)> &pred)
+  {
+    BDD res = top();
+    for (int i = _varcount-1; 0 <= i; --i) {
+      if (pred(i)) {
+        res = _mgr.bddVar(i).Ite(res, bot());
+      }
+    }
+    return res;
+  }
+
   // BDD Operations
 public:
   inline BDD top()
@@ -137,12 +148,18 @@ public:
   inline BDD exists(const BDD &b, int label)
   { return b.ExistAbstract(_mgr.bddVar(label)); }
 
+  inline BDD exists(const BDD &b, const std::function<bool(int)> &pred)
+  { return b.ExistAbstract(make_cube(pred)); }
+
   template<typename IT>
   inline BDD exists(const BDD &b, IT rbegin, IT rend)
   { return b.ExistAbstract(make_cube(rbegin, rend)); }
 
   inline BDD forall(const BDD &b, int label)
   { return b.UnivAbstract(_mgr.bddVar(label)); }
+
+  inline BDD forall(const BDD &b, const std::function<bool(int)> &pred)
+  { return b.UnivAbstract(make_cube(pred)); }
 
   template<typename IT>
   inline BDD forall(const BDD &b, IT rbegin, IT rend)

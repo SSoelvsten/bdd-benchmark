@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <assert.h>
 #include <ostream>
+#include <functional>
 
 // =============================================================================
 // Global constants

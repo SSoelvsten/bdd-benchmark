@@ -84,6 +84,17 @@ private:
     return res;
   }
 
+  inline sylvan::Bdd make_cube(const std::function<bool(int)> &pred)
+  {
+    sylvan::Bdd res = top();
+    for (int i = _varcount-1; 0 <= i; --i) {
+      if (pred(i)) {
+        res = sylvan::Bdd::bddVar(i).Ite(res, bot());
+      }
+    }
+    return res;
+  }
+
   // BDD Operations
 public:
   inline sylvan::Bdd top()
@@ -109,12 +120,18 @@ public:
   inline sylvan::Bdd exists(const sylvan::Bdd &b, int label)
   { return b.ExistAbstract(sylvan::Bdd::bddVar(label)); }
 
+  inline sylvan::Bdd exists(const sylvan::Bdd &b, const std::function<bool(int)> &pred)
+  { return b.ExistAbstract(make_cube(pred)); }
+
   template<typename IT>
   inline sylvan::Bdd exists(const sylvan::Bdd &b, IT rbegin, IT rend)
   { return b.ExistAbstract(make_cube(rbegin, rend)); }
 
   inline sylvan::Bdd forall(const sylvan::Bdd &b, int label)
   { return b.UnivAbstract(sylvan::Bdd::bddVar(label)); }
+
+  inline sylvan::Bdd forall(const sylvan::Bdd &b, const std::function<bool(int)> &pred)
+  { return b.UnivAbstract(make_cube(pred)); }
 
   template<typename IT>
   inline sylvan::Bdd forall(const sylvan::Bdd &b, IT rbegin, IT rend)

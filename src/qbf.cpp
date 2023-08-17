@@ -1862,9 +1862,19 @@ solve(adapter_t& adapter, qcir& q,
          std::cout << "]\n";
 #endif
 
+         // iterator quantification
+         /*
          return g.quant == qcir::quant_gate::EXISTS
            ? adapter.exists(cache_get(g.lit), vars.crbegin(), vars.crend())
            : adapter.forall(cache_get(g.lit), vars.crbegin(), vars.crend());
+         */
+
+         // predicated quantification
+         const auto pred = [&vars](int i) { return vars.find(i) != vars.end(); };
+
+         return g.quant == qcir::quant_gate::EXISTS
+           ? adapter.exists(cache_get(g.lit), pred)
+           : adapter.forall(cache_get(g.lit), pred);
        },
        [&cache_get, &t_prenex_before]
        (const qcir::output_gate &g) -> typename adapter_t::dd_t {

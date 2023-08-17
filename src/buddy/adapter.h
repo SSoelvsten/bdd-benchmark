@@ -64,11 +64,13 @@ public:
   typedef bdd build_node_t;
 
 private:
+  const int _varcount;
   dd_t _latest_build;
 
   // Init and Deinit
 public:
   buddy_bdd_adapter(int varcount)
+    : _varcount(varcount)
   {
 #ifndef BDD_BENCHMARK_GRENDEL
     const buddy_init_size init_size = compute_init_size();
@@ -116,6 +118,17 @@ private:
     return res;
   }
 
+  inline bdd make_cube(const std::function<bool(int)> &pred)
+  {
+    bdd res = top();
+    for (int i = _varcount-1; 0 <= i; --i) {
+      if (pred(i)) {
+        res = bdd_ite(bdd_ithvar(i), res, bot());
+      }
+    }
+    return res;
+  }
+
   // BDD Operations
 public:
   inline bdd top()
@@ -139,12 +152,18 @@ public:
   inline bdd exists(const bdd &b, int label)
   { return bdd_exist(b, bdd_ithvar(label)); }
 
+  inline bdd exists(const bdd &b, const std::function<bool(int)> &pred)
+  { return bdd_exist(b, make_cube(pred)); }
+
   template<typename IT>
   inline bdd exists(const bdd &b, IT rbegin, IT rend)
   { return bdd_exist(b, make_cube(rbegin, rend)); }
 
   inline bdd forall(const bdd &b, int label)
   { return bdd_forall(b, bdd_ithvar(label)); }
+
+  inline bdd forall(const bdd &b, const std::function<bool(int)> &pred)
+  { return bdd_forall(b, make_cube(pred)); }
 
   template<typename IT>
   inline bdd forall(const bdd &b, IT rbegin, IT rend)
