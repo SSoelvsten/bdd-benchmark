@@ -79,13 +79,7 @@ public:
   template<class IT>
   inline adiar::bdd
   exists(const adiar::bdd &b, IT rbegin, IT rend)
-  {
-    adiar::bdd res = b;
-    while (rbegin != rend) {
-      res = exists(res, *(rbegin++));
-    }
-    return res;
-  }
+  { return adiar::bdd_exists(b, rbegin, rend); }
 
   inline adiar::bdd
   forall(const adiar::bdd &b, int label)
@@ -94,13 +88,7 @@ public:
   template<class IT>
   inline adiar::bdd
   forall(const adiar::bdd &b, IT rbegin, IT rend)
-  {
-    adiar::bdd res = b;
-    while (rbegin != rend) {
-      res = forall(res, *(rbegin++));
-    }
-    return res;
-  }
+  { return adiar::bdd_forall(b, rbegin, rend); }
 
   inline uint64_t
   nodecount(const adiar::bdd &b)
