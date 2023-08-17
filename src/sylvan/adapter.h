@@ -137,13 +137,8 @@ public:
       const sylvan::Bdd sat_high = sat.Then();
 
       const bool go_high = !sat_high.isZero();
-      if (sat_low == sat_high) {
-        res.push_back({ var, '2' });
-      } else if (go_high) {
-        res.push_back({ var, '1' });
-      } else { // !go_high
-        res.push_back({ var, '0' });
-      }
+      res.push_back({ var, '0'+go_high });
+
       sat = go_high ? sat_high : sat_low;
     }
     return res;
