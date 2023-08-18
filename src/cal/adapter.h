@@ -60,21 +60,15 @@ public:
 
   inline BDD exists(const BDD &b, const std::function<bool(int)> &pred)
   {
-    const int assoc = convert_to_association_list(pred);
-    _mgr.AssociationSetCurrent(assoc);
-    const BDD res = _mgr.Exists(b);
-    _mgr.AssociationQuit(assoc);
-    return res;
+    set_temp_association(pred);
+    return _mgr.Exists(b);
   }
 
   template<typename IT>
   inline BDD exists(const BDD &b, IT rbegin, IT rend)
   {
-    const int assoc = convert_to_association_list(rbegin, rend);
-    _mgr.AssociationSetCurrent(assoc);
-    const BDD res = _mgr.Exists(b);
-    _mgr.AssociationQuit(assoc);
-    return res;
+    set_temp_association(rbegin, rend);
+    return _mgr.Exists(b);
   }
 
   inline BDD forall(const BDD &b, int label)
@@ -86,21 +80,15 @@ public:
 
   inline BDD forall(const BDD &b, const std::function<bool(int)> &pred)
   {
-    const int assoc = convert_to_association_list(pred);
-    _mgr.AssociationSetCurrent(assoc);
-    const BDD res = _mgr.ForAll(b);
-    _mgr.AssociationQuit(assoc);
-    return res;
+    set_temp_association(pred);
+    return _mgr.ForAll(b);
   }
 
   template<typename IT>
   inline BDD forall(const BDD &b, IT rbegin, IT rend)
   {
-    const int assoc = convert_to_association_list(rbegin, rend);
-    _mgr.AssociationSetCurrent(assoc);
-    const BDD res = _mgr.ForAll(b);
-    _mgr.AssociationQuit(assoc);
-    return res;
+    set_temp_association(rbegin, rend);
+    return _mgr.ForAll(b);
   }
 
   inline uint64_t nodecount(BDD f)
@@ -139,7 +127,7 @@ private:
   { return b != _mgr.Regular(b); }
 
   template<typename IT>
-  int convert_to_association_list(IT begin, IT end)
+  void set_temp_association(IT begin, IT end)
   {
     std::vector<BDD> vec;
     vec.reserve(std::distance(begin, end));
@@ -148,10 +136,10 @@ private:
       vec.push_back(ithvar(*(begin++)));
     }
 
-    return _mgr.AssociationInit(vec.begin(), vec.end());
+    _mgr.TempAssociationInit(vec.begin(), vec.end());
   }
 
-  int convert_to_association_list(const std::function<bool(int)> &pred)
+  void set_temp_association(const std::function<bool(int)> &pred)
   {
     std::vector<BDD> vec;
 
@@ -161,7 +149,7 @@ private:
       }
     }
 
-    return _mgr.AssociationInit(vec.begin(), vec.end());
+    _mgr.TempAssociationInit(vec.begin(), vec.end());
   }
 
   // BDD Build Operations
