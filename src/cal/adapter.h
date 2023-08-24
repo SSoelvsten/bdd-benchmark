@@ -6,7 +6,6 @@
 #include <string>
 #include <vector>
 
-#include <sstream> // missing in `calObj.hh`
 #include <calObj.hh>
 
 class cal_bdd_adapter
@@ -219,7 +218,7 @@ public:
   // Statistics
 public:
   inline size_t allocated_nodes()
-  { return _mgr.GetNumNodes(); }
+  { return _mgr.Nodes(); }
 
   void print_stats()
   {
