@@ -186,7 +186,7 @@ Solves the following problem:
 > Given N, then how many hamiltonian paths can a single Knight do across a chess
 > board of size (N/2)x(N-N/2)?
 
-Our implementation is based on [[Bryant2021](#references)]. We represent all
+The ZDD encoding is based on [[Bryant2021](#references)]. We represent all
 O(N<sup>4</sup>) states, i.e. position and time, as a separate variable; a
 transition relation then encodes the legal moves between two time steps. By
 intersecting moves at all time steps we obtain all paths. On-top of this,
