@@ -261,18 +261,18 @@ BDD variables represent the value of inputs. Hence, a good variable ordering is
 important for a high performance. To this end, one can use various variable
 orderings derived from the given net.
 
-- `INPUT`: Use the order in which they are declared in the input *.blif* file.
+- `input`: Use the order in which they are declared in the input *.blif* file.
 
-- `DFS`: Variables are ordered based on a DFS traversal where non-input gates
+- `dfs`: Variables are ordered based on a DFS traversal where non-input gates
   are recursed to first; thereby favouring deeper nodes.
 
-- `LEVEL`: Variables are ordered based on the deepest reference by another net.
-  Ties are broken based on the declaration order in the input (`INPUT`).
+- `level`: Variables are ordered based on the deepest reference by another net.
+  Ties are broken based on the declaration order in the input (`input`).
 
-- `LEVEL_DFS`: Similar to `LEVEL` but ties are broken based on the ordering in
-  `DFS` rather than `INPUT`.
+- `level_dfs`: Similar to `level` but ties are broken based on the ordering in
+  `dfs` rather than `input`.
 
-- `RANDOM`: A randomized ordering of variables.
+- `random`: A randomized ordering of variables.
 
 The *.blif* file(s) is given with the `-f` parameter (*F1* and *F2* Make
 variables) and the variable order with `-o` (*O* for Make). You can find
