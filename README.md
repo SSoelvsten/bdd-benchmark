@@ -188,8 +188,9 @@ Solves the following problem:
 
 Optionally, you can pick the type of tours to be computed:
 
-- `OPEN`: All hamiltonian path, i.e. one does not need to end back at the start.
-- `CLOSED`: Only a hamiltonian cycles.
+- `open`: All hamiltonian path, i.e. one does not need to end back at the start.
+- `closed`: Only hamiltonian cycles, i.e. where one does end back where one
+  started.
 
 The ZDD encoding is based on [[Bryant2021](#references)]. We represent all
 O(N<sup>4</sup>) states, i.e. position and time, as a separate variable; a

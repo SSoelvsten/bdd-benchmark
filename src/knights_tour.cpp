@@ -146,11 +146,13 @@ std::string option_help_str<iter_opt>()
 template<>
 iter_opt parse_option(const std::string &arg, bool &should_exit)
 {
-  if (arg == "OPEN" || arg == "O")
-    { return iter_opt::OPEN; }
+  const std::string lower_arg = ascii_tolower(arg);
 
-  if (arg == "CLOSED" || arg == "C")
-    { return iter_opt::CLOSED; }
+  if (lower_arg == "open" || lower_arg == "o")
+  { return iter_opt::OPEN; }
+
+  if (lower_arg == "closed" || lower_arg == "c")
+  { return iter_opt::CLOSED; }
 
   std::cerr << "Undefined option: " << arg << "\n";
   should_exit = true;
