@@ -50,62 +50,9 @@ typename adapter_t::dd_t knights_tour_closed(adapter_t &adapter)
 }
 
 // ========================================================================== //
-//                 Transition Relation + Hamiltonian Constraint               //
+//                               Transition Relation                          //
 template<typename adapter_t>
-void __knights_tour_rel__post_chain__simp(adapter_t &adapter,
-                                          std::vector<typename adapter_t::build_node_t> &post_chains,
-                                          int time, int row, int col)
-{
-  const int this_label = int_of_position(row, col, time);
-
-  const auto res =
-    adapter.build_node(this_label, post_chains.at(0), post_chains.at(0));
-
-  for (int idx = 0; idx < rows() * cols(); idx++) {
-    post_chains.at(idx) = res;
-  }
-}
-
-template<typename adapter_t>
-void __knights_tour_rel__post_chain__ham(adapter_t &adapter,
-                                         std::vector<typename adapter_t::build_node_t> &post_chains,
-                                         int time, int row, int col)
-{
-  // Hamiltonian constraint chain for each position reached at time step 't+1'
-  // given some position at time step 't'.
-  const int this_label = int_of_position(row, col, time);
-
-  for (int row_t = 0; row_t <= MAX_ROW(); row_t++) {
-    for (int col_t = 0; col_t <= MAX_COL(); col_t++) {
-      // Do nothing for unreachable positions at time 't'.
-      if (!is_reachable(row_t, col_t)) { continue; }
-
-      // This position matches (row_t, col_t)? Skip it to make this chain
-      // enforce it being a hamiltonian path.
-      if (row_t == row && col_t == col) { continue; }
-
-      // Index of chain to update.
-      const int chain_idx = int_of_position(row_t, col_t);
-
-      // If past this time step's conflict at the very last time step, then just
-      // reuse the "don't care" chain at index 0.
-      const int this_conflict = int_of_position(row_t, col_t, time);
-
-      if (time == MAX_TIME()
-          && this_label > this_conflict
-          && !(row_t == 0 && col_t == 0)) {
-        post_chains.at(chain_idx) = post_chains.at(0);
-      } else {
-        post_chains.at(chain_idx) = adapter.build_node(this_label,
-                                                       post_chains.at(chain_idx),
-                                                       post_chains.at(chain_idx));
-      }
-    }
-  }
-}
-
-template<typename adapter_t, bool incl_hamiltonian>
-typename adapter_t::dd_t __knights_tour_rel(adapter_t &adapter, int t)
+typename adapter_t::dd_t knights_tour_rel(adapter_t &adapter, int t)
 {
   std::vector<typename adapter_t::build_node_t> post_chains(cols() * rows(), adapter.build_node(true));
 
@@ -115,10 +62,13 @@ typename adapter_t::dd_t __knights_tour_rel(adapter_t &adapter, int t)
       for (int col = MAX_COL(); col >= 0; col--) {
         if (!is_reachable(row, col)) { continue; }
 
-        if constexpr (incl_hamiltonian) {
-          __knights_tour_rel__post_chain__ham(adapter, post_chains, time, row, col);
-        } else {
-          __knights_tour_rel__post_chain__simp(adapter, post_chains, time, row, col);
+        const int this_label = int_of_position(row, col, time);
+
+        const auto res =
+          adapter.build_node(this_label, post_chains.at(0), post_chains.at(0));
+
+        for (int idx = 0; idx < rows() * cols(); idx++) {
+          post_chains.at(idx) = res;
         }
       }
     }
@@ -178,18 +128,6 @@ typename adapter_t::dd_t __knights_tour_rel(adapter_t &adapter, int t)
 #endif // BDD_BENCHMARK_STATS
 
   return out;
-}
-
-template<typename adapter_t>
-typename adapter_t::dd_t knights_tour_rel(adapter_t &adapter, int t)
-{
-  return __knights_tour_rel<adapter_t, false>(adapter, t);
-}
-
-template<typename adapter_t>
-typename adapter_t::dd_t knights_tour_ham_rel(adapter_t &adapter, int t)
-{
-  return __knights_tour_rel<adapter_t, true>(adapter, t);
 }
 
 // ========================================================================== //

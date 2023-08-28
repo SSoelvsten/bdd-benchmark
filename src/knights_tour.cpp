@@ -144,15 +144,11 @@ int next_legal(int r_from, int c_from, int r_to, int c_to, int t)
 template<typename adapter_t>
 typename adapter_t::dd_t knights_tour_rel(adapter_t &adapter, int t);
 
-template<typename adapter_t>
-typename adapter_t::dd_t knights_tour_ham_rel(adapter_t &adapter, int t);
-
 // ========================================================================== //
 //                    Iterate over the above Transition Relation              //
 bool closed = false;
-bool ham_rel = false;
 
-template<typename adapter_t, bool incl_hamiltonian>
+template<typename adapter_t>
 typename adapter_t::dd_t knights_tour_iter_rel(adapter_t &adapter)
 {
   // Reset 'largest_bdd'
@@ -173,9 +169,7 @@ typename adapter_t::dd_t knights_tour_iter_rel(adapter_t &adapter)
 
   // Go backwards in time, aggregating all legal paths
   for (; closed <= t ; t--) {
-    res &= incl_hamiltonian
-      ? knights_tour_ham_rel<adapter_t>(adapter, t)
-      : knights_tour_rel<adapter_t>(adapter, t);
+    res &= knights_tour_rel<adapter_t>(adapter, t);
 
 #ifdef BDD_BENCHMARK_STATS
     const size_t nodecount = adapter.nodecount(res);
@@ -227,7 +221,7 @@ void knights_tour_iter_ham(adapter_t &adapter, typename adapter_t::dd_t &paths)
 }
 
 // ========================================================================== //
-enum iter_opt { SPLIT_OPEN, SPLIT_CLOSED, COMBINED_OPEN, COMBINED_CLOSED };
+enum iter_opt { OPEN, CLOSED };
 
 template<>
 std::string option_help_str<iter_opt>()
@@ -236,22 +230,16 @@ std::string option_help_str<iter_opt>()
 template<>
 iter_opt parse_option(const std::string &arg, bool &should_exit)
 {
-  if (arg == "SPLIT_OPEN" || arg == "OPEN" || arg == "SPLIT")
-  { return iter_opt::SPLIT_OPEN; }
+  if (arg == "OPEN" || arg == "O")
+  { return iter_opt::OPEN; }
 
-  if (arg == "SPLIT_CLOSED" || arg == "CLOSED")
-  { return iter_opt::SPLIT_CLOSED; }
-
-  if (arg == "COMBINED_OPEN" || arg == "COMBINED")
-  { return iter_opt::COMBINED_OPEN; }
-
-  if (arg == "COMBINED_CLOSED")
-  { return iter_opt::COMBINED_CLOSED; }
+  if (arg == "CLOSED" || arg == "C")
+  { return iter_opt::CLOSED; }
 
   std::cerr << "Undefined option: " << arg << "\n";
   should_exit = true;
 
-  return iter_opt::SPLIT_OPEN;
+  return iter_opt::OPEN;
 }
 
 // ========================================================================== //
@@ -259,19 +247,17 @@ iter_opt parse_option(const std::string &arg, bool &should_exit)
 template<typename adapter_t>
 int run_knights_tour(int argc, char** argv)
 {
-  iter_opt opt = iter_opt::SPLIT_OPEN; // Default strategy
+  iter_opt opt = iter_opt::OPEN; // Default strategy
   N = 12; // Default N value for a 6x6 sized chess board
 
   bool should_exit = parse_input(argc, argv, opt);
   if (should_exit) { return -1; }
 
-  closed  = opt == iter_opt::SPLIT_CLOSED || opt == iter_opt::COMBINED_CLOSED;
-  ham_rel = opt == iter_opt::COMBINED_OPEN || opt == iter_opt::COMBINED_CLOSED;
+  closed  = opt == iter_opt::CLOSED;
 
   // =========================================================================
   std::cout << rows() << " x " << cols() << " - Knight's Tour (" << adapter_t::NAME << " " << M << " MiB):\n"
-            << "   | Tour type:              " << (closed ? "Closed tours only" : "Open (all) tours") << "\n"
-            << "   | Computation pattern:    Transitions " << (ham_rel ? "||" : ";") << " Hamiltonian\n";
+            << "   | Tour type:              " << (closed ? "Closed tours only" : "Open (all) tours") << "\n";
 
   if (rows() == 0 || cols() == 0) {
     std::cout << "\n"
@@ -279,7 +265,7 @@ int run_knights_tour(int argc, char** argv)
     return 0;
   }
 
-  if (closed && (rows() < 3 || cols() < 3) && rows() != 1 && cols() != 1) {
+  if (closed && (rows() < 3 || cols() < 3) && (rows() != 1 || cols() != 1)) {
     std::cout << "\n"
               << "  There cannot exist closed tours on boards smaller than 3 x 3\n"
               << "  Aborting computation...\n";
@@ -301,18 +287,16 @@ int run_knights_tour(int argc, char** argv)
     // ========================================================================
     // Compute the decision diagram that represents all hamiltonian paths
     std::cout << "\n"
-              << "   " << (ham_rel ? "Paths + Hamiltonian construction" : "Paths construction") << ":\n"
+              << "   Paths construction:\n"
               << std::flush;
 
-    time_point t1 = get_timestamp();
+    const time_point t1 = get_timestamp();
 
     typename adapter_t::dd_t res = rows() == 1 && cols() == 1
       ? adapter.ithvar(int_of_position(0,0,0))
-      : (ham_rel
-         ? knights_tour_iter_rel<adapter_t, true>(adapter)
-         : knights_tour_iter_rel<adapter_t, false>(adapter));
+      : knights_tour_iter_rel<adapter_t>(adapter);
 
-    time_point t2 = get_timestamp();
+    const time_point t2 = get_timestamp();
 
     const time_duration paths_time = duration_of(t1,t2);
 
@@ -325,17 +309,18 @@ int run_knights_tour(int argc, char** argv)
               << std::flush;
 
     // ========================================================================
-    // Hamiltonian constraints (if requested seperately)
-    time_duration hamiltonian_time = 0;
-    if (!ham_rel) {
-      std::cout << "\n"
-                << "  Applying Hamiltonian constraints:\n"
-                << std::flush;
+    // Hamiltonian constraints
+    std::cout << "\n"
+              << "  Applying Hamiltonian constraints:\n"
+              << std::flush;
 
-      time_point t3 = get_timestamp();
-      knights_tour_iter_ham(adapter, res);
-      time_point t4 = get_timestamp();
-      hamiltonian_time = duration_of(t3,t4);
+    const time_point t3 = get_timestamp();
+
+    knights_tour_iter_ham(adapter, res);
+
+    const time_point t4 = get_timestamp();
+
+    const time_duration hamiltonian_time = duration_of(t3,t4);
 
 #ifdef BDD_BENCHMARK_STATS
       std::cout << "   | total no. nodes:        " << total_nodes << "\n"
@@ -344,13 +329,12 @@ int run_knights_tour(int argc, char** argv)
       std::cout << "   | final size (nodes):     " << adapter.nodecount(res) << "\n"
                 << "   | time (ms):              " << hamiltonian_time << "\n"
                 << std::flush;
-    }
 
     // ========================================================================
     // Count number of solutions
-    time_point t5 = get_timestamp();
+    const time_point t5 = get_timestamp();
     solutions = adapter.satcount(res);
-    time_point t6 = get_timestamp();
+    const time_point t6 = get_timestamp();
 
     const time_duration counting_time = duration_of(t5,t6);
 

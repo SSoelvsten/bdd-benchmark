@@ -193,20 +193,8 @@ intersecting moves at all time steps we obtain all paths. On-top of this,
 hamiltonian constraints are added and finally the size of the set of Knight's
 Tours is obtained.
 
-You may choose to include the hamiltonian constraint inside of the transition
-relation. This seems to result in slower running times, but slightly smaller
-ZDDs.
-
-You may provide an option `-o` of the form `{STRAT}_{TYPE}`
-
-- `{STRAT}`: Whether to use the `SPLIT` approach, where transitions and
-  hamiltonian are handled separately. Alternatively, one may use the `COMBINED`
-  approach.
-
-- `{TYPE}`: Whether to count the `OPEN` paths, i.e. all hamiltonian paths, or
-  only the `CLOSED` ones, i.e. the hamiltonian cycles.
-
-`OPEN` and `CLOSED` are shortcuts for using `SPLIT`.
+You may provide an option `-o` to choose the type of tours of interest: `OPEN`
+tours, i.e. a hamiltonian path, or only `CLOSED` ones, i.e. a hamiltonian cycle.
 
 **Statistics:**
 
