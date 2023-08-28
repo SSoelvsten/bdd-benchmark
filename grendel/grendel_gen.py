@@ -215,7 +215,7 @@ BENCHMARKS = {
           # [ [15, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "log2",       picotrav_opt_t.LEVEL_DFS) ],
           # [ [15, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "log2",       picotrav_opt_t.LEVEL_DFS) ],
           # [ [15, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "max",        picotrav_opt_t.LEVEL_DFS) ],
-            [ [ 6,12, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "max",        picotrav_opt_t.LEVEL_DFS) ],
+          # [ [ 6,12, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "max",        picotrav_opt_t.LEVEL_DFS) ],
           # [ [15, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "multiplier", picotrav_opt_t.LEVEL_DFS) ],
           # [ [15, 0, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.depth, "multiplier", picotrav_opt_t.LEVEL_DFS) ],
             [ [ 0, 3, 0], picotrav__args(epfl_spec_t.arithmetic, epfl_opt_t.size,  "sin",        picotrav_opt_t.LEVEL_DFS) ],
