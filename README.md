@@ -263,14 +263,14 @@ orderings derived from the given net.
 
 - `input`: Use the order in which they are declared in the input *.blif* file.
 
-- `dfs`: Variables are ordered based on a DFS traversal where non-input gates
-  are recursed to first; thereby favouring deeper nodes.
+- `df`/`depth-first`: Variables are ordered based on a depth-first traversal
+  where non-input gates are recursed to first; thereby favouring deeper nodes.
 
 - `level`: Variables are ordered based on the deepest reference by another net.
   Ties are broken based on the declaration order in the input (`input`).
 
-- `level_dfs`: Similar to `level` but ties are broken based on the ordering in
-  `dfs` rather than `input`.
+- `level_df`: Similar to `level` but ties are broken based on the ordering in
+  `df` rather than `input`.
 
 - `random`: A randomized ordering of variables.
 
