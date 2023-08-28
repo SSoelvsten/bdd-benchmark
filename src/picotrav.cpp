@@ -467,7 +467,7 @@ void update_order(net_t &net, const std::unordered_map<int, int> &new_ordering)
   net.inputs_w_order = new_inputs_w_order;
 }
 
-enum variable_order { INPUT, DFS, LEVEL, LEVEL_DFS, RANDOM };
+enum variable_order { INPUT, DF, LEVEL, LEVEL_DF, RANDOM };
 
 void apply_variable_order(const variable_order &o, net_t &net_0, net_t &net_1, bool print = true)
 {
@@ -481,8 +481,8 @@ void apply_variable_order(const variable_order &o, net_t &net_0, net_t &net_1, b
     // Keep as is
     return;
 
-  case DFS: {
-    if (print) { std::cout << "DFS\n"; }
+  case DF: {
+    if (print) { std::cout << "DF\n"; }
     new_ordering = dfs_variable_order(net_0);
     break;
   }
@@ -493,9 +493,9 @@ void apply_variable_order(const variable_order &o, net_t &net_0, net_t &net_1, b
     break;
   }
 
-  case LEVEL_DFS: {
-    if (print) { std::cout << "LEVEL / DFS\n"; }
-    apply_variable_order(variable_order::DFS, net_0, net_1, false);
+  case LEVEL_DF: {
+    if (print) { std::cout << "LEVEL / DF\n"; }
+    apply_variable_order(variable_order::DF, net_0, net_1, false);
     new_ordering = level_variable_order(net_0);
     break;
   }
@@ -787,14 +787,14 @@ variable_order parse_option(const std::string &arg, bool &should_exit)
   if (lower_arg == "input")
   { return variable_order::INPUT; }
 
-  if (lower_arg == "dfs")
-  { return variable_order::DFS; }
+  if (lower_arg == "df" || lower_arg == "depth-first")
+  { return variable_order::DF; }
 
   if (lower_arg == "level")
   { return variable_order::LEVEL; }
 
-  if (lower_arg == "level_dfs")
-  { return variable_order::LEVEL_DFS; }
+  if (lower_arg == "level_df")
+  { return variable_order::LEVEL_DF; }
 
   if (lower_arg == "random")
   { return variable_order::RANDOM; }
