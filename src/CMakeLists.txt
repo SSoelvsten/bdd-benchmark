@@ -11,8 +11,7 @@ macro(add_bdd_benchmark NAME)
 
   # BuDDy
   add_executable(buddy_${NAME}_bdd buddy/${NAME}_bdd.cpp)
-  target_include_directories(buddy_${NAME}_bdd PRIVATE "${BDD_SOURCE_DIR}")
-  target_link_libraries(buddy_${NAME}_bdd PRIVATE bdd)
+  target_link_libraries(buddy_${NAME}_bdd PRIVATE buddy)
   if (BDD_BENCHMARK_GRENDEL)
     target_compile_definitions(buddy_${NAME}_bdd PRIVATE BDD_BENCHMARK_GRENDEL)
   endif()
