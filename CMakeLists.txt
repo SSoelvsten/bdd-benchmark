@@ -48,18 +48,12 @@ endif(BDD_BENCHMARK_STATS)
 add_subdirectory (external/adiar adiar)
 
 # BuDDy Package (Jørn Lind-Nielsen - Copenhagen University, Denmark)
+set(BUDDY_EXAMPLES OFF)
 if (BDD_BENCHMARK_STATS)
-  add_definitions(-DCACHESTATS)
+  set(BUDDY_STATS ON)
 endif(BDD_BENCHMARK_STATS)
 
 add_subdirectory (external/BuDDy bdd)
-if (BDD_BENCHMARK_STATS)
-  # `kernel.c` includes `config.h`, which contains a `#undef CACHESTATS`.
-  # Override it.
-  file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/bdd/src/config.h
-    "\n#define CACHESTATS 1")
-endif(BDD_BENCHMARK_STATS)
-set(BDD_SOURCE_DIR "${PROJECT_SOURCE_DIR}/external/BuDDy/src")
 
 # Cal Package (Jagesh Sanghavi, Rajeev Ranjan et al. - University of California, United States of America)
 add_subdirectory (external/cal cal)

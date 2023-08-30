@@ -3,7 +3,7 @@
 	url = ../../SSoelvsten/adiar
 [submodule "external/BuDDy"]
 	path = external/BuDDy
-	url = ../../jgcoded/BuDDy
+	url = ../../SSoelvsten/buddy
 [submodule "external/sylvan"]
 	path = external/sylvan
 	url = ../../trolando/sylvan
