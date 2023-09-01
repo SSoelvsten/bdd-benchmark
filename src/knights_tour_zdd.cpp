@@ -244,7 +244,7 @@ void knights_tour_iter_ham(adapter_t &adapter, typename adapter_t::dd_t &paths)
 template<typename adapter_t>
 int run_knights_tour(int argc, char** argv)
 {
-  iter_opt opt = iter_opt::CLOSED; // Default strategy
+  enc_opt opt = enc_opt::TIME; // Default strategy
   bool should_exit = parse_input(argc, argv, opt);
 
   if (input_sizes.size() == 0) { input_sizes.push_back(8); }
@@ -254,7 +254,19 @@ int run_knights_tour(int argc, char** argv)
 
   // =========================================================================
   std::cout << rows() << " x " << cols() << " - Knight's Tour (" << adapter_t::NAME << " " << M << " MiB):\n"
-    ;
+            << "   | Encoding:               " << option_str(opt);
+
+  switch (opt) {
+  case enc_opt::BINARY:
+  case enc_opt::UNARY:
+  case enc_opt::CRT__BINARY:
+  case enc_opt::CRT__UNARY:
+    std::cout << "\n"
+              << "   | Encoding not yet supported...\n";
+    return 0;
+  default:
+    { /* Proceed... */ }
+  }
 
   if (rows() == 0 || cols() == 0) {
     std::cout << "\n"

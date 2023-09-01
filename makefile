@@ -183,7 +183,7 @@ combinatorial/knights_tour:
 combinatorial/knights_tour/zdd: N  := 6
 combinatorial/knights_tour/zdd: N1 := $(N)
 combinatorial/knights_tour/zdd: N2 := $(N1)
-combinatorial/knights_tour/zdd: O := "CLOSED"
+combinatorial/knights_tour/zdd: O := "TIME"
 combinatorial/knights_tour/zdd:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_knights_tour_zdd -N $(N1) -N $(N2) -M $(M) -o $(O) 2>&1 | tee -a out/VARIANT/zdd/knights_tour.out)
 
