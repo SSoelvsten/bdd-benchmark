@@ -137,7 +137,7 @@ int next_legal(int r_from, int c_from, int r_to, int c_to, int t)
 
 // ========================================================================== //
 //                                 Options                                    //
-enum iter_opt { OPEN, CLOSED };
+enum iter_opt { CLOSED };
 
 template<>
 std::string option_help_str<iter_opt>()
@@ -148,14 +148,11 @@ iter_opt parse_option(const std::string &arg, bool &should_exit)
 {
   const std::string lower_arg = ascii_tolower(arg);
 
-  if (lower_arg == "open" || lower_arg == "o")
-  { return iter_opt::OPEN; }
-
   if (lower_arg == "closed" || lower_arg == "c")
   { return iter_opt::CLOSED; }
 
   std::cerr << "Undefined option: " << arg << "\n";
   should_exit = true;
 
-  return iter_opt::OPEN;
+  return iter_opt::CLOSED;
 }

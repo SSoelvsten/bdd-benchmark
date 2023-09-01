@@ -139,8 +139,6 @@ typename adapter_t::dd_t knights_tour_rel(adapter_t &adapter, int t)
 
 // ========================================================================== //
 //                    Iterate over the above Transition Relation              //
-bool closed = false;
-
 template<typename adapter_t>
 typename adapter_t::dd_t knights_tour_iter_rel(adapter_t &adapter)
 {
@@ -152,16 +150,14 @@ typename adapter_t::dd_t knights_tour_iter_rel(adapter_t &adapter)
   int t = MAX_TIME()-1;
 
   // Initial aggregator value at final time step
-  typename adapter_t::dd_t res = closed
-    ? knights_tour_closed<adapter_t>(adapter)
-    : knights_tour_rel<adapter_t>(adapter, t);
+  typename adapter_t::dd_t res =  knights_tour_closed<adapter_t>(adapter);
 
 #ifdef BDD_BENCHMARK_STATS
   std::cout << "   | [t = " << t << "] : ??? DD nodes\n"; // TODO
 #endif // BDD_BENCHMARK_STATS
 
   // Go backwards in time, aggregating all legal paths
-  for (; closed <= t ; t--) {
+  for (; 1 <= t ; t--) {
     res &= knights_tour_rel<adapter_t>(adapter, t);
 
 #ifdef BDD_BENCHMARK_STATS
@@ -226,7 +222,7 @@ void knights_tour_iter_ham(adapter_t &adapter, typename adapter_t::dd_t &paths)
   // Add hamiltonian constraints
   for (int r = 0; r < rows(); r++) {
     for (int c = 0; c < cols(); c++) {
-      if (closed && is_closed_square(r,c)) { continue; }
+      if (is_closed_square(r,c)) { continue; }
 
       paths &= knights_tour_ham<adapter_t>(adapter, r, c);
 
@@ -248,7 +244,7 @@ void knights_tour_iter_ham(adapter_t &adapter, typename adapter_t::dd_t &paths)
 template<typename adapter_t>
 int run_knights_tour(int argc, char** argv)
 {
-  iter_opt opt = iter_opt::OPEN; // Default strategy
+  iter_opt opt = iter_opt::CLOSED; // Default strategy
   bool should_exit = parse_input(argc, argv, opt);
 
   if (input_sizes.size() == 0) { input_sizes.push_back(8); }
@@ -256,11 +252,9 @@ int run_knights_tour(int argc, char** argv)
 
   if (should_exit) { return -1; }
 
-  closed  = opt == iter_opt::CLOSED;
-
   // =========================================================================
   std::cout << rows() << " x " << cols() << " - Knight's Tour (" << adapter_t::NAME << " " << M << " MiB):\n"
-            << "   | Tour type:              " << (closed ? "Closed tours only" : "Open (all) tours") << "\n";
+    ;
 
   if (rows() == 0 || cols() == 0) {
     std::cout << "\n"
@@ -268,7 +262,7 @@ int run_knights_tour(int argc, char** argv)
     return 0;
   }
 
-  if (closed && (rows() < 3 || cols() < 3) && (rows() != 1 || cols() != 1)) {
+  if ((rows() < 3 || cols() < 3) && (rows() != 1 || cols() != 1)) {
     std::cout << "\n"
               << "  There cannot exist closed tours on boards smaller than 3 x 3\n"
               << "  Aborting computation...\n";
@@ -356,12 +350,7 @@ int run_knights_tour(int argc, char** argv)
   adapter.print_stats();
 
   const int N = rows()+cols();
-  if (!closed && N < size(expected_knights_tour_open)
-      && expected_knights_tour_open[N] != UNKNOWN && solutions != expected_knights_tour_open[N]) {
-    return -1;
-  }
-
-  if (closed && N < size(expected_knights_tour_closed)
+  if (N < size(expected_knights_tour_closed)
       && expected_knights_tour_closed[N] != UNKNOWN && solutions != expected_knights_tour_closed[N]) {
     return -1;
   }
