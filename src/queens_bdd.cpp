@@ -10,11 +10,11 @@ typename adapter_t::dd_t queens_S(adapter_t &adapter, int i, int j)
 
   auto latest = terminal_T;
 
-  for (int row = N-1; row >= 0; row--) {
+  for (int row = MAX_ROW(); row >= 0; row--) {
     int row_diff = std::max(row, i) - std::min(row, i);
 
     if (row_diff == 0) {
-      for (int column = N-1; column >= 0; column--) {
+      for (int column = MAX_COL(); column >= 0; column--) {
         int label = label_of_position(row, column);
 
         if (column == j) {
@@ -24,7 +24,7 @@ typename adapter_t::dd_t queens_S(adapter_t &adapter, int i, int j)
         }
       }
     } else {
-      if (j + row_diff < N) {
+      if (j + row_diff < rows()) {
         int label = label_of_position(row, j + row_diff);
         latest = adapter.build_node(label, latest, terminal_F);
       }

@@ -184,7 +184,7 @@ make verification/picotrav V=cudd O=LEVEL_DFS
 Solves the following problem:
 
 > Given N, then how many hamiltonian paths can a single Knight do across a chess
-> board of size (N/2)x(N-N/2)?
+> board of size N<sub>1</sub>xN<sub>2</sub>?
 
 Optionally, you can pick the type of tours to be computed:
 

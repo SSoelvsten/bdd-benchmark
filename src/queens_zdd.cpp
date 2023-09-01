@@ -7,8 +7,8 @@ typename adapter_t::dd_t queens_S(adapter_t &adapter, int i, int j)
 {
   auto next = adapter.build_node(true);
 
-  for(int row = N-1; row >= 0; row--) {
-    for(int col = N-1; col >= 0; col--) {
+  for(int row = MAX_ROW(); row >= 0; row--) {
+    for(int col = MAX_COL(); col >= 0; col--) {
       // Same row or column
       if(i == row && j != col) { continue; }
       if(i != row && j == col) { continue; }
