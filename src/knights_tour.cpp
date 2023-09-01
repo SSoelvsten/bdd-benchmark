@@ -2,6 +2,58 @@
 #include "expected.h"
 
 // ========================================================================== //
+//                                 Options                                    //
+enum enc_opt { BINARY, UNARY, CRT__BINARY, CRT__UNARY, TIME };
+
+template<>
+std::string option_help_str<enc_opt>()
+{ return "Desired problem encoding"; }
+
+template<>
+enc_opt parse_option(const std::string &arg, bool &should_exit)
+{
+  const std::string lower_arg = ascii_tolower(arg);
+
+  if (lower_arg == "binary")
+    { return enc_opt::BINARY; }
+
+  if (lower_arg == "unary" || lower_arg == "one-hot")
+    { return enc_opt::UNARY; }
+
+  if (lower_arg == "crt_binary" || lower_arg == "crt")
+    { return enc_opt::CRT__BINARY; }
+
+  if (lower_arg == "crt_unary" || lower_arg == "crt_one-hot")
+    { return enc_opt::CRT__UNARY; }
+
+  if (lower_arg == "time" || lower_arg == "t")
+    { return enc_opt::TIME; }
+
+  std::cerr << "Undefined option: " << arg << "\n";
+  should_exit = true;
+
+  return enc_opt::TIME;
+}
+
+std::string option_str(const enc_opt& enc)
+{
+  switch (enc) {
+  case enc_opt::BINARY:
+    return "Binary (Adder)";
+  case enc_opt::UNARY:
+    return "Unary (One-hot)";
+  case enc_opt::CRT__BINARY:
+    return "Chinese Remainder Theorem: Binary (Adder + LFSR)";
+  case enc_opt::CRT__UNARY:
+    return "Chinese Remainder Theorem: Unary (One-hot)";
+  case enc_opt::TIME:
+    return "Time-based";
+  default:
+    return "Unknown";
+  }
+}
+
+// ========================================================================== //
 //                             Board Indexation                               //
 
 inline int rows()
@@ -135,24 +187,3 @@ int next_legal(int r_from, int c_from, int r_to, int c_to, int t)
   return no_pos;
 }
 
-// ========================================================================== //
-//                                 Options                                    //
-enum iter_opt { CLOSED };
-
-template<>
-std::string option_help_str<iter_opt>()
-{ return "Desired Variable ordering"; }
-
-template<>
-iter_opt parse_option(const std::string &arg, bool &should_exit)
-{
-  const std::string lower_arg = ascii_tolower(arg);
-
-  if (lower_arg == "closed" || lower_arg == "c")
-  { return iter_opt::CLOSED; }
-
-  std::cerr << "Undefined option: " << arg << "\n";
-  should_exit = true;
-
-  return iter_opt::CLOSED;
-}
