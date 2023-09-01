@@ -1,8 +1,15 @@
-#include <cmath>
-#include <algorithm>
-#include <assert.h>
-#include <ostream>
-#include <functional>
+#include <algorithm>      // std::sort(), ...
+#include <array>          // std::array<>
+#include <assert.h>       // Assertions
+#include <cmath>          // std::abs(), std::min(), ...
+#include <iostream>       // std::cerr
+#include <iterator>       // iterators
+#include <ostream>        // output streams
+#include <functional>     // std::function<>, ...
+#include <stdexcept>      // std::invalid_argument
+#include <string>         // std::string
+#include <sstream>        // std::istringstream
+#include <vector>         // std::vector
 
 // =============================================================================
 // Global constants
@@ -29,13 +36,8 @@ inline unsigned long int duration_of(const time_point &before, const time_point 
 
 // =============================================================================
 // Input parsing
+
 #include <getopt.h>       // argument parsing
-#include <iostream>       // std::cerr
-#include <stdexcept>      // std::invalid_argument
-#include <string>         // std::string
-#include <sstream>        // std::istringstream
-#include <vector>         // std::vector
-#include <iterator>       // iterators
 
 int M = 128; /* MiB */
 std::string temp_path = "";

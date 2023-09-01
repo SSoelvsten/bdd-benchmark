@@ -1,4 +1,4 @@
-#include "../knights_tour_zdd.cpp"
+#include "../knights_tour.cpp"
 
 #include "adapter.h"
 

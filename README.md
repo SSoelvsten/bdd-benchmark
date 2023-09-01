@@ -186,25 +186,14 @@ Solves the following problem:
 > Given N, then how many hamiltonian paths can a single Knight do across a chess
 > board of size N<sub>1</sub>xN<sub>2</sub>?
 
-Optionally, you can pick the type of tours to be computed:
+*Optionally*, you can pick the encoding/algorithm to solve the problem with:
 
-- `open`: All hamiltonian path, i.e. one does not need to end back at the start.
-- `closed`: Only hamiltonian cycles, i.e. where one does end back where one
-  started.
-
-The ZDD encoding is based on [[Bryant2021](#references)]. We represent all
-O(N<sup>4</sup>) states, i.e. position and time, as a separate variable; a
-transition relation then encodes the legal moves between two time steps. By
-intersecting moves at all time steps we obtain all paths. On-top of this,
-hamiltonian constraints are added and finally the size of the set of Knight's
-Tours is obtained.
-
-**Statistics:**
-
-| Variable                | Value         |
-|-------------------------|---------------|
-| Labels                  | N<sup>4</sup> |
-| Intersection operations | 2N<sup>4</sup> |
+- `time`/`t`: Based on [[Bryant2021](#references)], all O(N<sup>4</sup>) states
+  are represented as individual variables, i.e. each variable represents the
+  position and time. A transition relation then encodes the legal moves between
+  two time steps. By intersecting moves at all time steps we obtain all paths.
+  On-top of this, hamiltonian constraints are added and finally the size of the
+  set of Knight's Tours is obtained.
 
 ### Queens [BDD, ZDD]
 Solves the following problem:
