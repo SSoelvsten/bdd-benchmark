@@ -249,9 +249,11 @@ template<typename adapter_t>
 int run_knights_tour(int argc, char** argv)
 {
   iter_opt opt = iter_opt::OPEN; // Default strategy
-  N = 12; // Default N value for a 6x6 sized chess board
-
   bool should_exit = parse_input(argc, argv, opt);
+
+  if (input_sizes.size() == 0) { input_sizes.push_back(8); }
+  if (input_sizes.size() == 1) { input_sizes.push_back(input_sizes.at(0)); }
+
   if (should_exit) { return -1; }
 
   closed  = opt == iter_opt::CLOSED;
@@ -353,6 +355,7 @@ int run_knights_tour(int argc, char** argv)
 
   adapter.print_stats();
 
+  const int N = rows()+cols();
   if (!closed && N < size(expected_knights_tour_open)
       && expected_knights_tour_open[N] != UNKNOWN && solutions != expected_knights_tour_open[N]) {
     return -1;

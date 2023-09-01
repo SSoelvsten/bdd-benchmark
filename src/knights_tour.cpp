@@ -4,17 +4,17 @@
 // ========================================================================== //
 //                             Board Indexation                               //
 
-inline int cols()
-{ return N / 2; }
-
-inline int MAX_COL()
-{ return cols() - 1; }
-
 inline int rows()
-{ return N - cols(); }
+{ return input_sizes.at(0); }
 
 inline int MAX_ROW()
 { return rows() - 1; }
+
+inline int cols()
+{ return input_sizes.at(1); }
+
+inline int MAX_COL()
+{ return cols() - 1; }
 
 inline int MAX_TIME()
 { return rows() * cols() - 1; }

@@ -9,6 +9,8 @@ size_t largest_bdd = 0;
 size_t total_nodes = 0;
 #endif // BDD_BENCHMARK_STATS
 
+int N = 20;
+
 // =============================================================================
 // Label index
 inline int label_of_position(int i, int j, int k)
@@ -98,8 +100,9 @@ template<typename adapter_t>
 int run_tic_tac_toe(int argc, char** argv)
 {
   no_options option = no_options::NONE;
-  N = 20;
   bool should_exit = parse_input(argc, argv, option);
+  N = input_sizes.empty() ? 20 : input_sizes.at(0);
+
   if (should_exit) { return -1; }
 
   // =========================================================================

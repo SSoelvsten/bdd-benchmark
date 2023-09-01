@@ -37,10 +37,10 @@ inline unsigned long int duration_of(const time_point &before, const time_point 
 #include <vector>         // std::vector
 #include <iterator>       // iterators
 
-int N = -1;
 int M = 128; /* MiB */
 std::string temp_path = "";
 
+std::vector<int> input_sizes = {};
 std::vector<std::string> input_files = {};
 
 template<typename option_enum>
@@ -54,7 +54,7 @@ enum no_options { NONE };
 template<>
 no_options parse_option(const std::string &, bool &should_exit)
 {
-  std::cerr << "Variable ordering is undefined for this benchmark\n";
+  std::cerr << "Options is undefined for this benchmark\n";
   should_exit = true;
   return no_options::NONE;
 }
@@ -75,7 +75,7 @@ bool parse_input(int &argc, char* argv[], option_enum &option)
     try {
       switch(c) {
       case 'N':
-        N = std::stoi(optarg);
+        input_sizes.push_back(std::stoi(optarg));
         continue;
 
       case 'M':
@@ -108,8 +108,7 @@ bool parse_input(int &argc, char* argv[], option_enum &option)
         std::cout << "Usage:  -flag      [default]  Description" << std::endl
                   << std::endl
                   << "        -h                    Print this information" << std::endl
-                  << "        -N SIZE     [" << N
-                                        << "]       Size of a problem" << std::endl
+                  << "        -N SIZE               Size(s) of a problem" << std::endl
                   << "        -f FILENAME           Input file to run (use repeatedly for multiple files)" << std::endl
                   << "        -M MiB      [128]     Amount of memory (MiB) to be dedicated to the BDD package" << std::endl
                   << "        -o OPTION             " << option_help_str<option_enum>() << std::endl
