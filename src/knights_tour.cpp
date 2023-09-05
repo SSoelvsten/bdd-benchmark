@@ -842,6 +842,11 @@ int run_knights_tour(int argc, char** argv)
     const time_point after_paths = get_timestamp();
     const time_duration paths_time = duration_of(before_paths, after_paths);
 
+#ifdef BDD_BENCHMARK_STATS
+    std::cout << "   |\n"
+              << "   | total no. nodes:        " << total_nodes << "\n"
+              << "   | largest size (nodes):   " << largest_bdd << "\n";
+#endif // BDD_BENCHMARK_STATS
     std::cout << "   | final size (nodes):     " << adapter.nodecount(paths) << "\n"
               << "   | time (ms):              " << paths_time << "\n"
               << std::flush;
