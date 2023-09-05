@@ -12,7 +12,7 @@ one to compare implementations.
     - [Dependencies](#dependencies)
     - [Usage](#usage)
     - [Combinatorial Benchmarks](#combinatorial-benchmarks)
-        - [Knight's Tour [ZDD]](#knights-tour-zdd)
+        - [Knight's Tour [BDD, ZDD]](#knights-tour-bdd-zdd)
         - [Queens [BDD, ZDD]](#queens-bdd-zdd)
         - [Tic-Tac-Toe [BDD, ZDD]](#tic-tac-toe-bdd-zdd)
     - [Verification](#verification)
@@ -180,7 +180,7 @@ make verification/picotrav V=cudd O=LEVEL_DFS
 
 ## Combinatorial Benchmarks
 
-### Knight's Tour [ZDD]
+### Knight's Tour [BDD, ZDD]
 Solves the following problem:
 
 > Given N, then how many hamiltonian paths can a single Knight do across a chess

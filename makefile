@@ -32,7 +32,7 @@ build:
 	@cd build/ && for package in 'adiar' 'buddy' 'cal' 'cudd' 'sylvan' ; do \
 		mkdir -p ../out/$$package ; \
 		mkdir -p ../out/$$package/bdd ; \
-		for benchmark in 'picotrav' 'qbf' 'queens' 'tic_tac_toe' ; do \
+		for benchmark in 'knights_tour' 'picotrav' 'qbf' 'queens' 'tic_tac_toe' ; do \
 			make ${MAKE_FLAGS} $$package'_'$$benchmark'_bdd' ; \
 		done ; \
 	done
@@ -42,7 +42,7 @@ build:
 	@cd build/ && for package in 'adiar' 'cudd' ; do \
 		mkdir -p ../out/$$package ; \
 		mkdir -p ../out/$$package/zdd ; \
-		for benchmark in 'picotrav' 'knights_tour' 'queens' 'tic_tac_toe' ; do \
+		for benchmark in 'knights_tour' 'picotrav' 'queens' 'tic_tac_toe' ; do \
 			make ${MAKE_FLAGS} $$package'_'$$benchmark'_zdd' ; \
 		done ; \
 	done
@@ -179,6 +179,13 @@ O := ""
 # ============================================================================ #
 combinatorial/knights_tour:
 	$(MAKE) combinatorial/knights_tour/zdd
+
+combinatorial/knights_tour/bdd: N  := 6
+combinatorial/knights_tour/bdd: N1 := $(N)
+combinatorial/knights_tour/bdd: N2 := $(N1)
+combinatorial/knights_tour/bdd: O := "TIME"
+combinatorial/knights_tour/bdd:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_knights_tour_bdd -N $(N1) -N $(N2) -M $(M) -o $(O) 2>&1 | tee -a out/VARIANT/bdd/knights_tour.out)
 
 combinatorial/knights_tour/zdd: N  := 6
 combinatorial/knights_tour/zdd: N1 := $(N)
