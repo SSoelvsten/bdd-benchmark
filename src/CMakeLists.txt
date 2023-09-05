@@ -74,6 +74,11 @@ macro(add_zdd_benchmark NAME)
   endif()
 endmacro(add_zdd_benchmark)
 
+macro(add_benchmark NAME)
+  add_bdd_benchmark(${NAME})
+  add_zdd_benchmark(${NAME})
+endmacro(add_benchmark)
+
 macro(link_bdd_extra NAME LIB_NAME)
   target_link_libraries(adiar_${NAME}_bdd  PRIVATE ${LIB_NAME})
   target_link_libraries(buddy_${NAME}_bdd  PRIVATE ${LIB_NAME})
@@ -87,21 +92,20 @@ macro(link_zdd_extra NAME LIB_NAME)
   target_link_libraries(cudd_${NAME}_zdd   PRIVATE ${LIB_NAME})
 endmacro(link_zdd_extra)
 
+macro(link_extra NAME LIB_NAME)
+  link_bdd_extra(${NAME} ${LIB_NAME})
+  link_zdd_extra(${NAME} ${LIB_NAME})
+endmacro(link_extra)
+
 # ---------------------------------------------------------------------------- #
 # Combinatorial Benchmarks
-add_bdd_benchmark(queens)
-add_zdd_benchmark(queens)
-
-add_bdd_benchmark(tic_tac_toe)
-add_zdd_benchmark(tic_tac_toe)
-
-add_zdd_benchmark(knights_tour)
+add_benchmark(queens)
+add_benchmark(tic_tac_toe)
+add_benchmark(knights_tour)
 
 # ---------------------------------------------------------------------------- #
 # Verification
-add_bdd_benchmark(picotrav)
-link_bdd_extra(picotrav libblifparse)
-add_zdd_benchmark(picotrav)
-link_zdd_extra(picotrav libblifparse)
+add_benchmark(picotrav)
+link_extra(picotrav libblifparse)
 
 add_bdd_benchmark(qbf)

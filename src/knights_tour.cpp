@@ -579,14 +579,12 @@ namespace enc_time
         //
         // Yet, to not create any unused nodes, we have to only extend the
         // post_chain if we are yet not done processing.
-        /* TODO (BDD)
         for (const cell &o : cells_descending) {
           if (to < o || o == to || !o.has_neighbour()) { continue; }
 
           post_chain = adapter.build_node(to_var, post_chain, adapter.build_node(false));
           break;
         }
-        */
       }
     }
 
@@ -611,15 +609,13 @@ namespace enc_time
 
         // Expand all `to_chains` that still are of interest, i.e. that will be
         // used later. Here, we should write that they cannot pick this variable.
-        /* TODO (BDD)
         for (const cell &o : cells_descending) {
           // Skip cells that already have been or never will be processed
-          if (c < o || !o.has_neighbour()) { continue; }
+          if (c < o || c == o || !o.has_neighbour()) { continue; }
 
           const int idx = o.dd_var();
           to_chains.at(idx) = adapter.build_node(var, to_chains.at(idx), adapter.build_node(false));
         }
-        */
       }
     }
 
@@ -645,26 +641,25 @@ namespace enc_time
   template<typename adapter_t>
   typename adapter_t::dd_t hamiltonian(adapter_t &adapter, const cell& ham_c)
   {
+    // TODO: include in the encoding, that one cannot be here at time 0, 1 or MAX
+
     auto out_0 = adapter.build_node(false);
-    auto out_1 = adapter.build_node(true);;
+    auto out_1 = adapter.build_node(true);
 
     for (int time = MAX_TIME(); MIN_TIME() <= time; --time) {
       const int shift = time_shift(time);
 
-      for (int row = MAX_ROW(); MIN_ROW() <= row; --row) {
-        for (int col = MAX_COL(); MIN_COL() <= col; --col) {
-          const cell c(row, col);
-          const int var = c.dd_var(shift);
+      for (const cell &c : cells_descending) {
+        const int var = c.dd_var(shift);
 
-          if (MIN_TIME() < time || ham_c < c) {
-            out_1 = c == ham_c
-              ? adapter.build_node(var, out_1, adapter.build_node(false))
-              : adapter.build_node(var, out_1, out_1);
-          }
+        out_0 = c == ham_c
+          ? adapter.build_node(var, out_0, out_1)
+          : adapter.build_node(var, out_0, out_0);
 
-          out_0 = c == ham_c
-            ? adapter.build_node(var, out_0, out_1)
-            : adapter.build_node(var, out_0, out_0);
+        if (MIN_TIME() < time || ham_c < c) {
+          out_1 = c == ham_c
+            ? adapter.build_node(var, out_1, adapter.build_node(false))
+            : adapter.build_node(var, out_1, out_1);
         }
       }
     }
@@ -687,12 +682,6 @@ namespace enc_time
 
     // -------------------------------------------------------------------------
     // Accumulate cell-relation constraints
-
-    // Reset 'largest_bdd'
-#ifdef BDD_BENCHMARK_STATS
-    largest_bdd = 0;
-#endif // BDD_BENCHMARK_STATS
-
     typename adapter_t::dd_t paths = rel_0(adapter);
 
 #ifdef BDD_BENCHMARK_STATS
@@ -729,6 +718,7 @@ namespace enc_time
 #ifdef BDD_BENCHMARK_STATS
     std::cout << "   Hamiltonian Constraint\n";
 #endif // BDD_BENCHMARK_STATS
+
     for (int row = MIN_ROW(); row <= MAX_ROW(); ++row) {
       for (int col = MIN_COL(); col <= MAX_COL(); ++col) {
         const cell c(row, col);
@@ -817,6 +807,7 @@ int run_knights_tour(int argc, char** argv)
   time_point t_init_after = get_timestamp();
 
   std::cout << "\n   " << adapter_t::NAME << " initialisation:\n"
+            << "   | variables:              " << vars << "\n"
             << "   | time (ms):              " << duration_of(t_init_before, t_init_after) << "\n"
             << std::flush;
 
