@@ -2,6 +2,7 @@
 #include "expected.h"
 
 #include <unordered_map>
+#include <utility>
 
 #ifdef BDD_BENCHMARK_STATS
 size_t largest_bdd = 0;
@@ -115,6 +116,15 @@ public:
   cell(int r, int c)
     : _r(r), _c(c)
   { /* TODO: throw std::out_of_range if given bad (r,c)? */ }
+
+  cell(int dd_var)
+    : _r(((dd_var) / cols()) % rows())
+    , _c((dd_var) % cols())
+  {
+    if (cells() <= dd_var) {
+      throw std::out_of_range("Unknown diagram variable (forgot to unshift?)");
+    }
+  }
 
   //////////////////////////////////////////////////////////////////////////////
   // Accessor and DD conversion
@@ -486,6 +496,7 @@ public:
 ////////////////////////////////////////////////////////////////////////////////
 namespace enc_gadgets
 {
+  /// \brief Number of undirected edges
   inline int edges_undirected()
   {
     return rows() > 1 && cols() > 1
@@ -493,21 +504,91 @@ namespace enc_gadgets
       : 0;
   }
 
+  /// \brief Number of (directed) edges
   inline int edges()
   {
     return 2 * edges_undirected();
   }
 
-  inline int vars(const enc_opt &/*opt*/)
+  /// \brief Obtain the ceiling of log2
+  inline int log2(const int x)
   {
-    // TODO: extend with variables for the gadgets
-    return edges();
+    return static_cast<int>(std::ceil(std::log2(x)));
+  }
+
+  constexpr std::array<int, 19> primes =
+    { 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67 };
+
+  /// \brief Whether a value (67) is a prime
+  ///
+  /// This algorithm is nothing fancy, but just compares with a pre-compiled
+  /// list of numbers.
+  ///
+  /// \throws std::out_of_range If `i` is larger than the largest "known" prime.
+  bool is_prime(int i)
+  {
+    if (i > 67) {
+      throw std::out_of_range("Primes are uncomputed for such large a value");
+    }
+    for (const int p : primes) {
+      if (i == p) { return true; }
+    }
+    return false;
+  }
+
+  /// \brief List of all exponents for Mersenne primes that fit into an `int`.
+  constexpr std::array<int, 8> mersenne_exponents =
+    { 2, 3, 5, 7, 13, 17, 19, 31 };
+
+  /// \brief Whether a given value is a Mersenne prime
+  bool is_mersenne_prime(int i)
+  {
+    for (const int e : mersenne_exponents) {
+      const int p = (1 << e) - 1;
+      if (i == p) { return true; }
+    }
+    return false;
+  }
+
+  /// \brief Obtain the set of smallest prime numbes
+  std::vector<int> moduli(const enc_opt &opt)
+  {
+    switch (opt) {
+    case enc_opt::BINARY:
+    case enc_opt::UNARY: {
+      return { cells() };
+    }
+    case enc_opt::CRT__BINARY:
+    case enc_opt::CRT__UNARY: {
+      // Find the smallest number of prime numbers whos least common multiple is
+      // larger than half the number of cells.
+      const std::vector<int> candidates[5] = {
+        { 7 },
+        { 3, 5 },
+        { 3, 7 },
+        { 5, 7 },
+        { 3, 5, 7 }
+      };
+
+      for (const std::vector<int> &candidate : candidates) {
+        // Determine the usability and cost of this solution
+        int lcm = 1;
+
+        for (const int p : candidate)
+          lcm  *= p;
+
+        if (cells() / 2 < lcm)
+          return candidate;
+      }
+      throw std::out_of_range("No primes available for a chess board this big!");
+    }
+    case enc_opt::TIME:
+    default:
+      { return {}; }
+    }
   }
 
   /// \brief Construct the Knight's Graph
-  ///
-  /// This construction implicitly creates a row-major variable order for the
-  /// out-going edges.
   graph gen_graph()
   {
     graph out(edges());
@@ -552,7 +633,7 @@ namespace enc_gadgets
     const size_t nodecount = adapter.nodecount(out);
     largest_bdd = std::max(largest_bdd, nodecount);
     total_nodes += nodecount;
-#endif // BDD_BENCHMARK_STA
+#endif // BDD_BENCHMARK_STATS
 
     return out;
   }
@@ -596,34 +677,98 @@ namespace enc_gadgets
       }
     }
 
-    return adapter.build();
+    const typename adapter_t::dd_t out = adapter.build();
+
+#ifdef BDD_BENCHMARK_STATS
+    const size_t nodecount = adapter.nodecount(out);
+    largest_bdd = std::max(largest_bdd, nodecount);
+    total_nodes += nodecount;
+#endif // BDD_BENCHMARK_STATS
+
+    return out;
   }
 
-  /// \brief Binary Counter with a Modulus.
+  /// \brief Obtain the number of bits per gadget given a certain prime.
+  inline int bits_per_gadget(const enc_opt &opt, const int p)
+  {
+    return opt == enc_opt::BINARY || opt == enc_opt::CRT__BINARY ? log2(p) : p;
+  }
+
+  /// \brief Obtain the largest number of bits per gadget over all primes.
+  inline int bits_per_gadget(const enc_opt &opt)
+  {
+    return bits_per_gadget(opt, moduli(opt).back());
+  }
+
+  /// \brief Number of bits to shift by for one bit out of one or more.
+  inline int gadget_shift(const int bits, const int bit)
+  {
+    assert(0 <= bit && bit < bits);
+    return bit * bits;
+  }
+
+  /// \brief Binary Counter increment relation.
+  ///
+  /// The gadget is constructed such, that the counter is big-endian.
+  ///
+  /// \todo Extend with parameter `m` to make it overflow at something that is
+  ///       not a power of two.
   ///
   /// \remark This is expected to work well with both BDDs and ZDDs.
+  template<typename adapter_t>
+  typename adapter_t::dd_t adder_gadget(adapter_t &/*adapter*/,
+                                        const graph &/*g*/,
+                                        const edge &/*e*/,
+                                        int /*m*/)
+  {
+    throw std::invalid_argument("Binary Adder not implemented!");
+  }
 
-  // TODO: Binary Adder with modulo
-
-  /// \brief Binary Counter with a Modulus.
+  /// \brief Binary Counter with a fixed value
+  ///
+  /// The gadget is constructed such, that the counter is big-endian.
   ///
   /// \remark This is expected to work well with both BDDs and ZDDs.
+  template<typename adapter_t>
+  typename adapter_t::dd_t adder_gadget(adapter_t &/*adapter*/,
+                                        const graph &/*g*/,
+                                        const cell &/*c*/,
+                                        const int /*m*/,
+                                        int /*value*/)
+  {
+    throw std::invalid_argument("Binary Adder not implemented!");
+  }
 
-  // TODO: Binary Adder with modulo
-
-  /// \brief A binary counter (with 2^n overflow).
-  ///
-  /// \remark This is expected to work well with both BDDs and ZDDs.
-
-  // TODO: Binary Adder with no modulo (above with `mod = (1<<bits)`).
-
-  /// \brief Linear-Feedback Shift Register (LFSR).
+  /// \brief Linear-Feedback Shift Register (LFSR) increment relation.
   ///
   /// \param p A Mersenne Prime number
   ///
   /// \remark This is expected to work well with both BDDs and ZDDs.
+  template<typename adapter_t>
+  typename adapter_t::dd_t lfsr_gadget(adapter_t &/*adapter*/,
+                                       const graph &/*g*/,
+                                       const edge &/*e*/,
+                                       int /*m*/)
+  {
+    assert(is_mersenne_prime(m));
+    throw std::invalid_argument("LFSR not implemented!");
+  }
 
-  // TODO: LFSR Circuit given a Mersenne Prime
+  /// \brief Linear-Feedback Shift Register (LFSR) with a fixed value
+  ///
+  /// The gadget is constructed such, that the counter is big-endian.
+  ///
+  /// \remark This is expected to work well with both BDDs and ZDDs.
+  template<typename adapter_t>
+  typename adapter_t::dd_t lfsr_gadget(adapter_t &/*adapter*/,
+                                       const graph &/*g*/,
+                                       const cell &/*c*/,
+                                       const int /*m*/,
+                                       int /*value*/)
+  {
+    assert(is_mersenne_prime(m));
+    throw std::invalid_argument("LFSR not implemented!");
+  }
 
   /// \brief One-hot encoding with a linear number of variables.
   ///
@@ -631,8 +776,98 @@ namespace enc_gadgets
   /// this a *unary* encoding; a better word for it might be *one-hot*.
   ///
   /// \remark This is expected to primarily work well with ZDDs.
+  template<typename adapter_t>
+  typename adapter_t::dd_t unary_gadget(adapter_t &/*adapter*/,
+                                        const graph &/*g*/,
+                                        const edge &/*e*/,
+                                        int /*m*/)
+  {
+    throw std::invalid_argument("Unary Gadget not implemented!");
+  }
 
-  // TODO: One-hot encoding
+  /// \brief One-hot encoding with a linear number of variables with a fixed value
+  ///
+  /// While we use a linear number of bits, it is technically incorrect to call
+  /// this a *unary* encoding; a better word for it might be *one-hot*.
+  ///
+  /// \remark This is expected to primarily work well with ZDDs.
+  template<typename adapter_t>
+  typename adapter_t::dd_t unary_gadget(adapter_t &/*adapter*/,
+                                        const graph &/*g*/,
+                                        const cell &/*c*/,
+                                        const int /*m*/,
+                                        int /*value*/)
+  {
+    throw std::invalid_argument("Unary Gadget not implemented!");
+  }
+
+  /// \brief Wrapper to pick the desired gadget for an increment relation.
+  template<typename adapter_t>
+  typename adapter_t::dd_t gadget(adapter_t &adapter,
+                                  const enc_opt &opt,
+                                  const graph &g,
+                                  const edge &e,
+                                  int p)
+  {
+    switch (opt) {
+    case enc_opt::UNARY:
+    case enc_opt::CRT__UNARY: {
+      return unary_gadget(adapter, g, e, p);
+    }
+    case enc_opt::BINARY: {
+      return adder_gadget(adapter, g, e, p);
+    }
+    case enc_opt::CRT__BINARY: {
+      return is_mersenne_prime(p)
+        ? lfsr_gadget(adapter, g, e, p)
+        : adder_gadget(adapter, g, e, p);
+    }
+    case enc_opt::TIME:
+    default:
+      { throw std::invalid_argument("No gadgets exist for time-based encoding"); }
+    }
+  }
+
+  /// \brief Wrapper to pick the desired gadget for a fixed value.
+  template<typename adapter_t>
+  typename adapter_t::dd_t gadget(adapter_t &adapter,
+                                  const enc_opt &opt,
+                                  const graph &g,
+                                  const cell &c,
+                                  const int p,
+                                  const int value)
+  {
+    switch (opt) {
+    case enc_opt::UNARY:
+    case enc_opt::CRT__UNARY: {
+      return unary_gadget(adapter, g, c, p, value);
+    }
+    case enc_opt::BINARY: {
+      return adder_gadget(adapter, g, c, p, value);
+    }
+    case enc_opt::CRT__BINARY: {
+      return is_mersenne_prime(p)
+        ? lfsr_gadget(adapter, g, c, p, value)
+        : adder_gadget(adapter, g, c, p, value);
+    }
+    case enc_opt::TIME:
+    default:
+      { throw std::invalid_argument("No gadgets exist for time-based encoding"); }
+    }
+  }
+
+  /// \brief Predicate that is true for the bits of all gadgets on a single row.
+  auto gadget_pred(const int row) {
+    return [=](const int x) {
+      // Do not quantify edges
+      if (x < edges()) { return false; }
+
+      // Otherwise, unshift by the number of edges and wrap around on the number
+      // of cells. The `cell` class can from this point get back the row and the
+      // column.
+      return cell((x - edges()) % cells()).row() == row;
+    };
+  }
 
   /// \brief Encoding of the Knight's Tour problem given a non-zero number of
   ///        modulo values.
@@ -756,12 +991,11 @@ namespace enc_gadgets
 
     // -------------------------------------------------------------------------
     // Add cycle length constraint(s) per modulo value
-#ifdef BDD_BENCHMARK_STATS
-    std::cout << "   |\n"
-              << "   | Gadgets\n";
-#endif // BDD_BENCHMARK_STATS
+    const std::vector<int> ps = moduli(opt);
 
-    // TODO
+    // TODO (ZDDs):
+    // - Extend variable domain
+    // - Quantification by (flipped) projection.
 
     // -------------------------------------------------------------------------
 #ifdef BDD_BENCHMARK_STATS
@@ -769,6 +1003,12 @@ namespace enc_gadgets
 #endif // BDD_BENCHMARK_STATS
 
     return paths;
+  }
+
+  /// \brief Compute the number of variables per node.
+  inline int vars(const enc_opt &/*opt*/)
+  {
+    return edges() + 0;
   }
 }
 
@@ -809,14 +1049,6 @@ namespace enc_time
   /// \brief The shift needed for the DD variable for a cell at time-step `t`.
   inline int time_shift(int t)
   { return cells() * t; }
-
-  /// \brief Number of variables used in this encoding.
-  inline int vars()
-  {
-    const int shift = time_shift(MAX_TIME());
-    const int max_var = cell(MAX_ROW(), MAX_COL()).dd_var(shift);
-    return max_var+1;
-  }
 
   /// \brief Cells in descending order (relative to variable ordering).
   std::vector<cell> cells_descending;
@@ -1142,6 +1374,14 @@ namespace enc_time
     std::cout << "   |\n";
 #endif // BDD_BENCHMARK_STATS
     return paths;
+  }
+
+  /// \brief Number of variables used in this encoding.
+  inline int vars()
+  {
+    const int shift = time_shift(MAX_TIME());
+    const int max_var = cell(MAX_ROW(), MAX_COL()).dd_var(shift);
+    return max_var+1;
   }
 }
 
