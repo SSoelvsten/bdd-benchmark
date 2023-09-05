@@ -449,6 +449,8 @@ namespace enc_time
   /// \brief Cells in descending order (relative to variable ordering).
   std::vector<cell> cells_descending;
 
+  /// \brief Initialise the list of all cells on the board (descendingly)
+  ///        following the variable ordering.
   void init_cells_descending()
   {
     cells_descending.clear();
@@ -678,6 +680,14 @@ namespace enc_time
   template<typename adapter_t>
   typename adapter_t::dd_t create(adapter_t &adapter)
   {
+    // -------------------------------------------------------------------------
+    // Trivial cases
+    if (cells() == 1) {
+      return adapter.ithvar(cell(0,0).dd_var());
+    }
+    assert(3 <= rows() && 3 <= cols());
+
+    // -------------------------------------------------------------------------
     init_cells_descending();
 
     // -------------------------------------------------------------------------
