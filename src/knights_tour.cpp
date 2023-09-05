@@ -1,6 +1,8 @@
 #include "common.cpp"
 #include "expected.h"
 
+#include <unordered_map>
+
 #ifdef BDD_BENCHMARK_STATS
 size_t largest_bdd = 0;
 size_t total_nodes = 0;
@@ -107,7 +109,7 @@ private:
   // Constructors
 public:
   cell()
-    : _r(0), _c(0)
+    : _r(-1), _c(-1)
   { }
 
   cell(int r, int c)
@@ -156,10 +158,11 @@ public:
 
   //////////////////////////////////////////////////////////////////////////////
   // Position and Move logic
-private:
+public:
   /// \brief Number of possible neighbours for a knight
   static constexpr int max_moves = 8;
 
+private:
   /// \brief Hard coded moves relative to the current cell (following the
   ///       variable ordering as per `dd_var`).
   ///
@@ -240,6 +243,14 @@ public:
   }
 };
 
+/// \brief Hash function for `cell` class
+template<>
+struct std::hash<cell>
+{
+  std::size_t operator()(const cell &c) const
+  { return std::hash<int>{}(c.dd_var()); }
+};
+
 /// \brief Class to encapsulate logic related to a cell and the Knight's move.
 class edge
 {
@@ -248,6 +259,16 @@ private:
   cell _v;
 
 public:
+  /// \brief Default construction
+  edge() = default;
+
+  /// \brief Copy construction
+  edge(const edge& e) = default;
+
+  /// \brief Move construction
+  edge(edge &&e) = default;
+
+  /// \brief Construction of an edge given two cells on the board.
   edge(const cell &u, const cell &v)
     : _u(u), _v(v)
   {
@@ -265,27 +286,159 @@ public:
   //////////////////////////////////////////////////////////////////////////////
   // Accessor and DD conversion
 public:
+  /// \brief Source
   const cell& u() const
   { return _u; }
 
+  /// \brief Target
   const cell& v() const
   { return _v; }
 
-  // TODO: int dd_var() const
+  /// \brief Whether the source or the target are invalid values
+  bool out_of_range() const
+  { return this->u().out_of_range() || this->v().out_of_range(); }
 
   //////////////////////////////////////////////////////////////////////////////
   // Quality of life
 public:
   bool operator==(const edge& o) const
-  { return this->_u == o._u && this->_v == o._v; }
+  { return this->u() == o.u() && this->v() == o.v(); }
+
+  bool operator!=(const edge& o) const
+  { return !(*this == o); }
 
   /// \brief Obtain the reversed directed edge, i.e. from `v` to `u`.
   edge reversed() const
-  { return edge{this->_v, this->_u}; }
+  { return edge{this->v(), this->u()}; }
 
   /// \brief Human-friendly string
   std::string to_string() const
-  { return _u.to_string()+"->"+_v.to_string(); }
+  { return this->u().to_string()+"->"+this->v().to_string(); }
+};
+
+/// \brief Hash for `edge` class
+template<> struct std::hash<edge>
+{
+  std::size_t operator()(const edge &e) const
+  { return std::hash<cell>{}(e.u()) ^ std::hash<cell>{}(e.v()); }
+};
+
+/// \brief Collection of edges for the entire set of possible Knight's moves.
+class graph
+{
+  //////////////////////////////////////////////////////////////////////////////
+  // Members
+private:
+  using edges_t = std::vector<edge>;
+
+  /// \brief Container for the edges
+  edges_t edges;
+
+  using edges_inv_t = std::unordered_map<edge, int>;
+
+  /// \brief Container to retrieve the index of an edge in constant time.
+  edges_inv_t edges_inv;
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Constructors
+public:
+  /// \brief Default construciton
+  graph() = default;
+
+  /// \brief Copy construction
+  graph(const graph &g) = default;
+
+  /// \brief Move construction
+  graph(graph &&g) = default;
+
+  /// \brief Creates a an graph where `size` number of edges has been reserved.
+  graph(int size)
+  {
+    edges.reserve(size);
+    edges_inv.reserve(size);
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Graph Manpulation
+public:
+  /// \brief Insert a single edge into the graph
+  void insert(const edge &e)
+  {
+    const int idx = edges.size();
+
+    edges.push_back(e);
+    edges_inv.insert({ e,idx });
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Graph Access
+private:
+  edges_inv_t::const_iterator find(const edge &e) const
+  { return edges_inv.find(e); }
+
+  edges_inv_t::const_iterator find_end() const
+  { return edges_inv.end(); }
+
+public:
+  bool contains(const edge &e) const
+  { return this->find(e) != find_end(); }
+
+  /// \brief Obtain the DD variable for a given edge.
+  int dd_var(const edge &e) const
+  {
+    const auto res = this->find(e);
+    if (res == find_end() || res->first != e) {
+      throw std::out_of_range("Edge does not exist in graph");
+    }
+    return res->second;
+  }
+
+  /// \brief Minimum value for `dd_var`
+  ///
+  /// \pre `!empty()`
+  ///
+  /// \see dd_var
+  int min_dd_var() const
+  { return 0; }
+
+  /// \brief Maximum value for `dd_var`
+  ///
+  /// \pre `!empty()`
+  ///
+  /// \see dd_var
+  int max_dd_var() const
+  { return size()-1; }
+
+  /// \brief Obtain the edge with variable `var`
+  const edge& at(int var) const
+  { return edges.at(var); }
+
+  /// \brief Number of edges in the graph
+  int size() const
+  { return edges.size(); }
+
+  /// \brief Whether the graph is empty, i.e. it has no edges.
+  bool empty() const
+  { return edges.empty(); }
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Graph Iteration
+public:
+  /// \brief Forward Iterator
+  edges_t::const_iterator begin() const
+  { return edges.cbegin(); }
+
+  /// \brief End of Forward Iterator
+  edges_t::const_iterator end() const
+  { return edges.cend(); }
+
+  /// \brief Backward Iterator
+  edges_t::const_reverse_iterator rbegin() const
+  { return edges.crbegin(); }
+
+  /// \brief End of Backward Iterator
+  edges_t::const_reverse_iterator rend() const
+  { return edges.crend(); }
 };
 
 
@@ -310,41 +463,123 @@ public:
 ////////////////////////////////////////////////////////////////////////////////
 namespace enc_gadgets
 {
-  using graph_t = std::vector<edge>;
+  inline int edges_undirected()
+  {
+    return rows() > 1 && cols() > 1
+      ? 4 * cells() - 6 * (rows() + cols()) + 8
+      : 0;
+  }
+
+  inline int edges()
+  {
+    return 2 * edges_undirected();
+  }
+
+  inline int vars(const enc_opt &/*opt*/)
+  {
+    // TODO: extend with variables for the gadgets
+    return edges();
+  }
 
   /// \brief Construct the Knight's Graph
-  graph_t graph()
+  ///
+  /// This construction implicitly creates a row-major variable order for the
+  /// out-going edges.
+  graph gen_graph()
   {
-    graph_t out;
-
-    assert(rows() > 1 && cols() > 1);
-    const int edges = 4 * cells() - 6 * (rows() + cells()) + 8;
-    out.reserve(edges);
+    graph out(edges());
 
     for (int row = 0; row < rows(); ++row) {
       for (int col = 0; col < cols(); ++col) {
         const cell c_from(row, col);
 
         for (const cell &c_to : c_from.neighbours()) {
-          out.push_back(edge(c_from, c_to));
+          out.insert(edge(c_from, c_to));
         }
       }
     }
 
-    assert(out.size() == edges);
+    assert(out.size() == edges());
     return out;
   }
 
-  /// \brief Convert a graph into a DOT file for debugging purposes.
+  /// \brief Constrain special cells for breaking symmetries.
+  template<typename adapter_t>
+  typename adapter_t::dd_t fix_special(adapter_t &adapter, const graph &g)
+  {
+    const edge e_begin = edge(cell::special_0(), cell::special_1());
+    const int var_begin = g.dd_var(e_begin);
 
-  // TODO:
-  //   std::string dot_graph(const graph_t &g)
+    const edge e_end = edge(cell::special_2(), cell::special_0());
+    const int var_end = g.dd_var(e_end);
 
-  /// \brief Convert a graph into a diagram.
+    {
+      auto chain = adapter.build_node(true);
+      for (int var = g.max_dd_var(); g.min_dd_var() <= var; --var) {
+        chain = var_begin == var || var_end == var
+          ? adapter.build_node(var, adapter.build_node(false), chain)
+          : adapter.build_node(var, chain, chain);
+      }
+    }
 
-  // TODO:
-  //   template<typename adapter_t>
-  //   typename adapter_t::dd_t dd_graph(adapter_t &adapter, const graph_t &g)
+    const typename adapter_t::dd_t out = adapter.build();
+
+#ifdef BDD_BENCHMARK_STATS
+    const size_t nodecount = adapter.nodecount(out);
+    largest_bdd = std::max(largest_bdd, nodecount);
+    total_nodes += nodecount;
+#endif // BDD_BENCHMARK_STA
+
+    return out;
+  }
+
+  /// \brief Convert a graph into the constraint that no more than one out-going
+  ///        edge may be used at the same time.
+  ///
+  /// \param reverse If true, then the constraint is applied to the reverse
+  ///                graph. That is, one essentially constraints the in-going
+  ///                edges rather than the out-going ones.
+  template<typename adapter_t>
+  typename adapter_t::dd_t single_outgoing_edge(adapter_t &adapter,
+                                                const graph &g,
+                                                const cell &c,
+                                                const bool reverse)
+  {
+    assert(c_from.has_neighbour());
+
+    const int neighbours_size = c.neighbours().size();
+
+    auto out_n0 = adapter.build_node(false);
+    auto out_n1 = adapter.build_node(true);
+
+    // Count whether we are encountering another edge. This is to ensure
+    // we do not construct the `out_n1` chain above the first edge for
+    // `c` in the variable ordering.
+    int edges = 0;
+
+    for (int var = g.max_dd_var(); g.min_dd_var() <= var; --var) {
+      // If this is an out-going edge from `c`, then remember whether
+      // it was picked. Otherwise, allow anything to happen.
+      const bool is_outgoing = (reverse ? g.at(var).v() : g.at(var).u()) == c;
+
+      // Increment edge counter
+      edges += is_outgoing;
+
+      // Extend chain(s)
+      out_n0 = adapter.build_node(var, out_n0, is_outgoing ? out_n1 : out_n0);
+      if (edges < neighbours_size) {
+        out_n1 = adapter.build_node(var, out_n1, is_outgoing ? adapter.build_node(false) : out_n1);
+      }
+    }
+
+    return adapter.build();
+  }
+
+  /// \brief Binary Counter with a Modulus.
+  ///
+  /// \remark This is expected to work well with both BDDs and ZDDs.
+
+  // TODO: Binary Adder with modulo
 
   /// \brief Binary Counter with a Modulus.
   ///
@@ -396,8 +631,123 @@ namespace enc_gadgets
   ///
   /// If a Binary encoding is chosen and `p` is a Mersenne prime, then an LFSR is
   /// used rather than the Binary Adder.
+  template<typename adapter_t>
+  typename adapter_t::dd_t create(adapter_t &adapter, const enc_opt &opt)
+  {
+    switch (opt) {
+      // case enc_opt::BINARY:
+    case enc_opt::UNARY:
+    case enc_opt::CRT__BINARY:
+    case enc_opt::CRT__UNARY:
+      std::cout << "   |     Encoding not yet supported...\n";
+      return adapter.bot();
+    case enc_opt::TIME:
+      { throw std::invalid_argument("Cannot construct gadgets for time-based encoding"); }
+    default:
+      { break; }
+    }
 
-  // TODO: Combine above gadgeets
+    // -------------------------------------------------------------------------
+    // Trivial cases
+    if (cells() == 1) {
+      return adapter.ithvar(cell(0,0).dd_var());
+    }
+
+    for (int row = 0; row < rows(); ++row) {
+      for (int col = 0; col < cols(); ++col) {
+        const cell c_from(row, col);
+
+        if (!c_from.has_neighbour()) { return adapter.bot(); }
+      }
+    }
+
+    assert(3 <= rows() && 3 <= cols());
+    assert(3 < rows()  || 3 <  cols());
+
+    // -------------------------------------------------------------------------
+    // Generate graph and add simple constraints
+    const graph g = gen_graph();
+
+    typename adapter_t::dd_t paths;
+
+    // -------------------------------------------------------------------------
+    // Force '1A -> 2C', '3B -> 1A'
+#ifdef BDD_BENCHMARK_STATS
+    std::cout << "   |\n"
+              << "   | Special Cells\n";
+#endif // BDD_BENCHMARK_STATS
+
+    paths  = fix_special(adapter, g);
+
+#ifdef BDD_BENCHMARK_STATS
+    const size_t nodecount = adapter.nodecount(paths);
+    largest_bdd = std::max(largest_bdd, nodecount);
+    total_nodes += nodecount;
+
+    std::cout << "   |  " << nodecount << " DD nodes\n"
+              << std::flush;
+#endif // BDD_BENCHMARK_STATS
+
+    // -------------------------------------------------------------------------
+    // Force number of outgoing edges = 1
+#ifdef BDD_BENCHMARK_STATS
+    std::cout << "   |\n"
+              << "   | Single outgoing edge\n";
+#endif // BDD_BENCHMARK_STATS
+    for (int row = 0; row < rows(); ++row) {
+      for (int col = 0; col < cols(); ++col) {
+        const cell c(row, col);
+        paths &= single_outgoing_edge(adapter, g, c, false);
+
+#ifdef BDD_BENCHMARK_STATS
+        const size_t nodecount = adapter.nodecount(paths);
+        largest_bdd = std::max(largest_bdd, nodecount);
+        total_nodes += nodecount;
+
+        std::cout << "   |  " << c.to_string() << " : " << nodecount << " DD nodes\n"
+                  << std::flush;
+#endif // BDD_BENCHMARK_STATS
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // Force number of ingoing edges = 1
+#ifdef BDD_BENCHMARK_STATS
+    std::cout << "   |\n"
+              << "   | Single ingoing edge\n";
+#endif // BDD_BENCHMARK_STATS
+    for (int row = 0; row < rows(); ++row) {
+      for (int col = 0; col < cols(); ++col) {
+        const cell c(row, col);
+        paths &= single_outgoing_edge(adapter, g, c, true);
+
+#ifdef BDD_BENCHMARK_STATS
+        const size_t nodecount = adapter.nodecount(paths);
+        largest_bdd = std::max(largest_bdd, nodecount);
+        total_nodes += nodecount;
+
+        std::cout << "   |  " << c.to_string() << " : " << nodecount << " DD nodes\n"
+                  << std::flush;
+#endif // BDD_BENCHMARK_STATS
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // Add cycle length constraint(s) per modulo value
+#ifdef BDD_BENCHMARK_STATS
+    std::cout << "   |\n"
+              << "   | Gadgets\n";
+#endif // BDD_BENCHMARK_STATS
+
+    // TODO
+
+    // -------------------------------------------------------------------------
+#ifdef BDD_BENCHMARK_STATS
+    std::cout << "   |\n";
+#endif // BDD_BENCHMARK_STATS
+
+    return paths;
+  }
 }
 
 
@@ -441,7 +791,7 @@ namespace enc_time
   /// \brief Number of variables used in this encoding.
   inline int vars()
   {
-    const int shift = time_shift(enc_time::MAX_TIME());
+    const int shift = time_shift(MAX_TIME());
     const int max_var = cell(MAX_ROW(), MAX_COL()).dd_var(shift);
     return max_var+1;
   }
@@ -453,12 +803,16 @@ namespace enc_time
   ///        following the variable ordering.
   void init_cells_descending()
   {
+    assert(cell_descending.size() == 0);
+
     cells_descending.clear();
     cells_descending.reserve(cells());
 
-    for (int row = MAX_ROW(); 0 <= row; --row)
-      for (int col = MAX_COL(); 0 <= col; --col)
+    for (int row = MAX_ROW(); MIN_ROW() <= row; --row)
+      for (int col = MAX_COL(); MIN_COL() <= col; --col)
         cells_descending.push_back(cell(row, col));
+
+    assert(cell_descending.size() == cells());
 
     // TODO (variable orderings):
     // std::sort<std::greater<cell>>(cells_descending.begin(), cells_descending.end());
@@ -685,7 +1039,17 @@ namespace enc_time
     if (cells() == 1) {
       return adapter.ithvar(cell(0,0).dd_var());
     }
+
+    for (int row = 0; row < rows(); ++row) {
+      for (int col = 0; col < cols(); ++col) {
+        const cell c_from(row, col);
+
+        if (!c_from.has_neighbour()) { return adapter.bot(); }
+      }
+    }
+
     assert(3 <= rows() && 3 <= cols());
+    assert(3 <  rows() || 3 <  cols());
 
     // -------------------------------------------------------------------------
     init_cells_descending();
@@ -699,10 +1063,10 @@ namespace enc_time
     largest_bdd = std::max(largest_bdd, nodecount);
     total_nodes += nodecount;
 
-
     std::cout << "   |\n"
-              << "   | Path Construction\n"
-              << "   | [t = " << MAX_TIME() << ", 0" << "] : " << nodecount << " DD nodes\n";
+              << "   | All Paths\n"
+              << "   | [t = " << MAX_TIME() << ", 0" << "] : " << nodecount << " DD nodes\n"
+              << std::flush;
 #endif // BDD_BENCHMARK_STATS
 
     // Aggregate transitions backwards in time.
@@ -714,7 +1078,8 @@ namespace enc_time
       largest_bdd = std::max(largest_bdd, nodecount);
       total_nodes += nodecount;
 
-      std::cout << "   | [t = " << t << "] : " << nodecount << " DD nodes\n";
+      std::cout << "   | [t = " << t << "] : " << nodecount << " DD nodes\n"
+                << std::flush;
 #endif // BDD_BENCHMARK_STATS
     }
 #ifdef BDD_BENCHMARK_STATS
@@ -722,11 +1087,12 @@ namespace enc_time
 #endif // BDD_BENCHMARK_STATS
 
     // -------------------------------------------------------------------------
-    // accumulate hamiltonian constraints
+    // Accumulate hamiltonian constraints
     //
     // TODO: Follow 'cells_descending' ordering (possibly in reverse)?
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << "   Hamiltonian Constraint\n";
+    std::cout << "   Hamiltonian Constraint\n"
+              << std::flush;
 #endif // BDD_BENCHMARK_STATS
 
     for (int row = MIN_ROW(); row <= MAX_ROW(); ++row) {
@@ -744,7 +1110,8 @@ namespace enc_time
         largest_bdd = std::max(largest_bdd, nodecount);
         total_nodes += nodecount;
 
-        std::cout << "   | " << c.to_string() << " : " << nodecount << " DD nodes\n";
+        std::cout << "   | " << c.to_string() << " : " << nodecount << " DD nodes\n"
+                  << std::flush;
 #endif // BDD_BENCHMARK_STATS
       }
     }
@@ -774,28 +1141,9 @@ int run_knights_tour(int argc, char** argv)
   std::cout << rows() << " x " << cols() << " - Knight's Tour (" << adapter_t::NAME << " " << M << " MiB):\n"
             << "   | Encoding:               " << option_str(opt) << "\n";
 
-  switch (opt) {
-  case enc_opt::BINARY:
-  case enc_opt::UNARY:
-  case enc_opt::CRT__BINARY:
-  case enc_opt::CRT__UNARY:
-    std::cout << "   | Encoding not yet supported...\n";
-    return 0;
-  case enc_opt::TIME: break;
-  default:
-    { /* ? */ }
-  }
-
   if (rows() == 0 || cols() == 0) {
     std::cout << "\n"
-              << "  The board has no cells. Please provide an N > 1 (-N)\n";
-    return 0;
-  }
-
-  if ((rows() < 3 || cols() < 3) && (rows() != 1 || cols() != 1)) {
-    std::cout << "\n"
-              << "  There cannot exist closed tours on boards smaller than 3 x 3\n"
-              << "  Aborting computation...\n";
+              << "  The board has no cells. Please provide Ns > 1 (-N)\n";
     return 0;
   }
 
@@ -804,6 +1152,13 @@ int run_knights_tour(int argc, char** argv)
   int vars = 0;
 
   switch (opt) {
+  case enc_opt::BINARY:
+  case enc_opt::UNARY:
+  case enc_opt::CRT__BINARY:
+  case enc_opt::CRT__UNARY: {
+    vars = enc_gadgets::vars(opt);
+    break;
+  }
   case enc_opt::TIME: {
     vars = enc_time::vars();
     break;
@@ -825,14 +1180,20 @@ int run_knights_tour(int argc, char** argv)
   {
     // ---------------------------------------------------------------------------
     // Construct paths based on chosen encoding
+    std::cout << "\n"
+              << "   Paths Construction\n";
+
     typename adapter_t::dd_t paths;
 
     const time_point before_paths = get_timestamp();
     switch (opt) {
-    // case enc_opt::BINARY:
-    // case enc_opt::UNARY:
-    // case enc_opt::CRT__BINARY:
-    // case enc_opt::CRT__UNARY:
+    case enc_opt::BINARY:
+    case enc_opt::UNARY:
+    case enc_opt::CRT__BINARY:
+    case enc_opt::CRT__UNARY: {
+      paths = enc_gadgets::create(adapter, opt);
+      break;
+    }
     case enc_opt::TIME:
     default: {
       paths = enc_time::create(adapter);
@@ -843,8 +1204,7 @@ int run_knights_tour(int argc, char** argv)
     const time_duration paths_time = duration_of(before_paths, after_paths);
 
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << "   |\n"
-              << "   | total no. nodes:        " << total_nodes << "\n"
+    std::cout << "   | total no. nodes:        " << total_nodes << "\n"
               << "   | largest size (nodes):   " << largest_bdd << "\n";
 #endif // BDD_BENCHMARK_STATS
     std::cout << "   | final size (nodes):     " << adapter.nodecount(paths) << "\n"
