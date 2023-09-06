@@ -180,15 +180,27 @@ public:
   bool out_of_range() const
   { return row() < 0 || MAX_ROW() < row() || col() < 0 || MAX_COL() < col(); }
 
+  /// \brief Vertical distance between two cells
+  int vertical_dist_to(const cell &o) const
+  { return std::abs(this->row() - o.row()); }
+
+  /// \brief Horizontal distance between two cells
+  int horizontal_dist_to(const cell &o) const
+  { return std::abs(this->col() - o.col()); }
+
+  /// \brief Manhattan distance to cell `o`
+  int manhattan_dist_to(const cell& o) const
+  { return vertical_dist_to(o) + horizontal_dist_to(o); }
+
   /// \brief Whether there is a single knight-move from `this` to `o`
   ///
   /// \details One can move from `this` to `o` if one moves at least one in each
   ///          dimension and by exactly three cells.
   bool has_move_to(const cell& o) const
   {
-    const int r_moved = std::abs(this->row() - o.row());
-    const int c_moved = std::abs(this->col() - o.col());
-    return (0 < r_moved) && (0 < c_moved) && (r_moved + c_moved == 3);
+    return (0 < vertical_dist_to(o))
+      && (0 < horizontal_dist_to(o))
+      && (this->manhattan_dist_to(o) == 3);
   }
 
   /// \brief All cells on the board that can be reached from this cell
