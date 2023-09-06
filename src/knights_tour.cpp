@@ -326,9 +326,11 @@ template<> struct std::hash<edge>
   { return std::hash<cell>{}(e.u()) ^ std::hash<cell>{}(e.v()); }
 };
 
-/// \brief Collection of edges for the entire set of possible Knight's moves.
+/// \brief Manages edges, cells and their variable ordering for a given graph.
 class graph
 {
+  // TODO: add cell variable ordering.
+
   //////////////////////////////////////////////////////////////////////////////
   // Members
 private:
@@ -367,20 +369,38 @@ public:
   /// \brief Insert a single edge into the graph
   void insert(const edge &e)
   {
-    const int idx = edges.size();
-
+    assert(edges_inv.empty());
     edges.push_back(e);
-    edges_inv.insert({ e,idx });
+  }
+
+  /// \brief Freezes the state of the graph and computes the variable order.
+  void freeze()
+  {
+    // Sort edges based on source
+    std::sort(edges.begin(), edges.end(), [](const edge &a, const edge &b) {
+      return a.u() < b.u();
+    });
+
+    // transfer sorted order to `edges_inv`
+    for (size_t idx = 0; idx < edges.size(); ++idx) {
+      edges_inv.insert({ edges.at(idx), idx });
+    }
   }
 
   //////////////////////////////////////////////////////////////////////////////
   // Graph Access
 private:
   edges_inv_t::const_iterator find(const edge &e) const
-  { return edges_inv.find(e); }
+  {
+    assert(this->empty() || !edges_inv.empty());
+    return edges_inv.find(e);
+  }
 
   edges_inv_t::const_iterator find_end() const
-  { return edges_inv.end(); }
+  {
+    assert(this->empty() || !edges_inv.empty());
+    return edges_inv.end();
+  }
 
 public:
   bool contains(const edge &e) const
@@ -501,8 +521,9 @@ namespace enc_gadgets
         }
       }
     }
-
     assert(out.size() == edges());
+
+    out.freeze();
     return out;
   }
 
@@ -637,6 +658,13 @@ namespace enc_gadgets
   template<typename adapter_t>
   typename adapter_t::dd_t create(adapter_t &adapter, const enc_opt &opt)
   {
+    if (rows() < cols()) {
+      std::cout << "   | Note:\n"
+                << "   |   The variable ordering is designed for 'cols <= rows'.\n"
+                << "   |   Maybe restart with the dimensions flipped?\n"
+                << "   |\n";
+    }
+
     switch (opt) {
       // case enc_opt::BINARY:
     case enc_opt::UNARY:
@@ -665,7 +693,7 @@ namespace enc_gadgets
     }
 
     assert(3 <= rows() && 3 <= cols());
-    assert(3 < rows()  || 3 <  cols());
+    assert(3 <  rows() || 3 <  cols());
 
     // -------------------------------------------------------------------------
     // Generate graph and add simple constraints
@@ -676,7 +704,7 @@ namespace enc_gadgets
     // -------------------------------------------------------------------------
     // Force '1A -> 2C', '3B -> 1A'
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << "   |\n"
+    std::cout << (!(rows() < cols()) ? "   |\n" : "")
               << "   | Special Cells\n";
 #endif // BDD_BENCHMARK_STATS
 
