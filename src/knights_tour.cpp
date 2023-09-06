@@ -116,9 +116,6 @@ public:
     : _r(r), _c(c)
   { /* TODO: throw std::out_of_range if given bad (r,c)? */ }
 
-  cell(const cell &o) = default;
-  cell(cell &&o) = default;
-
   //////////////////////////////////////////////////////////////////////////////
   // Accessor and DD conversion
 public:
@@ -261,12 +258,6 @@ private:
 public:
   /// \brief Default construction
   edge() = default;
-
-  /// \brief Copy construction
-  edge(const edge& e) = default;
-
-  /// \brief Move construction
-  edge(edge &&e) = default;
 
   /// \brief Construction of an edge given two cells on the board.
   edge(const cell &u, const cell &v)
