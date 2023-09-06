@@ -703,19 +703,10 @@ namespace enc_gadgets
 
     // -------------------------------------------------------------------------
     // Force '1A -> 2C', '3B -> 1A'
-#ifdef BDD_BENCHMARK_STATS
-    std::cout << (!(rows() < cols()) ? "   |\n" : "")
-              << "   | Special Cells\n";
-#endif // BDD_BENCHMARK_STATS
-
     paths  = fix_special(adapter, g);
 
 #ifdef BDD_BENCHMARK_STATS
-    const size_t nodecount = adapter.nodecount(paths);
-    largest_bdd = std::max(largest_bdd, nodecount);
-    total_nodes += nodecount;
-
-    std::cout << "   |  " << nodecount << " DD nodes\n"
+    std::cout << "   | Special Cells (nodes):  " << adapter.nodecount(paths) << "\n"
               << std::flush;
 #endif // BDD_BENCHMARK_STATS
 
@@ -735,7 +726,7 @@ namespace enc_gadgets
         largest_bdd = std::max(largest_bdd, nodecount);
         total_nodes += nodecount;
 
-        std::cout << "   |  " << c.to_string() << " : " << nodecount << " DD nodes\n"
+        std::cout << "   |  " << c.to_string() << " (nodes):            " << nodecount << "\n"
                   << std::flush;
 #endif // BDD_BENCHMARK_STATS
       }
@@ -757,7 +748,7 @@ namespace enc_gadgets
         largest_bdd = std::max(largest_bdd, nodecount);
         total_nodes += nodecount;
 
-        std::cout << "   |  " << c.to_string() << " : " << nodecount << " DD nodes\n"
+        std::cout << "   |  " << c.to_string() << " (nodes):            " << nodecount << "\n"
                   << std::flush;
 #endif // BDD_BENCHMARK_STATS
       }
@@ -1096,7 +1087,7 @@ namespace enc_time
 
     std::cout << "   |\n"
               << "   | All Paths\n"
-              << "   | [t = " << MAX_TIME() << ", 0" << "] : " << nodecount << " DD nodes\n"
+              << "   |   [t = " << MAX_TIME() << (MAX_TIME() < 10 ? " " : "") << ", 0" << "] (nodes):  " << nodecount << "\n"
               << std::flush;
 #endif // BDD_BENCHMARK_STATS
 
@@ -1109,7 +1100,7 @@ namespace enc_time
       largest_bdd = std::max(largest_bdd, nodecount);
       total_nodes += nodecount;
 
-      std::cout << "   | [t = " << t << "] : " << nodecount << " DD nodes\n"
+      std::cout << "   |   [t = " << t << (t < 10 ? " " : "") << "   ] (nodes):  " << nodecount << "\n"
                 << std::flush;
 #endif // BDD_BENCHMARK_STATS
     }
@@ -1122,7 +1113,7 @@ namespace enc_time
     //
     // TODO: Follow 'cells_descending' ordering (possibly in reverse)?
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << "   Hamiltonian Constraint\n"
+    std::cout << "   | Hamiltonian Constraint\n"
               << std::flush;
 #endif // BDD_BENCHMARK_STATS
 
@@ -1141,7 +1132,7 @@ namespace enc_time
         largest_bdd = std::max(largest_bdd, nodecount);
         total_nodes += nodecount;
 
-        std::cout << "   | " << c.to_string() << " : " << nodecount << " DD nodes\n"
+        std::cout << "   |   " << c.to_string() << " (nodes):           " << nodecount << "\n"
                   << std::flush;
 #endif // BDD_BENCHMARK_STATS
       }
