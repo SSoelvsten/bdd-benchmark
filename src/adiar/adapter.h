@@ -73,8 +73,8 @@ public:
   { return adiar::bdd_ite(i,t,e); }
 
   inline adiar::bdd
-  exists(const adiar::bdd &b, int label)
-  { return adiar::bdd_exists(b,label); }
+  exists(const adiar::bdd &b, int i)
+  { return adiar::bdd_exists(b, i); }
 
   inline adiar::bdd
   exists(const adiar::bdd &b, const std::function<bool(int)> &pred)
@@ -86,8 +86,8 @@ public:
   { return adiar::bdd_exists(b, rbegin, rend); }
 
   inline adiar::bdd
-  forall(const adiar::bdd &b, int label)
-  { return adiar::bdd_forall(b,label); }
+  forall(const adiar::bdd &b, int i)
+  { return adiar::bdd_forall(b, i); }
 
   inline adiar::bdd
   forall(const adiar::bdd &b, const std::function<bool(int)> &pred)
@@ -166,6 +166,48 @@ public:
 
   inline adiar::zdd negate(const adiar::zdd &z)
   { return ~z; }
+
+  inline adiar::zdd
+  exists(const adiar::zdd &b, int i)
+  { return adiar::zdd_project(b, [&i](int x){ return x != i; }); }
+
+  inline adiar::zdd
+  exists(const adiar::zdd &b, const std::function<bool(int)> &pred)
+  { return adiar::zdd_project(b, [&pred](int x) { return !pred(x); }); }
+
+  template<class IT>
+  inline adiar::zdd
+  exists(const adiar::zdd &b, IT rbegin, IT rend)
+  {
+    // To use `zdd_project`, flip the variables in the iterator.
+    std::vector<typename IT::value_type> c;
+    c.reserve(varcount);
+
+    for (int x = varcount-1; 0 <= x; --x) {
+      while (rbegin != rend && x < *rbegin) {
+        rbegin++;
+      }
+
+      const int filter = rbegin == rend ? *rbegin : -1;
+      if (x != filter) { c.push_back(x); }
+    }
+
+    // Project to remaining variables
+    return adiar::zdd_project(b, c.cbegin(), c.cend());
+  }
+
+  inline adiar::zdd
+  forall(const adiar::zdd &b, int i)
+  { return ~(exists(~b, i)); }
+
+  inline adiar::zdd
+  forall(const adiar::zdd &b, const std::function<bool(int)> &pred)
+  { return ~(exists(~b, pred)); }
+
+  template<class IT>
+  inline adiar::zdd
+  forall(const adiar::zdd &b, IT rbegin, IT rend)
+  { return ~(exists(~b, rbegin, rend)); }
 
   inline uint64_t nodecount(const adiar::zdd &z)
   { return adiar::zdd_nodecount(z); }

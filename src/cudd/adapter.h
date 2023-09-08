@@ -249,6 +249,26 @@ public:
   inline ZDD negate(const ZDD &z)
   { return top() - z; }
 
+  inline ZDD exists(const ZDD &, int)
+  { throw std::logic_error("CUDD has no support for 'Exists' on ZDDs"); }
+
+  inline ZDD exists(const ZDD &, const std::function<bool(int)> &)
+  { throw std::logic_error("CUDD has no support for 'Exists' on ZDDs"); }
+
+  template<typename IT>
+  inline ZDD exists(const ZDD &, IT, IT)
+  { throw std::logic_error("CUDD has no support for 'Exists' on ZDDs"); }
+
+  inline ZDD forall(const ZDD &, int)
+  { throw std::logic_error("CUDD has no support for 'Forall' on ZDDs"); }
+
+  inline ZDD forall(const ZDD &, const std::function<bool(int)> &pred)
+  { throw std::logic_error("CUDD has no support for 'Forall' on ZDDs"); }
+
+  template<typename IT>
+  inline ZDD forall(const ZDD &, IT, IT)
+  { throw std::logic_error("CUDD has no support for 'Forall' on ZDDs"); }
+
   inline uint64_t nodecount(const ZDD &b)
   { return b.nodeCount(); }
 
