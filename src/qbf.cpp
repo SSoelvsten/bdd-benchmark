@@ -1747,7 +1747,7 @@ solve(adapter_t& adapter, qcir& q,
     }
 
     // Negate, if needed
-    return i < 0 ? adapter.negate(res) : res;
+    return i < 0 ? ~res : res;
   };
 
   size_t cache_max_size = 0u;
@@ -1929,7 +1929,7 @@ solve(adapter_t& adapter, qcir& q,
   } else { // res == non-leaf
     sat_res = root_quant == qcir::quant_gate::EXISTS;
 
-    const auto cube = adapter.pickcube(sat_res ? res : adapter.negate(res));
+    const auto cube = adapter.pickcube(sat_res ? res : ~res);
     for (const auto &xv : cube) {
       const int qcir_var = vom.qcir_var(xv.first);
       const char val = xv.second;

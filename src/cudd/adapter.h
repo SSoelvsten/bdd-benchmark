@@ -139,9 +139,6 @@ public:
   inline BDD nithvar(int label)
   { return ~_mgr.bddVar(label); }
 
-  inline BDD negate(const BDD &b)
-  { return ~b; }
-
   inline BDD ite(const BDD &i, const BDD &t, const BDD &e)
   { return i.Ite(t,e); }
 
@@ -245,9 +242,6 @@ public:
 
   inline ZDD ithvar(const int i)
   { return _mgr.zddVar(i); }
-
-  inline ZDD negate(const ZDD &z)
-  { return top() - z; }
 
   inline ZDD exists(const ZDD &, int)
   { throw std::logic_error("CUDD has no support for 'Exists' on ZDDs"); }

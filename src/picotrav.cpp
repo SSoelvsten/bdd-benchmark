@@ -596,7 +596,7 @@ typename adapter_t::dd_t construct_node_bdd(net_t &net,
       const logic_value lval = node_data.so_cover.at(row_idx).at(column_idx);
       switch (lval) {
       case logic_value::FALSE:
-        tmp &= adapter.negate(dep_bdd);
+        tmp &= ~dep_bdd;
 #ifdef BDD_BENCHMARK_STATS
         // TODO (ZDD): intermediate size of negation
         {
@@ -663,7 +663,7 @@ typename adapter_t::dd_t construct_node_bdd(net_t &net,
   }
 
   if (!node_data.is_onset) {
-    so_cover_bdd = adapter.negate(so_cover_bdd);
+    so_cover_bdd = ~so_cover_bdd;
 #ifdef BDD_BENCHMARK_STATS
     stats.total_negations++;
 #endif // BDD_BENCHMARK_STATS
