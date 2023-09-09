@@ -143,9 +143,6 @@ public:
   inline bdd nithvar(int label)
   { return bdd_nithvar(label); }
 
-  inline bdd negate(const bdd &b)
-  { return bdd_not(b); }
-
   inline bdd ite(const bdd &i, const bdd &t, const bdd &e)
   { return bdd_ite(i,t,e); }
 

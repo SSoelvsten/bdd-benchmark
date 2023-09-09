@@ -45,9 +45,6 @@ public:
   inline BDD nithvar(int i)
   { return ~_mgr.Id(i+1); }
 
-  inline BDD negate(BDD f)
-  { return ~f; }
-
   inline BDD ite(BDD i, BDD t, BDD e)
   { return _mgr.ITE(i,t,e); }
 

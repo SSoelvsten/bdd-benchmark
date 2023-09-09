@@ -109,9 +109,6 @@ public:
   inline sylvan::Bdd nithvar(int label)
   { return ~sylvan::Bdd::bddVar(label); }
 
-  inline sylvan::Bdd negate(const sylvan::Bdd &b)
-  { return ~b; }
-
   inline sylvan::Bdd ite(const sylvan::Bdd &i,
                          const sylvan::Bdd &t,
                          const sylvan::Bdd &e)
