@@ -105,6 +105,8 @@ inline int cells()
 /// \brief Class to encapsulate logic related to a cell and the Knight's move.
 class cell
 {
+  friend class edge;
+
   //////////////////////////////////////////////////////////////////////////////
   // Members
 private:
@@ -114,22 +116,27 @@ private:
   //////////////////////////////////////////////////////////////////////////////
   // Constructors
 public:
+
+  /// \brief Default construction of illegal cell [-1,-1] outside the board.
   cell()
     : _r(-1), _c(-1)
   { }
 
+  /// \brief Construction of cell [r,c].
+  ///
+  /// \remark This does not check whether the cell actually is legal. To do so,
+  ///         please use `out_of_range`.
   cell(int r, int c)
     : _r(r), _c(c)
   { /* TODO: throw std::out_of_range if given bad (r,c)? */ }
 
+  /// \brief Converts back from a diagram variable to the cell.
+  ///
+  /// \pre The variable `dd_var` must already have been unshifted.
   cell(int dd_var)
     : _r(((dd_var) / cols()) % rows())
     , _c((dd_var) % cols())
-  {
-    if (cells() <= dd_var) {
-      throw std::out_of_range("Unknown diagram variable (forgot to unshift?)");
-    }
-  }
+  { assert(0 <= dd_var && dd_var < cells()); }
 
   //////////////////////////////////////////////////////////////////////////////
   // Accessor and DD conversion
@@ -141,8 +148,12 @@ public:
   { return _c; }
 
   /// \brief Row-major DD variable name
+  ///
+  /// \param shift The number of bits to shift.
   int dd_var(const int shift = 0) const
-  { return shift + (cols() * _r) + _c; }
+  {
+    return shift + (cols() * _r) + _c;
+  }
 
   //////////////////////////////////////////////////////////////////////////////
   // Quality of life
@@ -176,7 +187,7 @@ public:
 
 private:
   /// \brief Hard coded moves relative to the current cell (following the
-  ///       variable ordering as per `dd_var`).
+  ///        variable ordering as per `dd_var`).
   ///
   /// \details This hardcoding is done with the intention to improve performance.
   static constexpr int moves[max_moves][2] = {
@@ -223,7 +234,9 @@ public:
   {
     std::vector<cell> res;
     for (int i = 0; i < max_moves; ++i) {
-      const cell neighbour(cell(this->row() + moves[i][0], this->col() + moves[i][1]));
+      const cell neighbour(this->row() + moves[i][0],
+                           this->col() + moves[i][1]);
+
       if (neighbour.out_of_range()) { continue; }
 
       res.push_back(neighbour);
@@ -312,6 +325,36 @@ public:
   const cell& v() const
   { return _v; }
 
+  /// \brief The "index" for this edge `u`.
+  ///
+  /// \remark The index is independent of the edge's direction.
+  int idx() const
+  {
+    assert(u() != v());
+
+    const int r_diff = this->v().row() - this->u().row();
+    const int c_diff = this->v().col() - this->u().col();
+
+    // Return index in list of relative moves within `cell` class
+    for (int i = 0; i < cell::max_moves; ++i) {
+      if (cell::moves[i][0] == r_diff && cell::moves[i][1] == c_diff) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  /// \brief Whether `u` has an edge to a neighbour with edge-index `i`.
+  static bool has_idx(const cell &u, const int i)
+  {
+    for (const cell &v : u.neighbours()) {
+      if (edge(u,v).idx() == i) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /// \brief Whether the source or the target are invalid values
   bool out_of_range() const
   { return this->u().out_of_range() || this->v().out_of_range(); }
@@ -341,144 +384,27 @@ template<> struct std::hash<edge>
   { return std::hash<cell>{}(e.u()) ^ std::hash<cell>{}(e.v()); }
 };
 
-/// \brief Manages edges, cells and their variable ordering for a given graph.
-class graph
+/// \brief Cells in descending order (relative to variable ordering).
+std::vector<cell> cells_descending;
+
+/// \brief Initialise the list of all cells on the board (descendingly)
+///        following the variable ordering.
+void init_cells_descending()
 {
-  // TODO: add cell variable ordering.
+  assert(cell_descending.size() == 0);
 
-  //////////////////////////////////////////////////////////////////////////////
-  // Members
-private:
-  using edges_t = std::vector<edge>;
+  cells_descending.clear();
+  cells_descending.reserve(cells());
 
-  /// \brief Container for the edges
-  edges_t edges;
+  for (int row = MAX_ROW(); MIN_ROW() <= row; --row)
+    for (int col = MAX_COL(); MIN_COL() <= col; --col)
+      cells_descending.push_back(cell(row, col));
 
-  using edges_inv_t = std::unordered_map<edge, int>;
+  assert(cell_descending.size() == cells());
 
-  /// \brief Container to retrieve the index of an edge in constant time.
-  edges_inv_t edges_inv;
-
-  //////////////////////////////////////////////////////////////////////////////
-  // Constructors
-public:
-  /// \brief Default construciton
-  graph() = default;
-
-  /// \brief Copy construction
-  graph(const graph &g) = default;
-
-  /// \brief Move construction
-  graph(graph &&g) = default;
-
-  /// \brief Creates a an graph where `size` number of edges has been reserved.
-  graph(int size)
-  {
-    edges.reserve(size);
-    edges_inv.reserve(size);
-  }
-
-  //////////////////////////////////////////////////////////////////////////////
-  // Graph Manpulation
-public:
-  /// \brief Insert a single edge into the graph
-  void insert(const edge &e)
-  {
-    assert(edges_inv.empty());
-    edges.push_back(e);
-  }
-
-  /// \brief Freezes the state of the graph and computes the variable order.
-  void freeze()
-  {
-    // Sort edges based on source
-    std::sort(edges.begin(), edges.end(), [](const edge &a, const edge &b) {
-      return a.u() < b.u();
-    });
-
-    // transfer sorted order to `edges_inv`
-    for (size_t idx = 0; idx < edges.size(); ++idx) {
-      edges_inv.insert({ edges.at(idx), idx });
-    }
-  }
-
-  //////////////////////////////////////////////////////////////////////////////
-  // Graph Access
-private:
-  edges_inv_t::const_iterator find(const edge &e) const
-  {
-    assert(this->empty() || !edges_inv.empty());
-    return edges_inv.find(e);
-  }
-
-  edges_inv_t::const_iterator find_end() const
-  {
-    assert(this->empty() || !edges_inv.empty());
-    return edges_inv.end();
-  }
-
-public:
-  bool contains(const edge &e) const
-  { return this->find(e) != find_end(); }
-
-  /// \brief Obtain the DD variable for a given edge.
-  int dd_var(const edge &e) const
-  {
-    const auto res = this->find(e);
-    if (res == find_end() || res->first != e) {
-      throw std::out_of_range("Edge does not exist in graph");
-    }
-    return res->second;
-  }
-
-  /// \brief Minimum value for `dd_var`
-  ///
-  /// \pre `!empty()`
-  ///
-  /// \see dd_var
-  int min_dd_var() const
-  { return 0; }
-
-  /// \brief Maximum value for `dd_var`
-  ///
-  /// \pre `!empty()`
-  ///
-  /// \see dd_var
-  int max_dd_var() const
-  { return size()-1; }
-
-  /// \brief Obtain the edge with variable `var`
-  const edge& at(int var) const
-  { return edges.at(var); }
-
-  /// \brief Number of edges in the graph
-  int size() const
-  { return edges.size(); }
-
-  /// \brief Whether the graph is empty, i.e. it has no edges.
-  bool empty() const
-  { return edges.empty(); }
-
-  //////////////////////////////////////////////////////////////////////////////
-  // Graph Iteration
-public:
-  /// \brief Forward Iterator
-  edges_t::const_iterator begin() const
-  { return edges.cbegin(); }
-
-  /// \brief End of Forward Iterator
-  edges_t::const_iterator end() const
-  { return edges.cend(); }
-
-  /// \brief Backward Iterator
-  edges_t::const_reverse_iterator rbegin() const
-  { return edges.crbegin(); }
-
-  /// \brief End of Backward Iterator
-  edges_t::const_reverse_iterator rend() const
-  { return edges.crend(); }
-};
-
+  // TODO (variable orderings):
+  // std::sort<std::greater<cell>>(cells_descending.begin(), cells_descending.end());
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief Gadgets for the `enc_opt::(CRT__)BINARY` and `enc_opt::(CRT__)UNARY`
@@ -521,42 +447,15 @@ namespace enc_gadgets
     return static_cast<int>(std::ceil(std::log2(x)));
   }
 
-  constexpr std::array<int, 19> primes =
-    { 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67 };
+  /// \brief Possible types of bits for this encoding
+  enum class var_t {
+    in_bit     = 0,
+    out_bit    = 1,
+    gadget_bit = 2,
+  };
 
-  /// \brief Whether a value (67) is a prime
-  ///
-  /// This algorithm is nothing fancy, but just compares with a pre-compiled
-  /// list of numbers.
-  ///
-  /// \throws std::out_of_range If `i` is larger than the largest "known" prime.
-  bool is_prime(int i)
-  {
-    if (i > 67) {
-      throw std::out_of_range("Primes are uncomputed for such large a value");
-    }
-    for (const int p : primes) {
-      if (i == p) { return true; }
-    }
-    return false;
-  }
-
-  /// \brief List of all exponents for Mersenne primes that fit into an `int`.
-  constexpr std::array<int, 8> mersenne_exponents =
-    { 2, 3, 5, 7, 13, 17, 19, 31 };
-
-  /// \brief Whether a given value is a Mersenne prime
-  bool is_mersenne_prime(int i)
-  {
-    for (const int e : mersenne_exponents) {
-      const int p = (1 << e) - 1;
-      if (i == p) { return true; }
-    }
-    return false;
-  }
-
-  /// \brief Obtain the set of smallest prime numbes
-  std::vector<int> moduli(const enc_opt &opt)
+  /// \brief Obtain the set of smallest "prime" numbers for gadget
+  std::vector<int> gadget_moduli(const enc_opt &opt)
   {
     switch (opt) {
     case enc_opt::BINARY:
@@ -593,158 +492,36 @@ namespace enc_gadgets
     }
   }
 
-  /// \brief Construct the Knight's Graph
-  graph gen_graph()
+  /// \brief Number of bits to represent the (directed) in- or out-going edge to
+  ///        a single node in the graph.
+  inline int bits_per_edge(const enc_opt &opt)
   {
-    graph out(edges());
-
-    for (int row = 0; row < rows(); ++row) {
-      for (int col = 0; col < cols(); ++col) {
-        const cell c_from(row, col);
-
-        for (const cell &c_to : c_from.neighbours()) {
-          out.insert(edge(c_from, c_to));
-        }
-      }
-    }
-    assert(out.size() == edges());
-
-    out.freeze();
-    return out;
+    return opt == enc_opt::BINARY || opt == enc_opt::CRT__BINARY
+      ? log2(cell::max_moves) : cell::max_moves;
   }
 
-  /// \brief Constrain special cells for breaking symmetries.
-  template<typename adapter_t>
-  typename adapter_t::dd_t fix_special(adapter_t &adapter, const graph &g)
+  /// \brief Number of total bits used to identify the chosen edges.
+  inline int edge_vars(const enc_opt &opt)
   {
-    const edge e_begin = edge(cell::special_0(), cell::special_1());
-    const int var_begin = g.dd_var(e_begin);
-
-    const edge e_end = edge(cell::special_2(), cell::special_0());
-    const int var_end = g.dd_var(e_end);
-
-    {
-      auto chain = adapter.build_node(true);
-      for (int var = g.max_dd_var(); g.min_dd_var() <= var; --var) {
-        chain = var_begin == var || var_end == var
-          ? adapter.build_node(var, adapter.build_node(false), chain)
-          : adapter.build_node(var, chain, chain);
-      }
-    }
-
-    const typename adapter_t::dd_t out = adapter.build();
-
-#ifdef BDD_BENCHMARK_STATS
-    const size_t nodecount = adapter.nodecount(out);
-    largest_bdd = std::max(largest_bdd, nodecount);
-    total_nodes += nodecount;
-#endif // BDD_BENCHMARK_STATS
-
-    return out;
+    // For each cell, we have two set of bit-values: in-going and out-going.
+    return cells() * 2 * bits_per_edge(opt);
   }
 
-  /// \brief Convert a graph into the constraint that no more than one out-going
-  ///        edge may be used at the same time.
-  ///
-  /// \param reverse If true, then the constraint is applied to the reverse
-  ///                graph. That is, one essentially constraints the in-going
-  ///                edges rather than the out-going ones.
-  template<typename adapter_t>
-  typename adapter_t::dd_t single_outgoing_edge(adapter_t &adapter,
-                                                const graph &g,
-                                                const cell &c,
-                                                const bool reverse)
+  /// \brief Obtain the dd variable for an in-going or out-going edge at cell `c`.
+  inline int edge_var(const cell &c, int bit, bool out_going,
+                      [[maybe_unused]] const enc_opt &opt)
   {
-    assert(c_from.has_neighbour());
-
-    const int neighbours_size = c.neighbours().size();
-
-    auto out_n0 = adapter.build_node(false);
-    auto out_n1 = adapter.build_node(true);
-
-    // Count whether we are encountering another edge. This is to ensure
-    // we do not construct the `out_n1` chain above the first edge for
-    // `c` in the variable ordering.
-    int edges = 0;
-
-    for (int var = g.max_dd_var(); g.min_dd_var() <= var; --var) {
-      // If this is an out-going edge from `c`, then remember whether
-      // it was picked. Otherwise, allow anything to happen.
-      const bool is_outgoing = (reverse ? g.at(var).v() : g.at(var).u()) == c;
-
-      // Increment edge counter
-      edges += is_outgoing;
-
-      // Extend chain(s)
-      out_n0 = adapter.build_node(var, out_n0, is_outgoing ? out_n1 : out_n0);
-      if (edges < neighbours_size) {
-        out_n1 = adapter.build_node(var, out_n1, is_outgoing ? adapter.build_node(false) : out_n1);
-      }
-    }
-
-    const typename adapter_t::dd_t out = adapter.build();
-
-#ifdef BDD_BENCHMARK_STATS
-    const size_t nodecount = adapter.nodecount(out);
-    largest_bdd = std::max(largest_bdd, nodecount);
-    total_nodes += nodecount;
-#endif // BDD_BENCHMARK_STATS
-
-    return out;
+    assert(bit < bits_per_edge(opt));
+    return (c.dd_var() * 2 * bits_per_edge(opt)) + (2 * bit + out_going);
   }
 
-  /// \brief Enforce for a given edge that it may only be taken in one direction.
-  template<typename adapter_t>
-  typename adapter_t::dd_t unmatch_edge_repeat(adapter_t &adapter,
-                                               const graph &g,
-                                               const edge &e)
-  {
-    const int e1 = std::min(g.dd_var(e), g.dd_var(e.reversed()));
-    const int e2 = std::max(g.dd_var(e), g.dd_var(e.reversed()));
+  /// \brief Decision diagram variable for a bit of the in-going edge to cell `c`.
+  inline int edge_in_var(const cell &c, int bit, const enc_opt &opt)
+  { return edge_var(c, bit, false, opt); }
 
-    int z = g.max_dd_var();
-    auto root = adapter.build_node(true);
-
-    // Don't care below edge variable `e2`.
-    for (; e2 < z; --z) {
-      root = adapter.build_node(z, root, root);
-    }
-
-    // For edge `e2`, start two chains: `root` keeps being a don't care chain,
-    // whereas `skip_e2` forces `e2` to be false.
-    assert(z == e2);
-    auto skip_e2 = adapter.build_node(z, root, adapter.build_node(false));
-    root = adapter.build_node(z, root, root);
-
-    z -= 1;
-
-    // Don't care chain for all intermediate variables
-    for (; e1 < z; --z) {
-      root = adapter.build_node(z, root, root);
-      skip_e2 = adapter.build_node(z, skip_e2, skip_e2);
-    }
-
-    // Go to either chain depending on value of `e1`.
-    assert(z == e1);
-    root = adapter.build_node(z, root, skip_e2);
-
-    z -= 1;
-
-    // Don't care above `e1` variable
-    for (; 0 <= z; --z) {
-      root = adapter.build_node(z, root, root);
-    }
-
-    const typename adapter_t::dd_t out = adapter.build();
-
-#ifdef BDD_BENCHMARK_STATS
-    const size_t nodecount = adapter.nodecount(out);
-    largest_bdd = std::max(largest_bdd, nodecount);
-    total_nodes += nodecount;
-#endif // BDD_BENCHMARK_STATS
-
-    return out;
-  }
+  /// \brief Decision diagram variable for a bit of the out-going edge to cell `c`.
+  inline int edge_out_var(const cell &c, int bit, const enc_opt &opt)
+  { return edge_var(c, bit, true, opt); }
 
   /// \brief Obtain the number of bits per gadget given a certain prime.
   inline int bits_per_gadget(const enc_opt &opt, const int p)
@@ -755,27 +532,555 @@ namespace enc_gadgets
   /// \brief Obtain the largest number of bits per gadget over all primes.
   inline int bits_per_gadget(const enc_opt &opt)
   {
-    return bits_per_gadget(opt, moduli(opt).back());
+    return bits_per_gadget(opt, gadget_moduli(opt).back());
   }
 
-  /// \brief Number of bits to shift by for one bit out of one or more.
-  inline int gadget_shift(const int bits, const int bit)
+  /// \brief Number of total bits used for the gadgets
+  inline int gadget_vars(const enc_opt &opt)
   {
-    assert(0 <= bit && bit < bits);
-    return bit * bits;
+    // For each cell, we have a single set of bits for the gadget.
+    return cells() * bits_per_gadget(opt);
+  }
+
+  /// \brief Obtain the dd variable for a bit in a gadget for cell `c`.
+  inline int gadget_var(const cell &c, int bit, [[maybe_unused]] const enc_opt &opt)
+  {
+    assert(bit < bits_per_gadget(opt));
+    return edge_vars(opt) + c.dd_var(cells() * bit);
+  }
+
+  /// \brief Number of variables used for the encoding.
+  inline int vars(const enc_opt &opt)
+  { return edge_vars(opt) + gadget_vars(opt); }
+
+  /// \brief Number of variables to use for final model count.
+  inline int satcount_vars(const enc_opt &opt)
+  { return cells() * bits_per_edge(opt); }
+
+  inline cell cell_of_var(const int x, const enc_opt &opt)
+  {
+    assert(x < vars(opt));
+
+    const int x_unshifted = x < edge_vars(opt)
+      ? x / (2 * bits_per_edge(opt))
+      : x % cells();
+
+    return cell(x_unshifted);
+  }
+
+  /// \brief Minimum variable
+  inline int MIN_VAR(const enc_opt &/*opt*/)
+  { return 0; }
+
+  /// \brief Maximum variable
+  inline int MAX_VAR(const enc_opt &opt)
+  { return vars(opt)-1; }
+
+  /// \brief The bit-index of a variable for some cell c.
+  inline int bit_of_var(int x, const enc_opt &opt)
+  {
+    return x < edge_vars(opt)
+      ? x % (2 * bits_per_edge(opt))
+      : x / cells();
+  }
+
+  /// \brief Obtain the type of a given variable.
+  inline var_t type_of_var(int x, const enc_opt &opt)
+  {
+    return x < edge_vars(opt)
+      ? static_cast<var_t>(bit_of_var(x, opt) % 2)
+      : var_t::gadget_bit;
+  }
+
+  /// \brief Obtain the next bit for a fixed integer `x`, depending on encoding.
+  ///
+  /// As a side-effect the value of `x` is changed accordingly.
+  inline bool next_fixed_bit(int &x, const enc_opt &opt)
+  {
+    switch (opt) {
+    case enc_opt::BINARY:
+    case enc_opt::CRT__BINARY: {
+      const bool res = x % 2;
+      x /= 2;
+      return res;
+    }
+    case enc_opt::UNARY:
+    case enc_opt::CRT__UNARY: {
+      const bool res = x == 0;
+      x -= 1; // <-- this is intended to potentially become negative.
+      return res;
+    }
+    default:
+      throw std::out_of_range("Encoding unsupported.");
+    }
+  }
+
+  /// \brief List of the first few prime numbers.
+  constexpr std::array<int, 11> primes =
+    { 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31 };
+
+  /// \brief Whether a value (below 32) is a prime
+  ///
+  /// This algorithm is nothing fancy, but just compares with a pre-compiled
+  /// list of numbers.
+  ///
+  /// \throws std::out_of_range If `i` is larger than the largest "known" prime.
+  bool is_prime(int i)
+  {
+    if (i > 32) {
+      throw std::out_of_range("Primes are uncomputed for such large a value");
+    }
+    for (const int p : primes) {
+      if (i == p) { return true; }
+    }
+    return false;
+  }
+
+  /// \brief List of all exponents for Mersenne primes that fit into an `int`.
+  constexpr std::array<int, 8> mersenne_exponents =
+    { 2, 3, 5, 7, 13, 17, 19, 31 };
+
+  /// \brief Whether a given value is a Mersenne prime
+  bool is_mersenne_prime(int i)
+  {
+    for (const int e : mersenne_exponents) {
+      const int p = (1 << e) - 1;
+      if (i == p) { return true; }
+    }
+    return false;
+  }
+
+  /// \brief Construct edge-variables with special cells fixed in their choice.
+  ///
+  /// The gadget is constructed such, that the edge-index is big-endian.
+  template<typename adapter_t>
+  typename adapter_t::dd_t init_special(adapter_t &adapter, const enc_opt &opt)
+  {
+    std::array<std::tuple<cell, var_t, int>, 4> fixed_bits {{
+        { cell::special_0(), var_t::in_bit,  edge(cell::special_0(), cell::special_2()).idx() },
+        { cell::special_0(), var_t::out_bit, edge(cell::special_0(), cell::special_1()).idx() },
+        { cell::special_1(), var_t::in_bit,  edge(cell::special_1(), cell::special_0()).idx() },
+        { cell::special_2(), var_t::out_bit, edge(cell::special_2(), cell::special_0()).idx() },
+      }};
+
+    const auto bot = adapter.build_node(false);
+    auto root = adapter.build_node(true);
+
+    for (int x = MAX_VAR(opt); MIN_VAR(opt) <= x; --x) {
+      const cell c_x = cell_of_var(x, opt);
+      const var_t t_x = type_of_var(x, opt);
+
+      for (auto& [c,t, val] : fixed_bits) {
+        if (c == c_x && t == t_x) {
+          const bool bit_val = next_fixed_bit(val, opt);
+          root = adapter.build_node(x, bit_val ? bot : root, bit_val ? root : bot);
+          goto init_special__loop_end;
+        }
+      } // for-else:
+      root = adapter.build_node(x, root, root);
+
+    init_special__loop_end:
+      continue;
+    }
+
+    typename adapter_t::dd_t out = adapter.build();
+
+#ifdef BDD_BENCHMARK_STATS
+    const size_t nodecount = adapter.nodecount(out);
+    largest_bdd = std::max(largest_bdd, nodecount);
+    total_nodes += nodecount;
+#endif // BDD_BENCHMARK_STATS
+
+    // adapter.print_dot(out, "fix_corner.dot");
+
+    return out;
+  }
+
+  /// \brief Constraint making sure exactly one of the in-going and out-going
+  ///        bits are set to true.
+  ///
+  /// The gadget is constructed such, that the edge-index is big-endian.
+  template<typename adapter_t>
+  typename adapter_t::dd_t one_hot_edges(adapter_t &adapter, const enc_opt &opt)
+  {
+    // TODO: Support for variable orderings that do not have in/out bits
+    //       interleaved and each cell being independent.
+
+    int x = MAX_VAR(opt);
+
+    // Don't care chain below last out-bit
+    auto root = adapter.build_node(true);
+    for (; type_of_var(x, opt) == var_t::gadget_bit; --x) {
+      root = adapter.build_node(x, root, root);
+    }
+
+    // Test for each cell
+    while (MIN_VAR(opt) < x) {
+      const cell c_x = cell_of_var(x, opt);
+
+      // Varname choice is whether an In bit and an Out bit already has been set.
+      auto __ = adapter.build_node(false);
+      auto io = root;
+      auto i_ = adapter.build_node(false);
+      auto _o = adapter.build_node(false);
+
+      const int max_i = edge_out_var(c_x, 0, opt);
+      const int max_o = edge_in_var(c_x, 0, opt);
+
+      for (; 0 <= x && cell_of_var(x, opt) == c_x; --x) {
+        const var_t t_x = type_of_var(x, opt);
+        assert(t_x != var_t::gadget_bit);
+
+        __ = adapter.build_node(x, __, t_x == var_t::out_bit ? _o : i_);
+
+        if (max_i < x) {
+          const auto child = t_x == var_t::in_bit ? io : adapter.build_node(false);
+          _o = adapter.build_node(x, _o, child);
+        }
+        if (max_o < x) {
+          const auto child = t_x == var_t::out_bit ? io : adapter.build_node(false);
+          i_ = adapter.build_node(x, i_, child);
+        }
+        if (max_i < x && max_o < x) {
+          io = adapter.build_node(x, io, adapter.build_node(false));
+        }
+      }
+
+      root = __;
+    }
+
+    typename adapter_t::dd_t out = adapter.build();
+
+#ifdef BDD_BENCHMARK_STATS
+    const size_t nodecount = adapter.nodecount(out);
+    largest_bdd = std::max(largest_bdd, nodecount);
+    total_nodes += nodecount;
+#endif // BDD_BENCHMARK_STATS
+
+    // adapter.print_dot(out, "edges_one-hot.dot");
+
+    return out;
+  }
+
+  /// \brief Constraint excluding picking same in-going as out-going edge.
+  ///
+  /// This is essentially a long chain that merely checks for every cell `c`
+  /// whether at least one bit mismatches between the two. Since the variable
+  /// ordering on the cell's indices make them independent, then we can repeat
+  /// this test on-top of each other in one long chain.
+  ///
+  /// The gadget is constructed such, that the edge-index is big-endian.
+  template<typename adapter_t>
+  typename adapter_t::dd_t unmatch_in_out(adapter_t &adapter, const enc_opt &opt)
+  {
+    // TODO: Support for variable orderings that do not have in/out bits
+    //       interleaved and each cell being independent.
+
+    int x = MAX_VAR(opt);
+
+    // Don't care chain below last out-bit
+    auto root = adapter.build_node(true);
+    for (; type_of_var(x, opt) == var_t::gadget_bit; --x) {
+      root = adapter.build_node(x, root, root);
+    }
+
+    // Test for each cell
+    while (MIN_VAR(opt) < x) {
+      const cell c_x = cell_of_var(x, opt);
+
+      auto success = root;
+      auto test    = adapter.build_node(false);
+      auto test0   = adapter.build_node(false);
+      auto test1   = adapter.build_node(false);
+
+      for (; 0 <= x && cell_of_var(x, opt) == c_x; --x) {
+        const var_t t_x = type_of_var(x, opt);
+
+        // Update tests
+        assert(t_x != var_t::gadget_bit);
+        if (t_x == var_t::out_bit) {
+          test0 = adapter.build_node(x, test, success);
+          test1 = adapter.build_node(x, success, test);
+        } else { // var_t::in_bit
+          test = adapter.build_node(x, test0, test1);
+        }
+
+        // Update success chain, if there still are possibly succeeding tests for
+        // the current cell above this level.
+        if (edge_out_var(c_x, 0, opt) < x) {
+          success = adapter.build_node(x, success, success);
+        }
+      }
+
+      root = test;
+    }
+
+    typename adapter_t::dd_t out = adapter.build();
+
+#ifdef BDD_BENCHMARK_STATS
+    const size_t nodecount = adapter.nodecount(out);
+    largest_bdd = std::max(largest_bdd, nodecount);
+    total_nodes += nodecount;
+#endif // BDD_BENCHMARK_STATS
+
+    // adapter.print_dot(out, "unmatch_in_out.dot");
+
+    return out;
+  }
+
+  /// \brief Constraint excluding non-existent edge of `edge_idx` for cell `c`.
+  ///
+  /// This essentially is two tests run in parallel: figure out whether there is
+  /// at least one mismatching index for both the in-going and the out-going
+  /// bits. This is two bits of information, which results in 4 chains in the
+  /// diagram.
+  ///
+  /// The gadget is constructed such, that the edge-index is big-endian.
+  template<typename adapter_t>
+  typename adapter_t::dd_t remove_illegal(adapter_t &adapter,
+                                          const int edge_idx,
+                                          const enc_opt &opt)
+  {
+    // TODO: Support for variable orderings that do not have in/out bits
+    //       interleaved and each cell being independent.
+
+    int x = MAX_VAR(opt);
+
+    // Don't care chain below last out-bit
+    auto root = adapter.build_node(true);
+    for (; type_of_var(x, opt) == var_t::gadget_bit; --x) {
+      root = adapter.build_node(x, root, root);
+    }
+
+    // Test for each cell
+    while (MIN_VAR(opt) < x) {
+      const cell c_x = cell_of_var(x, opt);
+
+      if (edge::has_idx(c_x, edge_idx)) {
+        for (; 0 <= x && cell_of_var(x, opt) == c_x; --x) {
+          root = adapter.build_node(x, root, root);
+        }
+      } else { // !edge::has_idx(c_x, edge_idx)
+        int  c_val_i = edge_idx;
+        int  c_val_o = edge_idx;
+
+        auto success = root;
+        auto test_io = adapter.build_node(false);
+
+        const int max_i = edge_out_var(c_x, 0, opt);
+        auto test_i = adapter.build_node(false);
+
+        const int max_o = edge_in_var(c_x, 0, opt);
+        auto test_o = adapter.build_node(false);
+
+        for (; 0 <= x && cell_of_var(x, opt) == c_x; --x) {
+          const var_t t_x = type_of_var(x, opt);
+          assert(t_x != var_t::gadget_bit);
+
+          if (t_x == var_t::out_bit) {
+            const bool bit_val = next_fixed_bit(c_val_o, opt);
+
+            test_io  = adapter.build_node(x,
+                                          bit_val ? test_i : test_io,
+                                          bit_val ? test_io : test_i);
+
+            if (max_o < x) {
+              test_o = adapter.build_node(x,
+                                          bit_val ? success : test_o,
+                                          bit_val ? test_o : success);
+            }
+            if (max_i < x) {
+              test_i = adapter.build_node(x, test_i, test_i);
+            }
+          } else { // t_x == var_t::in_bit
+            const bool bit_val = next_fixed_bit(c_val_i, opt);
+
+            test_io  = adapter.build_node(x,
+                                          bit_val ? test_o : test_io,
+                                          bit_val ? test_io : test_o);
+
+            if (max_o < x) {
+              test_o = adapter.build_node(x, test_o, test_o);
+            }
+            if (max_i < x) {
+              test_i = adapter.build_node(x,
+                                          bit_val ? success : test_i,
+                                          bit_val ? test_i : success);
+            }
+          }
+
+          if (max_i < x && max_o < x) {
+            success = adapter.build_node(x, success, success);
+          }
+        }
+
+        root = test_io;
+      }
+    }
+
+    typename adapter_t::dd_t out = adapter.build();
+
+#ifdef BDD_BENCHMARK_STATS
+    const size_t nodecount = adapter.nodecount(out);
+    largest_bdd = std::max(largest_bdd, nodecount);
+    total_nodes += nodecount;
+#endif // BDD_BENCHMARK_STATS
+
+    /*
+      std::string filename = "remove_edge_";
+      filename += static_cast<char>('0'+edge_idx);
+      filename += ".dot";
+
+      adapter.print_dot(out, filename);
+    */
+
+    return out;
+  }
+
+  /// \brief Constraint insisting choice of edge matches at source and target.
+  ///
+  /// This essentially is an encoding of `u[out].idx() == e.idx() iff
+  /// v[in].idx() == e.idx()`. As such a simple *if-then* rather than an *iff*
+  /// would suffice. Yet, due to the variable ordering, we may not have `u < v`
+  /// and so the don't care else branch is harder to construct. Hence, the *iff*
+  /// is in fact easier to construct (and requires at most juts as many diagram
+  /// nodes).
+  ///
+  /// The gadget is constructed such, that the edge-index is big-endian.
+  template<typename adapter_t>
+  typename adapter_t::dd_t match_u_v(adapter_t &adapter,
+                                     const edge &e,
+                                     const enc_opt &opt)
+  {
+    const int max_bit = bits_per_edge(opt)-1;
+    assert(0 <= max_bit);
+
+    // Essentially, we need to compare two entire bit-vectors: one for `e.u()`
+    // and one for `e.v()`. Given the variable ordering, these bit-vectors are
+    // completely separate. Hence, we cannot just compare them bit-for-bit like
+    // in the constraints above.
+    //
+    // Yet, we can compensate for the variable ordering by abstracting them into
+    // two cells `x < y` with associated index type.
+    assert(e.u() != e.v());
+
+    const cell x_c = std::min(e.u(), e.v());
+
+    const int x_min_var = edge_in_var(x_c, 0, opt);
+    const int x_max_var = edge_out_var(x_c, max_bit, opt);
+
+    const cell y_c = std::max(e.u(), e.v());
+
+    const int y_min_var = edge_in_var(y_c, 0, opt);
+    const int y_max_var = edge_out_var(y_c, max_bit, opt);
+
+    assert(x_min_var < x_max_var);
+    assert(x_max_var < y_min_var);
+    assert(y_min_var < y_max_var);
+
+    // Variable for chain(s) construction
+    int z = MAX_VAR(opt);
+
+    auto root = adapter.build_node(true);
+
+    // Don't care for everything beyond cell `y`'s edge bits.
+    for (; y_max_var < z; --z) {
+      root = adapter.build_node(z, root, root);
+    }
+
+    // Test chain for cell `y` that fails if not `e.idx()`.
+    const var_t y_t = y_c == e.u() ? var_t::out_bit : var_t::in_bit;
+
+    int y_val = (y_t == var_t::out_bit ? e : e.reversed()).idx();
+
+    // chain to check `y != y_val`
+    auto y_neq = adapter.build_node(false);
+
+    // chain to check `y == y_val`
+    auto y_eq  = root;
+
+    assert(z == y_max_var);
+    for (; y_min_var <= z; --z) {
+      if (type_of_var(z, opt) == y_t) {
+        const bool bit_val = next_fixed_bit(y_val, opt);
+
+        y_neq = adapter.build_node(z,
+                                   bit_val ? root : y_neq,
+                                   bit_val ? y_neq : root);
+
+        y_eq  = adapter.build_node(z,
+                                   bit_val ? adapter.build_node(false) : y_eq,
+                                   bit_val ? y_eq : adapter.build_node(false));
+      } else {
+        y_neq = adapter.build_node(z, y_neq, y_neq);
+        y_eq  = adapter.build_node(z, y_eq, y_eq);
+      }
+
+      // Only extend `root` if we still are going to add a `y_t` test above it.
+      if (edge_var(y_c, 0, y_t == var_t::out_bit, opt) < z) {
+        root = adapter.build_node(z, root, root);
+      }
+    }
+
+    // Don't care for everything upto the cell `x`'s edge bits.
+    for (; x_max_var < z; --z) {
+      y_neq = adapter.build_node(z, y_neq, y_neq);
+      y_eq  = adapter.build_node(z, y_eq,  y_eq);
+    }
+
+    // Chain to determine whether `x == e.idx()`. If so, then go to `y_test`,
+    // otherwise just go-to `root`.
+    const var_t x_t = x_c == e.u() ? var_t::out_bit : var_t::in_bit;
+    assert(x_t != y_t);
+
+    int x_val = (x_t == var_t::out_bit ? e : e.reversed()).idx();
+
+    // chain to for `x == x_val ? y_eq : y_neq` decision.
+    auto x_chain = y_eq;
+
+    assert(z == x_max_var);
+    for (; x_min_var <= z; --z) {
+      if (type_of_var(z, opt) == x_t) {
+        const bool bit_val = next_fixed_bit(x_val, opt);
+
+        x_chain = adapter.build_node(z,
+                                     bit_val ? y_neq : x_chain,
+                                     bit_val ? x_chain : y_neq);
+      } else {
+        x_chain = adapter.build_node(z, x_chain, x_chain);
+      }
+
+      // Only extend `y_neq` if we still are going to add an `x_t` test above it.
+      if (edge_var(x_c, 0, x_t == var_t::out_bit, opt) < z) {
+        y_neq = adapter.build_node(z, y_neq, y_neq);
+      }
+    }
+
+    root = x_chain;
+
+    // Don't care for remaining variables
+    for (; MIN_VAR(opt) <= z; --z) {
+      root = adapter.build_node(z, root, root);
+    }
+
+    typename adapter_t::dd_t out = adapter.build();
+
+#ifdef BDD_BENCHMARK_STATS
+    const size_t nodecount = adapter.nodecount(out);
+    largest_bdd = std::max(largest_bdd, nodecount);
+    total_nodes += nodecount;
+#endif // BDD_BENCHMARK_STATS
+
+    return out;
   }
 
   /// \brief Binary Counter increment relation.
   ///
   /// The gadget is constructed such, that the counter is big-endian.
   ///
-  /// \todo Extend with parameter `m` to make it overflow at something that is
-  ///       not a power of two.
-  ///
   /// \remark This is expected to work well with both BDDs and ZDDs.
   template<typename adapter_t>
   typename adapter_t::dd_t adder_gadget(adapter_t &/*adapter*/,
-                                        const graph &/*g*/,
                                         const edge &/*e*/,
                                         int /*m*/)
   {
@@ -789,7 +1094,6 @@ namespace enc_gadgets
   /// \remark This is expected to work well with both BDDs and ZDDs.
   template<typename adapter_t>
   typename adapter_t::dd_t adder_gadget(adapter_t &/*adapter*/,
-                                        const graph &/*g*/,
                                         const cell &/*c*/,
                                         const int /*m*/,
                                         int /*value*/)
@@ -804,7 +1108,6 @@ namespace enc_gadgets
   /// \remark This is expected to work well with both BDDs and ZDDs.
   template<typename adapter_t>
   typename adapter_t::dd_t lfsr_gadget(adapter_t &/*adapter*/,
-                                       const graph &/*g*/,
                                        const edge &/*e*/,
                                        int /*m*/)
   {
@@ -819,7 +1122,6 @@ namespace enc_gadgets
   /// \remark This is expected to work well with both BDDs and ZDDs.
   template<typename adapter_t>
   typename adapter_t::dd_t lfsr_gadget(adapter_t &/*adapter*/,
-                                       const graph &/*g*/,
                                        const cell &/*c*/,
                                        const int /*m*/,
                                        int /*value*/)
@@ -836,7 +1138,6 @@ namespace enc_gadgets
   /// \remark This is expected to primarily work well with ZDDs.
   template<typename adapter_t>
   typename adapter_t::dd_t unary_gadget(adapter_t &/*adapter*/,
-                                        const graph &/*g*/,
                                         const edge &/*e*/,
                                         int /*m*/)
   {
@@ -851,7 +1152,6 @@ namespace enc_gadgets
   /// \remark This is expected to primarily work well with ZDDs.
   template<typename adapter_t>
   typename adapter_t::dd_t unary_gadget(adapter_t &/*adapter*/,
-                                        const graph &/*g*/,
                                         const cell &/*c*/,
                                         const int /*m*/,
                                         int /*value*/)
@@ -863,22 +1163,21 @@ namespace enc_gadgets
   template<typename adapter_t>
   typename adapter_t::dd_t gadget(adapter_t &adapter,
                                   const enc_opt &opt,
-                                  const graph &g,
                                   const edge &e,
                                   int p)
   {
     switch (opt) {
     case enc_opt::UNARY:
     case enc_opt::CRT__UNARY: {
-      return unary_gadget(adapter, g, e, p);
+      return unary_gadget(adapter, e, p);
     }
     case enc_opt::BINARY: {
-      return adder_gadget(adapter, g, e, p);
+      return adder_gadget(adapter, e, p);
     }
     case enc_opt::CRT__BINARY: {
       return is_mersenne_prime(p)
-        ? lfsr_gadget(adapter, g, e, p)
-        : adder_gadget(adapter, g, e, p);
+        ? lfsr_gadget(adapter, e, p)
+        : adder_gadget(adapter, e, p);
     }
     case enc_opt::TIME:
     default:
@@ -890,7 +1189,6 @@ namespace enc_gadgets
   template<typename adapter_t>
   typename adapter_t::dd_t gadget(adapter_t &adapter,
                                   const enc_opt &opt,
-                                  const graph &g,
                                   const cell &c,
                                   const int p,
                                   const int value)
@@ -898,15 +1196,15 @@ namespace enc_gadgets
     switch (opt) {
     case enc_opt::UNARY:
     case enc_opt::CRT__UNARY: {
-      return unary_gadget(adapter, g, c, p, value);
+      return unary_gadget(adapter, c, p, value);
     }
     case enc_opt::BINARY: {
-      return adder_gadget(adapter, g, c, p, value);
+      return adder_gadget(adapter, c, p, value);
     }
     case enc_opt::CRT__BINARY: {
       return is_mersenne_prime(p)
-        ? lfsr_gadget(adapter, g, c, p, value)
-        : adder_gadget(adapter, g, c, p, value);
+        ? lfsr_gadget(adapter, c, p, value)
+        : adder_gadget(adapter, c, p, value);
     }
     case enc_opt::TIME:
     default:
@@ -914,16 +1212,11 @@ namespace enc_gadgets
     }
   }
 
-  /// \brief Predicate that is true for the bits of all gadgets on a single row.
-  auto gadget_pred(const int row) {
+  /// \brief Predicate that is true for a given type of bits for cells on a
+  /// specific row.
+  auto bit_pred(const int row, const var_t &t, const enc_opt &opt) {
     return [=](const int x) {
-      // Do not quantify edges
-      if (x < edges()) { return false; }
-
-      // Otherwise, unshift by the number of edges and wrap around on the number
-      // of cells. The `cell` class can from this point get back the row and the
-      // column.
-      return cell((x - edges()) % cells()).row() == row;
+      return cell_of_var(x, opt).row() == row && type_of_var(x, opt) == t;
     };
   }
 
@@ -958,19 +1251,6 @@ namespace enc_gadgets
                 << "   |\n";
     }
 
-    switch (opt) {
-      // case enc_opt::BINARY:
-    case enc_opt::UNARY:
-    case enc_opt::CRT__BINARY:
-    case enc_opt::CRT__UNARY:
-      std::cout << "   |     Encoding not yet supported...\n";
-      return adapter.bot();
-    case enc_opt::TIME:
-      { throw std::invalid_argument("Cannot construct gadgets for time-based encoding"); }
-    default:
-      { break; }
-    }
-
     // -------------------------------------------------------------------------
     // Trivial cases
     if (cells() == 1) {
@@ -989,104 +1269,138 @@ namespace enc_gadgets
     assert(3 <  rows() || 3 <  cols());
 
     // -------------------------------------------------------------------------
-    // Generate graph and add simple constraints
-    const graph g = gen_graph();
-
-    typename adapter_t::dd_t paths;
-
-    // -------------------------------------------------------------------------
-    // Force '1A -> 2C', '3B -> 1A'
-    paths  = fix_special(adapter, g);
+    // Start with all edges (even illegal ones), but '1A -> 2C', '3B -> 1A'
+    // already fixed.
+    typename adapter_t::dd_t paths = init_special(adapter, opt);
 
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << "   | Special Cells (nodes):  " << adapter.nodecount(paths) << "\n"
+    std::cout << "   | Fix Corner (nodes):     " << adapter.nodecount(paths) << "\n"
               << std::flush;
 #endif // BDD_BENCHMARK_STATS
 
     // -------------------------------------------------------------------------
-    // Force number of outgoing edges = 1
+    // Make one-hot for binary
+    if (opt == enc_opt::UNARY || opt == enc_opt::CRT__UNARY) {
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << "   |\n"
-              << "   | Single outgoing edge\n";
+      std::cout << "   |\n"
+                << "   | Force one-hot";
 #endif // BDD_BENCHMARK_STATS
-    for (int row = 0; row < rows(); ++row) {
-      for (int col = 0; col < cols(); ++col) {
-        const cell c(row, col);
-        paths &= single_outgoing_edge(adapter, g, c, false);
+        paths &= one_hot_edges(adapter, opt);
 
 #ifdef BDD_BENCHMARK_STATS
         const size_t nodecount = adapter.nodecount(paths);
         largest_bdd = std::max(largest_bdd, nodecount);
         total_nodes += nodecount;
 
-        std::cout << "   |  " << c.to_string() << " (nodes):            " << nodecount << "\n"
+        std::cout << " (nodes):  " << nodecount << "\n"
                   << std::flush;
 #endif // BDD_BENCHMARK_STATS
-      }
     }
 
     // -------------------------------------------------------------------------
-    // Force number of ingoing edges = 1
+    // Force different choice for in-going and out-going edge
 #ifdef BDD_BENCHMARK_STATS
     std::cout << "   |\n"
-              << "   | Single ingoing edge\n";
+              << "   | In != Out";
 #endif // BDD_BENCHMARK_STATS
-    for (int row = 0; row < rows(); ++row) {
-      for (int col = 0; col < cols(); ++col) {
-        const cell c(row, col);
-        paths &= single_outgoing_edge(adapter, g, c, true);
+    // Apply constraint
+    paths &= unmatch_in_out(adapter, opt);
 
 #ifdef BDD_BENCHMARK_STATS
-        const size_t nodecount = adapter.nodecount(paths);
-        largest_bdd = std::max(largest_bdd, nodecount);
-        total_nodes += nodecount;
+    const size_t nodecount = adapter.nodecount(paths);
+    largest_bdd = std::max(largest_bdd, nodecount);
+    total_nodes += nodecount;
 
-        std::cout << "   |  " << c.to_string() << " (nodes):            " << nodecount << "\n"
-                  << std::flush;
+    std::cout << " (nodes):      " << nodecount << "\n"
+              << std::flush;
 #endif // BDD_BENCHMARK_STATS
-      }
-    }
 
     // -------------------------------------------------------------------------
-    // Ensure in-going and out-going edge do not match.
+    // Remove illegal edges
 #ifdef BDD_BENCHMARK_STATS
     std::cout << "   |\n"
-              << "   | Mismatch in- and out-going edges\n";
+              << "   | Remove non-existent Edges\n";
 #endif // BDD_BENCHMARK_STATS
-    for (const edge &e : g) {
-      paths &= unmatch_edge_repeat(adapter, g, e);
+    for (int edge_idx = cell::max_moves-1; 0 <= edge_idx; --edge_idx) {
+      paths &= remove_illegal(adapter, edge_idx, opt);
 
 #ifdef BDD_BENCHMARK_STATS
-        const size_t nodecount = adapter.nodecount(paths);
+      const size_t nodecount = adapter.nodecount(paths);
       largest_bdd = std::max(largest_bdd, nodecount);
       total_nodes += nodecount;
 
-      std::cout << "   |  " << e.to_string() << " (nodes):        " << nodecount << "\n"
+      std::cout << "   |  --> [" << edge_idx << "]"
+                << " (nodes):       " << nodecount << "\n"
                 << std::flush;
 #endif // BDD_BENCHMARK_STATS
+    }
 
+    // -------------------------------------------------------------------------
+    // Force matching choice in in-going and out-going edge
+#ifdef BDD_BENCHMARK_STATS
+    std::cout << "   |\n"
+              << "   | Match Edge-index between cells\n";
+#endif // BDD_BENCHMARK_STATS
+    for (int q_row = MAX_ROW()+2; 0 <= q_row; --q_row) {
+
+      const int c_row = q_row-2;
+      for (int c_col = MAX_COL(); 0 <= c_row && 0 <= c_col; --c_col) {
+        const cell u(c_row, c_col);
+
+        // Skip (0,0) since both its ingoing and outgoing edges are fixed
+        if (u == cell::special_0()) { continue; }
+
+        for (const cell v : u.neighbours()) {
+          const edge e(u,v);
+
+          // Skip (0,0) since both its ingoing and outgoing edges are fixed
+          if (v == cell::special_0()) { continue; }
+
+          paths &= match_u_v(adapter, e, opt);
+
+#ifdef BDD_BENCHMARK_STATS
+          const size_t nodecount = adapter.nodecount(paths);
+          largest_bdd = std::max(largest_bdd, nodecount);
+          total_nodes += nodecount;
+
+          std::cout << "   |  " << e.to_string() << " (nodes):        " << nodecount << "\n"
+                    << std::flush;
+#endif // BDD_BENCHMARK_STATS
+        }
+      }
+
+      if (rows() <= q_row) { continue; }
+
+      paths = adapter.exists(paths, bit_pred(q_row, var_t::in_bit, opt));
+
+#ifdef BDD_BENCHMARK_STATS
+      const size_t nodecount = adapter.nodecount(paths);
+      largest_bdd = std::max(largest_bdd, nodecount);
+      total_nodes += nodecount;
+
+      std::cout << "   |  Exists " << (q_row+1)  << "_ (nodes):     " << nodecount << "\n"
+                << std::flush;
+#endif // BDD_BENCHMARK_STATS
     }
 
     // -------------------------------------------------------------------------
     // Add cycle length constraint(s) per modulo value
-    const std::vector<int> ps = moduli(opt);
 
-    // TODO (ZDDs):
-    // - Extend variable domain
-    // - Quantification by (flipped) projection.
+    // const std::vector<int> ps = gadget_moduli(opt);
+    // TODO
+
+    paths = adapter.exists(paths, [&opt](const int x) {
+      return type_of_var(x, opt) == var_t::gadget_bit;
+    });
 
     // -------------------------------------------------------------------------
 #ifdef BDD_BENCHMARK_STATS
     std::cout << "   |\n";
 #endif // BDD_BENCHMARK_STATS
 
-    return paths;
-  }
+    // adapter.print_dot(paths, "paths.dot");
 
-  /// \brief Compute the number of variables per node.
-  inline int vars(const enc_opt &/*opt*/)
-  {
-    return edges() + 0;
+    return paths;
   }
 }
 
@@ -1128,27 +1442,17 @@ namespace enc_time
   inline int time_shift(int t)
   { return cells() * t; }
 
-  /// \brief Cells in descending order (relative to variable ordering).
-  std::vector<cell> cells_descending;
-
-  /// \brief Initialise the list of all cells on the board (descendingly)
-  ///        following the variable ordering.
-  void init_cells_descending()
+  /// \brief Number of variables used in this encoding.
+  inline int vars()
   {
-    assert(cell_descending.size() == 0);
-
-    cells_descending.clear();
-    cells_descending.reserve(cells());
-
-    for (int row = MAX_ROW(); MIN_ROW() <= row; --row)
-      for (int col = MAX_COL(); MIN_COL() <= col; --col)
-        cells_descending.push_back(cell(row, col));
-
-    assert(cell_descending.size() == cells());
-
-    // TODO (variable orderings):
-    // std::sort<std::greater<cell>>(cells_descending.begin(), cells_descending.end());
+    const int shift = time_shift(MAX_TIME());
+    const int max_var = cell(MAX_ROW(), MAX_COL()).dd_var(shift);
+    return max_var+1;
   }
+
+  /// \brief Number of variables to use for final model count
+  inline int satcount_vars()
+  { return vars(); }
 
   /// \brief Helper function to fix one cell to true and all others to false for
   ///        one time step.
@@ -1384,9 +1688,6 @@ namespace enc_time
     assert(3 <  rows() || 3 <  cols());
 
     // -------------------------------------------------------------------------
-    init_cells_descending();
-
-    // -------------------------------------------------------------------------
     // Accumulate cell-relation constraints
     typename adapter_t::dd_t paths = rel_0(adapter);
 
@@ -1453,14 +1754,6 @@ namespace enc_time
 #endif // BDD_BENCHMARK_STATS
     return paths;
   }
-
-  /// \brief Number of variables used in this encoding.
-  inline int vars()
-  {
-    const int shift = time_shift(MAX_TIME());
-    const int max_var = cell(MAX_ROW(), MAX_COL()).dd_var(shift);
-    return max_var+1;
-  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1516,6 +1809,10 @@ int run_knights_tour(int argc, char** argv)
             << "   | time (ms):              " << duration_of(t_init_before, t_init_after) << "\n"
             << std::flush;
 
+  // -----------------------------------------------------------------------------
+  // Initialise cells (i.e. variable ordering)
+  init_cells_descending();
+
   uint64_t solutions;
   {
     // ---------------------------------------------------------------------------
@@ -1553,8 +1850,12 @@ int run_knights_tour(int argc, char** argv)
 
     // -------------------------------------------------------------------------
     // Count number of solutions
+    const size_t vc = opt == enc_opt::TIME
+      ? enc_time::satcount_vars()
+      : enc_gadgets::satcount_vars(opt);
+
     const time_point before_satcount = get_timestamp();
-    solutions = adapter.satcount(paths);
+    solutions = adapter.satcount(paths, vc);
     const time_point after_satcount = get_timestamp();
 
     const time_duration satcount_time = duration_of(before_satcount, after_satcount);
@@ -1563,6 +1864,21 @@ int run_knights_tour(int argc, char** argv)
               << "   Counting solutions:\n"
               << "   | number of solutions:    " << solutions << "\n"
               << "   | time (ms):              " << satcount_time << "\n"
+              << std::flush;
+
+    // -------------------------------------------------------------------------
+    // Print out a solution
+    std::cout << "\n"
+              << "   Solution Example:\n"
+              << "   | ";
+
+    const auto path = adapter.pickcube(paths);
+    for (const auto& [x,v] : path) {
+      std::cout << "x" << x << "=" << v << " ";
+    }
+    if (path.empty()) { std::cout << "none..."; }
+
+    std::cout << "\n"
               << std::flush;
 
     // -------------------------------------------------------------------------
