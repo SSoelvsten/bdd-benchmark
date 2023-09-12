@@ -693,6 +693,59 @@ namespace enc_gadgets
     return out;
   }
 
+  /// \brief Enforce for a given edge that it may only be taken in one direction.
+  template<typename adapter_t>
+  typename adapter_t::dd_t unmatch_edge_repeat(adapter_t &adapter,
+                                               const graph &g,
+                                               const edge &e)
+  {
+    const int e1 = std::min(g.dd_var(e), g.dd_var(e.reversed()));
+    const int e2 = std::max(g.dd_var(e), g.dd_var(e.reversed()));
+
+    int z = g.max_dd_var();
+    auto root = adapter.build_node(true);
+
+    // Don't care below edge variable `e2`.
+    for (; e2 < z; --z) {
+      root = adapter.build_node(z, root, root);
+    }
+
+    // For edge `e2`, start two chains: `root` keeps being a don't care chain,
+    // whereas `skip_e2` forces `e2` to be false.
+    assert(z == e2);
+    auto skip_e2 = adapter.build_node(z, root, adapter.build_node(false));
+    root = adapter.build_node(z, root, root);
+
+    z -= 1;
+
+    // Don't care chain for all intermediate variables
+    for (; e1 < z; --z) {
+      root = adapter.build_node(z, root, root);
+      skip_e2 = adapter.build_node(z, skip_e2, skip_e2);
+    }
+
+    // Go to either chain depending on value of `e1`.
+    assert(z == e1);
+    root = adapter.build_node(z, root, skip_e2);
+
+    z -= 1;
+
+    // Don't care above `e1` variable
+    for (; 0 <= z; --z) {
+      root = adapter.build_node(z, root, root);
+    }
+
+    const typename adapter_t::dd_t out = adapter.build();
+
+#ifdef BDD_BENCHMARK_STATS
+    const size_t nodecount = adapter.nodecount(out);
+    largest_bdd = std::max(largest_bdd, nodecount);
+    total_nodes += nodecount;
+#endif // BDD_BENCHMARK_STATS
+
+    return out;
+  }
+
   /// \brief Obtain the number of bits per gadget given a certain prime.
   inline int bits_per_gadget(const enc_opt &opt, const int p)
   {
@@ -992,6 +1045,26 @@ namespace enc_gadgets
                   << std::flush;
 #endif // BDD_BENCHMARK_STATS
       }
+    }
+
+    // -------------------------------------------------------------------------
+    // Ensure in-going and out-going edge do not match.
+#ifdef BDD_BENCHMARK_STATS
+    std::cout << "   |\n"
+              << "   | Mismatch in- and out-going edges\n";
+#endif // BDD_BENCHMARK_STATS
+    for (const edge &e : g) {
+      paths &= unmatch_edge_repeat(adapter, g, e);
+
+#ifdef BDD_BENCHMARK_STATS
+        const size_t nodecount = adapter.nodecount(paths);
+      largest_bdd = std::max(largest_bdd, nodecount);
+      total_nodes += nodecount;
+
+      std::cout << "   |  " << e.to_string() << " (nodes):        " << nodecount << "\n"
+                << std::flush;
+#endif // BDD_BENCHMARK_STATS
+
     }
 
     // -------------------------------------------------------------------------
