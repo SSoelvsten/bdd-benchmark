@@ -88,13 +88,18 @@ public:
     return _mgr.ForAll(b);
   }
 
-  inline uint64_t nodecount(BDD f)
-  { return _mgr.Size(f); }
+  inline uint64_t nodecount(BDD b)
+  { return _mgr.Size(b); }
 
-  inline uint64_t satcount(BDD f)
+  inline uint64_t
+  satcount(BDD b)
+  { return this->satcount(b, this->_varcount); }
+
+  inline uint64_t
+  satcount(BDD b, const size_t vc)
   {
-    const double satFrac = _mgr.SatisfyingFraction(f);
-    const double numVars = _varcount;
+    const double satFrac = _mgr.SatisfyingFraction(b);
+    const double numVars = vc;
     return std::pow(2, numVars) * satFrac;
   }
 

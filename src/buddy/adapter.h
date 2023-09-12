@@ -169,8 +169,12 @@ public:
   inline uint64_t nodecount(const bdd &b)
   { return bdd_nodecount(b); }
 
-  inline uint64_t satcount(const bdd &b)
-  { return bdd_satcount(b); }
+  inline uint64_t
+  satcount(const bdd &b)
+  { return this->satcount(b, this->_varcount); }
+
+  inline uint64_t satcount(const bdd &b, const size_t vc)
+  { return bdd_satcount(b); /*<-- TODO: compensate for varcount/vc? */ }
 
   inline std::vector<std::pair<int, char>>
   pickcube(const bdd &b)

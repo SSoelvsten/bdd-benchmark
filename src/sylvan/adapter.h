@@ -138,7 +138,10 @@ public:
   { return b.NodeCount() - 1; }
 
   inline uint64_t satcount(const sylvan::Bdd &b)
-  { return b.SatCount(_varcount); }
+  { return this->satcount(b, this->_varcount); }
+
+  inline uint64_t satcount(const sylvan::Bdd &b, const size_t vc)
+  { return b.SatCount(vc); }
 
   inline std::vector<std::pair<int, char>>
   pickcube(const sylvan::Bdd &b)
