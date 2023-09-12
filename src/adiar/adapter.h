@@ -3,11 +3,11 @@
 class adiar_adapter
 {
 protected:
-  const int varcount;
+  const int _varcount;
 
   // Init and Deinit
 protected:
-  adiar_adapter(int vc) : varcount(vc)
+  adiar_adapter(int vc) : _varcount(vc)
   {
     const size_t memory_bytes = static_cast<size_t>(M) * 1024u * 1024u;
     adiar::adiar_init(memory_bytes, temp_path);
@@ -100,7 +100,11 @@ public:
 
   inline uint64_t
   satcount(const adiar::bdd &b)
-  { return adiar::bdd_satcount(b, varcount); }
+  { return this->satcount(b, this->_varcount); }
+
+  inline uint64_t
+  satcount(const adiar::bdd &b, const size_t vc)
+  { return adiar::bdd_satcount(b, vc); }
 
   inline std::vector<std::pair<int, char>>
   pickcube(const adiar::bdd &b)
@@ -174,9 +178,9 @@ public:
   {
     // To use `zdd_project`, flip the variables in the iterator.
     std::vector<typename IT::value_type> c;
-    c.reserve(varcount);
+    c.reserve(this->_varcount);
 
-    for (int x = varcount-1; 0 <= x; --x) {
+    for (int x = this->_varcount-1; 0 <= x; --x) {
       while (rbegin != rend && x < *rbegin) {
         rbegin++;
       }
@@ -206,6 +210,9 @@ public:
   { return adiar::zdd_nodecount(z); }
 
   inline uint64_t satcount(const adiar::zdd &z)
+  { return this->satcount(z, this->_varcount); }
+
+  inline uint64_t satcount(const adiar::zdd &z, const size_t/*vc*/)
   { return adiar::zdd_size(z); }
 
   // ZDD Build Operations

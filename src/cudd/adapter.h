@@ -166,7 +166,10 @@ public:
   { return b.nodeCount(); }
 
   inline uint64_t satcount(const BDD &b)
-  { return b.CountMinterm(_varcount); }
+  { return this->satcount(b, _varcount); }
+
+  inline uint64_t satcount(const BDD &b, const size_t vc)
+  { return b.CountMinterm(vc); }
 
   inline std::vector<std::pair<int, char>>
   pickcube(const BDD &b)
@@ -267,7 +270,10 @@ public:
   { return b.nodeCount(); }
 
   inline uint64_t satcount(const ZDD &b)
-  { return b.CountMinterm(_varcount); }
+  { return this->satcount(b, _varcount); }
+
+  inline uint64_t satcount(const ZDD &b, const size_t vc)
+  { return b.CountMinterm(vc); }
 
   // ZDD Build operations
 public:
