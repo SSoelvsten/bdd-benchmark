@@ -124,6 +124,12 @@ public:
     return res;
   }
 
+  void
+  print_dot(const BDD &, const std::string &)
+  {
+    std::cerr << "CAL::PrintDot does not exist (SSoelvsten/Cal#6)." << std::endl;
+  }
+
 private:
   bool is_complemented(const BDD &b)
   { return b != _mgr.Regular(b); }

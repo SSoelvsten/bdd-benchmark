@@ -162,6 +162,14 @@ public:
     return res;
   }
 
+  void
+  print_dot(const sylvan::Bdd &b, const std::string &filename)
+  {
+    FILE* p = fopen(filename.data(), "w");
+    b.PrintDot(p);
+    fclose(p);
+  }
+
   // BDD Build operations
 public:
   inline sylvan::Bdd build_node(const bool value)

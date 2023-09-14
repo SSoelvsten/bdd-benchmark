@@ -195,6 +195,14 @@ public:
     return res;
   }
 
+  void
+  print_dot(const bdd &b, const std::string &filename)
+  {
+    FILE* p = fopen(filename.data(), "w");
+    bdd_fprintdot(p, b);
+    fclose(p);
+  }
+
   // BDD Build Operations
 public:
   inline bdd build_node(const bool value)
