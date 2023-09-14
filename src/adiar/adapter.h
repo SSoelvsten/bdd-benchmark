@@ -109,12 +109,18 @@ public:
   inline std::vector<std::pair<int, char>>
   pickcube(const adiar::bdd &b)
   {
+    // Unset domain temporarily to only get variables in the BDD.
+    assert(adiar::adiar_has_domain());
+    const adiar::shared_file<adiar::domain_var_t> dom = adiar::adiar_get_domain();
+    adiar::adiar_unset_domain();
+
     std::vector<std::pair<int, char>> res;
 
     adiar::bdd_satmin(b, [&res](const size_t x, const bool v) {
       res.push_back(std::make_pair(x, '0' + v));
     });
 
+    adiar::adiar_set_domain(dom);
     return res;
   }
 
