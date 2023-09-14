@@ -188,6 +188,12 @@ public:
     return res;
   }
 
+  void
+  print_dot(const BDD &, const std::string &)
+  {
+    std::cerr << "CUDD::PrintDot does not exist." << std::endl;
+  }
+
   // BDD Build operations
 public:
   inline BDD build_node(const bool value)
@@ -274,6 +280,16 @@ public:
 
   inline uint64_t satcount(const ZDD &b, const size_t vc)
   { return b.CountMinterm(vc); }
+
+  inline std::vector<std::pair<int, char>>
+  pickcube(const ZDD &b)
+  { return {}; }
+
+  void
+  print_dot(const ZDD &, const std::string &)
+  {
+    std::cerr << "CUDD::PrintDot does not exist." << std::endl;
+  }
 
   // ZDD Build operations
 public:

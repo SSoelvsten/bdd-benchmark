@@ -124,6 +124,10 @@ public:
     return res;
   }
 
+  void
+  print_dot(const adiar::bdd &b, const std::string &filename)
+  { return adiar::bdd_printdot(b, filename); }
+
   // BDD Build Operations
 public:
   inline adiar::bdd_ptr build_node(const bool value)
@@ -220,6 +224,22 @@ public:
 
   inline uint64_t satcount(const adiar::zdd &z, const size_t/*vc*/)
   { return adiar::zdd_size(z); }
+
+  inline std::vector<std::pair<int, char>>
+  pickcube(const adiar::zdd &z)
+  {
+    std::vector<std::pair<int, char>> res;
+
+    adiar::zdd_minelem(z, [&res](const size_t x) {
+      res.push_back(std::make_pair(x, '1'));
+    });
+
+    return res;
+  }
+
+  void
+  print_dot(const adiar::zdd &z, const std::string &filename)
+  { return adiar::zdd_printdot(z, filename); }
 
   // ZDD Build Operations
 public:
