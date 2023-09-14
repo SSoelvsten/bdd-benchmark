@@ -137,17 +137,17 @@ public:
   inline bdd bot()
   { return bddfalse; }
 
-  inline bdd ithvar(int label)
-  { return bdd_ithvar(label); }
+  inline bdd ithvar(int i)
+  { return bdd_ithvar(i); }
 
-  inline bdd nithvar(int label)
-  { return bdd_nithvar(label); }
+  inline bdd nithvar(int i)
+  { return bdd_nithvar(i); }
 
   inline bdd ite(const bdd &i, const bdd &t, const bdd &e)
   { return bdd_ite(i,t,e); }
 
-  inline bdd exists(const bdd &b, int label)
-  { return bdd_exist(b, bdd_ithvar(label)); }
+  inline bdd exists(const bdd &b, int i)
+  { return bdd_exist(b, bdd_ithvar(i)); }
 
   inline bdd exists(const bdd &b, const std::function<bool(int)> &pred)
   { return bdd_exist(b, make_cube(pred)); }
@@ -156,8 +156,8 @@ public:
   inline bdd exists(const bdd &b, IT rbegin, IT rend)
   { return bdd_exist(b, make_cube(rbegin, rend)); }
 
-  inline bdd forall(const bdd &b, int label)
-  { return bdd_forall(b, bdd_ithvar(label)); }
+  inline bdd forall(const bdd &b, int i)
+  { return bdd_forall(b, bdd_ithvar(i)); }
 
   inline bdd forall(const bdd &b, const std::function<bool(int)> &pred)
   { return bdd_forall(b, make_cube(pred)); }

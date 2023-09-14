@@ -61,8 +61,12 @@ public:
   { return adiar::bdd_false(); }
 
   inline adiar::bdd
-  ithvar(int label)
-  { return adiar::bdd_ithvar(label); }
+  ithvar(int i)
+  { return adiar::bdd_ithvar(i); }
+
+  inline adiar::bdd
+  nithvar(int i)
+  { return adiar::bdd_nithvar(i); }
 
   inline adiar::bdd
   ite(const adiar::bdd &i, const adiar::bdd &t, const adiar::bdd &e)
@@ -173,6 +177,9 @@ public:
 
   inline adiar::zdd ithvar(int i)
   { return adiar::zdd_ithvar(i); }
+
+  inline adiar::zdd nithvar(int i)
+  { return adiar::zdd_nithvar(i); }
 
   inline adiar::zdd
   exists(const adiar::zdd &b, int i)
