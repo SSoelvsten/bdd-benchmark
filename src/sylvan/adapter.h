@@ -103,19 +103,19 @@ public:
   inline sylvan::Bdd bot()
   { return sylvan::Bdd::bddZero(); }
 
-  inline sylvan::Bdd ithvar(int label)
-  { return sylvan::Bdd::bddVar(label); }
+  inline sylvan::Bdd ithvar(int i)
+  { return sylvan::Bdd::bddVar(i); }
 
-  inline sylvan::Bdd nithvar(int label)
-  { return ~sylvan::Bdd::bddVar(label); }
+  inline sylvan::Bdd nithvar(int i)
+  { return ~sylvan::Bdd::bddVar(i); }
 
   inline sylvan::Bdd ite(const sylvan::Bdd &i,
                          const sylvan::Bdd &t,
                          const sylvan::Bdd &e)
   { return i.Ite(t,e); }
 
-  inline sylvan::Bdd exists(const sylvan::Bdd &b, int label)
-  { return b.ExistAbstract(sylvan::Bdd::bddVar(label)); }
+  inline sylvan::Bdd exists(const sylvan::Bdd &b, int i)
+  { return b.ExistAbstract(sylvan::Bdd::bddVar(i)); }
 
   inline sylvan::Bdd exists(const sylvan::Bdd &b, const std::function<bool(int)> &pred)
   { return b.ExistAbstract(make_cube(pred)); }
@@ -124,8 +124,8 @@ public:
   inline sylvan::Bdd exists(const sylvan::Bdd &b, IT rbegin, IT rend)
   { return b.ExistAbstract(make_cube(rbegin, rend)); }
 
-  inline sylvan::Bdd forall(const sylvan::Bdd &b, int label)
-  { return b.UnivAbstract(sylvan::Bdd::bddVar(label)); }
+  inline sylvan::Bdd forall(const sylvan::Bdd &b, int i)
+  { return b.UnivAbstract(sylvan::Bdd::bddVar(i)); }
 
   inline sylvan::Bdd forall(const sylvan::Bdd &b, const std::function<bool(int)> &pred)
   { return b.UnivAbstract(make_cube(pred)); }

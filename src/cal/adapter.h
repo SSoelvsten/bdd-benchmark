@@ -48,11 +48,10 @@ public:
   inline BDD ite(BDD i, BDD t, BDD e)
   { return _mgr.ITE(i,t,e); }
 
-  inline BDD exists(const BDD &b, int label)
+  inline BDD exists(const BDD &b, int i)
   {
-    std::vector<int> i;
-    i.push_back(label);
-    return exists(b, i.begin(), i.end());
+    std::vector<int> is = {i};
+    return exists(b, is.begin(), is.end());
   }
 
   inline BDD exists(const BDD &b, const std::function<bool(int)> &pred)
@@ -68,11 +67,10 @@ public:
     return _mgr.Exists(b);
   }
 
-  inline BDD forall(const BDD &b, int label)
+  inline BDD forall(const BDD &b, int i)
   {
-    std::vector<int> i;
-    i.push_back(label);
-    return forall(b, i.begin(), i.end());
+    std::vector<int> is = {i};
+    return forall(b, is.begin(), is.end());
   }
 
   inline BDD forall(const BDD &b, const std::function<bool(int)> &pred)

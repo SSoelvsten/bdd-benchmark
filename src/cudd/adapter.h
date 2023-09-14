@@ -133,17 +133,17 @@ public:
   inline BDD bot()
   { return _mgr.bddZero(); }
 
-  inline BDD ithvar(int label)
-  { return _mgr.bddVar(label); }
+  inline BDD ithvar(int i)
+  { return _mgr.bddVar(i); }
 
-  inline BDD nithvar(int label)
-  { return ~_mgr.bddVar(label); }
+  inline BDD nithvar(int i)
+  { return ~_mgr.bddVar(i); }
 
   inline BDD ite(const BDD &i, const BDD &t, const BDD &e)
   { return i.Ite(t,e); }
 
-  inline BDD exists(const BDD &b, int label)
-  { return b.ExistAbstract(_mgr.bddVar(label)); }
+  inline BDD exists(const BDD &b, int i)
+  { return b.ExistAbstract(_mgr.bddVar(i)); }
 
   inline BDD exists(const BDD &b, const std::function<bool(int)> &pred)
   { return b.ExistAbstract(make_cube(pred)); }
@@ -152,8 +152,8 @@ public:
   inline BDD exists(const BDD &b, IT rbegin, IT rend)
   { return b.ExistAbstract(make_cube(rbegin, rend)); }
 
-  inline BDD forall(const BDD &b, int label)
-  { return b.UnivAbstract(_mgr.bddVar(label)); }
+  inline BDD forall(const BDD &b, int i)
+  { return b.UnivAbstract(_mgr.bddVar(i)); }
 
   inline BDD forall(const BDD &b, const std::function<bool(int)> &pred)
   { return b.UnivAbstract(make_cube(pred)); }
@@ -251,6 +251,9 @@ public:
 
   inline ZDD ithvar(const int i)
   { return _mgr.zddVar(i); }
+
+  inline ZDD nithvar(const int i)
+  { return ~_mgr.zddVar(i); }
 
   inline ZDD exists(const ZDD &, int)
   { throw std::logic_error("CUDD has no support for 'Exists' on ZDDs"); }
