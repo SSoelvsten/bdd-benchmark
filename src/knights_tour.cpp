@@ -1174,10 +1174,12 @@ namespace enc_gadgets
   /// \brief Wrapper to pick the desired gadget for an increment relation.
   template<typename adapter_t>
   typename adapter_t::dd_t gadget(adapter_t &adapter,
-                                  const enc_opt &opt,
                                   const edge &e,
-                                  int p)
+                                  int p,
+                                  const enc_opt &opt)
   {
+    return adapter.top();
+
     switch (opt) {
     case enc_opt::UNARY:
     case enc_opt::CRT__UNARY: {
@@ -1200,11 +1202,13 @@ namespace enc_gadgets
   /// \brief Wrapper to pick the desired gadget for a fixed value.
   template<typename adapter_t>
   typename adapter_t::dd_t gadget(adapter_t &adapter,
-                                  const enc_opt &opt,
                                   const cell &c,
                                   const int p,
-                                  const int value)
+                                  const int value,
+                                  const enc_opt &opt)
   {
+    return adapter.top();
+
     switch (opt) {
     case enc_opt::UNARY:
     case enc_opt::CRT__UNARY: {
@@ -1301,7 +1305,7 @@ namespace enc_gadgets
     typename adapter_t::dd_t paths = init_special(adapter, opt);
 
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << "   | Fix Corner (nodes):     " << adapter.nodecount(paths) << "\n"
+    std::cout << "   | Fix Corner (nodes):       " << adapter.nodecount(paths) << "\n"
               << std::flush;
 #endif // BDD_BENCHMARK_STATS
 
@@ -1319,7 +1323,7 @@ namespace enc_gadgets
         largest_bdd = std::max(largest_bdd, nodecount);
         total_nodes += nodecount;
 
-        std::cout << " (nodes):  " << nodecount << "\n"
+        std::cout << " (nodes):    " << nodecount << "\n"
                   << std::flush;
 #endif // BDD_BENCHMARK_STATS
     }
@@ -1338,7 +1342,7 @@ namespace enc_gadgets
     largest_bdd = std::max(largest_bdd, nodecount);
     total_nodes += nodecount;
 
-    std::cout << " (nodes):      " << nodecount << "\n"
+    std::cout << " (nodes):        " << nodecount << "\n"
               << std::flush;
 #endif // BDD_BENCHMARK_STATS
 
@@ -1357,7 +1361,7 @@ namespace enc_gadgets
       total_nodes += nodecount;
 
       std::cout << "   |  --> [" << edge_idx << "]"
-                << " (nodes):       " << nodecount << "\n"
+                << " (nodes):         " << nodecount << "\n"
                 << std::flush;
 #endif // BDD_BENCHMARK_STATS
     }
@@ -1387,7 +1391,7 @@ namespace enc_gadgets
             largest_bdd = std::max(largest_bdd, nodecount);
             total_nodes += nodecount;
 
-            std::cout << "   |  " << e.to_string() << " (nodes):        " << nodecount << "\n"
+            std::cout << "   |  " << e.to_string() << " (nodes):          " << nodecount << "\n"
                       << std::flush;
 #endif // BDD_BENCHMARK_STATS
           }
@@ -1404,7 +1408,7 @@ namespace enc_gadgets
           largest_bdd = std::max(largest_bdd, nodecount);
           total_nodes += nodecount;
 
-          std::cout << "   |  Exists " << q_cell.to_string() << " (nodes):     " << nodecount << "\n"
+          std::cout << "   |  Exists " << q_cell.to_string() << " (nodes):       " << nodecount << "\n"
                     << std::flush;
 #endif // BDD_BENCHMARK_STATS
         }
@@ -1421,7 +1425,7 @@ namespace enc_gadgets
         largest_bdd = std::max(largest_bdd, nodecount);
         total_nodes += nodecount;
 
-        std::cout << "   |  Exists " << q_cell.to_string() << " (nodes):     " << nodecount << "\n"
+        std::cout << "   |  Exists " << q_cell.to_string() << " (nodes):       " << nodecount << "\n"
                   << std::flush;
 #endif // BDD_BENCHMARK_STATS
       }
@@ -1435,16 +1439,109 @@ namespace enc_gadgets
       largest_bdd = std::max(largest_bdd, nodecount);
       total_nodes += nodecount;
 
-      std::cout << "   |  Exists 1_,2_ (nodes):  " << nodecount << "\n"
+      std::cout << "   |  Exists 1_,2_ (nodes):    " << nodecount << "\n"
                 << std::flush;
 #endif // BDD_BENCHMARK_STATS
     }
 
     // -------------------------------------------------------------------------
     // Add cycle length constraint(s) per modulo value
+    const std::vector<int> ps = gadget_moduli(opt);
+    for (const int p : ps) {
+#ifdef BDD_BENCHMARK_STATS
+      std::cout << "   |\n"
+                << "   | Add path-length constraints ( % " << p << " )\n";
+#endif // BDD_BENCHMARK_STATS
 
-    // const std::vector<int> ps = gadget_moduli(opt);
-    // TODO
+      // TODO (ZDD): extend variables for
+      //
+      //      (N-1,N-1), ..., (N-1,0), (N-2,N-1), ...(N-2,0), (N-3,0).
+
+      for (int row = MAX_ROW(); 0 <= row; --row) {
+        for (int col = MAX_COL(); 0 <= col; --col) {
+          const cell u(row, col);
+
+          // TODO (ZDD): Extend with gadget bits for (row-2,col-1).
+
+          if (u.is_special()) {
+            const int u_val = u == cell::special_0() ? 0
+                            : u == cell::special_1() ? 1
+                            : cells()-1;
+
+            paths &= gadget(adapter, u, p, u_val, opt);
+
+#ifdef BDD_BENCHMARK_STATS
+            const size_t nodecount = adapter.nodecount(paths);
+            largest_bdd = std::max(largest_bdd, nodecount);
+            total_nodes += nodecount;
+
+            std::cout << "   | |  " << u.to_string() << " (nodes):            " << nodecount << "\n"
+                      << std::flush;
+#endif // BDD_BENCHMARK_STATS
+          } else {
+            for (const cell v : u.neighbours()) {
+              const edge e(u,v);
+
+              paths &= gadget(adapter, e, p, opt);
+
+#ifdef BDD_BENCHMARK_STATS
+              const size_t nodecount = adapter.nodecount(paths);
+              largest_bdd = std::max(largest_bdd, nodecount);
+              total_nodes += nodecount;
+
+              std::cout << "   | |  " << e.to_string() << " (nodes):        " << nodecount << "\n"
+                        << std::flush;
+#endif // BDD_BENCHMARK_STATS
+            }
+
+            // Quantify a cell two rows below and one to the right of the current;
+            // this one will never be relevant for later cells.
+            const cell q_cell(row+2, col+1);
+            if (!q_cell.out_of_range()) {
+              paths = adapter.exists(paths, bit_pred(q_cell, var_t::gadget_bit, opt));
+
+#ifdef BDD_BENCHMARK_STATS
+              const size_t nodecount = adapter.nodecount(paths);
+              largest_bdd = std::max(largest_bdd, nodecount);
+              total_nodes += nodecount;
+
+              std::cout << "   | |  Exists " << q_cell.to_string() << " (nodes):     " << nodecount << "\n"
+                        << std::flush;
+#endif // BDD_BENCHMARK_STATS
+            }
+          }
+        }
+
+        // Quantify the last cell on row+2, since it will not be relevant beyond
+        // this point.
+        const cell q_cell(row+2, 0);
+        if (!q_cell.out_of_range()) {
+          paths = adapter.exists(paths, bit_pred(q_cell, var_t::gadget_bit, opt));
+
+#ifdef BDD_BENCHMARK_STATS
+          const size_t nodecount = adapter.nodecount(paths);
+          largest_bdd = std::max(largest_bdd, nodecount);
+          total_nodes += nodecount;
+
+          std::cout << "   | |  Exists " << q_cell.to_string() << " (nodes):     " << nodecount << "\n"
+                    << std::flush;
+#endif // BDD_BENCHMARK_STATS
+        }
+      }
+
+      { // Quantify remaining two rows
+        paths = adapter.exists(paths, bit_pred(var_t::gadget_bit, opt));
+
+#ifdef BDD_BENCHMARK_STATS
+        const size_t nodecount = adapter.nodecount(paths);
+        largest_bdd = std::max(largest_bdd, nodecount);
+        total_nodes += nodecount;
+
+        std::cout << "   | |  Exists 1_,2_ (nodes):  " << nodecount << "\n"
+                  << std::flush;
+#endif // BDD_BENCHMARK_STATS
+      }
+    }
 
     // -------------------------------------------------------------------------
 #ifdef BDD_BENCHMARK_STATS
@@ -1751,7 +1848,7 @@ namespace enc_time
 
     std::cout << "   |\n"
               << "   | All Paths\n"
-              << "   |   [t = " << MAX_TIME() << (MAX_TIME() < 10 ? " " : "") << ", 0" << "] (nodes):  " << nodecount << "\n"
+              << "   |   [t = " << MAX_TIME() << (MAX_TIME() < 10 ? " " : "") << ", 0" << "] (nodes):    " << nodecount << "\n"
               << std::flush;
 #endif // BDD_BENCHMARK_STATS
 
@@ -1764,7 +1861,7 @@ namespace enc_time
       largest_bdd = std::max(largest_bdd, nodecount);
       total_nodes += nodecount;
 
-      std::cout << "   |   [t = " << t << (t < 10 ? " " : "") << "   ] (nodes):  " << nodecount << "\n"
+      std::cout << "   |   [t = " << t << (t < 10 ? " " : "") << "   ] (nodes):    " << nodecount << "\n"
                 << std::flush;
 #endif // BDD_BENCHMARK_STATS
     }
@@ -1796,7 +1893,7 @@ namespace enc_time
         largest_bdd = std::max(largest_bdd, nodecount);
         total_nodes += nodecount;
 
-        std::cout << "   |   " << c.to_string() << " (nodes):           " << nodecount << "\n"
+        std::cout << "   |   " << c.to_string() << " (nodes):             " << nodecount << "\n"
                   << std::flush;
 #endif // BDD_BENCHMARK_STATS
       }
@@ -1858,8 +1955,8 @@ int run_knights_tour(int argc, char** argv)
   time_point t_init_after = get_timestamp();
 
   std::cout << "\n   " << adapter_t::NAME << " initialisation:\n"
-            << "   | variables:              " << vars << "\n"
-            << "   | time (ms):              " << duration_of(t_init_before, t_init_after) << "\n"
+            << "   | variables:                " << vars << "\n"
+            << "   | time (ms):                " << duration_of(t_init_before, t_init_after) << "\n"
             << std::flush;
 
   // -----------------------------------------------------------------------------
@@ -1894,11 +1991,11 @@ int run_knights_tour(int argc, char** argv)
     const time_duration paths_time = duration_of(before_paths, after_paths);
 
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << "   | total no. nodes:        " << total_nodes << "\n"
-              << "   | largest size (nodes):   " << largest_bdd << "\n";
+    std::cout << "   | total no. nodes:          " << total_nodes << "\n"
+              << "   | largest size (nodes):     " << largest_bdd << "\n";
 #endif // BDD_BENCHMARK_STATS
-    std::cout << "   | final size (nodes):     " << adapter.nodecount(paths) << "\n"
-              << "   | time (ms):              " << paths_time << "\n"
+    std::cout << "   | final size (nodes):       " << adapter.nodecount(paths) << "\n"
+              << "   | time (ms):                " << paths_time << "\n"
               << std::flush;
 
     // -------------------------------------------------------------------------
@@ -1915,8 +2012,8 @@ int run_knights_tour(int argc, char** argv)
 
     std::cout << "\n"
               << "   Counting solutions:\n"
-              << "   | number of solutions:    " << solutions << "\n"
-              << "   | time (ms):              " << satcount_time << "\n"
+              << "   | number of solutions:      " << solutions << "\n"
+              << "   | time (ms):                " << satcount_time << "\n"
               << std::flush;
 
     // -------------------------------------------------------------------------
@@ -1936,7 +2033,7 @@ int run_knights_tour(int argc, char** argv)
 
     // -------------------------------------------------------------------------
     std::cout << "\n"
-              << "total time (ms):             " << (paths_time + satcount_time) << "\n"
+              << "total time (ms):               " << (paths_time + satcount_time) << "\n"
               << std::flush;
   }
 
