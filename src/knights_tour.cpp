@@ -703,8 +703,6 @@ namespace enc_gadgets
     total_nodes += nodecount;
 #endif // BDD_BENCHMARK_STATS
 
-    // adapter.print_dot(out, "fix_corner.dot");
-
     return out;
   }
 
@@ -720,13 +718,9 @@ namespace enc_gadgets
 
     int x = MAX_CELL_VAR(opt);
 
-    // Don't care chain below last out-bit
-    auto root = adapter.build_node(true);
-    for (; type_of_var(x, opt) == var_t::gadget_bit; --x) {
-      root = adapter.build_node(x, root, root);
-    }
-
     // Test for each cell
+    auto root = adapter.build_node(true);
+
     while (MIN_CELL_VAR(opt) < x) {
       const cell c_x = cell_of_var(x, opt);
 
@@ -769,8 +763,6 @@ namespace enc_gadgets
     total_nodes += nodecount;
 #endif // BDD_BENCHMARK_STATS
 
-    // adapter.print_dot(out, "edges_one-hot.dot");
-
     return out;
   }
 
@@ -790,13 +782,9 @@ namespace enc_gadgets
 
     int x = MAX_CELL_VAR(opt);
 
-    // Don't care chain below last out-bit
-    auto root = adapter.build_node(true);
-    for (; type_of_var(x, opt) == var_t::gadget_bit; --x) {
-      root = adapter.build_node(x, root, root);
-    }
-
     // Test for each cell
+    auto root = adapter.build_node(true);
+
     while (MIN_CELL_VAR(opt) < x) {
       const cell c_x = cell_of_var(x, opt);
 
@@ -835,8 +823,6 @@ namespace enc_gadgets
     total_nodes += nodecount;
 #endif // BDD_BENCHMARK_STATS
 
-    // adapter.print_dot(out, "unmatch_in_out.dot");
-
     return out;
   }
 
@@ -858,13 +844,9 @@ namespace enc_gadgets
 
     int x = MAX_CELL_VAR(opt);
 
-    // Don't care chain below last out-bit
-    auto root = adapter.build_node(true);
-    for (; type_of_var(x, opt) == var_t::gadget_bit; --x) {
-      root = adapter.build_node(x, root, root);
-    }
-
     // Test for each cell
+    auto root = adapter.build_node(true);
+
     while (MIN_CELL_VAR(opt) < x) {
       const cell c_x = cell_of_var(x, opt);
 
@@ -937,14 +919,6 @@ namespace enc_gadgets
     largest_bdd = std::max(largest_bdd, nodecount);
     total_nodes += nodecount;
 #endif // BDD_BENCHMARK_STATS
-
-    /*
-      std::string filename = "remove_edge_";
-      filename += static_cast<char>('0'+edge_idx);
-      filename += ".dot";
-
-      adapter.print_dot(out, filename);
-    */
 
     return out;
   }
