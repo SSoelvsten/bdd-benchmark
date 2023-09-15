@@ -549,9 +549,29 @@ namespace enc_gadgets
     return edge_vars(opt) + c.dd_var(cells() * bit);
   }
 
+  inline int MIN_CELL_VAR(const enc_opt &/*opt*/)
+  { return 0; }
+
+  inline int MAX_CELL_VAR(const enc_opt &opt)
+  { return edge_vars(opt)-1; }
+
+  inline int MIN_GADGET_VAR(const enc_opt &opt)
+  { return edge_vars(opt); }
+
+  inline int MAX_GADGET_VAR(const enc_opt &opt)
+  { return edge_vars(opt) + gadget_vars(opt)-1; }
+
+  /// \brief Minimum variable
+  inline int MIN_VAR(const enc_opt &opt)
+  { return MIN_CELL_VAR(opt); }
+
+  /// \brief Maximum variable
+  inline int MAX_VAR(const enc_opt &opt)
+  { return MAX_GADGET_VAR(opt); }
+
   /// \brief Number of variables used for the encoding.
   inline int vars(const enc_opt &opt)
-  { return edge_vars(opt) + gadget_vars(opt); }
+  { return MAX_VAR(opt) + 1; }
 
   /// \brief Number of variables to use for final model count.
   inline int satcount_vars(const enc_opt &opt)
@@ -567,14 +587,6 @@ namespace enc_gadgets
 
     return cell(x_unshifted);
   }
-
-  /// \brief Minimum variable
-  inline int MIN_VAR(const enc_opt &/*opt*/)
-  { return 0; }
-
-  /// \brief Maximum variable
-  inline int MAX_VAR(const enc_opt &opt)
-  { return vars(opt)-1; }
 
   /// \brief The bit-index of a variable for some cell c.
   inline int bit_of_var(int x, const enc_opt &opt)
@@ -666,7 +678,7 @@ namespace enc_gadgets
     const auto bot = adapter.build_node(false);
     auto root = adapter.build_node(true);
 
-    for (int x = MAX_VAR(opt); MIN_VAR(opt) <= x; --x) {
+    for (int x = MAX_CELL_VAR(opt); MIN_CELL_VAR(opt) <= x; --x) {
       const cell c_x = cell_of_var(x, opt);
       const var_t t_x = type_of_var(x, opt);
 
@@ -706,7 +718,7 @@ namespace enc_gadgets
     // TODO: Support for variable orderings that do not have in/out bits
     //       interleaved and each cell being independent.
 
-    int x = MAX_VAR(opt);
+    int x = MAX_CELL_VAR(opt);
 
     // Don't care chain below last out-bit
     auto root = adapter.build_node(true);
@@ -715,7 +727,7 @@ namespace enc_gadgets
     }
 
     // Test for each cell
-    while (MIN_VAR(opt) < x) {
+    while (MIN_CELL_VAR(opt) < x) {
       const cell c_x = cell_of_var(x, opt);
 
       // Varname choice is whether an In bit and an Out bit already has been set.
@@ -776,7 +788,7 @@ namespace enc_gadgets
     // TODO: Support for variable orderings that do not have in/out bits
     //       interleaved and each cell being independent.
 
-    int x = MAX_VAR(opt);
+    int x = MAX_CELL_VAR(opt);
 
     // Don't care chain below last out-bit
     auto root = adapter.build_node(true);
@@ -785,7 +797,7 @@ namespace enc_gadgets
     }
 
     // Test for each cell
-    while (MIN_VAR(opt) < x) {
+    while (MIN_CELL_VAR(opt) < x) {
       const cell c_x = cell_of_var(x, opt);
 
       auto success = root;
@@ -793,7 +805,7 @@ namespace enc_gadgets
       auto test0   = adapter.build_node(false);
       auto test1   = adapter.build_node(false);
 
-      for (; 0 <= x && cell_of_var(x, opt) == c_x; --x) {
+      for (; MIN_CELL_VAR(opt) <= x && cell_of_var(x, opt) == c_x; --x) {
         const var_t t_x = type_of_var(x, opt);
 
         // Update tests
@@ -844,7 +856,7 @@ namespace enc_gadgets
     // TODO: Support for variable orderings that do not have in/out bits
     //       interleaved and each cell being independent.
 
-    int x = MAX_VAR(opt);
+    int x = MAX_CELL_VAR(opt);
 
     // Don't care chain below last out-bit
     auto root = adapter.build_node(true);
@@ -853,7 +865,7 @@ namespace enc_gadgets
     }
 
     // Test for each cell
-    while (MIN_VAR(opt) < x) {
+    while (MIN_CELL_VAR(opt) < x) {
       const cell c_x = cell_of_var(x, opt);
 
       if (edge::has_idx(c_x, edge_idx)) {
@@ -979,7 +991,7 @@ namespace enc_gadgets
     assert(y_min_var < y_max_var);
 
     // Variable for chain(s) construction
-    int z = MAX_VAR(opt);
+    int z = MAX_CELL_VAR(opt);
 
     auto root = adapter.build_node(true);
 
@@ -1059,7 +1071,7 @@ namespace enc_gadgets
     root = x_chain;
 
     // Don't care for remaining variables
-    for (; MIN_VAR(opt) <= z; --z) {
+    for (; MIN_CELL_VAR(opt) <= z; --z) {
       root = adapter.build_node(z, root, root);
     }
 
@@ -1388,10 +1400,6 @@ namespace enc_gadgets
 
     // const std::vector<int> ps = gadget_moduli(opt);
     // TODO
-
-    paths = adapter.exists(paths, [&opt](const int x) {
-      return type_of_var(x, opt) == var_t::gadget_bit;
-    });
 
     // -------------------------------------------------------------------------
 #ifdef BDD_BENCHMARK_STATS
