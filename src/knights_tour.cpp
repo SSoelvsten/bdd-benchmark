@@ -1310,7 +1310,7 @@ namespace enc_gadgets
 #endif // BDD_BENCHMARK_STATS
 
     // -------------------------------------------------------------------------
-    // Make one-hot for binary
+    // Make one-hot for unary
     if (opt == enc_opt::UNARY || opt == enc_opt::CRT__UNARY) {
 #ifdef BDD_BENCHMARK_STATS
       std::cout << "   |\n"
