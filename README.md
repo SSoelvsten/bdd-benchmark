@@ -159,7 +159,7 @@ either use swap or be killed if the BDD package takes up more memory in
 conjunction with the benchmark's auxiliary data structures.
 
 ```bash
-make combinatorial/queens V=cudd N=10 M=256
+make run/queens V=cudd N=10 M=256
 ```
 
 We provide benchmarks for both *Binary* and for *Zero-suppressed* Decision
@@ -168,14 +168,14 @@ possible, then the type can be chosen as part of the make target. We will below
 mark whether a benchmark supports **BDD**s or **ZDD**s.
 
 ```bash
-make combinatorial/queens/zdd V=cudd N=10 M=256
+make run/queens/zdd V=cudd N=10 M=256
 ```
 
 Some benchmarks allow for choosing between a set of **O**ptions, e.g. variable
 ordering or algorithm.
 
 ```bash
-make verification/picotrav V=cudd O=LEVEL_DFS
+make run/picotrav V=cudd O=level_df
 ```
 
 ## Combinatorial Benchmarks
@@ -194,6 +194,31 @@ Solves the following problem:
   two time steps. By intersecting moves at all time steps we obtain all paths.
   On-top of this, hamiltonian constraints are added and finally the size of the
   set of Knight's Tours is obtained.
+
+- `binary`: Based on [[Marijn2021](#references)] with multiple tweaks by Randal
+  E. Bryant to make it for decision diagrams. Each cell's choice of move, i.e.
+  each edge, is represented by a binary number with *log<sub>2</sub>(8) = 3*
+  variables. Yet, this does not enforce the choice of edges correspond to a
+  Hamiltonian Cycle. Hence, we further add gadgets corresponding to *if u->v
+  then v=u+1 % N<sup>2</sup>*.
+
+- `unary`/`one-hot`: Similar to `binary` but the edges and the gadgets of *b*
+  bits use a one-hot encoding with *b* variables. Only one out of the *b*
+  variables are ever set to true at the same time; the value of the gadget is
+  the variable set to true.
+
+- `crt_binary`/`crt`: Similar to `binary` but one or more prime numbers are used
+  for gadgets added at the end. By use of the Chinese Remainder Theorem, we can
+  still be sure, we only have valid cycles at the end. One hopes this decreases
+  the size of the diagram, since the number of possible values for each gadget
+  are much smaller.
+
+- `crt_unary`/`crt_one-hot`: Similar to `crt_binary` but with a *one-hot*
+  encoding as described for `unary`.
+
+The `time` and the `unary`/`crt_unary` encoding are designed with ZDDs in mind
+whereas the `binary`/`crt_binary` is designed for BDDs. That is, using the
+`time` encoding with BDDs does not give you great, i.e. small and fast, results.
 
 ### Queens [BDD, ZDD]
 Solves the following problem:
@@ -347,8 +372,9 @@ please cite the initial paper on *Adiar*.
   Large, Monolithic Binary Decision Diagrams*”. In: *PASCO '10: Proceedings of
   the 4th International Workshop on Parallel and Symbolic Computation*. 2010
 
-- [[Bryant2021](https://github.com/rebryant/Cloud-BDD/blob/conjunction_streamlined/hamiltonian/hpath.py)]
-  Bryant, Randal E. “*hpath.py*”. In: *Cloud-BDD* (GitHub). 2021
+- [[Marijn2021](https://link.springer.com/chapter/10.1007/978-3-030-80223-3_15)]
+  Heule, Marijn J. H. “*Chinese Remainder Encoding for Hamiltonian Cycles*”. In:
+  *Theory and Applications of Satisfiability Testing*. 2021
 
 - [[Somenzi2015](https://github.com/ssoelvsten/cudd)]
   Somenzi, Fabio: *CUDD: CU decision diagram package, 3.0*. University
