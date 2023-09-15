@@ -107,31 +107,20 @@ help:
 	@echo "   | Memory (MiB) to dedicate to the BDD package."
 
 	@echo ""
-	@echo "combinatorial/knights_tour/[zdd]"
+	@echo "run/knights_tour/[bdd,zdd]"
 	@echo "   Counts the number of Knight's Tours on a chessboard."
 	@echo ""
-	@echo "   + N=<int> (default: 10)"
-	@echo "   | The sum of the width and height of the chessboard."
+	@echo "   + N=<int> (default: 6)"
+	@echo "   | The the width and height of the chessboard."
 	@echo ""
-	@echo "   + O=[OPEN,CLOSED] (default: OPEN)"
-	@echo "   | Whether to count the hamiltonian paths (open) or only cycles (closed)."
+	@echo "   + NR=<int> NC=<int> (default: N)"
+	@echo "   | Alternative to using N to specify a non-square chessboards."
+	@echo ""
+	@echo "   + O=[time, binary, crt_binary, unary, crt_unary] (default: time)"
+	@echo "   | The type of encoding to use to solve the problem."
 
 	@echo ""
-	@echo "combinatorial/queens/[bdd,zdd]"
-	@echo "   Solves the N-Queens problem"
-	@echo ""
-	@echo "   + N=<int> (default: 8)"
-	@echo "   | The size of the chessboard."
-
-	@echo ""
-	@echo "combinatorial/tic_tac_toe/[bdd,zdd]"
-	@echo "   Counts the number of draws of a Tic-Tac-Toe in a 4x4x4 cube."
-	@echo ""
-	@echo "   + N=<int> (default: 20)"
-	@echo "   | Number of crosses placed, i.e. count in a cube with (64-N) noughts."
-
-	@echo ""
-	@echo "verification/picotrav/[bdd,zdd]"
+	@echo "run/picotrav/[bdd,zdd]"
 	@echo "   Build BDDs that describe the output gates of circuits in a '.blif' format to"
 	@echo "   then verify whether two circuits are functionally equivalent."
 	@echo ""
@@ -142,11 +131,33 @@ help:
 	@echo "   | File path (relative to this makefile) for a second '*.blif' file to compare"
 	@echo "   | to the first."
 	@echo ""
-	@echo "   + O=[INPUT, DFS, LEVEL, LEVEL_DFS, RANDOM]"
-	@echo "   | Variable order to precompute and use throughout computation."
+	@echo "   + O=[input, df, level, level_df, random]"
+	@echo "   | Variable order to be precomputed and used throughout computation."
 
 	@echo ""
-	@echo "verification/qbf/[bdd]"
+	@echo "run/qbf/[bdd]"
+	@echo "   Solves a Quantified Boolean Formula by building the BDD corresponding to a"
+	@echo "   given a circuit in the '.qcir' format and finally quantifying the prenex."
+	@echo ""
+	@echo "   + F=<file_path> (default: benchmarks/not_a.blif)"
+	@echo "   | File path (relative to this makefile) for a '*.blif' file"
+	@echo ""
+	@echo "   + O=[input, df, df_rtl, level, level_df]"
+	@echo "   | Variable order to be precomputed and used throughout computation."
+
+	@echo ""
+	@echo "run/queens/[bdd,zdd]"
+	@echo "   Solves the N-Queens problem"
+	@echo ""
+	@echo "   + N=<int> (default: 8)"
+	@echo "   | The size of the chessboard."
+
+	@echo ""
+	@echo "run/tic_tac_toe/[bdd,zdd]"
+	@echo "   Counts the number of draws of a Tic-Tac-Toe in a 4x4x4 cube."
+	@echo ""
+	@echo "   + N=<int> (default: 20)"
+	@echo "   | Number of crosses placed, i.e. count in a cube with (64-N) noughts."
 
 	@echo ""
 	@echo "--------------------------------------------------------------------------------"
@@ -175,69 +186,80 @@ N:=0
 O := ""
 
 # ============================================================================ #
-#  RUN: COMBINATORIAL PROBLEMS
+#  RUN: Knight's Tour
 # ============================================================================ #
-combinatorial/knights_tour:
-	$(MAKE) combinatorial/knights_tour/zdd
+run/knights_tour:
+	$(MAKE) run/knights_tour/zdd
 
-combinatorial/knights_tour/bdd: N  := 6
-combinatorial/knights_tour/bdd: N1 := $(N)
-combinatorial/knights_tour/bdd: N2 := $(N1)
-combinatorial/knights_tour/bdd: O := "TIME"
-combinatorial/knights_tour/bdd:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_knights_tour_bdd -N $(N1) -N $(N2) -M $(M) -o $(O) 2>&1 | tee -a out/VARIANT/bdd/knights_tour.out)
+run/knights_tour/bdd: N  := 6
+run/knights_tour/bdd: NR := $(N)
+run/knights_tour/bdd: NC := $(NR)
+run/knights_tour/bdd: O := "TIME"
+run/knights_tour/bdd:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_knights_tour_bdd -N $(NR) -N $(NC) -M $(M) -o $(O) 2>&1 | tee -a out/VARIANT/bdd/knights_tour.out)
 
-combinatorial/knights_tour/zdd: N  := 6
-combinatorial/knights_tour/zdd: N1 := $(N)
-combinatorial/knights_tour/zdd: N2 := $(N1)
-combinatorial/knights_tour/zdd: O := "TIME"
-combinatorial/knights_tour/zdd:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_knights_tour_zdd -N $(N1) -N $(N2) -M $(M) -o $(O) 2>&1 | tee -a out/VARIANT/zdd/knights_tour.out)
-
-combinatorial/queens:
-	$(MAKE) combinatorial/queens/bdd
-
-combinatorial/queens/bdd: N := 8
-combinatorial/queens/bdd:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_queens_bdd -N $(N) -M $(M) 2>&1 | tee -a out/VARIANT/bdd/queens.out)
-
-combinatorial/queens/zdd: N := 8
-combinatorial/queens/zdd:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_queens_zdd -N $(N) -M $(M) 2>&1 | tee -a out/VARIANT/zdd/queens.out)
-
-combinatorial/tic_tac_toe:
-	$(MAKE) combinatorial/tic_tac_toe/bdd
-
-combinatorial/tic_tac_toe/bdd: N := 20
-combinatorial/tic_tac_toe/bdd:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_tic_tac_toe_bdd -N $(N) -M $(M) 2>&1 | tee -a out/VARIANT/bdd/tic_tac_toe.out)
-
-combinatorial/tic_tac_toe/zdd: N := 20
-combinatorial/tic_tac_toe/zdd:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_tic_tac_toe_zdd -N $(N) -M $(M) 2>&1 | tee -a out/VARIANT/zdd/tic_tac_toe.out)
+run/knights_tour/zdd: N  := 6
+run/knights_tour/zdd: NR := $(N)
+run/knights_tour/zdd: NC := $(NR)
+run/knights_tour/zdd: O := "TIME"
+run/knights_tour/zdd:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_knights_tour_zdd -N $(NR) -N $(NC) -M $(M) -o $(O) 2>&1 | tee -a out/VARIANT/zdd/knights_tour.out)
 
 # ============================================================================ #
-#  RUN: VERIFICATION BENCHMARKS
+#  RUN: Picotrav
 # ============================================================================ #
-verification/picotrav:
-	$(MAKE) verification/picotrav/bdd
+run/picotrav:
+	$(MAKE) run/picotrav/bdd
 
-verification/picotrav/bdd: O := "INPUT"
-verification/picotrav/bdd: F1 := "benchmarks/picotrav/not_a.blif"
-verification/picotrav/bdd: F2 := "benchmarks/picotrav/not_b.blif"
-verification/picotrav/bdd:
+run/picotrav/bdd: O := "INPUT"
+run/picotrav/bdd: F1 := "benchmarks/picotrav/not_a.blif"
+run/picotrav/bdd: F2 := "benchmarks/picotrav/not_b.blif"
+run/picotrav/bdd:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_picotrav_bdd -f $(F1) -f $(F2) -M $(M) -o $(O) | tee -a out/VARIANT/bdd/picotrav.out)
 
-verification/picotrav/zdd: O := "INPUT"
-verification/picotrav/zdd: F1 := "benchmarks/picotrav/not_a.blif"
-verification/picotrav/zdd: F2 := "benchmarks/picotrav/not_b.blif"
-verification/picotrav/zdd:
+run/picotrav/zdd: O := "INPUT"
+run/picotrav/zdd: F1 := "benchmarks/picotrav/not_a.blif"
+run/picotrav/zdd: F2 := "benchmarks/picotrav/not_b.blif"
+run/picotrav/zdd:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_picotrav_zdd -f $(F1) -f $(F2) -M $(M) -o $(O) | tee -a out/VARIANT/zdd/picotrav.out)
 
-verification/qbf:
-	$(MAKE) verification/qbf/bdd
+# ============================================================================ #
+#  RUN: QCIR QBF solver
+# ============================================================================ #
+run/qbf:
+	$(MAKE) run/qbf/bdd
 
-verification/qbf/bdd: O := "INPUT"
-verification/qbf/bdd: F := "benchmarks/qcir/example_a.qcir"
-verification/qbf/bdd:
+run/qbf/bdd: O := "INPUT"
+run/qbf/bdd: F := "benchmarks/qcir/example_a.qcir"
+run/qbf/bdd:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_qbf_bdd -f $(F) -M $(M) -o $(O) | tee -a out/VARIANT/bdd/qbf.out)
+
+# TODO: run/qbf/zdd
+
+# ============================================================================ #
+#  RUN: Queens
+# ============================================================================ #
+run/queens:
+	$(MAKE) run/queens/bdd
+
+run/queens/bdd: N := 8
+run/queens/bdd:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_queens_bdd -N $(N) -M $(M) 2>&1 | tee -a out/VARIANT/bdd/queens.out)
+
+run/queens/zdd: N := 8
+run/queens/zdd:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_queens_zdd -N $(N) -M $(M) 2>&1 | tee -a out/VARIANT/zdd/queens.out)
+
+# ============================================================================ #
+#  RUN: 4x4 Tic Tac Toe
+# ============================================================================ #
+run/tic_tac_toe:
+	$(MAKE) run/tic_tac_toe/bdd
+
+run/tic_tac_toe/bdd: N := 20
+run/tic_tac_toe/bdd:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_tic_tac_toe_bdd -N $(N) -M $(M) 2>&1 | tee -a out/VARIANT/bdd/tic_tac_toe.out)
+
+run/tic_tac_toe/zdd: N := 20
+run/tic_tac_toe/zdd:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_tic_tac_toe_zdd -N $(N) -M $(M) 2>&1 | tee -a out/VARIANT/zdd/tic_tac_toe.out)
