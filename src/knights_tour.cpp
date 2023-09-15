@@ -1226,9 +1226,24 @@ namespace enc_gadgets
 
   /// \brief Predicate that is true for a given type of bits for cells on a
   /// specific row.
+  auto bit_pred(const var_t &t, const enc_opt &opt) {
+    return [=](const int x) {
+      return type_of_var(x, opt) == t;
+    };
+  }
+
+  /// \brief Predicate that is true for a given type of bits for cells on a
+  /// specific row.
   auto bit_pred(const int row, const var_t &t, const enc_opt &opt) {
     return [=](const int x) {
       return cell_of_var(x, opt).row() == row && type_of_var(x, opt) == t;
+    };
+  }
+
+  /// \brief Predicate that is true for a cell's specific given type of bits.
+  auto bit_pred(const cell &c, const var_t &t, const enc_opt &opt) {
+    return [=](const int x) {
+      return cell_of_var(x, opt) == c && type_of_var(x, opt) == t;
     };
   }
 
@@ -1353,44 +1368,74 @@ namespace enc_gadgets
     std::cout << "   |\n"
               << "   | Match Edge-index between cells\n";
 #endif // BDD_BENCHMARK_STATS
-    for (int q_row = MAX_ROW()+2; 0 <= q_row; --q_row) {
-
-      const int c_row = q_row-2;
-      for (int c_col = MAX_COL(); 0 <= c_row && 0 <= c_col; --c_col) {
-        const cell u(c_row, c_col);
+    for (int row = MAX_ROW(); 0 <= row; --row) {
+      for (int col = MAX_COL(); 0 <= col; --col) {
+        const cell u(row, col);
 
         // Skip (0,0) since both its ingoing and outgoing edges are fixed
-        if (u == cell::special_0()) { continue; }
+        if (u != cell::special_0()) {
+          for (const cell v : u.neighbours()) {
+            const edge e(u,v);
 
-        for (const cell v : u.neighbours()) {
-          const edge e(u,v);
+            // Skip (0,0) since both its ingoing and outgoing edges are fixed
+            if (v == cell::special_0()) { continue; }
 
-          // Skip (0,0) since both its ingoing and outgoing edges are fixed
-          if (v == cell::special_0()) { continue; }
+            paths &= match_u_v(adapter, e, opt);
 
-          paths &= match_u_v(adapter, e, opt);
+#ifdef BDD_BENCHMARK_STATS
+            const size_t nodecount = adapter.nodecount(paths);
+            largest_bdd = std::max(largest_bdd, nodecount);
+            total_nodes += nodecount;
+
+            std::cout << "   |  " << e.to_string() << " (nodes):        " << nodecount << "\n"
+                      << std::flush;
+#endif // BDD_BENCHMARK_STATS
+          }
+        }
+
+        // Quantify a cell two rows below and one to the right of the current;
+        // this one will never be relevant for later cells.
+        const cell q_cell(row+2, col+1);
+        if (!q_cell.out_of_range()) {
+          paths = adapter.exists(paths, bit_pred(q_cell, var_t::in_bit, opt));
 
 #ifdef BDD_BENCHMARK_STATS
           const size_t nodecount = adapter.nodecount(paths);
           largest_bdd = std::max(largest_bdd, nodecount);
           total_nodes += nodecount;
 
-          std::cout << "   |  " << e.to_string() << " (nodes):        " << nodecount << "\n"
+          std::cout << "   |  Exists " << q_cell.to_string() << " (nodes):     " << nodecount << "\n"
                     << std::flush;
 #endif // BDD_BENCHMARK_STATS
         }
       }
 
-      if (rows() <= q_row) { continue; }
+      // Quantify the last cell on row+2, since it will not be relevant beyond
+      // this point.
+      const cell q_cell(row+2, 0);
+      if (!q_cell.out_of_range()) {
+        paths = adapter.exists(paths, bit_pred(q_cell, var_t::in_bit, opt));
 
-      paths = adapter.exists(paths, bit_pred(q_row, var_t::in_bit, opt));
+#ifdef BDD_BENCHMARK_STATS
+        const size_t nodecount = adapter.nodecount(paths);
+        largest_bdd = std::max(largest_bdd, nodecount);
+        total_nodes += nodecount;
+
+        std::cout << "   |  Exists " << q_cell.to_string() << " (nodes):     " << nodecount << "\n"
+                  << std::flush;
+#endif // BDD_BENCHMARK_STATS
+      }
+    }
+
+    { // Quantify remaining two rows
+      paths = adapter.exists(paths, bit_pred(var_t::in_bit, opt));
 
 #ifdef BDD_BENCHMARK_STATS
       const size_t nodecount = adapter.nodecount(paths);
       largest_bdd = std::max(largest_bdd, nodecount);
       total_nodes += nodecount;
 
-      std::cout << "   |  Exists " << (q_row+1)  << "_ (nodes):     " << nodecount << "\n"
+      std::cout << "   |  Exists 1_,2_ (nodes):  " << nodecount << "\n"
                 << std::flush;
 #endif // BDD_BENCHMARK_STATS
     }
