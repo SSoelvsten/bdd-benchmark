@@ -150,8 +150,13 @@ public:
   /// \brief Row-major DD variable name
   ///
   /// \param shift The number of bits to shift.
+  ///
+  /// \pre `!out_of_range()`
   int dd_var(const int shift = 0) const
   {
+    if (this->out_of_range()) {
+      throw std::out_of_range("Cell is out-of-range");
+    }
     return shift + (cols() * _r) + _c;
   }
 
@@ -577,6 +582,7 @@ namespace enc_gadgets
   inline int satcount_vars(const enc_opt &opt)
   { return cells() * bits_per_edge(opt); }
 
+  /// \brief Obtain the cell corresponding to the given DD variable.
   inline cell cell_of_var(const int x, const enc_opt &opt)
   {
     assert(x < vars(opt));
