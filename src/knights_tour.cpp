@@ -1694,8 +1694,8 @@ namespace enc_gadgets
       //
       //      (N-1,N-1), ..., (N-1,0), (N-2,N-1), ...(N-2,0), (N-3,0).
 
-      for (int row = MAX_ROW(); 0 <= row; --row) {
-        for (int col = MAX_COL(); 0 <= col; --col) {
+      for (int row = MIN_ROW(); row < rows(); ++row) {
+        for (int col = MIN_COL(); col < cols(); ++col) {
           const cell u(row, col);
 
           // TODO (ZDD): Extend with gadget bits for (row-2,col-1).
@@ -1731,9 +1731,9 @@ namespace enc_gadgets
 #endif // BDD_BENCHMARK_STATS
             }
 
-            // Quantify a cell two rows below and one to the right of the current;
-            // this one will never be relevant for later cells.
-            const cell q_cell(row+2, col+1);
+            // Quantify a cell two rows above and one to the left of the
+            // current; this one will never be relevant for later cells.
+            const cell q_cell(row-2, col-1);
             if (!q_cell.out_of_range()) {
               paths = adapter.exists(paths, bit_pred(q_cell, var_t::gadget_bit, opt));
 
@@ -1749,9 +1749,9 @@ namespace enc_gadgets
           }
         }
 
-        // Quantify the last cell on row+2, since it will not be relevant beyond
-        // this point.
-        const cell q_cell(row+2, 0);
+        // Quantify the last cell two rows prior, since it will not be relevant
+        // beyond this point.
+        const cell q_cell(row-2, MAX_COL());
         if (!q_cell.out_of_range()) {
           paths = adapter.exists(paths, bit_pred(q_cell, var_t::gadget_bit, opt));
 
@@ -1774,7 +1774,7 @@ namespace enc_gadgets
         largest_bdd = std::max(largest_bdd, nodecount);
         total_nodes += nodecount;
 
-        std::cout << "   | |  Exists 1_,2_ (nodes):  " << nodecount << "\n"
+        std::cout << "   | |  Exists " << MAX_ROW()-1 << "_," << MAX_ROW() << "_ (nodes):  " << nodecount << "\n"
                   << std::flush;
 #endif // BDD_BENCHMARK_STATS
       }
