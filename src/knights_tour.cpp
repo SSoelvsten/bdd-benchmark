@@ -283,6 +283,18 @@ public:
     const cell c0 = special_0();
     return (*this == c0 || this->has_move_to(c0));
   }
+
+public:
+  //////////////////////////////////////////////////////////////////////////////
+  // Minimum and maximum cells with respect to variable ordering
+
+  /// \brief First cell with respect to the variable ordering.
+  static inline cell first()
+  { return {MIN_ROW(), MIN_COL()}; }
+
+  /// \brief Last cell with respect to the variable ordering.
+  static inline cell last()
+  { return {MAX_ROW(), MAX_COL()}; }
 };
 
 /// \brief Hash function for `cell` class
@@ -463,7 +475,9 @@ namespace enc_gadgets
   std::vector<int> gadget_moduli(const enc_opt &opt)
   {
     switch (opt) {
-    case enc_opt::BINARY:
+    case enc_opt::BINARY: {
+      return { 1 << log2(cells()) };
+    }
     case enc_opt::UNARY: {
       return { cells() };
     }
@@ -666,6 +680,12 @@ namespace enc_gadgets
       if (i == p) { return true; }
     }
     return false;
+  }
+
+  /// \brief Whether a number is a power of two.
+  bool is_power_of_two(int i)
+  {
+    return (i & (i-1)) == 0;
   }
 
   /// \brief Construct edge-variables with special cells fixed in their choice.
@@ -1066,60 +1086,269 @@ namespace enc_gadgets
     return out;
   }
 
+  /// \brief Helper function for the binary adder where `p` is a power of two.
+  template<typename adapter_t>
+  void __adder_gadget_levels__binary(adapter_t &adapter,
+                                     const edge &e,
+                                     [[maybe_unused]] const int p,
+                                     const enc_opt &opt,
+                                     typename adapter_t::build_node_t &out_then,
+                                     typename adapter_t::build_node_t &out_else)
+  {
+    assert(opt == enc_opt::BINARY);
+    assert(is_power_of_two(p));
+
+    // Variable for the current level.
+    int x = MAX_GADGET_VAR(opt);
+    assert(x == MAX_VAR(opt));
+
+    // False terminal for use later
+    const auto bot = adapter.build_node(false);
+
+    // Else case is just a long don't care chain.
+    out_else = adapter.build_node(true);
+
+    // Since our approach is big-endian, we will (when seen top-down) for each
+    // `(u,v)` pair check whether they match. If they do not, then the carry
+    // must have been propagated up to this point; from here-on forward, the
+    // smaller bits of `u` must be 1 and the bits of `v` must be 0.
+    const bool u_top = e.u() < e.v();
+    const bool v_top = !u_top;
+
+    const cell c_fst = u_top ? e.u() : e.v();
+    const cell c_snd = u_top ? e.v() : e.u();
+
+    const int min_uv_var = gadget_var(c_fst, 0, opt);
+
+    const int max_bit = bits_per_gadget(opt)-1;
+    const int max_uv_var = gadget_var(c_snd, max_bit, opt);
+
+    // Don't care nodes below the bottom-most bit
+    for (; max_uv_var < x; --x) {
+      out_else = adapter.build_node(x, out_else, out_else);
+    }
+    assert(x == max_uv_var);
+    assert(cell_of_var(x, opt) == c_snd);
+
+    // Seen from the bottom, we need two "chains":
+    //
+    // - One for the bit carrying. Yet, this one only exists up to the second
+    //   top-most bit.
+    const int top_snd_var = gadget_var(c_snd, 0, opt);
+
+    auto carry = cell_of_var(x, opt) == e.u()
+      ? adapter.build_node(x, bot, out_else)
+      : adapter.build_node(x, out_else, bot);
+
+    // - One for the bits matching up to this point. This chain splits in two to
+    //   check whether `c_snd` matches or not. If they match, it merges back
+    //   into one node. If they do not match, then this bit must be where the
+    //   carry has flipped it; the remaining bits (already processed) must hence
+    //   follow the `carry` pattern.
+    //
+    //   If they match all the way to the very last bit, we force the last bit
+    //   of `u` to be 0 and the last bit of `v` to be 1.
+    auto match  = bot;
+    auto match0 = cell_of_var(x, opt) == e.v() ? adapter.build_node(x, bot, out_else) : bot;
+    auto match1 = cell_of_var(x, opt) == e.u() ? adapter.build_node(x, out_else, bot) : bot;
+
+    // Make sure which of the two parts of `match` needs to be extended.
+    bool match_latest = false;
+
+    out_else = adapter.build_node(x, out_else, out_else);
+
+    x -= 1;
+    assert(x < max_uv_var);
+
+    for (; min_uv_var <= x; --x) {
+      const cell c = cell_of_var(x, opt);
+
+      // Further maintain `root` don't care nodes for the later edge-bits.
+      out_else = adapter.build_node(x, out_else, out_else);
+
+      // Add don't care nodes for other gadgets.
+      if (c != c_fst && c != c_snd) {
+        if (match_latest) {
+          match = adapter.build_node(x, match, match);
+        } else {
+          match0 = adapter.build_node(x, match0, match0);
+          match1 = adapter.build_node(x, match1, match1);
+        }
+        carry = top_snd_var < x ? adapter.build_node(x, carry, carry) : carry;
+        continue;
+      }
+
+      // Test for matching values / carry.
+      assert(c == c_fst || c == c_snd);
+
+      match_latest = c == c_fst;
+      if (match_latest/*, i.e. c_fst*/) {
+        match = adapter.build_node(x, match0, match1);
+      } else /*!match_latest, i.e. c_snd*/ {
+        // Reject u[i] = 1 but v[i] = 0. Since everything above has matched,
+        // then doing so would decrease the number. The only exception to this
+        // is the top-most bit; this one may decrease into an overflow.
+
+        match0 = v_top && top_snd_var < x
+          ? adapter.build_node(x, match, bot)
+          : adapter.build_node(x, match, carry);
+
+        match1 = u_top && top_snd_var < x
+          ? adapter.build_node(x, bot, match)
+          : adapter.build_node(x, carry, match);
+      }
+
+      if (top_snd_var < x) {
+        const bool bit_val = c == e.u();
+        carry = adapter.build_node(x, bit_val ? bot : carry, bit_val ? carry : bot);
+      }
+    }
+    assert(x < min_uv_var(opt));
+
+    out_then = match;
+
+    for (; MIN_GADGET_VAR(opt) <= x; --x) {
+      out_else = adapter.build_node(x, out_else, out_else);
+      out_then = adapter.build_node(x, out_then, out_then);
+    }
+    assert(x = MAX_CELL_VAR(opt));
+  }
+
+  /// \brief Helper function for the binary adder where `p` is **not** a power of two.
+  template<typename adapter_t>
+  void __adder_gadget_levels__crt(adapter_t &/*adapter*/,
+                                  const edge &/*e*/,
+                                  const int p,
+                                  const enc_opt &opt,
+                                  typename adapter_t::build_node_t &/*out_then*/,
+                                  typename adapter_t::build_node_t &/*out_else*/)
+  {
+    assert(opt == enc_opt::CRT__BINARY);
+    assert(!is_power_of_two(p));
+
+    // For `CRT__BINARY`, we cannot just use `MAX_GADGET_VAR(...)` since one
+    // prime number might need more bits than another one, e.g. 3 and 5.
+    const int max_bit = log2(p) - 1;
+    [[maybe_unused]] int x = gadget_var(cell::last(), max_bit, opt);
+    assert(x <= MAX_VAR(opt) && x <= MAX_GADGET_VAR(opt));
+
+    // NOTE:
+    //
+    //   Yet, the lowest of `v`'s bits can only be 0 if it overflows, i.e. if
+    //   `u` exactly is `p-1`.
+    //
+    //   Specifically, from the top, we need to check for all `u` bits being 1s
+    //   until the value must at least be p (since we do not have any extra
+    //   bits, only testing for ones suffices). If so, we may immediately prune
+    //   out this solution with `bot`.
+    //
+    //   Further below, we need to keep track of two possibilities: is the `u`
+    //   counter exactly `p` or some other (i.e. a lower) value than `p`?
+    //   - If `u == p-1` then `v` has to be all zeros.
+    //   - If `u <  p-1` then `v` has to match up to some point (and then be all zeros)
+
+    throw std::invalid_argument("Adder gadget not implemented for non-binary overflow!");
+  }
+
   /// \brief Binary Counter increment relation.
   ///
   /// The gadget is constructed such, that the counter is big-endian.
   ///
-  /// \remark This is expected to work well with both BDDs and ZDDs.
+  /// \remark This is expected to work well with both BDDs and ZDDs, but it
+  ///         primarily is intended for BDDs.
   template<typename adapter_t>
-  typename adapter_t::dd_t adder_gadget(adapter_t &/*adapter*/,
-                                        const edge &/*e*/,
-                                        int /*m*/)
+  typename adapter_t::dd_t adder_gadget(adapter_t &adapter,
+                                        const edge &e,
+                                        const int p,
+                                        const enc_opt &opt)
   {
-    throw std::invalid_argument("Binary Adder not implemented!");
-  }
+    assert(opt == enc_opt::BINARY || opt == enc_opt::CRT__BINARY);
+    assert(e.u() != e.v());
 
-  /// \brief Binary Counter with a fixed value
-  ///
-  /// The gadget is constructed such, that the counter is big-endian.
-  ///
-  /// \remark This is expected to work well with both BDDs and ZDDs.
-  template<typename adapter_t>
-  typename adapter_t::dd_t adder_gadget(adapter_t &/*adapter*/,
-                                        const cell &/*c*/,
-                                        const int /*m*/,
-                                        int /*value*/)
-  {
-    throw std::invalid_argument("Binary Adder not implemented!");
+    typename adapter_t::build_node_t dd_then, dd_else;
+    if (is_power_of_two(p)) {
+      __adder_gadget_levels__binary(adapter, e, p, opt, dd_then, dd_else);
+    } else {
+      __adder_gadget_levels__crt(adapter, e, p, opt, dd_then, dd_else);
+    }
+
+    // -------------------------------------------------------------------------
+    // Edge bits: check out-bits for `e.u()` has the index.
+    int x = MAX_CELL_VAR(opt);
+
+    const int u_max_var = edge_out_var(e.u(), bits_per_edge(opt)-1, opt);
+    const int u_min_var = edge_out_var(e.u(), 0, opt);
+
+    for (; u_max_var < x; --x) {
+      dd_then = adapter.build_node(x, dd_then, dd_then);
+      dd_else  = adapter.build_node(x, dd_else, dd_else);
+    }
+
+    auto root = dd_then;
+
+    int e_idx = e.idx();
+    for (; u_min_var <= x; --x) {
+      // Skip in-bits, they should be quantified away at this point.
+      if (type_of_var(x, opt) == var_t::in_bit) { continue; }
+
+      const bool bit_val = next_fixed_bit(e_idx, opt);
+
+      root = adapter.build_node(x, bit_val ? dd_else : root, bit_val ? root : dd_else);
+      if (u_min_var < x) {
+        dd_else = adapter.build_node(x, dd_else, dd_else);
+      }
+    }
+
+    for (; MIN_VAR(opt) < x; --x) {
+      root = adapter.build_node(x, root, root);
+    }
+
+    // -------------------------------------------------------------------------
+
+    typename adapter_t::dd_t out = adapter.build();
+
+#ifdef BDD_BENCHMARK_STATS
+    const size_t nodecount = adapter.nodecount(out);
+    largest_bdd = std::max(largest_bdd, nodecount);
+    total_nodes += nodecount;
+#endif // BDD_BENCHMARK_STATS
+
+    return out;
   }
 
   /// \brief Linear-Feedback Shift Register (LFSR) increment relation.
   ///
-  /// \param p A Mersenne Prime number
+  /// \param m A Mersenne Prime number
   ///
-  /// \remark This is expected to work well with both BDDs and ZDDs.
+  /// \remark This is expected to work well with both BDDs and ZDDs, but it
+  ///         primarily is intended for BDDs.
   template<typename adapter_t>
-  typename adapter_t::dd_t lfsr_gadget(adapter_t &/*adapter*/,
-                                       const edge &/*e*/,
+  typename adapter_t::dd_t lfsr_gadget(adapter_t &adapter,
+                                       const edge &e,
                                        int /*m*/)
   {
+    assert(e.u() != e.v());
     assert(is_mersenne_prime(m));
-    throw std::invalid_argument("LFSR not implemented!");
-  }
 
-  /// \brief Linear-Feedback Shift Register (LFSR) with a fixed value
-  ///
-  /// The gadget is constructed such, that the counter is big-endian.
-  ///
-  /// \remark This is expected to work well with both BDDs and ZDDs.
-  template<typename adapter_t>
-  typename adapter_t::dd_t lfsr_gadget(adapter_t &/*adapter*/,
-                                       const cell &/*c*/,
-                                       const int /*m*/,
-                                       int /*value*/)
-  {
-    assert(is_mersenne_prime(m));
-    throw std::invalid_argument("LFSR not implemented!");
+    // -------------------------------------------------------------------------
+    if (e.u() < e.v()) {
+      throw std::invalid_argument("LFSR for e.u() < e.v() not implemented!");
+    }
+    // -------------------------------------------------------------------------
+    else /*e.v() < e.u()*/ {
+      throw std::invalid_argument("LFSR for e.v() < e.u() not implemented!");
+    }
+    // -------------------------------------------------------------------------
+
+    typename adapter_t::dd_t out = adapter.build();
+
+#ifdef BDD_BENCHMARK_STATS
+    const size_t nodecount = adapter.nodecount(out);
+    largest_bdd = std::max(largest_bdd, nodecount);
+    total_nodes += nodecount;
+#endif // BDD_BENCHMARK_STATS
+
+    return out;
   }
 
   /// \brief One-hot encoding with a linear number of variables.
@@ -1129,26 +1358,31 @@ namespace enc_gadgets
   ///
   /// \remark This is expected to primarily work well with ZDDs.
   template<typename adapter_t>
-  typename adapter_t::dd_t unary_gadget(adapter_t &/*adapter*/,
-                                        const edge &/*e*/,
+  typename adapter_t::dd_t unary_gadget(adapter_t &adapter,
+                                        const edge &e,
                                         int /*m*/)
   {
-    throw std::invalid_argument("Unary Gadget not implemented!");
-  }
+    assert(e.u() != e.v());
 
-  /// \brief One-hot encoding with a linear number of variables with a fixed value
-  ///
-  /// While we use a linear number of bits, it is technically incorrect to call
-  /// this a *unary* encoding; a better word for it might be *one-hot*.
-  ///
-  /// \remark This is expected to primarily work well with ZDDs.
-  template<typename adapter_t>
-  typename adapter_t::dd_t unary_gadget(adapter_t &/*adapter*/,
-                                        const cell &/*c*/,
-                                        const int /*m*/,
-                                        int /*value*/)
-  {
-    throw std::invalid_argument("Unary Gadget not implemented!");
+    // -------------------------------------------------------------------------
+    if (e.u() < e.v()) {
+      throw std::invalid_argument("Unary Gadget for e.u() < e.v() not implemented!");
+    }
+    // -------------------------------------------------------------------------
+    else /*e.v() < e.u()*/ {
+      throw std::invalid_argument("Unary Gadget for e.v() < e.u() not implemented!");
+    }
+    // -------------------------------------------------------------------------
+
+    typename adapter_t::dd_t out = adapter.build();
+
+#ifdef BDD_BENCHMARK_STATS
+    const size_t nodecount = adapter.nodecount(out);
+    largest_bdd = std::max(largest_bdd, nodecount);
+    total_nodes += nodecount;
+#endif // BDD_BENCHMARK_STATS
+
+    return out;
   }
 
   /// \brief Wrapper to pick the desired gadget for an increment relation.
@@ -1158,20 +1392,18 @@ namespace enc_gadgets
                                   int p,
                                   const enc_opt &opt)
   {
-    return adapter.top();
-
     switch (opt) {
     case enc_opt::UNARY:
     case enc_opt::CRT__UNARY: {
       return unary_gadget(adapter, e, p);
     }
     case enc_opt::BINARY: {
-      return adder_gadget(adapter, e, p);
+      return adder_gadget(adapter, e, p, opt);
     }
     case enc_opt::CRT__BINARY: {
       return is_mersenne_prime(p)
         ? lfsr_gadget(adapter, e, p)
-        : adder_gadget(adapter, e, p);
+        : adder_gadget(adapter, e, p, opt);
     }
     case enc_opt::TIME:
     default:
@@ -1180,36 +1412,61 @@ namespace enc_gadgets
   }
 
   /// \brief Wrapper to pick the desired gadget for a fixed value.
+  ///
+  /// \details Since we only have to check for a fixed value, then we do not
+  ///          need to differentiate between the three types of gadgets; we only
+  ///          need to check it has the expected bit-value. Yet, for the LFSR
+  ///          gadget this does mean we have to convert `v` into the `v`'th
+  ///          iteration of the LFSR before creating the circuit.
   template<typename adapter_t>
   typename adapter_t::dd_t gadget(adapter_t &adapter,
                                   const cell &c,
                                   const int p,
-                                  const int value,
+                                  int v,
                                   const enc_opt &opt)
   {
-    return adapter.top();
+    assert(e.u() != e.v());
+    assert(p < 1 << bits_per_gadget(opt));
 
-    switch (opt) {
-    case enc_opt::UNARY:
-    case enc_opt::CRT__UNARY: {
-      return unary_gadget(adapter, c, p, value);
+    if (is_mersenne_prime(p) && opt == enc_opt::CRT__BINARY) {
+      // TODO: Overwrite `v` with `v` iterations of the LFSR gadget.
+      throw std::invalid_argument("Fixed LFSR gadget not implemented!");
+    } else {
+      // For all other gadgets, the value `v` for the gadget is modulo `p`.
+      v = v % p;
     }
-    case enc_opt::BINARY: {
-      return adder_gadget(adapter, c, p, value);
+
+    const auto bot = adapter.build_node(false);
+    auto root = adapter.build_node(true);
+
+    // For the `CRT__X` encodings, we use a different number of variables per
+    // prime `p`. Hence, for the given prime `p`, we should not create
+    // "undefined" bits for the gadget (or prepend with extra bits).
+    const int max_bit = log2(p) - 1;
+    for (int x = gadget_var(cell::last(), max_bit, opt); MIN_VAR(opt) <= x; --x) {
+      // Don't care for anything but gadget bits of `c`
+      if (type_of_var(x,opt) != var_t::gadget_bit || cell_of_var(x,opt) != c) {
+        root = adapter.build_node(x, root, root);
+        continue;
+      }
+
+      // Test that bit matches the expected value.
+      const bool bit_val = next_fixed_bit(v, opt);
+      root = adapter.build_node(x, bit_val ? bot : root, bit_val ? root : bot);
     }
-    case enc_opt::CRT__BINARY: {
-      return is_mersenne_prime(p)
-        ? lfsr_gadget(adapter, c, p, value)
-        : adder_gadget(adapter, c, p, value);
-    }
-    case enc_opt::TIME:
-    default:
-      { throw std::invalid_argument("No gadgets exist for time-based encoding"); }
-    }
+
+    typename adapter_t::dd_t out = adapter.build();
+
+#ifdef BDD_BENCHMARK_STATS
+    const size_t nodecount = adapter.nodecount(out);
+    largest_bdd = std::max(largest_bdd, nodecount);
+    total_nodes += nodecount;
+#endif // BDD_BENCHMARK_STATS
+
+    return out;
   }
 
-  /// \brief Predicate that is true for a given type of bits for cells on a
-  /// specific row.
+  /// \brief Predicate that is true for a given type of bits.
   auto bit_pred(const var_t &t, const enc_opt &opt) {
     return [=](const int x) {
       return type_of_var(x, opt) == t;
@@ -1444,9 +1701,9 @@ namespace enc_gadgets
           // TODO (ZDD): Extend with gadget bits for (row-2,col-1).
 
           if (u.is_special()) {
-            const int u_val = u == cell::special_0() ? 0
-                            : u == cell::special_1() ? 1
-                            : cells()-1;
+            const int u_val =   u == cell::special_0() ? 0
+                            :   u == cell::special_1() ? 1
+                            : /*u == cell::special_2()*/ cells()-1;
 
             paths &= gadget(adapter, u, p, u_val, opt);
 
