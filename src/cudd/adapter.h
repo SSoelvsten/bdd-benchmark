@@ -88,6 +88,10 @@ class cudd_bdd_adapter : public cudd_adapter
 {
 public:
   inline static const std::string NAME = "CUDD [BDD]";
+
+  static constexpr bool needs_extend = false;
+
+public:
   typedef BDD dd_t;
   typedef BDD build_node_t;
 
@@ -141,6 +145,10 @@ public:
 
   inline BDD ite(const BDD &f, const BDD &g, const BDD &h)
   { return f.Ite(g,h); }
+
+  template <typename IT>
+  inline BDD extend(const BDD &f, IT /*begin*/, IT /*end*/)
+  { return f; }
 
   inline BDD exists(const BDD &f, int i)
   { return f.ExistAbstract(_mgr.bddVar(i)); }
@@ -221,6 +229,10 @@ class cudd_zdd_adapter : public cudd_adapter
 {
 public:
   inline static const std::string NAME = "CUDD [ZDD]";
+
+  static constexpr bool needs_extend = true;
+
+public:
   typedef ZDD dd_t;
   typedef ZDD build_node_t;
 
@@ -254,6 +266,10 @@ public:
 
   inline ZDD nithvar(const int i)
   { return ~_mgr.zddVar(i); }
+
+  template <typename IT>
+  inline ZDD extend(const ZDD &f, IT /*begin*/, IT /*end*/)
+  { throw std::logic_error("CUDD support to 'Extend' ZDDs is unclear?"); }
 
   inline ZDD exists(const ZDD &, int)
   { throw std::logic_error("CUDD has no support for 'Exists' on ZDDs"); }

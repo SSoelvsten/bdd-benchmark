@@ -39,6 +39,10 @@ class sylvan_bdd_adapter
 {
 public:
   inline static const std::string NAME = "Sylvan";
+
+  static constexpr bool needs_extend = false;
+
+public:
   typedef sylvan::Bdd dd_t;
   typedef sylvan::Bdd build_node_t;
 
@@ -113,6 +117,10 @@ public:
                          const sylvan::Bdd &g,
                          const sylvan::Bdd &h)
   { return f.Ite(g,h); }
+
+  template <typename IT>
+  inline sylvan::Bdd extend(const sylvan::Bdd &f, IT /*begin*/, IT /*end*/)
+  { return f; }
 
   inline sylvan::Bdd exists(const sylvan::Bdd &f, int i)
   { return f.ExistAbstract(sylvan::Bdd::bddVar(i)); }

@@ -8,6 +8,8 @@ class cal_bdd_adapter
  public:
   inline static const std::string NAME = "CAL [BDD]";
 
+  static constexpr bool needs_extend = false;
+
   // Variable type
  public:
   typedef BDD dd_t;
@@ -47,6 +49,11 @@ public:
 
   inline BDD ite(BDD f, BDD g, BDD h)
   { return _mgr.ITE(f,g,h); }
+
+  template <typename IT>
+  inline BDD
+  extend(const BDD &f, IT /*begin*/, IT /*end*/)
+  { return f; }
 
   inline BDD exists(const BDD &f, int i)
   {

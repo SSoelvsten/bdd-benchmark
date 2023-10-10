@@ -37,6 +37,9 @@ class adiar_bdd_adapter : public adiar_adapter
 public:
   inline static const std::string NAME = "Adiar [BDD]";
 
+  static constexpr bool needs_extend = true;
+
+public:
   using dd_t   = adiar::bdd;
   using __dd_t = adiar::__bdd;
 
@@ -71,6 +74,11 @@ public:
   inline adiar::bdd
   ite(const adiar::bdd &f, const adiar::bdd &g, const adiar::bdd &h)
   { return adiar::bdd_ite(f,g,h); }
+
+  template <typename IT>
+  inline adiar::bdd
+  extend(const adiar::bdd &f, IT /*begin*/, IT /*end*/)
+  { return f; }
 
   inline adiar::bdd
   exists(const adiar::bdd &f, int i)
@@ -151,6 +159,9 @@ class adiar_zdd_adapter : public adiar_adapter
 public:
   inline static const std::string NAME = "Adiar [ZDD]";
 
+  static constexpr bool needs_extend = true;
+
+public:
   using dd_t   = adiar::zdd;
   using __dd_t = adiar::__zdd;
 
@@ -180,6 +191,11 @@ public:
 
   inline adiar::zdd nithvar(int i)
   { return adiar::zdd_nithvar(i); }
+
+  template <typename IT>
+  inline adiar::zdd
+  extend(const adiar::zdd &f, IT begin, IT end)
+  { return adiar::zdd_expand(f, begin, end); }
 
   inline adiar::zdd
   exists(const adiar::zdd &f, int i)
