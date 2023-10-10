@@ -69,49 +69,49 @@ public:
   { return adiar::bdd_nithvar(i); }
 
   inline adiar::bdd
-  ite(const adiar::bdd &i, const adiar::bdd &t, const adiar::bdd &e)
-  { return adiar::bdd_ite(i,t,e); }
+  ite(const adiar::bdd &f, const adiar::bdd &g, const adiar::bdd &h)
+  { return adiar::bdd_ite(f,g,h); }
 
   inline adiar::bdd
-  exists(const adiar::bdd &b, int i)
-  { return adiar::bdd_exists(b, i); }
+  exists(const adiar::bdd &f, int i)
+  { return adiar::bdd_exists(f, i); }
 
   inline adiar::bdd
-  exists(const adiar::bdd &b, const std::function<bool(int)> &pred)
-  { return adiar::bdd_exists(b, pred); }
+  exists(const adiar::bdd &f, const std::function<bool(int)> &pred)
+  { return adiar::bdd_exists(f, pred); }
 
   template<class IT>
   inline adiar::bdd
-  exists(const adiar::bdd &b, IT rbegin, IT rend)
-  { return adiar::bdd_exists(b, rbegin, rend); }
+  exists(const adiar::bdd &f, IT rbegin, IT rend)
+  { return adiar::bdd_exists(f, rbegin, rend); }
 
   inline adiar::bdd
-  forall(const adiar::bdd &b, int i)
-  { return adiar::bdd_forall(b, i); }
+  forall(const adiar::bdd &f, int i)
+  { return adiar::bdd_forall(f, i); }
 
   inline adiar::bdd
-  forall(const adiar::bdd &b, const std::function<bool(int)> &pred)
-  { return adiar::bdd_forall(b, pred); }
+  forall(const adiar::bdd &f, const std::function<bool(int)> &pred)
+  { return adiar::bdd_forall(f, pred); }
 
   template<class IT>
   inline adiar::bdd
-  forall(const adiar::bdd &b, IT rbegin, IT rend)
-  { return adiar::bdd_forall(b, rbegin, rend); }
+  forall(const adiar::bdd &f, IT rbegin, IT rend)
+  { return adiar::bdd_forall(f, rbegin, rend); }
 
   inline uint64_t
-  nodecount(const adiar::bdd &b)
-  { return adiar::bdd_nodecount(b); }
+  nodecount(const adiar::bdd &f)
+  { return adiar::bdd_nodecount(f); }
 
   inline uint64_t
-  satcount(const adiar::bdd &b)
-  { return this->satcount(b, this->_varcount); }
+  satcount(const adiar::bdd &f)
+  { return this->satcount(f, this->_varcount); }
 
   inline uint64_t
-  satcount(const adiar::bdd &b, const size_t vc)
-  { return adiar::bdd_satcount(b, vc); }
+  satcount(const adiar::bdd &f, const size_t vc)
+  { return adiar::bdd_satcount(f, vc); }
 
   inline std::vector<std::pair<int, char>>
-  pickcube(const adiar::bdd &b)
+  pickcube(const adiar::bdd &f)
   {
     // Unset domain temporarily to only get variables in the BDD.
     assert(adiar::domain_isset());
@@ -120,7 +120,7 @@ public:
 
     std::vector<std::pair<int, char>> res;
 
-    adiar::bdd_satmin(b, [&res](const size_t x, const bool v) {
+    adiar::bdd_satmin(f, [&res](const size_t x, const bool v) {
       res.push_back(std::make_pair(x, '0' + v));
     });
 
@@ -129,8 +129,8 @@ public:
   }
 
   void
-  print_dot(const adiar::bdd &b, const std::string &filename)
-  { return adiar::bdd_printdot(b, filename); }
+  print_dot(const adiar::bdd &f, const std::string &filename)
+  { return adiar::bdd_printdot(f, filename); }
 
   // BDD Build Operations
 public:
@@ -182,16 +182,16 @@ public:
   { return adiar::zdd_nithvar(i); }
 
   inline adiar::zdd
-  exists(const adiar::zdd &b, int i)
-  { return adiar::zdd_project(b, [&i](int x){ return x != i; }); }
+  exists(const adiar::zdd &f, int i)
+  { return adiar::zdd_project(f, [&i](int x){ return x != i; }); }
 
   inline adiar::zdd
-  exists(const adiar::zdd &b, const std::function<bool(int)> &pred)
-  { return adiar::zdd_project(b, [&pred](int x) { return !pred(x); }); }
+  exists(const adiar::zdd &f, const std::function<bool(int)> &pred)
+  { return adiar::zdd_project(f, [&pred](int x) { return !pred(x); }); }
 
   template<class IT>
   inline adiar::zdd
-  exists(const adiar::zdd &b, IT rbegin, IT rend)
+  exists(const adiar::zdd &f, IT rbegin, IT rend)
   {
     // To use `zdd_project`, flip the variables in the iterator.
     std::vector<typename IT::value_type> c;
@@ -207,37 +207,37 @@ public:
     }
 
     // Project to remaining variables
-    return adiar::zdd_project(b, c.cbegin(), c.cend());
+    return adiar::zdd_project(f, c.cbegin(), c.cend());
   }
 
   inline adiar::zdd
-  forall(const adiar::zdd &b, int i)
-  { return ~(exists(~b, i)); }
+  forall(const adiar::zdd &f, int i)
+  { return ~(exists(~f, i)); }
 
   inline adiar::zdd
-  forall(const adiar::zdd &b, const std::function<bool(int)> &pred)
-  { return ~(exists(~b, pred)); }
+  forall(const adiar::zdd &f, const std::function<bool(int)> &pred)
+  { return ~(exists(~f, pred)); }
 
   template<class IT>
   inline adiar::zdd
-  forall(const adiar::zdd &b, IT rbegin, IT rend)
-  { return ~(exists(~b, rbegin, rend)); }
+  forall(const adiar::zdd &f, IT rbegin, IT rend)
+  { return ~(exists(~f, rbegin, rend)); }
 
-  inline uint64_t nodecount(const adiar::zdd &z)
-  { return adiar::zdd_nodecount(z); }
+  inline uint64_t nodecount(const adiar::zdd &f)
+  { return adiar::zdd_nodecount(f); }
 
-  inline uint64_t satcount(const adiar::zdd &z)
-  { return this->satcount(z, this->_varcount); }
+  inline uint64_t satcount(const adiar::zdd &f)
+  { return this->satcount(f, this->_varcount); }
 
-  inline uint64_t satcount(const adiar::zdd &z, const size_t/*vc*/)
-  { return adiar::zdd_size(z); }
+  inline uint64_t satcount(const adiar::zdd &f, const size_t/*vc*/)
+  { return adiar::zdd_size(f); }
 
   inline std::vector<std::pair<int, char>>
-  pickcube(const adiar::zdd &z)
+  pickcube(const adiar::zdd &f)
   {
     std::vector<std::pair<int, char>> res;
 
-    adiar::zdd_minelem(z, [&res](const size_t x) {
+    adiar::zdd_minelem(f, [&res](const size_t x) {
       res.push_back(std::make_pair(x, '1'));
     });
 

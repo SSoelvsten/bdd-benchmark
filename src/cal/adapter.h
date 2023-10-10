@@ -45,68 +45,68 @@ public:
   inline BDD nithvar(int i)
   { return ~_mgr.Id(i+1); }
 
-  inline BDD ite(BDD i, BDD t, BDD e)
-  { return _mgr.ITE(i,t,e); }
+  inline BDD ite(BDD f, BDD g, BDD h)
+  { return _mgr.ITE(f,g,h); }
 
-  inline BDD exists(const BDD &b, int i)
+  inline BDD exists(const BDD &f, int i)
   {
     std::vector<int> is = {i};
-    return exists(b, is.begin(), is.end());
+    return exists(f, is.begin(), is.end());
   }
 
-  inline BDD exists(const BDD &b, const std::function<bool(int)> &pred)
+  inline BDD exists(const BDD &f, const std::function<bool(int)> &pred)
   {
     set_temp_association(pred);
-    return _mgr.Exists(b);
+    return _mgr.Exists(f);
   }
 
   template<typename IT>
-  inline BDD exists(const BDD &b, IT rbegin, IT rend)
+  inline BDD exists(const BDD &f, IT rbegin, IT rend)
   {
     set_temp_association(rbegin, rend);
-    return _mgr.Exists(b);
+    return _mgr.Exists(f);
   }
 
-  inline BDD forall(const BDD &b, int i)
+  inline BDD forall(const BDD &f, int i)
   {
     std::vector<int> is = {i};
-    return forall(b, is.begin(), is.end());
+    return forall(f, is.begin(), is.end());
   }
 
-  inline BDD forall(const BDD &b, const std::function<bool(int)> &pred)
+  inline BDD forall(const BDD &f, const std::function<bool(int)> &pred)
   {
     set_temp_association(pred);
-    return _mgr.ForAll(b);
+    return _mgr.ForAll(f);
   }
 
   template<typename IT>
-  inline BDD forall(const BDD &b, IT rbegin, IT rend)
+  inline BDD forall(const BDD &f, IT rbegin, IT rend)
   {
     set_temp_association(rbegin, rend);
-    return _mgr.ForAll(b);
+    return _mgr.ForAll(f);
   }
 
-  inline uint64_t nodecount(BDD b)
-  { return _mgr.Size(b); }
+  inline uint64_t nodecount(BDD f)
+  { return _mgr.Size(f); }
 
   inline uint64_t
-  satcount(BDD b)
-  { return this->satcount(b, this->_varcount); }
+  satcount(BDD f)
+  { return this->satcount(f, this->_varcount); }
 
   inline uint64_t
-  satcount(BDD b, const size_t vc)
+  satcount(BDD f, const size_t vc)
   {
-    const double satFrac = _mgr.SatisfyingFraction(b);
+    const double satFrac = _mgr.SatisfyingFraction(f);
     const double numVars = vc;
     return std::pow(2, numVars) * satFrac;
   }
 
   inline std::vector<std::pair<int, char>>
-  pickcube(const BDD &b)
+  pickcube(const BDD &f)
   {
     std::vector<std::pair<int, char>> res;
 
-    BDD sat = _mgr.Satisfy(b);
+    BDD sat = _mgr.Satisfy(f);
     while (sat != _mgr.One() && sat != _mgr.Zero()) {
       const int  var       = sat.Id()-1;
 
@@ -129,8 +129,8 @@ public:
   }
 
 private:
-  bool is_complemented(const BDD &b)
-  { return b != _mgr.Regular(b); }
+  bool is_complemented(const BDD &f)
+  { return f != _mgr.Regular(f); }
 
   template<typename IT>
   void set_temp_association(IT begin, IT end)

@@ -109,46 +109,48 @@ public:
   inline sylvan::Bdd nithvar(int i)
   { return ~sylvan::Bdd::bddVar(i); }
 
-  inline sylvan::Bdd ite(const sylvan::Bdd &i,
-                         const sylvan::Bdd &t,
-                         const sylvan::Bdd &e)
-  { return i.Ite(t,e); }
+  inline sylvan::Bdd ite(const sylvan::Bdd &f,
+                         const sylvan::Bdd &g,
+                         const sylvan::Bdd &h)
+  { return f.Ite(g,h); }
 
-  inline sylvan::Bdd exists(const sylvan::Bdd &b, int i)
-  { return b.ExistAbstract(sylvan::Bdd::bddVar(i)); }
+  inline sylvan::Bdd exists(const sylvan::Bdd &f, int i)
+  { return f.ExistAbstract(sylvan::Bdd::bddVar(i)); }
 
-  inline sylvan::Bdd exists(const sylvan::Bdd &b, const std::function<bool(int)> &pred)
-  { return b.ExistAbstract(make_cube(pred)); }
-
-  template<typename IT>
-  inline sylvan::Bdd exists(const sylvan::Bdd &b, IT rbegin, IT rend)
-  { return b.ExistAbstract(make_cube(rbegin, rend)); }
-
-  inline sylvan::Bdd forall(const sylvan::Bdd &b, int i)
-  { return b.UnivAbstract(sylvan::Bdd::bddVar(i)); }
-
-  inline sylvan::Bdd forall(const sylvan::Bdd &b, const std::function<bool(int)> &pred)
-  { return b.UnivAbstract(make_cube(pred)); }
+  inline sylvan::Bdd exists(const sylvan::Bdd &f,
+                            const std::function<bool(int)> &pred)
+  { return f.ExistAbstract(make_cube(pred)); }
 
   template<typename IT>
-  inline sylvan::Bdd forall(const sylvan::Bdd &b, IT rbegin, IT rend)
-  { return b.UnivAbstract(make_cube(rbegin, rend)); }
+  inline sylvan::Bdd exists(const sylvan::Bdd &f, IT rbegin, IT rend)
+  { return f.ExistAbstract(make_cube(rbegin, rend)); }
 
-  inline uint64_t nodecount(const sylvan::Bdd &b)
-  { return b.NodeCount() - 1; }
+  inline sylvan::Bdd forall(const sylvan::Bdd &f, int i)
+  { return f.UnivAbstract(sylvan::Bdd::bddVar(i)); }
 
-  inline uint64_t satcount(const sylvan::Bdd &b)
-  { return this->satcount(b, this->_varcount); }
+  inline sylvan::Bdd forall(const sylvan::Bdd &f,
+                            const std::function<bool(int)> &pred)
+  { return f.UnivAbstract(make_cube(pred)); }
 
-  inline uint64_t satcount(const sylvan::Bdd &b, const size_t vc)
-  { return b.SatCount(vc); }
+  template<typename IT>
+  inline sylvan::Bdd forall(const sylvan::Bdd &f, IT rbegin, IT rend)
+  { return f.UnivAbstract(make_cube(rbegin, rend)); }
+
+  inline uint64_t nodecount(const sylvan::Bdd &f)
+  { return f.NodeCount() - 1; }
+
+  inline uint64_t satcount(const sylvan::Bdd &f)
+  { return this->satcount(f, this->_varcount); }
+
+  inline uint64_t satcount(const sylvan::Bdd &f, const size_t vc)
+  { return f.SatCount(vc); }
 
   inline std::vector<std::pair<int, char>>
-  pickcube(const sylvan::Bdd &b)
+  pickcube(const sylvan::Bdd &f)
   {
     std::vector<std::pair<int, char>> res;
 
-    sylvan::Bdd sat = b.PickOneCube();
+    sylvan::Bdd sat = f.PickOneCube();
     while (!sat.isOne() && !sat.isZero()) {
       const int var = sat.TopVar();
       const sylvan::Bdd sat_low = sat.Else();
@@ -163,10 +165,10 @@ public:
   }
 
   void
-  print_dot(const sylvan::Bdd &b, const std::string &filename)
+  print_dot(const sylvan::Bdd &f, const std::string &filename)
   {
     FILE* p = fopen(filename.data(), "w");
-    b.PrintDot(p);
+    f.PrintDot(p);
     fclose(p);
   }
 
