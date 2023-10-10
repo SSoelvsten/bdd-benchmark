@@ -11,7 +11,7 @@ protected:
   {
     const size_t memory_bytes = static_cast<size_t>(M) * 1024u * 1024u;
     adiar::adiar_init(memory_bytes, temp_path);
-    adiar::adiar_set_domain(vc);
+    adiar::domain_set(vc);
   }
 
   ~adiar_adapter()
@@ -28,7 +28,7 @@ public:
   {
     // Requires the "ADIAR_STATS" property to be ON in CMake
     std::cout << "\n";
-    adiar::adiar_printstat();
+    adiar::statistics_print();
   }
 };
 
@@ -54,11 +54,11 @@ public:
 public:
   inline adiar::bdd
   top()
-  { return adiar::bdd_true(); }
+  { return adiar::bdd_top(); }
 
   inline adiar::bdd
   bot()
-  { return adiar::bdd_false(); }
+  { return adiar::bdd_bot(); }
 
   inline adiar::bdd
   ithvar(int i)
@@ -114,9 +114,9 @@ public:
   pickcube(const adiar::bdd &b)
   {
     // Unset domain temporarily to only get variables in the BDD.
-    assert(adiar::adiar_has_domain());
-    const adiar::shared_file<adiar::domain_var_t> dom = adiar::adiar_get_domain();
-    adiar::adiar_unset_domain();
+    assert(adiar::domain_isset());
+    const auto dom = adiar::domain_get();
+    adiar::domain_unset();
 
     std::vector<std::pair<int, char>> res;
 
@@ -124,7 +124,7 @@ public:
       res.push_back(std::make_pair(x, '0' + v));
     });
 
-    adiar::adiar_set_domain(dom);
+    adiar::domain_set(dom);
     return res;
   }
 
@@ -170,10 +170,10 @@ public:
   // ZDD Operations
 public:
   inline adiar::zdd top()
-  { return adiar::zdd_powerset(adiar::adiar_get_domain()); }
+  { return adiar::zdd_top(); }
 
   inline adiar::zdd bot()
-  { return adiar::zdd_empty(); }
+  { return adiar::zdd_bot(); }
 
   inline adiar::zdd ithvar(int i)
   { return adiar::zdd_ithvar(i); }
@@ -265,11 +265,4 @@ public:
 public:
   inline size_t allocated_nodes()
   { return 0; }
-
-  void print_stats()
-  {
-    // Requires the "ADIAR_STATS" and/or "ADIAR_STATS_EXTRA" property to be ON in CMake
-    std::cout << "\n";
-    adiar::adiar_printstat();
-  }
 };
