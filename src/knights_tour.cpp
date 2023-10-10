@@ -1690,16 +1690,19 @@ namespace enc_gadgets
                 << "   | Add path-length constraints ( % " << p << " )\n";
 #endif // BDD_BENCHMARK_STATS
 
-      // TODO (ZDD): extend variables for
+      // Add gadget variables (0,0), (0,1), ..., (1,0), (1,1), ..., (1,N).
       //
-      //      (N-1,N-1), ..., (N-1,0), (N-2,N-1), ...(N-2,0), (N-3,0).
+      // TODO
 
       for (int row = MIN_ROW(); row < rows(); ++row) {
         for (int col = MIN_COL(); col < cols(); ++col) {
           const cell u(row, col);
 
-          // TODO (ZDD): Extend with gadget bits for (row-2,col-1).
+          // Extend domain to include cell (row-2,col-1).
+          //
+          // TODO
 
+          // Add gadget constraint
           if (u.is_special()) {
             const int u_val =   u == cell::special_0() ? 0
                             :   u == cell::special_1() ? 1
@@ -1809,7 +1812,7 @@ namespace enc_gadgets
 /// `t-1`. While we are at it, we may as well also include the hamiltonian
 /// constraint instead of adding it later.
 ///
-/// \remark This is expected to primarily with ZDDs.
+/// \remark This is expected to only work well with ZDDs.
 ////////////////////////////////////////////////////////////////////////////////
 namespace enc_time
 {

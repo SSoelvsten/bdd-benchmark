@@ -143,44 +143,44 @@ public:
   inline bdd nithvar(int i)
   { return bdd_nithvar(i); }
 
-  inline bdd ite(const bdd &i, const bdd &t, const bdd &e)
-  { return bdd_ite(i,t,e); }
+  inline bdd ite(const bdd &f, const bdd &g, const bdd &h)
+  { return bdd_ite(f,g,h); }
 
-  inline bdd exists(const bdd &b, int i)
-  { return bdd_exist(b, bdd_ithvar(i)); }
+  inline bdd exists(const bdd &f, int i)
+  { return bdd_exist(f, bdd_ithvar(i)); }
 
-  inline bdd exists(const bdd &b, const std::function<bool(int)> &pred)
-  { return bdd_exist(b, make_cube(pred)); }
-
-  template<typename IT>
-  inline bdd exists(const bdd &b, IT rbegin, IT rend)
-  { return bdd_exist(b, make_cube(rbegin, rend)); }
-
-  inline bdd forall(const bdd &b, int i)
-  { return bdd_forall(b, bdd_ithvar(i)); }
-
-  inline bdd forall(const bdd &b, const std::function<bool(int)> &pred)
-  { return bdd_forall(b, make_cube(pred)); }
+  inline bdd exists(const bdd &f, const std::function<bool(int)> &pred)
+  { return bdd_exist(f, make_cube(pred)); }
 
   template<typename IT>
-  inline bdd forall(const bdd &b, IT rbegin, IT rend)
-  { return bdd_forall(b, make_cube(rbegin, rend)); }
+  inline bdd exists(const bdd &f, IT rbegin, IT rend)
+  { return bdd_exist(f, make_cube(rbegin, rend)); }
 
-  inline uint64_t nodecount(const bdd &b)
-  { return bdd_nodecount(b); }
+  inline bdd forall(const bdd &f, int i)
+  { return bdd_forall(f, bdd_ithvar(i)); }
+
+  inline bdd forall(const bdd &f, const std::function<bool(int)> &pred)
+  { return bdd_forall(f, make_cube(pred)); }
+
+  template<typename IT>
+  inline bdd forall(const bdd &f, IT rbegin, IT rend)
+  { return bdd_forall(f, make_cube(rbegin, rend)); }
+
+  inline uint64_t nodecount(const bdd &f)
+  { return bdd_nodecount(f); }
 
   inline uint64_t
-  satcount(const bdd &b)
-  { return this->satcount(b, this->_varcount); }
+  satcount(const bdd &f)
+  { return this->satcount(f, this->_varcount); }
 
-  inline uint64_t satcount(const bdd &b, const size_t vc)
-  { return bdd_satcount(b); /*<-- TODO: compensate for varcount/vc? */ }
+  inline uint64_t satcount(const bdd &f, const size_t vc)
+  { return bdd_satcount(f); /*<-- TODO: compensate for varcount/vc? */ }
 
   inline std::vector<std::pair<int, char>>
-  pickcube(const bdd &b)
+  pickcube(const bdd &f)
   {
     std::vector<std::pair<int, char>> res;
-    bdd sat = bdd_satone(b);
+    bdd sat = bdd_satone(f);
 
     while (sat != bddfalse && sat != bddtrue) {
       const int var = bdd_var(sat);
@@ -196,10 +196,10 @@ public:
   }
 
   void
-  print_dot(const bdd &b, const std::string &filename)
+  print_dot(const bdd &f, const std::string &filename)
   {
     FILE* p = fopen(filename.data(), "w");
-    bdd_fprintdot(p, b);
+    bdd_fprintdot(p, f);
     fclose(p);
   }
 

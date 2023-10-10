@@ -139,43 +139,43 @@ public:
   inline BDD nithvar(int i)
   { return ~_mgr.bddVar(i); }
 
-  inline BDD ite(const BDD &i, const BDD &t, const BDD &e)
-  { return i.Ite(t,e); }
+  inline BDD ite(const BDD &f, const BDD &g, const BDD &h)
+  { return f.Ite(g,h); }
 
-  inline BDD exists(const BDD &b, int i)
-  { return b.ExistAbstract(_mgr.bddVar(i)); }
+  inline BDD exists(const BDD &f, int i)
+  { return f.ExistAbstract(_mgr.bddVar(i)); }
 
-  inline BDD exists(const BDD &b, const std::function<bool(int)> &pred)
-  { return b.ExistAbstract(make_cube(pred)); }
-
-  template<typename IT>
-  inline BDD exists(const BDD &b, IT rbegin, IT rend)
-  { return b.ExistAbstract(make_cube(rbegin, rend)); }
-
-  inline BDD forall(const BDD &b, int i)
-  { return b.UnivAbstract(_mgr.bddVar(i)); }
-
-  inline BDD forall(const BDD &b, const std::function<bool(int)> &pred)
-  { return b.UnivAbstract(make_cube(pred)); }
+  inline BDD exists(const BDD &f, const std::function<bool(int)> &pred)
+  { return f.ExistAbstract(make_cube(pred)); }
 
   template<typename IT>
-  inline BDD forall(const BDD &b, IT rbegin, IT rend)
-  { return b.UnivAbstract(make_cube(rbegin, rend)); }
+  inline BDD exists(const BDD &f, IT rbegin, IT rend)
+  { return f.ExistAbstract(make_cube(rbegin, rend)); }
 
-  inline uint64_t nodecount(const BDD &b)
-  { return b.nodeCount(); }
+  inline BDD forall(const BDD &f, int i)
+  { return f.UnivAbstract(_mgr.bddVar(i)); }
 
-  inline uint64_t satcount(const BDD &b)
-  { return this->satcount(b, _varcount); }
+  inline BDD forall(const BDD &f, const std::function<bool(int)> &pred)
+  { return f.UnivAbstract(make_cube(pred)); }
 
-  inline uint64_t satcount(const BDD &b, const size_t vc)
-  { return b.CountMinterm(vc); }
+  template<typename IT>
+  inline BDD forall(const BDD &f, IT rbegin, IT rend)
+  { return f.UnivAbstract(make_cube(rbegin, rend)); }
+
+  inline uint64_t nodecount(const BDD &f)
+  { return f.nodeCount(); }
+
+  inline uint64_t satcount(const BDD &f)
+  { return this->satcount(f, _varcount); }
+
+  inline uint64_t satcount(const BDD &f, const size_t vc)
+  { return f.CountMinterm(vc); }
 
   inline std::vector<std::pair<int, char>>
-  pickcube(const BDD &b)
+  pickcube(const BDD &f)
   {
     std::string cudd_res(_varcount, '_');
-    b.PickOneCube(cudd_res.data());
+    f.PickOneCube(cudd_res.data());
 
     std::vector<std::pair<int, char>> res;
     for (int x = 0; x < _varcount; ++x) {
@@ -275,17 +275,17 @@ public:
   inline ZDD forall(const ZDD &, IT, IT)
   { throw std::logic_error("CUDD has no support for 'Forall' on ZDDs"); }
 
-  inline uint64_t nodecount(const ZDD &b)
-  { return b.nodeCount(); }
+  inline uint64_t nodecount(const ZDD &f)
+  { return f.nodeCount(); }
 
-  inline uint64_t satcount(const ZDD &b)
-  { return this->satcount(b, _varcount); }
+  inline uint64_t satcount(const ZDD &f)
+  { return this->satcount(f, _varcount); }
 
-  inline uint64_t satcount(const ZDD &b, const size_t vc)
-  { return b.CountMinterm(vc); }
+  inline uint64_t satcount(const ZDD &f, const size_t vc)
+  { return f.CountMinterm(vc); }
 
   inline std::vector<std::pair<int, char>>
-  pickcube(const ZDD &b)
+  pickcube(const ZDD &f)
   { return {}; }
 
   void
