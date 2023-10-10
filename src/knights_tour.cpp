@@ -1152,7 +1152,7 @@ namespace enc_gadgets
     auto match0 = cell_of_var(x, opt) == e.v() ? adapter.build_node(x, bot, out_else) : bot;
     auto match1 = cell_of_var(x, opt) == e.u() ? adapter.build_node(x, out_else, bot) : bot;
 
-    // Make sure which of the two parts of `match` needs to be extended.
+    // Keep track which of the two parts of `match` needs to be extended.
     bool match_latest = false;
 
     out_else = adapter.build_node(x, out_else, out_else);
@@ -1163,7 +1163,7 @@ namespace enc_gadgets
     for (; min_uv_var <= x; --x) {
       const cell c = cell_of_var(x, opt);
 
-      // Further maintain `root` don't care nodes for the later edge-bits.
+      // Further maintain `out_else` don't care nodes for the later edge-bits.
       out_else = adapter.build_node(x, out_else, out_else);
 
       // Add don't care nodes for other gadgets.
@@ -1207,11 +1207,12 @@ namespace enc_gadgets
 
     out_then = match;
 
+    // Add remaining gadget variables
     for (; MIN_GADGET_VAR(opt) <= x; --x) {
       out_else = adapter.build_node(x, out_else, out_else);
       out_then = adapter.build_node(x, out_then, out_then);
     }
-    assert(x = MAX_CELL_VAR(opt));
+    assert(x == MAX_CELL_VAR(opt));
   }
 
   /// \brief Helper function for the binary adder where `p` is **not** a power of two.
@@ -1281,7 +1282,7 @@ namespace enc_gadgets
 
     for (; u_max_var < x; --x) {
       dd_then = adapter.build_node(x, dd_then, dd_then);
-      dd_else  = adapter.build_node(x, dd_else, dd_else);
+      dd_else = adapter.build_node(x, dd_else, dd_else);
     }
 
     auto root = dd_then;
@@ -1299,9 +1300,10 @@ namespace enc_gadgets
       }
     }
 
-    for (; MIN_VAR(opt) < x; --x) {
+    for (; MIN_CELL_VAR(opt) <= x; --x) {
       root = adapter.build_node(x, root, root);
     }
+    assert(x == MIN_VAR(opt));
 
     // -------------------------------------------------------------------------
 
@@ -1690,17 +1692,87 @@ namespace enc_gadgets
                 << "   | Add path-length constraints ( % " << p << " )\n";
 #endif // BDD_BENCHMARK_STATS
 
-      // Add gadget variables (0,0), (0,1), ..., (1,0), (1,1), ..., (1,N).
-      //
-      // TODO
+      if constexpr (adapter_t::needs_extend) {
+        // Establish invariant by extending domain with don't care gadget
+        // variables for cells: (0,0), (0,1), ..., (1,N).
+        std::vector<int> gadget_vars;
+        for (int row = MIN_ROW(); row < MIN_ROW()+2; ++row) {
+          for (int col = MIN_COL(); col < cols(); ++col) {
+            cell c(row, col);
+
+            for (int bit = 0; bit < bits_per_gadget(opt); ++bit) {
+              gadget_vars.push_back(gadget_var(c, bit, opt));
+            }
+          }
+        }
+
+        // Ensure `gadget_vars` actually follows the variable ordering.
+        std::sort(gadget_vars.begin(), gadget_vars.end());
+
+        // Finally, add the 2N*bits don't care levels
+        paths = adapter.extend(paths, gadget_vars.begin(), gadget_vars.end());
+
+#ifdef BDD_BENCHMARK_STATS
+        const size_t nodecount = adapter.nodecount(paths);
+        largest_bdd = std::max(largest_bdd, nodecount);
+        total_nodes += nodecount;
+
+        std::cout << "   | |  Extend 1_,2_ (nodes):  " << nodecount << "\n"
+                  << std::flush;
+#endif // BDD_BENCHMARK_STATS
+      }
 
       for (int row = MIN_ROW(); row < rows(); ++row) {
+
+        if constexpr (adapter_t::needs_extend) {
+          // Extend variables to include gadget for cell (row+2,0).
+
+          const cell new_cell(row+2, MIN_COL());
+          if (!new_cell.out_of_range()) {
+            std::vector<int> gadget_vars;
+            for (int bit = 0; bit < bits_per_gadget(opt); ++bit) {
+              gadget_vars.push_back(gadget_var(new_cell, bit, opt));
+            }
+
+            paths = adapter.extend(paths, gadget_vars.begin(), gadget_vars.end());
+
+#ifdef BDD_BENCHMARK_STATS
+            const size_t nodecount = adapter.nodecount(paths);
+            largest_bdd = std::max(largest_bdd, nodecount);
+            total_nodes += nodecount;
+
+            std::cout << "   | |  Extend " << new_cell.to_string() << " (nodes):     " << nodecount << "\n"
+                      << std::flush;
+#endif // BDD_BENCHMARK_STATS
+          }
+        }
+
         for (int col = MIN_COL(); col < cols(); ++col) {
           const cell u(row, col);
 
-          // Extend domain to include cell (row-2,col-1).
-          //
-          // TODO
+          if constexpr (adapter_t::needs_extend) {
+            // Extend variables to include gadget for cell (row+2,col+1).
+
+            const cell new_cell(row+2, col+1);
+            if (!new_cell.out_of_range()) {
+
+              std::vector<int> gadget_vars;
+              for (int bit = 0; bit < bits_per_gadget(opt); ++bit) {
+                gadget_vars.push_back(gadget_var(new_cell, bit, opt));
+              }
+
+              paths = adapter.extend(paths, gadget_vars.begin(), gadget_vars.end());
+
+#ifdef BDD_BENCHMARK_STATS
+              const size_t nodecount = adapter.nodecount(paths);
+              largest_bdd = std::max(largest_bdd, nodecount);
+              total_nodes += nodecount;
+
+              std::cout << "   | |  Extend " << new_cell.to_string() << " (nodes):     " << nodecount << "\n"
+                        << std::flush;
+#endif // BDD_BENCHMARK_STATS
+            }
+          }
 
           // Add gadget constraint
           if (u.is_special()) {
@@ -1787,8 +1859,6 @@ namespace enc_gadgets
 #ifdef BDD_BENCHMARK_STATS
     std::cout << "   |\n";
 #endif // BDD_BENCHMARK_STATS
-
-    // adapter.print_dot(paths, "paths.dot");
 
     return paths;
   }
@@ -2162,7 +2232,7 @@ int run_knights_tour(int argc, char** argv)
 
   // ---------------------------------------------------------------------------
   std::cout << rows() << " x " << cols() << " - Knight's Tour (" << adapter_t::NAME << " " << M << " MiB):\n"
-            << "   | Encoding:               " << option_str(opt) << "\n";
+            << "   | Encoding:                 " << option_str(opt) << "\n";
 
   if (rows() == 0 || cols() == 0) {
     std::cout << "\n"

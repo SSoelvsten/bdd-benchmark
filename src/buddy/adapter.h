@@ -60,6 +60,10 @@ class buddy_bdd_adapter
 {
 public:
   inline static const std::string NAME = "BuDDy [BDD]";
+
+  static constexpr bool needs_extend = false;
+
+public:
   typedef bdd dd_t;
   typedef bdd build_node_t;
 
@@ -145,6 +149,10 @@ public:
 
   inline bdd ite(const bdd &f, const bdd &g, const bdd &h)
   { return bdd_ite(f,g,h); }
+
+  template <typename IT>
+  inline bdd extend(const bdd &f, IT /*begin*/, IT /*end*/)
+  { return f; }
 
   inline bdd exists(const bdd &f, int i)
   { return bdd_exist(f, bdd_ithvar(i)); }
