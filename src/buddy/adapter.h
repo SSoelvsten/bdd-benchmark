@@ -169,12 +169,18 @@ public:
   inline uint64_t nodecount(const bdd &f)
   { return bdd_nodecount(f); }
 
-  inline uint64_t
-  satcount(const bdd &f)
+  inline uint64_t satcount(const bdd &f)
   { return this->satcount(f, this->_varcount); }
 
   inline uint64_t satcount(const bdd &f, const size_t vc)
-  { return bdd_satcount(f); /*<-- TODO: compensate for varcount/vc? */ }
+  {
+    assert(vc <= this->_varcount);
+
+    const double excess_variables =
+      static_cast<double>(this->_varcount) - static_cast<double>(vc);
+
+    return bdd_satcount(f) / std::pow(2, excess_variables);
+  }
 
   inline std::vector<std::pair<int, char>>
   pickcube(const bdd &f)
