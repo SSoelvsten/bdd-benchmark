@@ -18,6 +18,7 @@ one to compare implementations.
         - [QBF Solver](#qbf-solver)
         - [Queens](#queens)
         - [Tic-Tac-Toe](#tic-tac-toe)
+    - [Performance Regression Testing](#performance-regression-testing)
     - [License](#license)
     - [Citation](#citation)
     - [References](#references)
@@ -373,6 +374,45 @@ make run/tic_tac_toe N=20 V=cudd
 | Labels            |              64 |
 | Apply operations  |              76 |
 | Initial BDD size  | (64-N+1)(N+1)-1 |
+
+## Performance Regression Testing
+
+This collection of benchmarks is not only a good way to compare implementations
+of BDD packages. Assuming there are no breaking changes in a pull request, this
+also provides a way to test for *performance regression*.
+
+To this end, *regression.py* provides an interactive python program that fully
+automates downloading inputs and running and analysing the benchmark timings of
+two branches. For a non-interactive context, e.g. continuous integration, all
+arguments can be parsed through *stdin*. For example, the following goes through
+all the prompts for using the *8*-Queens problem to test Adiar with *128* MiB
+`origin/main` (against itself) with *no* verbose build or runtime output and
+with at least 3 and at most 10 samples.
+
+```bash
+python regression.py <<< "queens
+8
+adiar
+128
+origin
+main
+origin
+main
+no
+no
+3
+10
+"
+```
+
+Between *min* and *max* number of samples are collected, until both the
+*baseline* and the *under test* branches have a standard deviation below 5%. For
+smaller instances, samples are collected for at least 30 minutes whereas for
+larger instances, the last sampling may start after 90 minutes.
+
+The python script exits with a non-zero code, if there is a statistically
+relevant slowdown. A short and concise report is places in
+*regression_{package}.out* which can be posted as a comment on the pull request.
 
 ## License
 The software files in this repository are provided under the
