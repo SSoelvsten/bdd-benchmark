@@ -309,7 +309,7 @@ multiple inputs in the *benchmarks/picotrav* folder together with links to
 larger and more interesting inputs.
 
 ```bash
-make run/picotrav F1=benchmarks/not_a.blif F2=benchmarks/not_b.blif V=cudd O=LEVEL_DFS
+make run/picotrav F1=benchmarks/picotrav/not_a.blif F2=benchmarks/picotrav/not_b.blif V=cudd O=LEVEL_DFS
 ```
 
 ### QBF Solver [BDD]
@@ -371,7 +371,7 @@ inputs in the *benchmarks/apply* folder together with links to larger and more
 interesting inputs.
 
 ```bash
-make run/apply F1=benchmarks/not_a.blif F2=benchmarks/not_b.blif V=cudd O=LEVEL_DFS
+make run/apply F1=benchmarks/apply/x0.bdd F2=benchmarks/apply/x1.bdd V=cudd O=and
 ```
 
 ## License
