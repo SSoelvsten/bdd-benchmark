@@ -229,18 +229,15 @@ Solves the following problem:
   variables are ever set to true at the same time; the value of the gadget is
   the variable set to true.
 
-- `crt_binary`/`crt`: Similar to `binary` but one or more prime numbers are used
+- `crt_one-hot`/`crt`: Similar to `unary` but one or more prime numbers are used
   for gadgets added at the end. By use of the Chinese Remainder Theorem, we can
   still be sure, we only have valid cycles at the end. One hopes this decreases
   the size of the diagram, since the number of possible values for each gadget
   are much smaller.
 
-- `crt_unary`/`crt_one-hot`: Similar to `crt_binary` but with a *one-hot*
-  encoding as described for `unary`.
-
 The `time` and the `unary`/`crt_unary` encoding are designed with ZDDs in mind
-whereas the `binary`/`crt_binary` is designed for BDDs. That is, using the
-`time` encoding with BDDs does not give you great, i.e. small and fast, results.
+whereas the `binary` encoding is designed for BDDs. That is, using the `time`
+encoding with BDDs does not give you great, i.e. small and fast, results.
 
 ```bash
 make run/knights_tour N1=6 N2=5 V=cudd
