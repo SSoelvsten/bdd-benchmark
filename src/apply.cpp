@@ -78,6 +78,8 @@ namespace lib_bdd
   {
     UInt res = 0;
     for (size_t byte = 0; byte < bytes.size(); ++byte) {
+      // HACK: Reinterpret 'char' as an 'unsigned char' without changing any of
+      //       the bit values (see also 'fast inverse square root' algorithm).
       unsigned char unsigned_byte = *((unsigned char*) (&bytes.at(byte)));
 
       res |= static_cast<UInt>(unsigned_byte) << (8*byte);
@@ -336,12 +338,12 @@ var_map remap_vars(const std::array<lib_bdd::bdd, 2> &fs)
   return remap_vars(fs.at(0), fs.at(1));
 }
 
-/// \brief Reconstruct BDD from 'lib-bdd' inside of BDD package.
+/// \brief Reconstruct DD from 'lib-bdd' inside of BDD package.
 template<typename adapter_t>
 typename adapter_t::dd_t
 reconstruct(adapter_t &adapter, const lib_bdd::bdd &in, const var_map &vm)
 {
-  // Vector of converted BDD nodes
+  // Vector of converted DD nodes
   std::vector<typename adapter_t::build_node_t> out;
 
   // Iterator through input
@@ -440,7 +442,7 @@ int run_apply(int argc, char** argv)
             << std::flush;
 
   // =========================================================================
-  // Reconstruct BDDs
+  // Reconstruct DDs
   std::array<typename adapter_t::dd_t, inputs> inputs_bdd;
 
   for (size_t i = 0; i < inputs; ++i) {
@@ -455,7 +457,7 @@ int run_apply(int argc, char** argv)
   }
 
   // =========================================================================
-  // Apply both BDDs together
+  // Apply both DDs together
   typename adapter_t::dd_t result;
 
   const time_point t_apply_before = get_timestamp();
