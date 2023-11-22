@@ -57,11 +57,11 @@ std::string option_str(const oper_opt& enc)
 {
   switch (enc) {
   case oper_opt::AND:
-    return "&";
+    return "and";
   case oper_opt::OR:
-    return "|";
+    return "or";
   case oper_opt::XOR:
-    return "^";
+    return "xor";
   default:
     return "?";
   }
@@ -511,7 +511,7 @@ int run_apply(int argc, char** argv)
   }
   const time_point t_apply_after = get_timestamp();
 
-  std::cout << "\n  Apply (" << option_str(oper_opt) << "):\n"
+  std::cout << "\n  Apply ( " << option_str(oper_opt) << " ):\n"
             << "  | size (nodes):           " << adapter.nodecount(result) << "\n"
             << "  | time (ms):              " << duration_of(t_apply_before, t_apply_after) << "\n"
             << std::flush;
