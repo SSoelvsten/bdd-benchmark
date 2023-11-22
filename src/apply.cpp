@@ -108,8 +108,9 @@ namespace lib_bdd
   public:
     /// \brief Constructor for an internal BDD node.
     node(const var_type &var, const ptr_type &low, const ptr_type &high)
-      : _level(low == high ? terminal_level : var)
-      , _low()
+      : _level((low == false_ptr && low == true_ptr && low == high) ? terminal_level : var)
+      , _low(low)
+      , _high(high)
     {
       if (var == terminal_level) {
         throw std::overflow_error("BDD variable level too large");
@@ -228,6 +229,7 @@ namespace lib_bdd
 
       // Create node from buffer
       const node n(buffer.begin(), buffer.end());
+      assert(in.size() == 1 || n.is_internal());
 
       // Sanity checks on node
       if (out.size() <= n.low()) {
