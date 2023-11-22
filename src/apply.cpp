@@ -205,10 +205,15 @@ namespace lib_bdd
     in.read(buffer.data(), buffer.size());
 
     if (in.eof()) {
+      if (in.fail()) {
+        std::cerr << "  | Unexpected end-of-file (EOF)\n"
+                  << "  |\n";
+      }
+
       return out;
     }
     if (!in.good()) {
-      throw std::runtime_error("Error while parsing `true` terminal.");
+      throw std::runtime_error("Error while parsing `true` terminal");
     }
 
     out.push_back(node(buffer.begin(), buffer.end()));
@@ -217,14 +222,20 @@ namespace lib_bdd
     while (true) {
       in.read(buffer.data(), buffer.size());
 
+      // Hit the end?
       if (in.eof()) {
         return out;
       }
+
+      // Any other errors?
       if (in.bad()) {
-        throw std::runtime_error("Error while parsing BDD nodes.");
+        throw std::runtime_error("Bad state of std::ifstream while scanning 10-byte chunk(s).");
       }
+
+      // Create node from buffer
       const node n(buffer.begin(), buffer.end());
 
+      // Sanity checks on node
       if (out.size() <= n.low()) {
         std::stringstream ss;
         ss << "Low index ( " << n.low() << " ) is out-of-bounds";
@@ -237,9 +248,9 @@ namespace lib_bdd
 
         throw std::out_of_range(ss.str());
       }
-      out.push_back(n);
 
-      in.read(buffer.data(), buffer.size());
+      // Push node to output
+      out.push_back(n);
     }
   }
 
