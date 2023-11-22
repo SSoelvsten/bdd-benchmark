@@ -31,8 +31,9 @@ libraries.
 - [**Adiar**](https://github.com/ssoelvsten/adiar):
   An I/O Efficient implementation with iterative algorithms using priority
   queues to exploit a special sorting of BDD nodes streamed from and to the
-  disk. These algorithms have no need for memoization or garbage collection,
-  but, on the other hand, nodes are also not shareable between BDDs.
+  disk. These algorithms have no need for memoization or garbage collection.
+  But, on the other hand, nodes are also not shareable between BDDs. It also
+  supports Zero-suppressed Decision Diagrams.
 
 
 - [**BuDDy**](http://vlsicad.eecs.umich.edu/BK/Slots/cache/www.itu.dk/research/buddy/):
