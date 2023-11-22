@@ -50,6 +50,9 @@ libraries.
   Unlike Adiar it also supports sharing of nodes between BDDs at the cost of
   memoization and garbage collection.
 
+  We use the [revived version](https://github.com/SSoelvsten/cal) which has
+  CMake support and a C++ API.
+
 
 - **CUDD**:
   The most popular BDD package. It uses depth-first algorithms and a unique node
