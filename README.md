@@ -182,21 +182,21 @@ make run/picotrav V=cudd O=level_df
 
 ### Apply
 
-Based on [[Pastva2023](#references)], this benchmark loads two BDDs stored in a
-*binary.bdd* format (as they are serialized by the
+Based on [[Pastva2023](#references)], this benchmark loads two decision diagrams
+stored in a *binary* format (as they are serialized by the
 [lib-bdd](https://github.com/sybila/biodivine-lib-bdd) BDD package) and then
 combines them with a single *Apply* operation.
 
-As an option, you can specify the operator to be used to combine the BDDs.
+As an option, you can specify the operator to be used to combine the decision
+diagrams.
 
 - `and`
 - `or`
-- `xor`
 
-The *.binary.bdd* file(s) is given with the `-f` parameter (*F1* and *F2* Make
-variables) and the apply operand with `-o` (*O* for Make). You can find some
-inputs in the *benchmarks/apply* folder together with links to larger and more
-interesting inputs.
+The *.bdd* / *.zdd* file(s) is given with the `-f` parameter (*F1* and *F2*
+Make variables) and the apply operand with `-o` (*O* for Make). You can find
+some inputs in the *benchmarks/apply* folder together with links to larger and
+more interesting inputs.
 
 ```bash
 make run/apply F1=benchmarks/apply/x0.bdd F2=benchmarks/apply/x1.bdd V=cudd O=and
