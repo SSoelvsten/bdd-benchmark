@@ -109,3 +109,7 @@ add_benchmark(picotrav)
 link_extra(picotrav libblifparse)
 
 add_bdd_benchmark(qbf)
+
+# ---------------------------------------------------------------------------- #
+# Other Benchmarks
+add_bdd_benchmark(apply)
