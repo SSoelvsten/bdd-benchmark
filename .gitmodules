@@ -13,9 +13,6 @@
 [submodule "external/blifparse"]
 	path = external/blifparse
 	url = ../../SSoelvsten/libblifparse
-[submodule "benchmarks/epfl"]
-	path = benchmarks/epfl
-	url = ../../lsils/benchmarks
 [submodule "external/cal"]
 	path = external/cal
 	url = ../../SSoelvsten/cal
