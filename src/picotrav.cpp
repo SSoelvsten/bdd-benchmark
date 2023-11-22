@@ -731,6 +731,7 @@ int construct_net_bdd(const std::string &filename,
             << "   | | Negations:            " << stats.total_negations << "\n";
 #endif // BDD_BENCHMARK_STATS
   std::cout << std::flush;
+
   return 0;
 }
 
@@ -769,8 +770,9 @@ bool verify_outputs(const net_t& net_0, const bdd_cache<adapter_t>& cache_0,
     std::cout << "   | | all outputs match!\n";
   }
 
-  std::cout << "   | time (ms):            " << duration_of(t_compare_before, t_compare_after) << "\n"
+  std::cout << "   | time (ms):              " << duration_of(t_compare_before, t_compare_after) << "\n"
             << std::flush;
+
   return ret_value;
 }
 
@@ -891,6 +893,8 @@ int run_picotrav(int argc, char** argv)
   // Construct BDD for net(s)
   bdd_cache<adapter_t> cache_0;
 
+  const time_point t_before = get_timestamp();
+
   int errcode_0 = 0;
   int errcode_1 = 0;
   bool networks_equal = true;
@@ -907,6 +911,12 @@ int run_picotrav(int argc, char** argv)
 
     networks_equal = verify_outputs<adapter_t>(net_0, cache_0, net_1, cache_1);
   }
+  const time_point t_after = get_timestamp();
+
+  // TODO: Fix 'total time' below also measures multiple 'std::flush'.
+  std::cout << "\n"
+            << "   total time (ms):          " << duration_of(t_before, t_after) << "\n"
+            << std::flush;
 
   adapter.print_stats();
 
