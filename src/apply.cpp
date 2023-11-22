@@ -27,7 +27,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief Enum for choosing the desired Apply operation.
 ////////////////////////////////////////////////////////////////////////////////
-enum oper_opt { AND, OR, XOR };
+enum oper_opt { AND, OR };
 
 template<>
 std::string option_help_str<oper_opt>()
@@ -44,9 +44,6 @@ oper_opt parse_option(const std::string &arg, bool &should_exit)
   if (lower_arg == "or")
     { return oper_opt::OR; }
 
-  if (lower_arg == "xor")
-    { return oper_opt::XOR; }
-
   std::cerr << "Undefined operand: " << arg << "\n";
   should_exit = true;
 
@@ -60,8 +57,6 @@ std::string option_str(const oper_opt& enc)
     return "and";
   case oper_opt::OR:
     return "or";
-  case oper_opt::XOR:
-    return "xor";
   default:
     return "?";
   }
@@ -491,15 +486,16 @@ int run_apply(int argc, char** argv)
 
   // =========================================================================
   // Reconstruct DDs
-  std::array<typename adapter_t::dd_t, inputs> inputs_bdd;
+  std::array<typename adapter_t::dd_t, inputs> inputs_dd;
 
   for (size_t i = 0; i < inputs; ++i) {
     const time_point t_rebuild_before = get_timestamp();
-    inputs_bdd.at(i) = reconstruct(adapter, inputs_binary.at(i), vm);
+    inputs_dd.at(i) = reconstruct(adapter, inputs_binary.at(i), vm);
     const time_point t_rebuild_after = get_timestamp();
 
-    std::cout << "\n  BDD '" << input_files.at(i) << "':\n"
-              << "  | size (nodes):           " << adapter.nodecount(inputs_bdd.at(i)) << "\n"
+    std::cout << "\n  DD '" << input_files.at(i) << "':\n"
+              << "  | size (nodes):           " << adapter.nodecount(inputs_dd.at(i)) << "\n"
+              << "  | satcount:               " << adapter.satcount(inputs_dd.at(i)) << "\n"
               << "  | time (ms):              " << duration_of(t_rebuild_before, t_rebuild_after) << "\n"
               << std::flush;
   }
@@ -511,19 +507,17 @@ int run_apply(int argc, char** argv)
   const time_point t_apply_before = get_timestamp();
   switch (oper_opt) {
   case oper_opt::AND:
-    result = inputs_bdd.at(0) & inputs_bdd.at(1);
+    result = inputs_dd.at(0) & inputs_dd.at(1);
     break;
   case oper_opt::OR:
-    result = inputs_bdd.at(0) | inputs_bdd.at(1);
-    break;
-  case oper_opt::XOR:
-    result = inputs_bdd.at(0) ^ inputs_bdd.at(1);
+    result = inputs_dd.at(0) | inputs_dd.at(1);
     break;
   }
   const time_point t_apply_after = get_timestamp();
 
   std::cout << "\n  Apply ( " << option_str(oper_opt) << " ):\n"
             << "  | size (nodes):           " << adapter.nodecount(result) << "\n"
+            << "  | satcount:               " << adapter.satcount(result) << "\n"
             << "  | time (ms):              " << duration_of(t_apply_before, t_apply_after) << "\n"
             << std::flush;
 

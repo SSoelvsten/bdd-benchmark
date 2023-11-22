@@ -112,4 +112,4 @@ add_bdd_benchmark(qbf)
 
 # ---------------------------------------------------------------------------- #
 # Other Benchmarks
-add_bdd_benchmark(apply)
+add_benchmark(apply)

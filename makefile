@@ -42,7 +42,7 @@ build:
 	@cd build/ && for package in 'adiar' 'cudd' ; do \
 		mkdir -p ../out/$$package ; \
 		mkdir -p ../out/$$package/zdd ; \
-		for benchmark in 'knights_tour' 'picotrav' 'queens' 'tic_tac_toe' ; do \
+		for benchmark in 'apply' 'knights_tour' 'picotrav' 'queens' 'tic_tac_toe' ; do \
 			make ${MAKE_FLAGS} $$package'_'$$benchmark'_zdd' ; \
 		done ; \
 	done
@@ -107,7 +107,7 @@ help:
 	@echo "   | Memory (MiB) to dedicate to the BDD package."
 
 	@echo ""
-	@echo "run/apply/[bdd]"
+	@echo "run/apply/[bdd,zdd]"
 	@echo "   Load two BDDs and combine them with the product construction."
 	@echo ""
 	@echo "   + F1=<file_path> (default: benchmarks/...)"
@@ -204,11 +204,17 @@ O := ""
 run/apply:
 	$(MAKE) run/apply/bdd
 
-run/apply/bdd: O := "AND"
+run/apply/bdd: O  := "AND"
 run/apply/bdd: F1 := "benchmarks/apply/x0.bdd"
 run/apply/bdd: F2 := "benchmarks/apply/x1.bdd"
 run/apply/bdd:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_apply_bdd -f $(F1) -f $(F2) -M $(M) -o $(O) 2>&1 | tee -a out/VARIANT/bdd/apply.out)
+
+run/apply/zdd: O  := "OR"
+run/apply/zdd: F1 := "benchmarks/apply/100.zdd"
+run/apply/zdd: F2 := "benchmarks/apply/010.zdd"
+run/apply/zdd:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_apply_zdd -f $(F1) -f $(F2) -M $(M) -o $(O) 2>&1 | tee -a out/VARIANT/zdd/apply.out)
 
 # ============================================================================ #
 #  RUN: Knight's Tour
