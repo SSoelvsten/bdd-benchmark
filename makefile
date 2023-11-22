@@ -205,8 +205,8 @@ run/apply:
 	$(MAKE) run/apply/bdd
 
 run/apply/bdd: O := "AND"
-run/apply/bdd: F1 := "benchmarks/apply/x0.binary.bdd"
-run/apply/bdd: F2 := "benchmarks/apply/x1.binary.bdd"
+run/apply/bdd: F1 := "benchmarks/apply/x0.bdd"
+run/apply/bdd: F2 := "benchmarks/apply/x1.bdd"
 run/apply/bdd:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_apply_bdd -f $(F1) -f $(F2) -M $(M) -o $(O) 2>&1 | tee -a out/VARIANT/bdd/apply.out)
 
