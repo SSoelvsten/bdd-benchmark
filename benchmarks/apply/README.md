@@ -1,4 +1,4 @@
-# Apply (*.binary.bdd*)
+# Apply (*.bdd*/*.zdd*)
 
 Minimal (hand-encoded) binary BDDs on the format it is serialized by *lib-bdd*.
 
