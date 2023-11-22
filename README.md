@@ -12,14 +12,14 @@ one to compare implementations.
     - [Dependencies](#dependencies)
     - [Usage](#usage)
     - [Combinatorial Benchmarks](#combinatorial-benchmarks)
-        - [Knight's Tour [BDD, ZDD]](#knights-tour-bdd-zdd)
-        - [Queens [BDD, ZDD]](#queens-bdd-zdd)
-        - [Tic-Tac-Toe [BDD, ZDD]](#tic-tac-toe-bdd-zdd)
+        - [Knight's Tour](#knights-tour)
+        - [Queens](#queens)
+        - [Tic-Tac-Toe](#tic-tac-toe)
     - [Verification](#verification)
-        - [Picotrav [BDD, ZDD]](#picotrav-bdd-zdd)
-        - [QBF Solver [BDD]](#qbf-solver-bdd)
+        - [Picotrav](#picotrav)
+        - [QBF Solver](#qbf-solver)
     - [Other Benchmarks](#other-benchmarks)
-        - [Apply [BDD]](#apply-bdd)
+        - [Apply](#apply)
     - [License](#license)
     - [Citation](#citation)
     - [References](#references)
@@ -182,7 +182,7 @@ make run/picotrav V=cudd O=level_df
 
 ## Combinatorial Benchmarks
 
-### Knight's Tour [BDD, ZDD]
+### Knight's Tour
 Solves the following problem:
 
 > Given N, then how many hamiltonian paths can a single Knight do across a chess
@@ -226,7 +226,7 @@ whereas the `binary`/`crt_binary` is designed for BDDs. That is, using the
 make run/knights_tour N1=6 N2=5 V=cudd
 ```
 
-### Queens [BDD, ZDD]
+### Queens
 Solves the following problem:
 
 > Given N, then in how many ways can N queens be placed on an N x N chess board
@@ -251,7 +251,7 @@ make run/queens N=8 V=cudd
 | Apply operations | N² + N |
 
 
-### Tic-Tac-Toe [BDD, ZDD]
+### Tic-Tac-Toe
 Solves the following problem:
 
 > Given N, then in how many ways can Player 1 place N crosses in a 3D 4x4x4 cube
@@ -277,7 +277,7 @@ make run/tic_tac_toe N=20 V=cudd
 
 ## Verification
 
-### Picotrav [BDD, ZDD]
+### Picotrav
 This benchmark is a small recreation of the *Nanotrav* example provided with the
 CUDD library [[Somenzi2015](#references)]. Given a hierarchical circuit in (a
 subset of the) [Berkeley Logic Interchange Format
@@ -312,7 +312,10 @@ larger and more interesting inputs.
 make run/picotrav F1=benchmarks/picotrav/not_a.blif F2=benchmarks/picotrav/not_b.blif V=cudd O=LEVEL_DFS
 ```
 
-### QBF Solver [BDD]
+### QBF Solver
+
+> **Note:** ZDDs are (yet) unsupported for this benchmark!
+
 Based on Jaco van de Pol's Christmas holiday hobbyproject, this is an
 implementation of a QBF solver. Given an input in the
 [*qcir*](https://www.qbflib.org/qcir.pdf) format, the decision diagram
@@ -352,7 +355,7 @@ make run/qbf F=benchmarks/qcir/example_a.blif V=cudd O=LEVEL
 
 ## Other Benchmarks
 
-### Apply [BDD]
+### Apply
 
 Based on [[Pastva2023](#references)], this benchmark loads two BDDs stored in a
 *binary.bdd* format (as they are serialized by the
