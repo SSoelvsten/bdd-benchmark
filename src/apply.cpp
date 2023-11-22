@@ -257,7 +257,45 @@ namespace lib_bdd
     return deserialize(is);
   }
 
-  // TODO: statistics
+  /// \brief Struct with various statistics about a deserialized BDD.
+  struct stats_t
+  {
+    size_t size         = 0u;
+    size_t levels       = 0u;
+    size_t width        = 0u;
+    size_t terminals[2] = {0u, 0u};
+    // TODO: parent edge distribution
+  };
+
+  /// \brief Extract statistics from a BDD.
+  stats_t stats(const bdd &f)
+  {
+    stats_t out;
+
+    out.size = f.size();
+
+    node::var_type curr_level = node::terminal_level;
+    node::ptr_type curr_width = 0u;
+
+    for (const auto &n : f) {
+      if (n.level() != curr_level) {
+        out.levels += 1;
+        curr_level = n.level();
+        curr_width = 0u;
+      }
+
+      curr_width += 1u;
+
+      if (n.is_internal()) {
+        out.terminals[false] += (n.low() == node::false_ptr) + (n.high() == node::false_ptr);
+        out.terminals[true]  += (n.low() == node::true_ptr)  + (n.high() == node::true_ptr);
+
+        out.width = std::max<size_t>(out.width, curr_width);
+      }
+    }
+
+    return out;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -374,9 +412,15 @@ int run_apply(int argc, char** argv)
     std::cout << "  Parsing '" << input_files.at(i) << "':\n";
     inputs_binary.at(i) = lib_bdd::deserialize(input_files.at(i));
 
-    // TODO: statistics on input
+    const lib_bdd::stats_t stats = lib_bdd::stats(inputs_binary.at(i));
 
-    std::cout << "\n"
+    std::cout << "  | size:                   " << stats.size << "\n"
+              << "  | levels:                 " << stats.levels << "\n"
+              << "  | width:                  " << stats.width << "\n"
+              << "  | terminal edges:\n"
+              << "  | | false                 " << stats.terminals[false] << "\n"
+              << "  | | true                  " << stats.terminals[true] << "\n"
+              << "\n"
               << std::flush;
   }
 
