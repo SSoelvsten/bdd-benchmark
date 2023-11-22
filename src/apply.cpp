@@ -262,11 +262,21 @@ namespace lib_bdd
   /// \brief Struct with various statistics about a deserialized BDD.
   struct stats_t
   {
-    size_t size          = 0u;
-    size_t levels        = 0u;
-    size_t width         = 0u;
-    size_t terminals[2]  = {0u, 0u};
-    size_t single_parent = 0u;
+  public:
+    enum parent_count_idx : int
+    {
+      None = 0,
+      One  = 1,
+      Two  = 2,
+      More = 3
+    };
+
+  public:
+    node::ptr_type size             = 0u;
+    node::var_type levels           = 0u;
+    node::ptr_type width            = 0u;
+    node::ptr_type terminals[2]     = {0u, 0u};
+    node::ptr_type parent_counts[4] = {0u, 0u, 0u, 0u};
   };
 
   /// \brief Extract statistics from a BDD.
@@ -304,8 +314,17 @@ namespace lib_bdd
 
     // Accumulate data from 'parent_counts'
     for (const auto &pc : parent_counts) {
+      if (pc == 0) {
+        out.parent_counts[stats_t::parent_count_idx::None] += 1;
+      }
       if (pc == 1) {
-        out.single_parent += 1;
+        out.parent_counts[stats_t::parent_count_idx::One] += 1;
+      }
+      if (pc == 2) {
+        out.parent_counts[stats_t::parent_count_idx::Two] += 1;
+      }
+      if (pc > 2) {
+        out.parent_counts[stats_t::parent_count_idx::More] += 1;
       }
     }
 
@@ -436,7 +455,10 @@ int run_apply(int argc, char** argv)
               << "  | | false                 " << stats.terminals[false] << "\n"
               << "  | | true                  " << stats.terminals[true] << "\n"
               << "  | parent counts:\n"
-              << "  | | 1                     " << stats.single_parent << "\n"
+              << "  | | 0                     " << stats.parent_counts[lib_bdd::stats_t::parent_count_idx::None] << "\n"
+              << "  | | 1                     " << stats.parent_counts[lib_bdd::stats_t::parent_count_idx::One] << "\n"
+              << "  | | 2                     " << stats.parent_counts[lib_bdd::stats_t::parent_count_idx::Two] << "\n"
+              << "  | | 3+                    " << stats.parent_counts[lib_bdd::stats_t::parent_count_idx::More] << "\n"
               << "\n"
               << std::flush;
   }
