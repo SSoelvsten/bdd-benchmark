@@ -11,15 +11,13 @@ one to compare implementations.
         - [Enforcing comparability](#enforcing-comparability)
     - [Dependencies](#dependencies)
     - [Usage](#usage)
-    - [Combinatorial Benchmarks](#combinatorial-benchmarks)
+    - [Benchmarks](#benchmarks)
+        - [Apply](#apply)
         - [Knight's Tour](#knights-tour)
-        - [Queens](#queens)
-        - [Tic-Tac-Toe](#tic-tac-toe)
-    - [Verification](#verification)
         - [Picotrav](#picotrav)
         - [QBF Solver](#qbf-solver)
-    - [Other Benchmarks](#other-benchmarks)
-        - [Apply](#apply)
+        - [Queens](#queens)
+        - [Tic-Tac-Toe](#tic-tac-toe)
     - [License](#license)
     - [Citation](#citation)
     - [References](#references)
@@ -180,7 +178,29 @@ ordering or algorithm.
 make run/picotrav V=cudd O=level_df
 ```
 
-## Combinatorial Benchmarks
+## Benchmarks
+
+### Apply
+
+Based on [[Pastva2023](#references)], this benchmark loads two BDDs stored in a
+*binary.bdd* format (as they are serialized by the
+[lib-bdd](https://github.com/sybila/biodivine-lib-bdd) BDD package) and then
+combines them with a single *Apply* operation.
+
+As an option, you can specify the operator to be used to combine the BDDs.
+
+- `and`
+- `or`
+- `xor`
+
+The *.binary.bdd* file(s) is given with the `-f` parameter (*F1* and *F2* Make
+variables) and the apply operand with `-o` (*O* for Make). You can find some
+inputs in the *benchmarks/apply* folder together with links to larger and more
+interesting inputs.
+
+```bash
+make run/apply F1=benchmarks/apply/x0.bdd F2=benchmarks/apply/x1.bdd V=cudd O=and
+```
 
 ### Knight's Tour
 Solves the following problem:
@@ -225,57 +245,6 @@ whereas the `binary`/`crt_binary` is designed for BDDs. That is, using the
 ```bash
 make run/knights_tour N1=6 N2=5 V=cudd
 ```
-
-### Queens
-Solves the following problem:
-
-> Given N, then in how many ways can N queens be placed on an N x N chess board
-> without threatening eachother?
-
-Our implementation of these benchmarks are based on the description of
-[[Kunkle10](#references)]. We construct an BDD row-by-row that represents
-whether the row is in a legal state: is at least one queen placed on each row
-and is it also in no conflicts with any other? On the accumulated BDD we then
-count the number of satisfying assignments.
-
-```bash
-make run/queens N=8 V=cudd
-```
-
-
-**Statistics:**
-
-| Variable         | Value  |
-|------------------|--------|
-| Labels           | N²     |
-| Apply operations | N² + N |
-
-
-### Tic-Tac-Toe
-Solves the following problem:
-
-> Given N, then in how many ways can Player 1 place N crosses in a 3D 4x4x4 cube
-> and have a tie, when Player 2 places noughts in all remaining positions?
-
-This benchmark stems from [[Kunkle10](#references)]. Here we keep an accumulated
-BDD on which we add one of the 76 constraints of at least one cross and one
-nought after the other. We add these constraints in a different order than
-[[Kunkle10](#references)], which does result in an up to 100 times smaller largest
-intermediate result.
-
-```bash
-make run/tic_tac_toe N=20 V=cudd
-```
-
-**Statistics:**
-
-| Variable          |           Value |
-|-------------------|-----------------|
-| Labels            |              64 |
-| Apply operations  |              76 |
-| Initial BDD size  | (64-N+1)(N+1)-1 |
-
-## Verification
 
 ### Picotrav
 This benchmark is a small recreation of the *Nanotrav* example provided with the
@@ -353,29 +322,56 @@ inputs.
 make run/qbf F=benchmarks/qcir/example_a.blif V=cudd O=LEVEL
 ```
 
-## Other Benchmarks
 
-### Apply
 
-Based on [[Pastva2023](#references)], this benchmark loads two BDDs stored in a
-*binary.bdd* format (as they are serialized by the
-[lib-bdd](https://github.com/sybila/biodivine-lib-bdd) BDD package) and then
-combines them with a single *Apply* operation.
+### Queens
+Solves the following problem:
 
-As an option, you can specify the operator to be used to combine the BDDs.
+> Given N, then in how many ways can N queens be placed on an N x N chess board
+> without threatening eachother?
 
-- `and`
-- `or`
-- `xor`
-
-The *.binary.bdd* file(s) is given with the `-f` parameter (*F1* and *F2* Make
-variables) and the apply operand with `-o` (*O* for Make). You can find some
-inputs in the *benchmarks/apply* folder together with links to larger and more
-interesting inputs.
+Our implementation of these benchmarks are based on the description of
+[[Kunkle10](#references)]. We construct an BDD row-by-row that represents
+whether the row is in a legal state: is at least one queen placed on each row
+and is it also in no conflicts with any other? On the accumulated BDD we then
+count the number of satisfying assignments.
 
 ```bash
-make run/apply F1=benchmarks/apply/x0.bdd F2=benchmarks/apply/x1.bdd V=cudd O=and
+make run/queens N=8 V=cudd
 ```
+
+
+**Statistics:**
+
+| Variable         | Value  |
+|------------------|--------|
+| Labels           | N²     |
+| Apply operations | N² + N |
+
+
+### Tic-Tac-Toe
+Solves the following problem:
+
+> Given N, then in how many ways can Player 1 place N crosses in a 3D 4x4x4 cube
+> and have a tie, when Player 2 places noughts in all remaining positions?
+
+This benchmark stems from [[Kunkle10](#references)]. Here we keep an accumulated
+BDD on which we add one of the 76 constraints of at least one cross and one
+nought after the other. We add these constraints in a different order than
+[[Kunkle10](#references)], which does result in an up to 100 times smaller largest
+intermediate result.
+
+```bash
+make run/tic_tac_toe N=20 V=cudd
+```
+
+**Statistics:**
+
+| Variable          |           Value |
+|-------------------|-----------------|
+| Labels            |              64 |
+| Apply operations  |              76 |
+| Initial BDD size  | (64-N+1)(N+1)-1 |
 
 ## License
 The software files in this repository are provided under the
