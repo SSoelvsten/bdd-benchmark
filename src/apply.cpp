@@ -262,11 +262,11 @@ namespace lib_bdd
   /// \brief Struct with various statistics about a deserialized BDD.
   struct stats_t
   {
-    size_t size         = 0u;
-    size_t levels       = 0u;
-    size_t width        = 0u;
-    size_t terminals[2] = {0u, 0u};
-    // TODO: parent edge distribution
+    size_t size          = 0u;
+    size_t levels        = 0u;
+    size_t width         = 0u;
+    size_t terminals[2]  = {0u, 0u};
+    size_t single_parent = 0u;
   };
 
   /// \brief Extract statistics from a BDD.
@@ -276,8 +276,11 @@ namespace lib_bdd
 
     out.size = f.size();
 
+    // Sweep through BDD
     node::var_type curr_level = node::terminal_level;
     node::ptr_type curr_width = 0u;
+
+    std::vector<int> parent_counts(f.size(), 0);
 
     for (const auto &n : f) {
       if (n.level() != curr_level) {
@@ -293,6 +296,16 @@ namespace lib_bdd
         out.terminals[true]  += (n.low() == node::true_ptr)  + (n.high() == node::true_ptr);
 
         out.width = std::max<size_t>(out.width, curr_width);
+
+        parent_counts.at(n.low())  += 1;
+        parent_counts.at(n.high()) += 1;
+      }
+    }
+
+    // Accumulate data from 'parent_counts'
+    for (const auto &pc : parent_counts) {
+      if (pc == 1) {
+        out.single_parent += 1;
       }
     }
 
@@ -422,6 +435,8 @@ int run_apply(int argc, char** argv)
               << "  | terminal edges:\n"
               << "  | | false                 " << stats.terminals[false] << "\n"
               << "  | | true                  " << stats.terminals[true] << "\n"
+              << "  | parent counts:\n"
+              << "  | | 1                     " << stats.single_parent << "\n"
               << "\n"
               << std::flush;
   }
