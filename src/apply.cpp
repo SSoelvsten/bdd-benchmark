@@ -196,15 +196,14 @@ namespace lib_bdd
 
     out.push_back(node(buffer.begin(), buffer.end()));
 
+    if (in.eof()) {
+      return out;
+    }
+
     // Read and Push `true` terminal
     in.read(buffer.data(), buffer.size());
 
     if (in.eof()) {
-      if (in.fail()) {
-        std::cerr << "  | Unexpected end-of-file (EOF)\n"
-                  << "  |\n";
-      }
-
       return out;
     }
     if (!in.good()) {
@@ -223,7 +222,7 @@ namespace lib_bdd
       }
 
       // Any other errors?
-      if (in.bad()) {
+      if (!in.good()) {
         throw std::runtime_error("Bad state of std::ifstream while scanning 10-byte chunk(s).");
       }
 
