@@ -222,6 +222,10 @@ The `time` and the `unary`/`crt_unary` encoding are designed with ZDDs in mind
 whereas the `binary`/`crt_binary` is designed for BDDs. That is, using the
 `time` encoding with BDDs does not give you great, i.e. small and fast, results.
 
+```bash
+make run/knights_tour N1=6 N2=5 V=cudd
+```
+
 ### Queens [BDD, ZDD]
 Solves the following problem:
 
@@ -233,6 +237,11 @@ Our implementation of these benchmarks are based on the description of
 whether the row is in a legal state: is at least one queen placed on each row
 and is it also in no conflicts with any other? On the accumulated BDD we then
 count the number of satisfying assignments.
+
+```bash
+make run/queens N=8 V=cudd
+```
+
 
 **Statistics:**
 
@@ -253,6 +262,10 @@ BDD on which we add one of the 76 constraints of at least one cross and one
 nought after the other. We add these constraints in a different order than
 [[Kunkle10](#references)], which does result in an up to 100 times smaller largest
 intermediate result.
+
+```bash
+make run/tic_tac_toe N=20 V=cudd
+```
 
 **Statistics:**
 
@@ -292,10 +305,11 @@ orderings derived from the given net.
 
 The *.blif* file(s) is given with the `-f` parameter (*F1* and *F2* Make
 variables) and the variable order with `-o` (*O* for Make). You can find
-multiple inputs in the *benchmarks/* folder.
+multiple inputs in the *benchmarks/picotrav* folder together with links to
+larger and more interesting inputs.
 
 ```bash
-make verification/picotrav F1=benchmarks/not_a.blif F2=benchmarks/not_b.blif V=cudd O=LEVEL_DFS
+make run/picotrav F1=benchmarks/not_a.blif F2=benchmarks/not_b.blif V=cudd O=LEVEL_DFS
 ```
 
 ### QBF Solver [BDD]
@@ -329,10 +343,35 @@ resolved in a bottom-up order based on their depth within the circuit.
 
 The *.qcir* file is given with the `-f` parameter (*F* Make variable) and the
 ordering with `-o` (*O* for Make). Some small inputs can be found in the
-*benchmarks/* folder.
+*benchmarks/qbf* folder together with links to larger and more interesting
+inputs.
 
 ```bash
-make verification/qbf F=benchmarks/qcir/example_a.blif V=cudd O=LEVEL
+make run/qbf F=benchmarks/qcir/example_a.blif V=cudd O=LEVEL
+```
+
+## Other Benchmarks
+
+### Apply [BDD]
+
+Based on [[Pastva2023](#references)], this benchmark loads two BDDs stored in a
+*binary.bdd* format (as they are serialized by the
+[lib-bdd](https://github.com/sybila/biodivine-lib-bdd) BDD package) and then
+combines them with a single *Apply* operation.
+
+As an option, you can specify the operator to be used to combine the BDDs.
+
+- `and`
+- `or`
+- `xor`
+
+The *.binary.bdd* file(s) is given with the `-f` parameter (*F1* and *F2* Make
+variables) and the apply operand with `-o` (*O* for Make). You can find some
+inputs in the *benchmarks/apply* folder together with links to larger and more
+interesting inputs.
+
+```bash
+make run/apply F1=benchmarks/not_a.blif F2=benchmarks/not_b.blif V=cudd O=LEVEL_DFS
 ```
 
 ## License
@@ -363,21 +402,6 @@ please cite the initial paper on *Adiar*.
   doi           = {10.1007/978-3-030-99527-0\_16},
 }
 ```
-
-## Other Benchmarks
-
-### Apply [BDD]
-
-Based on [[Pastva2023](#references)], this benchmark loads two BDDs stored in a
-*binary.bdd* format (as they are serialized by the
-[lib-bdd](https://github.com/sybila/biodivine-lib-bdd) BDD package) and then
-combines them with a single *Apply* operation.
-
-The *.binary.bdd* file(s) is given with the `-f` parameter (*F1* and *F2* Make
-variables) and the apply operand with `-o` (*O* for Make). You can find some
-inputs in the *benchmarks/apply/* folder. For larger sets of benchmarks,
-download the [reproducability artefact](https://zenodo.org/records/7958052)
-published as part of [[Pastva2023](#references)].
 
 ## References
 
