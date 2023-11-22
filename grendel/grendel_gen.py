@@ -56,13 +56,13 @@ epfl_opt_t     = Enum('epfl_opt_t',     ['depth', 'size'])
 picotrav_opt_t = Enum('picotrav_opt_t', ['DF', 'INPUT', 'LEVEL', 'LEVEL_DF', 'RANDOM'])
 
 def picotrav__spec(spec_t, circuit_name):
-    return f"benchmarks/epfl/{spec_t.name}/{circuit_name}.blif"
+    return f"../epfl/{spec_t.name}/{circuit_name}.blif"
 
 def picotrav__opt(opt_t, circuit_name):
     circuit_file = [f for f
-                      in os.listdir(f"../benchmarks/epfl/best_results/{opt_t.name}")
+                      in os.listdir(f"../../epfl/best_results/{opt_t.name}")
                       if f.startswith(circuit_name)][0]
-    return f"benchmarks/epfl/best_results/{opt_t.name}/{circuit_file}"
+    return f"../epfl/best_results/{opt_t.name}/{circuit_file}"
 
 def picotrav__args(spec_t, opt_t, circuit_name, picotrav_opt):
     return f"-o {picotrav_opt.name} -f {picotrav__spec(spec_t, circuit_name)} -f {picotrav__opt(opt_t, circuit_name)}"
