@@ -18,6 +18,8 @@ one to compare implementations.
     - [Verification](#verification)
         - [Picotrav [BDD, ZDD]](#picotrav-bdd-zdd)
         - [QBF Solver [BDD]](#qbf-solver-bdd)
+    - [Other Benchmarks](#other-benchmarks)
+        - [Apply [BDD]](#apply-bdd)
     - [License](#license)
     - [Citation](#citation)
     - [References](#references)
@@ -362,6 +364,21 @@ please cite the initial paper on *Adiar*.
 }
 ```
 
+## Other Benchmarks
+
+### Apply [BDD]
+
+Based on [[Pastva2023](#references)], this benchmark loads two BDDs stored in a
+*binary.bdd* format (as they are serialized by the
+[lib-bdd](https://github.com/sybila/biodivine-lib-bdd) BDD package) and then
+combines them with a single *Apply* operation.
+
+The *.binary.bdd* file(s) is given with the `-f` parameter (*F1* and *F2* Make
+variables) and the apply operand with `-o` (*O* for Make). You can find some
+inputs in the *benchmarks/apply/* folder. For larger sets of benchmarks,
+download the [reproducability artefact](https://zenodo.org/records/7958052)
+published as part of [[Pastva2023](#references)].
+
 ## References
 
 - [[Bryant2021](https://github.com/rebryant/Cloud-BDD/blob/conjunction_streamlined/hamiltonian/hpath.py)]
@@ -375,6 +392,11 @@ please cite the initial paper on *Adiar*.
 - [[Marijn2021](https://link.springer.com/chapter/10.1007/978-3-030-80223-3_15)]
   Heule, Marijn J. H. “*Chinese Remainder Encoding for Hamiltonian Cycles*”. In:
   *Theory and Applications of Satisfiability Testing*. 2021
+
+- [[Pastva2023](https://repositum.tuwien.at/bitstream/20.500.12708/188807/1/Pastva-2023-Binary%20decision%20diagrams%20on%20modern%20hardware-vor.pdf)]
+  Samuel Pastva and Thomas Henzinger. “*Binary Decision Diagrams on Modern
+  Hardware*”. In: *Proceedings of the 23rd Conference on Formal Methods in
+  Computer-Aided Design* (2023)
 
 - [[Somenzi2015](https://github.com/ssoelvsten/cudd)]
   Somenzi, Fabio: *CUDD: CU decision diagram package, 3.0*. University

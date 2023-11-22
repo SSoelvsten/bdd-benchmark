@@ -32,7 +32,7 @@ build:
 	@cd build/ && for package in 'adiar' 'buddy' 'cal' 'cudd' 'sylvan' ; do \
 		mkdir -p ../out/$$package ; \
 		mkdir -p ../out/$$package/bdd ; \
-		for benchmark in 'knights_tour' 'picotrav' 'qbf' 'queens' 'tic_tac_toe' ; do \
+		for benchmark in 'apply' 'knights_tour' 'picotrav' 'qbf' 'queens' 'tic_tac_toe' ; do \
 			make ${MAKE_FLAGS} $$package'_'$$benchmark'_bdd' ; \
 		done ; \
 	done
@@ -105,6 +105,19 @@ help:
 	@echo ""
 	@echo "   + M=<int> (default: 128)"
 	@echo "   | Memory (MiB) to dedicate to the BDD package."
+
+	@echo ""
+	@echo "run/apply/[bdd]"
+	@echo "   Load two BDDs and combine them with the product construction."
+	@echo ""
+	@echo "   + F1=<file_path> (default: benchmarks/...)"
+	@echo "   | File path (relative to this makefile) to a *binary.bdd* file"
+	@echo ""
+	@echo "   + F2=<file_path> (default: benchmarks/...)"
+	@echo "   | File path (relative to this makefile) to a *binary.bdd* file"
+	@echo ""
+	@echo "   + O=[and, or, xor] (default: and)"
+	@echo "   | The Boolean operand to use."
 
 	@echo ""
 	@echo "run/knights_tour/[bdd,zdd]"
@@ -184,6 +197,18 @@ N:=0
 
 # Benchmark specific Option
 O := ""
+
+# ============================================================================ #
+#  RUN: Picotrav
+# ============================================================================ #
+run/apply:
+	$(MAKE) run/apply/bdd
+
+run/apply/bdd: O := "AND"
+run/apply/bdd: F1 := "benchmarks/apply/x0.binary.bdd"
+run/apply/bdd: F2 := "benchmarks/apply/x1.binary.bdd"
+run/apply/bdd:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_apply_bdd -f $(F1) -f $(F2) -M $(M) -o $(O) 2>&1 | tee -a out/VARIANT/bdd/apply.out)
 
 # ============================================================================ #
 #  RUN: Knight's Tour
