@@ -356,8 +356,9 @@ var_map remap_vars(const lib_bdd::bdd &f, const lib_bdd::bdd &g)
   int next_var = 0;
 
   while (f_rit != f.rend() || g_rit != g.rend()) {
-    const lib_bdd::node::var_type next_level = std::min(f_rit->level(),
-                                                        g_rit->level());
+    const lib_bdd::node::var_type next_level = f_rit == f.rend() || f_rit->is_terminal() ? g_rit->level()
+                                             : g_rit == g.rend() || g_rit->is_terminal() ? f_rit->level()
+                                             : std::min(f_rit->level(), g_rit->level());
 
     if (next_level == lib_bdd::node::terminal_level) {
       break;
@@ -365,8 +366,8 @@ var_map remap_vars(const lib_bdd::bdd &f, const lib_bdd::bdd &g)
 
     out.insert({ next_level, next_var++ });
 
-    while (f_rit->level() <= next_level && f_rit != f.rend()) { ++f_rit; }
-    while (g_rit->level() <= next_level && g_rit != g.rend()) { ++g_rit; }
+    while (f_rit != f.rend() && f_rit->level() <= next_level) { ++f_rit; }
+    while (g_rit != g.rend() && g_rit->level() <= next_level) { ++g_rit; }
   }
 
   return out;
