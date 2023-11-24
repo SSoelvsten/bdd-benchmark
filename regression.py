@@ -459,8 +459,6 @@ def git__fetch():
     return run_subprocess(["git fetch --all"], submodule_path)
 
 def git__checkout(remote, branch):
-    print(f"  |  | Git Checkout...")
-
     return run_subprocess([f"git checkout {git__mangle(remote)}/{branch}",
                            "git submodule update --init --recursive",
                            "git status"],
@@ -484,8 +482,6 @@ if input("  | Benchmark (yes/No): ").lower() in yes_choices:
     print_benchmark = True
 
 def build(remote, branch):
-    print(f"  |  | Building...")
-
     if package == Packages.cudd:
         print(f"  | {package.cudd.name} not (yet) supported. Aborting...")
         exit(255)
@@ -507,11 +503,7 @@ def build(remote, branch):
 
             exit(255)
 
-        print("  |  |  | Done!")
-
 def run(remote, branch):
-    print(f"  |  | Running Benchmark...")
-
     if print_benchmark:
         print("")
 
@@ -528,8 +520,6 @@ def run(remote, branch):
             print(f"\n{run_output}")
 
             exit(255)
-
-        print(f"  |  |  | Time: {time}")
 
     return time
 
@@ -591,6 +581,22 @@ print("Collecting Samples:")
 min_samples = int(input("  | min: "))
 max_samples = int(input("  | max: "))
 print("  |")
+
+def sample(data, remote, branch):
+    print(f"  | {remote}/{branch}:")
+
+    print(f"  |  | Git Checkout...")
+    git__checkout(remote, branch)
+
+    print(f"  |  | Building...")
+    build(remote, branch)
+    print("  |  |  | Done!")
+
+    print(f"  |  | Running Benchmark...")
+    time = run(remote, branch)
+    data.add(time)
+    print(f"  |  |  | Time: {time}")
+
 while ( # Run for at least 'min_samples'
         test_data.samples() < min_samples
        ) or (
@@ -606,22 +612,9 @@ while ( # Run for at least 'min_samples'
        ):
     assert(test_data.samples() == baseline_data.samples())
 
-    # Collect a sample from 'baseline'
     print(f"  | ----------------------------------------------------")
-    print(f"  | {baseline_remote}/{baseline_branch}:")
-
-    git__checkout(baseline_remote, baseline_branch)
-    build(baseline_remote, baseline_branch)
-    baseline_time = run(baseline_remote, baseline_branch)
-    baseline_data.add(baseline_time)
-
-    # Collect a sample from 'under test'
-    print(f"  | {test_remote}/{test_branch}:")
-
-    git__checkout(test_remote, test_branch)
-    build(test_remote, test_branch)
-    test_time = run(test_remote, test_branch)
-    test_data.add(test_time)
+    sample(baseline_data, baseline_remote, baseline_branch)
+    sample(test_data, test_remote, test_branch)
 
     print(f"  |")
     print(f"  | Baseline: {baseline_data.mean():.2f} ({(baseline_data.stdev_norm() * 100):.2f}%)")
