@@ -311,11 +311,11 @@ class QbfStrategy:
             case SAT2023_GDDL_CATEGORIES.connect4:
                 self._path += "/C4"
             case SAT2023_GDDL_CATEGORIES.domineering:
-                self._path += "D"
+                self._path += "/D"
             case SAT2023_GDDL_CATEGORIES.ep:
-                self._path += "EP"
+                self._path += "/EP"
             case SAT2023_GDDL_CATEGORIES.ep_dual:
-                self._path += "EP-dual"
+                self._path += "/EP-dual"
 
         print("")
 
