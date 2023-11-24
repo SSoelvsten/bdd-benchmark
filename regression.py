@@ -644,7 +644,8 @@ def markdown_table(column_headers, row_headers, data):
     for i in range(len(data)):
         rows.append(f"| {row_headers[i]} | {' | '.join([f'{d:.2f}' for d in data[i]])} |")
 
-    return f"{header}\n{sep}\n{'\n'.join(rows)}"
+    nl = '\n'
+    return f"{header}{nl}{sep}{nl}{nl.join(rows)}"
 
 exit_code = 0
 
