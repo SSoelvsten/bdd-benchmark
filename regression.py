@@ -205,7 +205,7 @@ class PicotravStrategy:
         print("Circuit Name.")
         self._circuit = input("  | ").lower()
 
-        _1_base = [f"{epfl_path}/arithmetic", f"{epfl_path}/arithmetic"]
+        _1_base = [f"{epfl_path}/arithmetic", f"{epfl_path}/random_control"]
 
         _1_results = [[f"{path}/{f}" for f
                        in os.listdir(f"{path}")
