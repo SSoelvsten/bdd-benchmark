@@ -5,6 +5,7 @@
 
 // Data Structures
 #include <array>
+#include <queue>
 #include <unordered_map>
 #include <vector>
 
@@ -349,25 +350,28 @@ using var_map = std::unordered_map<lib_bdd::node::var_type, int>;
 /// \brief Derive a compacted remapping of the variable ordering.
 var_map remap_vars(const lib_bdd::bdd &f, const lib_bdd::bdd &g)
 {
-  auto f_rit = f.rbegin();
-  auto g_rit = g.rbegin();
+  // Minimum Priority Queue
+  std::priority_queue<int, std::vector<int>, std::greater<>> pq;
+
+  for (const auto &n : f) { pq.push(n.level()); }
+  for (const auto &n : g) { pq.push(n.level()); }
 
   std::unordered_map<lib_bdd::node::var_type, int> out;
-  int next_var = 0;
+  int var = 0;
 
-  while (f_rit != f.rend() || g_rit != g.rend()) {
-    const lib_bdd::node::var_type next_level = f_rit == f.rend() || f_rit->is_terminal() ? g_rit->level()
-                                             : g_rit == g.rend() || g_rit->is_terminal() ? f_rit->level()
-                                             : std::min(f_rit->level(), g_rit->level());
+  while (!pq.empty()) {
+    // Get next level (in ascending order)
+    const int level = pq.top();
 
-    if (next_level == lib_bdd::node::terminal_level) {
-      break;
+    // Add mapping for all non-terminals
+    if (level != lib_bdd::node::terminal_level) {
+      out.insert({ level, var++ });
     }
 
-    out.insert({ next_level, next_var++ });
-
-    while (f_rit != f.rend() && f_rit->level() <= next_level) { ++f_rit; }
-    while (g_rit != g.rend() && g_rit->level() <= next_level) { ++g_rit; }
+    // Pop all duplicates
+    while (!pq.empty() && pq.top() == level) {
+      pq.pop();
+    }
   }
 
   return out;
@@ -383,46 +387,59 @@ template<typename adapter_t>
 typename adapter_t::dd_t
 reconstruct(adapter_t &adapter, const lib_bdd::bdd &in, const var_map &vm)
 {
-  // Vector of converted DD nodes
-  std::vector<typename adapter_t::build_node_t> out;
-
-  // Iterator through input
-  auto it = in.begin();
-  assert(it != in.end());
-
-  // False Terminal
-  assert(it->is_false());
-
-  out.push_back(adapter.build_node(false));
-  ++it;
-
-  if (it == in.end()) {
+  if (in.size() <= 2) {
+    adapter.build_node(in.size() == 2);
     return adapter.build();
   }
 
-  // True Terminal
-  assert(it->is_true());
+  // Vector of converted DD nodes
+  std::vector<typename adapter_t::build_node_t> out(in.size(),
+                                                    adapter.build_node(false));
 
-  out.push_back(adapter.build_node(true));
-  ++it;
+  // Terminal Nodes
+  out.at(0) = adapter.build_node(false);
+  out.at(1) = adapter.build_node(true);
 
-  // Remaining Nodes
-  for (; it != in.end(); ++it) {
-    assert(it->is_internal());
+  // Internal Nodes
+  const auto pq_comp = [&in](const int a, const int b) -> bool {
+    assert(in.at(a).is_internal());
+    assert(in.at(b).is_internal());
 
-    const auto var = vm.find(it->level());
+    const lib_bdd::node &a_node = in.at(a);
+    const lib_bdd::node &b_node = in.at(b);
+
+    // Deepest first (but it is a maximum priority queue)
+    if (a_node.level() != b_node.level()) {
+      return a_node.level() < b_node.level();
+    }
+    // Break ties on the same level by its index
+    return a > b;
+  };
+
+  std::priority_queue<int, std::vector<int>, decltype(pq_comp)> pq(pq_comp);
+  for (size_t i = 2; i < in.size(); ++i) {
+    assert(i < std::numeric_limits<int>::max());
+    pq.push(static_cast<int>(i));
+  }
+
+  while (!pq.empty()) {
+    const int i = pq.top();
+    pq.pop();
+
+    const lib_bdd::node &n = in.at(i);
+
+    const auto var = vm.find(n.level());
 
     if (var == vm.end()) {
       std::stringstream ss;
-      ss << "Unmapped variable level: " << it->level();
-
+      ss << "Unmapped variable level: " << n.level();
       throw std::out_of_range(ss.str());
     }
 
-    const auto low  = out.at(it->low());
-    const auto high = out.at(it->high());
+    const auto low  = out.at(n.low());
+    const auto high = out.at(n.high());
 
-    out.push_back(adapter.build_node(var->second, low, high));
+    out.at(i) = adapter.build_node(var->second, low, high);
   }
 
   return adapter.build();

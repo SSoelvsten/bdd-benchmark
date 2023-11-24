@@ -13,6 +13,7 @@ Minimal (hand-encoded) binary BDDs on the format it is serialized by *lib-bdd*.
 - *x0_or_x1.bdd* : x<sub>0</sub> &vee; x<sub>1</sub>
 - *x0_xor_x1.bdd* : x<sub>0</sub> &oplus; x<sub>1</sub>
 - *x0_xnor_x1.bdd* : x<sub>0</sub> &equiv; x<sub>1</sub>
+- *topological.bdd* : (to test code to deal with BDD nodes not being level-by-level)
 
 Furthermore, there are also minimal (hand-encoded) binary ZDDs in the same format.
 
