@@ -128,8 +128,8 @@ public:
 
     std::vector<std::pair<int, char>> res;
 
-    adiar::bdd_satmin(f, [&res](const size_t x, const bool v) {
-      res.push_back(std::make_pair(x, '0' + v));
+    adiar::bdd_satmin(f, [&res](const adiar::pair<adiar::bdd::label_type, bool> &xv) {
+      res.push_back(std::make_pair(xv.first, '0' + xv.second));
     });
 
     adiar::domain_set(dom);
