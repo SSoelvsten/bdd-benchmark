@@ -1,7 +1,8 @@
 # BDD Benchmark
-This repository contains multiple examples for use of BDDs to solve various
-problems. These are all implemented in exactly the same way, thereby allowing
-one to compare implementations.
+
+This repository contains multiple examples for use of Binary Decision Diagrams
+(BDDs) to solve various problems. These are all implemented in exactly the same
+way, thereby allowing one to compare implementations.
 
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 **Table of Contents**
@@ -9,7 +10,7 @@ one to compare implementations.
 - [BDD Benchmark](#bdd-benchmark)
     - [Implementations](#implementations)
         - [Enforcing comparability](#enforcing-comparability)
-    - [Dependencies](#dependencies)
+        - [Dependencies](#dependencies)
     - [Usage](#usage)
     - [Benchmarks](#benchmarks)
         - [Apply](#apply)
@@ -24,6 +25,7 @@ one to compare implementations.
     - [References](#references)
 
 <!-- markdown-toc end -->
+
 
 ## Implementations
 We provide all the benchmarks described further below for the following
@@ -77,18 +79,19 @@ We hope to extend the number of packages. See
 of BDD packages we would like to have added to this set of benchmarks. Any
 help to do so is very much appreciated.
 
+
 ### Enforcing comparability
 For comparability, we will enforce all packages to follow the same settings.
-
-- Only use a single core.
 
 - Packages will initialise its unique node table to its full potential size and
   have its operation cache (memoization table) set to of 64:1.
 
 - Dynamic variable reordering is disabled.
 
+- Multi-threaded libraries use (except otherwise requested) only a single core.
 
-## Dependencies
+
+### Dependencies
 Almost packages interface with CMake or GNU Autotools, which makes installation
 very simple after having initialised all submodules using the following command.
 
@@ -145,45 +148,49 @@ apt install libgmp-dev libhwloc-dev
 
 All interactions have been made easy by use of the *makefile* at the root.
 
-| Target  | Description                               |
-|---------|-------------------------------------------|
-| `build` | Build all dependencies and all benchmarks |
-| `clean` | Remove all build artifacts                |
+| Target    | Description                               |
+|-----------|-------------------------------------------|
+| `build`   | Build all dependencies and all benchmarks |
+| `clean`   | Remove all build artifacts                |
+| `run/...` | Run a single instance of a benchmark      |
 
 To build all BDD packages with *statistics*, set the Make variable *STATS* to
 *ON* (default *OFF*).
 
 Each benchmark below also has its own *make* target too for ease of use. You may
 specify as a make variable the instance size *N* to solve, the amount of
-_M_emory (MiB) to use in, and the *V*ariant (i.e. BDD package). For example, to
-solve the combinatorial Queens with CUDD for *N* = 10 and with 256 MiB of memory
-you run the following target.
+*M*emory (MiB) to use in, and the *V*ariant (i.e. BDD package). For example, to
+solve the combinatorial Queens with BuDDy for *N* = 10 and with 256 MiB of
+memory you run the following target.
+
+```bash
+make run/queens V=buddy N=10 M=256
+```
 
 Note, that the memory you set is only for the BDD package. So, the program will
 either use swap or be killed if the BDD package takes up more memory in
 conjunction with the benchmark's auxiliary data structures.
 
-```bash
-make run/queens V=cudd N=10 M=256
-```
-
 We provide benchmarks for both *Binary* and for *Zero-suppressed* Decision
 Diagrams. Not all benchmarks support both types of decision diagrams, but if
-possible, then the type can be chosen as part of the make target. We will below
-mark whether a benchmark supports **BDD**s or **ZDD**s.
+possible, then the type can be chosen as part of the make target.
 
 ```bash
-make run/queens/zdd V=cudd N=10 M=256
+make run/queens/zdd V=buddy N=10 M=256
 ```
 
-Some benchmarks allow for choosing between a set of **O**ptions, e.g. variable
-ordering or algorithm.
+Some benchmarks allow for choosing between a set of *O*ptions, e.g. variable
+ordering, encoding, or algorithm to use.
 
 ```bash
-make run/picotrav V=cudd O=level_df
+make run/picotrav O=level_df
 ```
+
+All Make variables have default values when unspecified.
+
 
 ## Benchmarks
+
 
 ### Apply
 
@@ -204,8 +211,9 @@ some inputs in the *benchmarks/apply* folder together with links to larger and
 more interesting inputs.
 
 ```bash
-make run/apply F1=benchmarks/apply/x0.bdd F2=benchmarks/apply/x1.bdd V=cudd O=and
+make run/apply F1=benchmarks/apply/x0.bdd F2=benchmarks/apply/x1.bdd O=and
 ```
+
 
 ### Knight's Tour
 Solves the following problem:
@@ -245,8 +253,9 @@ whereas the `binary` encoding is designed for BDDs. That is, using the `time`
 encoding with BDDs does not give you great, i.e. small and fast, results.
 
 ```bash
-make run/knights_tour N1=6 N2=5 V=cudd
+make run/knights_tour N1=6 N2=5
 ```
+
 
 ### Picotrav
 This benchmark is a small recreation of the *Nanotrav* example provided with the
@@ -280,8 +289,9 @@ multiple inputs in the *benchmarks/picotrav* folder together with links to
 larger and more interesting inputs.
 
 ```bash
-make run/picotrav F1=benchmarks/picotrav/not_a.blif F2=benchmarks/picotrav/not_b.blif V=cudd O=LEVEL_DFS
+make run/picotrav F1=benchmarks/picotrav/not_a.blif F2=benchmarks/picotrav/not_b.blif O=level_df
 ```
+
 
 ### QBF Solver
 
@@ -321,9 +331,8 @@ ordering with `-o` (*O* for Make). Some small inputs can be found in the
 inputs.
 
 ```bash
-make run/qbf F=benchmarks/qcir/example_a.blif V=cudd O=LEVEL
+make run/qbf F=benchmarks/qcir/example_a.blif O=df
 ```
-
 
 
 ### Queens
@@ -339,16 +348,8 @@ and is it also in no conflicts with any other? On the accumulated BDD we then
 count the number of satisfying assignments.
 
 ```bash
-make run/queens N=8 V=cudd
+make run/queens N=8
 ```
-
-
-**Statistics:**
-
-| Variable         | Value  |
-|------------------|--------|
-| Labels           | N²     |
-| Apply operations | N² + N |
 
 
 ### Tic-Tac-Toe
@@ -363,17 +364,14 @@ nought after the other. We add these constraints in a different order than
 [[Kunkle10](#references)], which does result in an up to 100 times smaller largest
 intermediate result.
 
+The interesting thing about this benchmark is, that even though the BDDs grow
+near-exponentially, the number of variables is fixed (64) and the number of
+Apply operations is too (76).
+
 ```bash
-make run/tic_tac_toe N=20 V=cudd
+make run/tic_tac_toe N=20
 ```
 
-**Statistics:**
-
-| Variable          |           Value |
-|-------------------|-----------------|
-| Labels            |              64 |
-| Apply operations  |              76 |
-| Initial BDD size  | (64-N+1)(N+1)-1 |
 
 ## Performance Regression Testing
 
@@ -411,17 +409,20 @@ smaller instances, samples are collected for at least 30 minutes whereas for
 larger instances, the last sampling may start after 90 minutes.
 
 The python script exits with a non-zero code, if there is a statistically
-relevant slowdown. A short and concise report is places in
+relevant slowdown. A short and concise report is placed in
 *regression_{package}.out* which can be posted as a comment on the pull request.
+
 
 ## License
 The software files in this repository are provided under the
 [MIT License](/LICENSE.md).
 
+
 ## Citation
 If you use this repository in your work, we sadly do not yet have written a
 paper on this repository alone (this will be done though). In the meantime,
 please cite the initial paper on *Adiar*.
+
 ```bibtex
 @InProceedings{soelvsten2022:TACAS,
   title         = {Adiar: Binary Decision Diagrams in External Memory},
@@ -442,6 +443,7 @@ please cite the initial paper on *Adiar*.
   doi           = {10.1007/978-3-030-99527-0\_16},
 }
 ```
+
 
 ## References
 
