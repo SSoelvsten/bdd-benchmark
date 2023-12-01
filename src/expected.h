@@ -8,7 +8,7 @@ constexpr size_t UNKNOWN = static_cast<size_t>(-1);
 // [2] https://en.wikipedia.org/wiki/Knight%27s_tour#Number_of_tours
 //
 // If otherwise not stated, the numbers are based on prior runs of our own.
-const size_t expected_knights_tour_open[17] = {
+const size_t expected_knights_open[17] = {
   0,
   0,
   1,                // 1x1 [2]
@@ -28,7 +28,7 @@ const size_t expected_knights_tour_open[17] = {
   19591828170979904 // 8x8 [2]
 };
 
-const size_t expected_knights_tour_closed[17] = {
+const size_t expected_knights_closed[17] = {
   0,
   0,
   1,                // 1x1 [1]

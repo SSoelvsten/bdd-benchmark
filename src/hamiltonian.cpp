@@ -97,7 +97,7 @@ inline int MAX_COL()
 inline int cells()
 { return rows() * cols(); }
 
-/// \brief Class to encapsulate logic related to a cell and the Knight's move.
+/// \brief Class to encapsulate logic related to a cell and the move relation.
 class cell
 {
   friend class edge;
@@ -218,7 +218,7 @@ public:
   int manhattan_dist_to(const cell& o) const
   { return vertical_dist_to(o) + horizontal_dist_to(o); }
 
-  /// \brief Whether there is a single knight-move from `this` to `o`
+  /// \brief Whether there is a single move from `this` to `o`
   ///
   /// \details One can move from `this` to `o` if one moves at least one in each
   ///          dimension and by exactly three cells.
@@ -300,7 +300,7 @@ struct std::hash<cell>
   { return std::hash<int>{}(c.dd_var()); }
 };
 
-/// \brief Class to encapsulate logic related to a cell and the Knight's move.
+/// \brief Class to encapsulate logic related to a cell and the move relation.
 class edge
 {
 private:
@@ -322,7 +322,7 @@ public:
       throw std::out_of_range("Cell 'v'="+v.to_string()+" is out of range");
     }
     if (!u.has_move_to(v)) {
-      throw std::out_of_range("Edge "+this->to_string()+" is not a knight's move");
+      throw std::out_of_range("Edge "+this->to_string()+" is not a valid move");
     }
   }
 
@@ -424,8 +424,8 @@ void init_cells_descending()
 ///
 /// Simple(ish) encoding with the goal to minimise the number of variables alive
 /// at the same time. To this end, we encode the (roughly) 4N edges of the
-/// knight-graph as variables. If an edge `u->v` is set to true, then we encode
-/// that `v` must be the successor of `u` via a gadget.
+/// transition relation as variables. If an edge `u->v` is set to true, then we
+/// encode that `v` must be the successor of `u` via a gadget.
 ///
 /// We have three different gadgets to pick from:
 /// 1. A Binary Adder with an arbitrary modulo value.
@@ -1521,8 +1521,8 @@ namespace enc_gadgets
     };
   }
 
-  /// \brief Encoding of the Knight's Tour problem given a non-zero number of
-  ///        modulo values.
+  /// \brief Encoding of the Hamiltonian Cycle problem given a non-zero number
+  ///        of modulo values.
   ///
   /// For each modulo value `p`, we enforce that each cycle must have length 0
   /// modulo `p`. The only exception is the cycle that includes the special
@@ -1899,11 +1899,11 @@ namespace enc_gadgets
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief Algorithms for the `enc_opt::TIME` encoding
 ///
-/// A drastically different way to encode the Knight's Tour problem with a
-/// quartic (N^4) number of variables rather than a quadratic(ish) number. To
-/// this end, we do not encode edges on the board. Instead, each cell of the
-/// board `(r,c)` is associated with a time-step `t` which is up to `r*c`. Each
-/// of the variable is `true` if one visits `(r,c)` at time `t`.
+/// A drastically different way to search for Hamiltonian Cycles. Here, a quartic
+/// (N^4) number of variables rather than a quadratic(ish) number. To this end,
+/// we do not encode edges on the board. Instead, each cell of the board `(r,c)`
+/// is associated with a time-step `t` which is up to `r*c`. Each of the variable
+/// is `true` if one visits `(r,c)` at time `t`.
 ///
 /// Initially, we accumulate all paths of length `t` before adding a hamiltonian
 /// constraint on each cell one-by-one.
@@ -2248,10 +2248,10 @@ namespace enc_time
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// \brief Knight's Tour program: pick encoding and time its execution.
+/// \brief Hamiltonian Cycle program: pick encoding and time its execution.
 ////////////////////////////////////////////////////////////////////////////////
 template<typename adapter_t>
-int run_knights_tour(int argc, char** argv)
+int run_hamiltonian(int argc, char** argv)
 {
   enc_opt opt = enc_opt::TIME; // Default strategy
   bool should_exit = parse_input(argc, argv, opt);
@@ -2262,7 +2262,7 @@ int run_knights_tour(int argc, char** argv)
   if (should_exit) { return -1; }
 
   // ---------------------------------------------------------------------------
-  std::cout << rows() << " x " << cols() << " - Knight's Tour (" << adapter_t::NAME << " " << M << " MiB):\n"
+  std::cout << rows() << " x " << cols() << " - Hamiltonian Cycle (" << adapter_t::NAME << " " << M << " MiB):\n"
             << "   | Encoding:                 " << option_str(opt) << "\n";
 
   if (rows() == 0 || cols() == 0) {
@@ -2378,10 +2378,12 @@ int run_knights_tour(int argc, char** argv)
 
   adapter.print_stats();
 
+  /*
   const int N = rows()+cols();
-  if (N < size(expected_knights_tour_closed)
-      && expected_knights_tour_closed[N] != UNKNOWN && solutions != expected_knights_tour_closed[N]) {
+  if (N < size(expected_hamiltonian_closed)
+      && expected_hamiltonian_closed[N] != UNKNOWN && solutions != expected_hamiltonian_closed[N]) {
     return -1;
   }
+  */
   return 0;
 }
