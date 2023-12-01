@@ -32,7 +32,7 @@ build:
 	@cd build/ && for package in 'adiar' 'buddy' 'cal' 'cudd' 'sylvan' ; do \
 		mkdir -p ../out/$$package ; \
 		mkdir -p ../out/$$package/bdd ; \
-		for benchmark in 'apply' 'hamiltonian' 'picotrav' 'qbf' 'queens' 'tic_tac_toe' ; do \
+		for benchmark in 'apply' 'hamiltonian' 'picotrav' 'qbf' 'queens' 'tic-tac-toe' ; do \
 			make ${MAKE_FLAGS} $$package'_'$$benchmark'_bdd' ; \
 		done ; \
 	done
@@ -42,7 +42,7 @@ build:
 	@cd build/ && for package in 'adiar' 'cudd' ; do \
 		mkdir -p ../out/$$package ; \
 		mkdir -p ../out/$$package/zdd ; \
-		for benchmark in 'apply' 'hamiltonian' 'picotrav' 'queens' 'tic_tac_toe' ; do \
+		for benchmark in 'apply' 'hamiltonian' 'picotrav' 'queens' 'tic-tac-toe' ; do \
 			make ${MAKE_FLAGS} $$package'_'$$benchmark'_zdd' ; \
 		done ; \
 	done
@@ -166,7 +166,7 @@ help:
 	@echo "   | The size of the chessboard."
 
 	@echo ""
-	@echo "run/tic_tac_toe/[bdd,zdd]"
+	@echo "run/tic-tac-toe/[bdd,zdd]"
 	@echo "   Counts the number of draws of a Tic-Tac-Toe in a 4x4x4 cube."
 	@echo ""
 	@echo "   + N=<int> (default: 20)"
@@ -284,13 +284,13 @@ run/queens/zdd:
 # ============================================================================ #
 #  RUN: 4x4 Tic Tac Toe
 # ============================================================================ #
-run/tic_tac_toe:
-	$(MAKE) run/tic_tac_toe/bdd
+run/tic-tac-toe:
+	$(MAKE) run/tic-tac-toe/bdd
 
-run/tic_tac_toe/bdd: N := 20
-run/tic_tac_toe/bdd:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_tic_tac_toe_bdd -N $(N) -M $(M) 2>&1 | tee -a out/VARIANT/bdd/tic_tac_toe.out)
+run/tic-tac-toe/bdd: N := 20
+run/tic-tac-toe/bdd:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_tic-tac-toe_bdd -N $(N) -M $(M) 2>&1 | tee -a out/VARIANT/bdd/tic-tac-toe.out)
 
-run/tic_tac_toe/zdd: N := 20
-run/tic_tac_toe/zdd:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_tic_tac_toe_zdd -N $(N) -M $(M) 2>&1 | tee -a out/VARIANT/zdd/tic_tac_toe.out)
+run/tic-tac-toe/zdd: N := 20
+run/tic-tac-toe/zdd:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_tic-tac-toe_zdd -N $(N) -M $(M) 2>&1 | tee -a out/VARIANT/zdd/tic-tac-toe.out)
