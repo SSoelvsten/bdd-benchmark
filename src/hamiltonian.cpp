@@ -1,8 +1,3 @@
-////////////////////////////////////////////////////////////////////////////////
-// TODO: Simpler alternative than the Knight's Graph
-//       https://oeis.org/A003763
-////////////////////////////////////////////////////////////////////////////////
-
 #include "common.cpp"
 #include "expected.h"
 
@@ -181,9 +176,16 @@ public:
 
   //////////////////////////////////////////////////////////////////////////////
   // Position and Move logic
+
+  /*
+  // ---------------------------------
+  // Knight moves ( https://oeis.org/A165134 )
 public:
   /// \brief Number of possible neighbours for a knight
   static constexpr int max_moves = 8;
+
+  /// \brief The number of active rows above/below
+  static constexpr int active_rows = 2;
 
 private:
   /// \brief Hard coded moves relative to the current cell (following the
@@ -199,6 +201,28 @@ private:
     {  1,  2 },
     {  2, -1 },
     {  2,  1 }
+  };
+  */
+
+  // ---------------------------------
+  // Grid Graph moves ( https://oeis.org/A003763 )
+public:
+  /// \brief Number of possible neighbours
+  static constexpr int max_moves = 4;
+
+  /// \brief The number of active rows above/below
+  static constexpr int active_rows = 1;
+
+private:
+  /// \brief Hard coded moves relative to the current cell (following the
+  ///        variable ordering as per `dd_var`).
+  ///
+  /// \details This hardcoding is done with the intention to improve performance.
+  static constexpr int moves[max_moves][2] = {
+    { -1,  0 },
+    {  0, -1 },
+    {  0,  1 },
+    {  1,  0 }
   };
 
 public:
@@ -224,9 +248,17 @@ public:
   ///          dimension and by exactly three cells.
   bool has_move_to(const cell& o) const
   {
+    /*
+    // ---------------------------------
+    // Knight moves
     return (0 < vertical_dist_to(o))
       && (0 < horizontal_dist_to(o))
       && (this->manhattan_dist_to(o) == 3);
+    */
+
+    // ---------------------------------
+    // Grid Graph moves
+    return this->manhattan_dist_to(o) == 1;
   }
 
   /// \brief All cells on the board that can be reached from this cell
@@ -260,13 +292,29 @@ public:
   static inline cell special_0()
   { return cell(0,0); }
 
+  /*
+  // ---------------------------------
+  // Knight moves
+
   /// \brief First cell moved to from `(0,0)` (breaking symmetries)
   static inline cell special_1()
   { return cell(1,2); }
 
-  /// \brief Cell `(2,1)` encountered at the end (closing the cycle)
+  /// \brief Other neighbour encountered at the end (closing the cycle)
   static inline cell special_2()
   { return cell(2,1); }
+  */
+
+  // ---------------------------------
+  // Grid Graph moves (also known as "closed rook")
+
+  /// \brief First cell moved to from `(0,0)` (breaking symmetries)
+  static inline cell special_1()
+  { return cell(1,0); }
+
+  /// \brief Other neighbour encountered at the end (closing the cycle)
+  static inline cell special_2()
+  { return cell(0,1); }
 
   /// \brief Get the three cells involved in the upper-left corner
   static inline std::array<cell,3> specials()
@@ -1667,9 +1715,10 @@ namespace enc_gadgets
           }
         }
 
-        // Quantify a cell two rows below and one to the right of the current;
-        // this one will never be relevant for later cells.
-        const cell q_cell(row+2, col+1);
+        // Quantify the cell cell that is 'active_rows' below and one to the
+        // right of the current; this one will never be relevant for later
+        // cells.
+        const cell q_cell(row+cell::active_rows, col+1);
         if (!q_cell.out_of_range()) {
           paths = adapter.exists(paths, bit_pred(q_cell, var_t::in_bit, opt));
 
@@ -1684,9 +1733,9 @@ namespace enc_gadgets
         }
       }
 
-      // Quantify the last cell on row+2, since it will not be relevant beyond
+      // Quantify the last cell on row+cell::active_rows, since it will not be relevant beyond
       // this point.
-      const cell q_cell(row+2, 0);
+      const cell q_cell(row+cell::active_rows, 0);
       if (!q_cell.out_of_range()) {
         paths = adapter.exists(paths, bit_pred(q_cell, var_t::in_bit, opt));
 
@@ -1709,7 +1758,7 @@ namespace enc_gadgets
       largest_bdd = std::max(largest_bdd, nodecount);
       total_nodes += nodecount;
 
-      std::cout << "   |  Exists 1_,2_ (nodes):    " << nodecount << "\n"
+      std::cout << "   |  Exists __ (nodes):    " << nodecount << "\n"
                 << std::flush;
 #endif // BDD_BENCHMARK_STATS
     }
@@ -1727,7 +1776,7 @@ namespace enc_gadgets
         // Establish invariant by extending domain with don't care gadget
         // variables for cells: (0,0), (0,1), ..., (1,N).
         std::vector<int> gadget_vars;
-        for (int row = MIN_ROW(); row < MIN_ROW()+2; ++row) {
+        for (int row = MIN_ROW(); row < MIN_ROW()+cell::active_rows; ++row) {
           for (int col = MIN_COL(); col < cols(); ++col) {
             cell c(row, col);
 
@@ -1748,7 +1797,7 @@ namespace enc_gadgets
         largest_bdd = std::max(largest_bdd, nodecount);
         total_nodes += nodecount;
 
-        std::cout << "   | |  Extend 1_,2_ (nodes):  " << nodecount << "\n"
+        std::cout << "   | |  Extend __ (nodes):  " << nodecount << "\n"
                   << std::flush;
 #endif // BDD_BENCHMARK_STATS
       }
@@ -1756,9 +1805,9 @@ namespace enc_gadgets
       for (int row = MIN_ROW(); row < rows(); ++row) {
 
         if constexpr (adapter_t::needs_extend) {
-          // Extend variables to include gadget for cell (row+2,0).
+          // Extend variables to include gadget for cell (row+cell::active_rows,0).
 
-          const cell new_cell(row+2, MIN_COL());
+          const cell new_cell(row+cell::active_rows, MIN_COL());
           if (!new_cell.out_of_range()) {
             std::vector<int> gadget_vars;
             for (int bit = 0; bit < bits_per_gadget(opt); ++bit) {
@@ -1782,9 +1831,9 @@ namespace enc_gadgets
           const cell u(row, col);
 
           if constexpr (adapter_t::needs_extend) {
-            // Extend variables to include gadget for cell (row+2,col+1).
+            // Extend variables to include gadget for cell (row+cell::active_rows,col+1).
 
-            const cell new_cell(row+2, col+1);
+            const cell new_cell(row+cell::active_rows, col+1);
             if (!new_cell.out_of_range()) {
 
               std::vector<int> gadget_vars;
@@ -1839,7 +1888,7 @@ namespace enc_gadgets
 
             // Quantify a cell two rows above and one to the left of the
             // current; this one will never be relevant for later cells.
-            const cell q_cell(row-2, col-1);
+            const cell q_cell(row-cell::active_rows, col-1);
             if (!q_cell.out_of_range()) {
               paths = adapter.exists(paths, bit_pred(q_cell, var_t::gadget_bit, opt));
 
@@ -1857,7 +1906,7 @@ namespace enc_gadgets
 
         // Quantify the last cell two rows prior, since it will not be relevant
         // beyond this point.
-        const cell q_cell(row-2, MAX_COL());
+        const cell q_cell(row-cell::active_rows, MAX_COL());
         if (!q_cell.out_of_range()) {
           paths = adapter.exists(paths, bit_pred(q_cell, var_t::gadget_bit, opt));
 
@@ -2378,12 +2427,10 @@ int run_hamiltonian(int argc, char** argv)
 
   adapter.print_stats();
 
-  /*
-  const int N = rows()+cols();
-  if (N < size(expected_hamiltonian_closed)
-      && expected_hamiltonian_closed[N] != UNKNOWN && solutions != expected_hamiltonian_closed[N]) {
+  if (rows() == cols() && rows() < size(expected_hamiltonian__grid)
+      && expected_hamiltonian__grid[rows()] != UNKNOWN
+      && solutions != expected_hamiltonian__grid[rows()]) {
     return -1;
   }
-  */
   return 0;
 }
