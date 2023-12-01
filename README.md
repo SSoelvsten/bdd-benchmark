@@ -14,7 +14,7 @@ way, thereby allowing one to compare implementations.
     - [Usage](#usage)
     - [Benchmarks](#benchmarks)
         - [Apply](#apply)
-        - [Knight's Tour](#knights-tour)
+        - [Hamiltonian Cycle](#hamiltonian-cycle)
         - [Picotrav](#picotrav)
         - [QBF Solver](#qbf-solver)
         - [Queens](#queens)
@@ -215,11 +215,12 @@ make run/apply F1=benchmarks/apply/x0.bdd F2=benchmarks/apply/x1.bdd O=and
 ```
 
 
-### Knight's Tour
+### Hamiltonian Cycle
+
 Solves the following problem:
 
-> Given N, then how many hamiltonian paths can a single Knight do across a chess
-> board of size N<sub>1</sub>xN<sub>2</sub>?
+> Given N<sub>1</sub> and N<sub>2</sub>, then how many hamiltonian cycles can a
+> single Knight do across a chess board of size N<sub>1</sub>xN<sub>2</sub>?
 
 *Optionally*, you can pick the encoding/algorithm to solve the problem with:
 
@@ -228,7 +229,7 @@ Solves the following problem:
   position and time. A transition relation then encodes the legal moves between
   two time steps. By intersecting moves at all time steps we obtain all paths.
   On-top of this, hamiltonian constraints are added and finally the size of the
-  set of Knight's Tours is obtained.
+  set of cycles is obtained.
 
 - `binary`: Based on [[Marijn2021](#references)] with multiple tweaks by Randal
   E. Bryant to make it for decision diagrams. Each cell's choice of move, i.e.
@@ -253,7 +254,7 @@ whereas the `binary` encoding is designed for BDDs. That is, using the `time`
 encoding with BDDs does not give you great, i.e. small and fast, results.
 
 ```bash
-make run/knights_tour N1=6 N2=5
+make run/hamiltonian N1=6 N2=5
 ```
 
 

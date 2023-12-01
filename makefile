@@ -32,7 +32,7 @@ build:
 	@cd build/ && for package in 'adiar' 'buddy' 'cal' 'cudd' 'sylvan' ; do \
 		mkdir -p ../out/$$package ; \
 		mkdir -p ../out/$$package/bdd ; \
-		for benchmark in 'apply' 'knights_tour' 'picotrav' 'qbf' 'queens' 'tic_tac_toe' ; do \
+		for benchmark in 'apply' 'hamiltonian' 'picotrav' 'qbf' 'queens' 'tic_tac_toe' ; do \
 			make ${MAKE_FLAGS} $$package'_'$$benchmark'_bdd' ; \
 		done ; \
 	done
@@ -42,7 +42,7 @@ build:
 	@cd build/ && for package in 'adiar' 'cudd' ; do \
 		mkdir -p ../out/$$package ; \
 		mkdir -p ../out/$$package/zdd ; \
-		for benchmark in 'apply' 'knights_tour' 'picotrav' 'queens' 'tic_tac_toe' ; do \
+		for benchmark in 'apply' 'hamiltonian' 'picotrav' 'queens' 'tic_tac_toe' ; do \
 			make ${MAKE_FLAGS} $$package'_'$$benchmark'_zdd' ; \
 		done ; \
 	done
@@ -120,14 +120,14 @@ help:
 	@echo "   | The Boolean operand to use."
 
 	@echo ""
-	@echo "run/knights_tour/[bdd,zdd]"
-	@echo "   Counts the number of Knight's Tours on a chessboard."
+	@echo "run/hamiltonian/[bdd,zdd]"
+	@echo "   Counts the number of Hamiltonian Cycles on a grid."
 	@echo ""
 	@echo "   + N=<int> (default: 6)"
-	@echo "   | The the width and height of the chessboard."
+	@echo "   | The the width and height of the grid."
 	@echo ""
 	@echo "   + NR=<int> NC=<int> (default: N)"
-	@echo "   | Alternative to using N to specify a non-square chessboards."
+	@echo "   | Alternative to using N to specify a non-square grid."
 	@echo ""
 	@echo "   + O=[time, binary, crt_binary, unary, crt_unary] (default: time)"
 	@echo "   | The type of encoding to use to solve the problem."
@@ -217,24 +217,24 @@ run/apply/zdd:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_apply_zdd -f $(F1) -f $(F2) -M $(M) -o $(O) 2>&1 | tee -a out/VARIANT/zdd/apply.out)
 
 # ============================================================================ #
-#  RUN: Knight's Tour
+#  RUN: Hamiltonian Cycles
 # ============================================================================ #
-run/knights_tour:
-	$(MAKE) run/knights_tour/zdd
+run/hamiltonian:
+	$(MAKE) run/hamiltonian/zdd
 
-run/knights_tour/bdd: N  := 6
-run/knights_tour/bdd: NR := $(N)
-run/knights_tour/bdd: NC := $(NR)
-run/knights_tour/bdd: O := "TIME"
-run/knights_tour/bdd:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_knights_tour_bdd -N $(NR) -N $(NC) -M $(M) -o $(O) 2>&1 | tee -a out/VARIANT/bdd/knights_tour.out)
+run/hamiltonian/bdd: N  := 6
+run/hamiltonian/bdd: NR := $(N)
+run/hamiltonian/bdd: NC := $(NR)
+run/hamiltonian/bdd: O := "TIME"
+run/hamiltonian/bdd:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_hamiltonian_bdd -N $(NR) -N $(NC) -M $(M) -o $(O) 2>&1 | tee -a out/VARIANT/bdd/hamiltonian.out)
 
-run/knights_tour/zdd: N  := 6
-run/knights_tour/zdd: NR := $(N)
-run/knights_tour/zdd: NC := $(NR)
-run/knights_tour/zdd: O := "TIME"
-run/knights_tour/zdd:
-	@$(subst VARIANT,$(V),./build/src/VARIANT_knights_tour_zdd -N $(NR) -N $(NC) -M $(M) -o $(O) 2>&1 | tee -a out/VARIANT/zdd/knights_tour.out)
+run/hamiltonian/zdd: N  := 6
+run/hamiltonian/zdd: NR := $(N)
+run/hamiltonian/zdd: NC := $(NR)
+run/hamiltonian/zdd: O := "TIME"
+run/hamiltonian/zdd:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_hamiltonian_zdd -N $(NR) -N $(NC) -M $(M) -o $(O) 2>&1 | tee -a out/VARIANT/zdd/hamiltonian.out)
 
 # ============================================================================ #
 #  RUN: Picotrav
