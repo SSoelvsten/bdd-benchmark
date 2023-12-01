@@ -219,8 +219,8 @@ make run/apply F1=benchmarks/apply/x0.bdd F2=benchmarks/apply/x1.bdd O=and
 
 Solves the following problem:
 
-> Given N<sub>1</sub> and N<sub>2</sub>, then how many hamiltonian cycles can a
-> single Knight do across a chess board of size N<sub>1</sub>xN<sub>2</sub>?
+> Given N<sub>1</sub> and N<sub>2</sub>, then how many hamiltonian cycles exist
+> on a Grid Graph size N<sub>1</sub>xN<sub>2</sub>?
 
 *Optionally*, you can pick the encoding/algorithm to solve the problem with:
 
