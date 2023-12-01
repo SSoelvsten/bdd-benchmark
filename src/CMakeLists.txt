@@ -101,7 +101,7 @@ endmacro(link_extra)
 # Combinatorial Benchmarks
 add_benchmark(hamiltonian)
 add_benchmark(queens)
-add_benchmark(tic_tac_toe)
+add_benchmark(tic-tac-toe)
 
 # ---------------------------------------------------------------------------- #
 # Verification

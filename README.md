@@ -370,7 +370,7 @@ near-exponentially, the number of variables is fixed (64) and the number of
 Apply operations is too (76).
 
 ```bash
-make run/tic_tac_toe N=20
+make run/tic-tac-toe N=20
 ```
 
 

@@ -97,7 +97,7 @@ typename adapter_t::dd_t construct_is_not_winning(adapter_t &adapter,
 
 // =============================================================================
 template<typename adapter_t>
-int run_tic_tac_toe(int argc, char** argv)
+int run_tictactoe(int argc, char** argv)
 {
   no_options option = no_options::NONE;
   bool should_exit = parse_input(argc, argv, option);
