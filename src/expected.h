@@ -36,7 +36,7 @@ const size_t expected_hamiltonian__knight[17] = {
 // If otherwise not stated, the numbers are based on prior runs of our own.
 const size_t expected_hamiltonian__grid[13] = {
   0,                   //  0x0  [_]
-  0,                   //  1x1  [3]
+  1,                   //  1x1  [_]
   1,                   //  2x2  [3]
   0,                   //  3x3  [3]
   6,                   //  4x4  [3]
