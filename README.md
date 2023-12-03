@@ -172,11 +172,12 @@ either use swap or be killed if the BDD package takes up more memory in
 conjunction with the benchmark's auxiliary data structures.
 
 We provide benchmarks for both *Binary* and for *Zero-suppressed* Decision
-Diagrams. Not all benchmarks support both types of decision diagrams, but if
-possible, then the type can be chosen as part of the make target.
+Diagrams. Not all benchmarks or BDD packages support both types of decision
+diagrams, but if possible, then the type can be chosen as part of the make
+target.
 
 ```bash
-make run/queens/zdd V=buddy N=10 M=256
+make run/queens/zdd V=adiar N=10 M=256
 ```
 
 Some benchmarks allow for choosing between a set of *O*ptions, e.g. variable
