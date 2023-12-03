@@ -279,9 +279,20 @@ public:
   /// \brief Whether this cell is reachable from any other cell.
   bool has_neighbour() const
   {
-    // For any board larger than 3x3, there is at least one neighbour. For the
+    /*
+    // ---------------------------------
+    // Knight moves
+
+    // For any board larger than 1x1, there is at least one neighbour. For the
     // 3x3 board the center is the only unreachable position.
     return cells() != 9 || (*this != cell(1,1));
+    */
+
+    // ---------------------------------
+    // Grid Graph moves
+
+    // For any board larger than 1x1, there is at least one neighbour
+    return cells() > 1;
   }
 
 public:
