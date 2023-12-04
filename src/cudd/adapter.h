@@ -143,6 +143,12 @@ public:
   inline BDD nithvar(int i)
   { return ~_mgr.bddVar(i); }
 
+  inline BDD apply_imp(const BDD &f, const BDD &g)
+  { return f.Ite(g, _mgr.bddOne()); }
+
+  inline BDD apply_xnor(const BDD &f, const BDD &g)
+  { return f.Xnor(g); }
+
   inline BDD ite(const BDD &f, const BDD &g, const BDD &h)
   { return f.Ite(g,h); }
 

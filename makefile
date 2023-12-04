@@ -32,7 +32,7 @@ build:
 	@cd build/ && for package in 'adiar' 'buddy' 'cal' 'cudd' 'sylvan' ; do \
 		mkdir -p ../out/$$package ; \
 		mkdir -p ../out/$$package/bdd ; \
-		for benchmark in 'apply' 'hamiltonian' 'picotrav' 'qbf' 'queens' 'tic-tac-toe' ; do \
+		for benchmark in 'apply' 'game-of-life' 'hamiltonian' 'picotrav' 'qbf' 'queens' 'tic-tac-toe' ; do \
 			make ${MAKE_FLAGS} $$package'_'$$benchmark'_bdd' ; \
 		done ; \
 	done
@@ -120,6 +120,16 @@ help:
 	@echo "   | The Boolean operand to use."
 
 	@echo ""
+	@echo "run/game-of-life/[bdd,zdd]"
+	@echo "   Counts the number of Garden of Edens in Conway's Game of Life."
+	@echo ""
+	@echo "   + N=<int> (default: 6)"
+	@echo "   | The the width and height of the grid."
+	@echo ""
+	@echo "   + NR=<int> NC=<int> (default: N)"
+	@echo "   | Alternative to using N to specify a non-square grid."
+
+	@echo ""
 	@echo "run/hamiltonian/[bdd,zdd]"
 	@echo "   Counts the number of Hamiltonian Cycles on a grid."
 	@echo ""
@@ -199,7 +209,7 @@ N:=0
 O := ""
 
 # ============================================================================ #
-#  RUN: Picotrav
+#  RUN: Apply
 # ============================================================================ #
 run/apply:
 	$(MAKE) run/apply/bdd
@@ -215,6 +225,24 @@ run/apply/zdd: F1 := "benchmarks/apply/100.zdd"
 run/apply/zdd: F2 := "benchmarks/apply/010.zdd"
 run/apply/zdd:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_apply_zdd -f $(F1) -f $(F2) -M $(M) -o $(O) 2>&1 | tee -a out/VARIANT/zdd/apply.out)
+
+# ============================================================================ #
+#  RUN: Game of Life - Garden of Eden
+# ============================================================================ #
+run/game-of-life:
+	$(MAKE) run/game-of-life/bdd
+
+run/game-of-life/bdd: N  := 6
+run/game-of-life/bdd: NR := $(N)
+run/game-of-life/bdd: NC := $(NR)
+run/game-of-life/bdd:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_game-of-life_bdd -N $(NR) -N $(NC) -M $(M) 2>&1 | tee -a out/VARIANT/bdd/game-of-life.out)
+
+run/game-of-life/zdd: N  := 6
+run/game-of-life/zdd: NR := $(N)
+run/game-of-life/zdd: NC := $(NR)
+run/game-of-life/zdd:
+	@$(subst VARIANT,$(V),./build/src/VARIANT_game-of-life_zdd -N $(NR) -N $(NC) -M $(M) 2>&1 | tee -a out/VARIANT/zdd/game-of-life.out)
 
 # ============================================================================ #
 #  RUN: Hamiltonian Cycles

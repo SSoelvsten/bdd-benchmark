@@ -14,6 +14,7 @@ way, thereby allowing one to compare implementations.
     - [Usage](#usage)
     - [Benchmarks](#benchmarks)
         - [Apply](#apply)
+        - [Game of Life](#game-of-life)
         - [Hamiltonian Cycle](#hamiltonian-cycle)
         - [Picotrav](#picotrav)
         - [QBF Solver](#qbf-solver)
@@ -213,6 +214,17 @@ more interesting inputs.
 
 ```bash
 make run/apply F1=benchmarks/apply/x0.bdd F2=benchmarks/apply/x1.bdd O=and
+```
+
+### Game Of Life
+
+Solves the following problem:
+
+> Given N<sub>1</sub> and N<sub>2</sub>, then how many "Garden of Edens" exist
+> of size N<sub>1</sub>xN<sub>2</sub> in Conway's Game of Life?
+
+```bash
+make run/game-of-life N1=6 N2=5
 ```
 
 
