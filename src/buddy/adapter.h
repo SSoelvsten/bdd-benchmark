@@ -147,6 +147,12 @@ public:
   inline bdd nithvar(int i)
   { return bdd_nithvar(i); }
 
+  inline bdd apply_imp(const bdd &f, const bdd &g)
+  { return bdd_imp(f,g); }
+
+  inline bdd apply_xnor(const bdd &f, const bdd &g)
+  { return bdd_biimp(f,g); }
+
   inline bdd ite(const bdd &f, const bdd &g, const bdd &h)
   { return bdd_ite(f,g,h); }
 

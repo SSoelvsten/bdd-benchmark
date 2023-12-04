@@ -72,6 +72,14 @@ public:
   { return adiar::bdd_nithvar(i); }
 
   inline adiar::bdd
+  apply_imp(const adiar::bdd &f, const adiar::bdd &g)
+  { return adiar::bdd_imp(f,g); }
+
+  inline adiar::bdd
+  apply_xnor(const adiar::bdd &f, const adiar::bdd &g)
+  { return adiar::bdd_xnor(f,g); }
+
+  inline adiar::bdd
   ite(const adiar::bdd &f, const adiar::bdd &g, const adiar::bdd &h)
   { return adiar::bdd_ite(f,g,h); }
 

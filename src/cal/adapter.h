@@ -47,7 +47,13 @@ public:
   inline BDD nithvar(int i)
   { return ~_mgr.Id(i+1); }
 
-  inline BDD ite(BDD f, BDD g, BDD h)
+  inline BDD apply_imp(const BDD &f, const BDD &g)
+  { return f.Implies(g); }
+
+  inline BDD apply_xnor(const BDD &f, const BDD &g)
+  { return f.Xnor(g); }
+
+  inline BDD ite(const BDD &f, const BDD &g, const BDD &h)
   { return _mgr.ITE(f,g,h); }
 
   template <typename IT>
