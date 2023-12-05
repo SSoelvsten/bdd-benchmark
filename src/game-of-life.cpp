@@ -45,7 +45,8 @@ inline int varcount()
 { return rows(false) * cols(false) + rows(true) * cols(true); }
 
 // ========================================================================== //
-// TODO: Option?
+
+// TODO: Symmetry Option
 
 // ========================================================================== //
 //                              CELLS + VARIABLES                             //
