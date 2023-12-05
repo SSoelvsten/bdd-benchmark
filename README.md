@@ -220,8 +220,8 @@ make run/apply F1=benchmarks/apply/x0.bdd F2=benchmarks/apply/x1.bdd O=and
 
 Solves the following problem:
 
-> Given N<sub>1</sub> and N<sub>2</sub>, then how many "Garden of Edens" exist
-> of size N<sub>1</sub>xN<sub>2</sub> in Conway's Game of Life?
+> Given N<sub>1</sub> and N<sub>2</sub>, how many "Garden of Edens" exist of size
+> N<sub>1</sub>xN<sub>2</sub> in Conway's Game of Life?
 
 ```bash
 make run/game-of-life N1=6 N2=5
@@ -232,8 +232,8 @@ make run/game-of-life N1=6 N2=5
 
 Solves the following problem:
 
-> Given N<sub>1</sub> and N<sub>2</sub>, then how many hamiltonian cycles exist
-> on a Grid Graph size N<sub>1</sub>xN<sub>2</sub>?
+> Given N<sub>1</sub> and N<sub>2</sub>, how many hamiltonian cycles exist on a
+> Grid Graph size N<sub>1</sub>xN<sub>2</sub>?
 
 *Optionally*, you can pick the encoding/algorithm to solve the problem with:
 
@@ -352,7 +352,7 @@ make run/qbf F=benchmarks/qcir/example_a.blif O=df
 ### Queens
 Solves the following problem:
 
-> Given N, then in how many ways can N queens be placed on an N x N chess board
+> Given N, in how many ways can N queens be placed on an N x N chess board
 > without threatening eachother?
 
 Our implementation of these benchmarks are based on the description of
@@ -369,8 +369,8 @@ make run/queens N=8
 ### Tic-Tac-Toe
 Solves the following problem:
 
-> Given N, then in how many ways can Player 1 place N crosses in a 3D 4x4x4 cube
-> and have a tie, when Player 2 places noughts in all remaining positions?
+> Given N, in how many ways can Player 1 place N crosses in a 3D 4x4x4 cube and
+> have a tie, when Player 2 places noughts in all remaining positions?
 
 This benchmark stems from [[Kunkle10](#references)]. Here we keep an accumulated
 BDD on which we add one of the 76 constraints of at least one cross and one
