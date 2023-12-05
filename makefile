@@ -42,7 +42,7 @@ build:
 	@cd build/ && for package in 'adiar' 'cudd' ; do \
 		mkdir -p ../out/$$package ; \
 		mkdir -p ../out/$$package/zdd ; \
-		for benchmark in 'apply' 'hamiltonian' 'picotrav' 'queens' 'tic-tac-toe' ; do \
+		for benchmark in 'apply' 'game-of-life' 'hamiltonian' 'picotrav' 'queens' 'tic-tac-toe' ; do \
 			make ${MAKE_FLAGS} $$package'_'$$benchmark'_zdd' ; \
 		done ; \
 	done
