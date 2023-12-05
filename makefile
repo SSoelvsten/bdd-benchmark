@@ -294,6 +294,10 @@ run/qbf/bdd:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_qbf_bdd -f $(F) -M $(M) -o $(O) | tee -a out/VARIANT/bdd/qbf.out)
 
 # TODO: run/qbf/zdd
+#
+# To solve this, we somehow need to fix that the final quantifier block compares
+# to `adapter.top()`. Yet, we cannot do so for ZDDs, since we have removed
+# variables.
 
 # ============================================================================ #
 #  RUN: Queens
