@@ -499,7 +499,7 @@ int run_gameoflife(int argc, char** argv)
   no_options option = no_options::NONE;
   bool should_exit = parse_input(argc, argv, option);
 
-  if (input_sizes.size() == 0) { input_sizes.push_back(6); }
+  if (input_sizes.size() == 0) { input_sizes.push_back(4); }
   if (input_sizes.size() == 1) { input_sizes.push_back(input_sizes.at(0)); }
 
   if (should_exit) { return -1; }
