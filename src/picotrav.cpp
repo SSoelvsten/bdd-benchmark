@@ -702,7 +702,7 @@ int construct_net_bdd(const std::string &filename,
 
   std::cout << "   | time (ms):              " << duration_of(t_construct_before, t_construct_after) << "\n";
 #ifdef BDD_BENCHMARK_STATS
-  std::cout << "   | total no. nodes:        \n" << stats.total_processed << "\n";
+  std::cout << "   | total no. nodes:        " << stats.total_processed << "\n";
 #endif // BDD_BENCHMARK_STATS
 
   size_t sum_final_sizes = 0;
