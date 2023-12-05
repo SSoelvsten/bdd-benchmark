@@ -427,7 +427,8 @@ typename adapter_t::dd_t acc_rel(adapter_t &adapter)
         total_nodes += nodecount;
 
         std::cout << "   | Rel ( " << c.to_string() << " ) : "
-                  << nodecount << " DD nodes\n";
+                  << nodecount << " DD nodes\n"
+                  << std::flush;
       }
 #endif // BDD_BENCHMARK_STATS
 
@@ -442,7 +443,8 @@ typename adapter_t::dd_t acc_rel(adapter_t &adapter)
         total_nodes += nodecount;
 
         std::cout << "   | Exi ( " << c_done.to_string() << " ) : "
-                  << nodecount << " DD nodes\n";
+                  << nodecount << " DD nodes\n"
+                  << std::flush;
       }
 #endif // BDD_BENCHMARK_STATS
     }
@@ -460,7 +462,8 @@ typename adapter_t::dd_t acc_rel(adapter_t &adapter)
       total_nodes += nodecount;
 
       std::cout << "   | Exi ( " << static_cast<char>('A'+quant_row) << "_ ) : "
-                << nodecount << " DD nodes\n";
+                << nodecount << " DD nodes\n"
+                << std::flush;
     }
 #endif // BDD_BENCHMARK_STATS
   }
@@ -476,7 +479,8 @@ typename adapter_t::dd_t acc_rel(adapter_t &adapter)
     total_nodes += nodecount;
 
     std::cout << "   | Exi ( __ ) : "
-              << nodecount << " DD nodes\n";
+              << nodecount << " DD nodes\n"
+              << std::flush;
   }
 #endif // BDD_BENCHMARK_STATS
 
