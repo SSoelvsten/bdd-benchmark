@@ -99,7 +99,7 @@ endmacro(link_extra)
 
 # ---------------------------------------------------------------------------- #
 # Combinatorial Benchmarks
-add_bdd_benchmark(game-of-life)
+add_benchmark(game-of-life)
 add_benchmark(hamiltonian)
 add_benchmark(queens)
 add_benchmark(tic-tac-toe)

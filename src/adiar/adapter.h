@@ -72,8 +72,20 @@ public:
   { return adiar::bdd_nithvar(i); }
 
   inline adiar::bdd
+  apply_and(const adiar::bdd &f, const adiar::bdd &g)
+  { return adiar::bdd_and(f,g); }
+
+  inline adiar::bdd
+  apply_or(const adiar::bdd &f, const adiar::bdd &g)
+  { return adiar::bdd_or(f,g); }
+
+  inline adiar::bdd
   apply_imp(const adiar::bdd &f, const adiar::bdd &g)
   { return adiar::bdd_imp(f,g); }
+
+  inline adiar::bdd
+  apply_xor(const adiar::bdd &f, const adiar::bdd &g)
+  { return adiar::bdd_xor(f,g); }
 
   inline adiar::bdd
   apply_xnor(const adiar::bdd &f, const adiar::bdd &g)
@@ -199,6 +211,33 @@ public:
 
   inline adiar::zdd nithvar(int i)
   { return adiar::zdd_nithvar(i); }
+
+  inline adiar::zdd
+  apply_and(const adiar::zdd &f, const adiar::zdd &g)
+  { return adiar::zdd_intsec(f,g); }
+
+  inline adiar::zdd
+  apply_or(const adiar::zdd &f, const adiar::zdd &g)
+  { return adiar::zdd_union(f,g); }
+
+  inline adiar::zdd
+  apply_imp(const adiar::zdd &f, const adiar::zdd &g)
+  { return adiar::zdd_union(adiar::zdd_complement(f), g); }
+
+  inline adiar::zdd
+  apply_xor(const adiar::zdd &f, const adiar::zdd &g)
+  { return adiar::zdd_diff(adiar::zdd_union(f,g), adiar::zdd_intsec(f,g)); }
+
+  inline adiar::zdd
+  apply_xnor(const adiar::zdd &f, const adiar::zdd &g)
+  { return adiar::zdd_complement(this->apply_xor(f,g)); }
+
+  inline adiar::zdd
+  ite(const adiar::zdd &f, const adiar::zdd &g, const adiar::zdd &h)
+  {
+    return adiar::zdd_union(adiar::zdd_intsec(f,g),
+                            adiar::zdd_intsec(adiar::zdd_complement(f),h));
+  }
 
   template <typename IT>
   inline adiar::zdd

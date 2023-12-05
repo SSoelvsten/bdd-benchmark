@@ -143,8 +143,17 @@ public:
   inline BDD nithvar(int i)
   { return ~_mgr.bddVar(i); }
 
+  inline BDD apply_and(const BDD &f, const BDD &g)
+  { return f.And(g); }
+
+  inline BDD apply_or(const BDD &f, const BDD &g)
+  { return f.Or(g); }
+
   inline BDD apply_imp(const BDD &f, const BDD &g)
   { return f.Ite(g, _mgr.bddOne()); }
+
+  inline BDD apply_xor(const BDD &f, const BDD &g)
+  { return f.Xor(g); }
 
   inline BDD apply_xnor(const BDD &f, const BDD &g)
   { return f.Xnor(g); }
@@ -273,29 +282,79 @@ public:
   inline ZDD nithvar(const int i)
   { return ~_mgr.zddVar(i); }
 
+  inline ZDD apply_and(const ZDD &f, const ZDD &g)
+  { return f.Intersect(g); }
+
+  inline ZDD apply_or(const ZDD &f, const ZDD &g)
+  { return f.Union(g); }
+
+  inline ZDD apply_imp(const ZDD &f, const ZDD &g)
+  { return f.Complement().Union(g); }
+
+  inline ZDD apply_xor(const ZDD &f, const ZDD &g)
+  { return (f.Union(g)).Diff(f.Intersect(g)); }
+
+  inline ZDD apply_xnor(const ZDD &f, const ZDD &g)
+  { return this->apply_xor(f,g).Complement(); }
+
+  inline ZDD ite(const ZDD &f, const ZDD &g, const ZDD &h)
+  { return f.Ite(g,h); }
+
   template <typename IT>
-  inline ZDD extend(const ZDD &f, IT /*begin*/, IT /*end*/)
-  { throw std::logic_error("CUDD support to 'Extend' ZDDs is unclear?"); }
+  inline ZDD extend(ZDD &f, IT/* begin*/, IT/*end*/)
+  { throw std::logic_error("No support to 'Extend' ZDDs with Don't Cares (?)"); }
 
-  inline ZDD exists(const ZDD &, int)
-  { throw std::logic_error("CUDD has no support for 'Exists' on ZDDs"); }
+  inline ZDD exists(const ZDD &f, int x)
+  {
+    throw std::logic_error("No support to 'Forall' for ZDDs");
+    // One should think this may work, but since the variable is left in the output, then we cannot
+    // recreate the BDD semantics.
+    //
+    // `return f.Subset0(x).Union(f.Subset1(x));`
+  }
 
-  inline ZDD exists(const ZDD &, const std::function<bool(int)> &)
-  { throw std::logic_error("CUDD has no support for 'Exists' on ZDDs"); }
+  inline ZDD exists(ZDD f, const std::function<bool(int)> &pred)
+  {
+    for (int x = _varcount-1; 0 <= x; --x) {
+      if (pred(x)) { f = this->exists(f,x); }
+    }
+    return f;
+  }
 
   template<typename IT>
-  inline ZDD exists(const ZDD &, IT, IT)
-  { throw std::logic_error("CUDD has no support for 'Exists' on ZDDs"); }
+  inline ZDD exists(ZDD f, IT begin, IT end)
+  {
+    for (; begin != end; ++begin) {
+      f = this->exists(*begin);
+    }
+    return f;
+  }
 
-  inline ZDD forall(const ZDD &, int)
-  { throw std::logic_error("CUDD has no support for 'Forall' on ZDDs"); }
+  inline ZDD forall(const ZDD &f, int x)
+  {
+    throw std::logic_error("No support to 'Forall' for ZDDs");
+    // One should think this may work, but since the variable is left in the output, then we cannot
+    // recreate the BDD semantics.
+    //
+    // `return f.Subset0(x).Intersect(f.Subset1(x));`
+  }
 
-  inline ZDD forall(const ZDD &, const std::function<bool(int)> &pred)
-  { throw std::logic_error("CUDD has no support for 'Forall' on ZDDs"); }
+  inline ZDD forall(ZDD f, const std::function<bool(int)> &pred)
+  {
+    for (int x = _varcount-1; 0 <= x; --x) {
+      if (pred(x)) { f = this->forall(f,x); }
+    }
+    return f;
+  }
 
   template<typename IT>
-  inline ZDD forall(const ZDD &, IT, IT)
-  { throw std::logic_error("CUDD has no support for 'Forall' on ZDDs"); }
+  inline ZDD forall(ZDD f, IT begin, IT end)
+  {
+    for (; begin != end; ++begin) {
+      f = this->forall(*begin);
+    }
+    return f;
+  }
 
   inline uint64_t nodecount(const ZDD &f)
   { return f.nodeCount(); }
