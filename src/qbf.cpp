@@ -1893,7 +1893,7 @@ solve(adapter_t& adapter, qcir& q,
       dd_prenex_max_size = std::max(dd_prenex_max_size, g_dd_size);
     }
     std::cout << "  | | | DD size:         " << g_dd_size << "\n"
-              << "  | | | time (ms):       " << duration_of(t_start,t_end);
+              << "  | | | time (ms):       " << duration_of(t_start,t_end) << "\n";
 
     if (g.is<qcir::output_gate>()) {
       std::cout << "  | Prefix\n";
