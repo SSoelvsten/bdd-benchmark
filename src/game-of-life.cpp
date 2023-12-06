@@ -4,11 +4,6 @@
 #include <unordered_map>
 #include <utility>
 
-#ifdef BDD_BENCHMARK_STATS
-size_t largest_bdd = 0;
-size_t total_nodes = 0;
-#endif // BDD_BENCHMARK_STATS
-
 // ========================================================================== //
 //                   PRIMING OF VARIABLES WITH TRANSITIONS                    //
 
@@ -254,6 +249,12 @@ public:
     res += 'a'+this->col();
     return res;
   }
+
+  /// \brief Whether two `cell` objects refer to the same coordinate.
+  bool operator== (const cell& o) const
+  {
+    return this->row() == o.row() && this->col() == o.col();
+  }
 };
 
 // ========================================================================== //
@@ -331,6 +332,36 @@ construct_count(adapter_t &adapter, const cell &c, const int alive)
   return adapter.build();
 }
 
+/// \brief Decision Diagram that is `true` if cell's state is preserved.
+///
+/// \details Major parts of this class is copied from `tic-tac-toe.cpp`.
+template<typename adapter_t>
+typename adapter_t::dd_t
+construct_eq(adapter_t &adapter, const cell &c)
+{
+  // TODO: Support non-interleaved variable reordering.
+
+  /// Main root variable
+  auto root0 = adapter.build_node(true);
+  /// Extra variable on equality split
+  auto root1 = root0;
+
+  for (int x = cell::max_var(); cell::min_var() <= x; --x) {
+    if (c == cell(x)) {
+      if (cell::is_prime(x)) {
+        root1 = adapter.build_node(x, adapter.build_node(false), root0);
+        root0 = adapter.build_node(x, root0, adapter.build_node(false));
+      } else {
+        root0 = adapter.build_node(x, root0, root1);
+      }
+    } else {
+      root0 = adapter.build_node(x, root0, root0);
+    }
+  }
+
+  return adapter.build();
+}
+
 template<typename adapter_t>
 typename adapter_t::dd_t construct_rel(adapter_t &adapter, const cell &c)
 {
@@ -343,53 +374,23 @@ typename adapter_t::dd_t construct_rel(adapter_t &adapter, const cell &c)
     // - If the sum is 3, the inner cell will become alife.
     const typename adapter_t::dd_t alive_post = adapter.ithvar(c.dd_var(prime::post));
 
-#ifdef BDD_BENCHMARK_STATS
-    total_nodes += adapter.nodecount(alive_post) + adapter.nodecount(alive_3);
-#endif // BDD_BENCHMARK_STATS
     out = adapter.apply_imp(alive_3, std::move(alive_post));
   }
   { // ---------------------------------------------------------------------------
     // - If the sum is 4, the inner field retains its state.
-    const typename adapter_t::dd_t alive_pre  = adapter.ithvar(c.dd_var(prime::pre));
-    const typename adapter_t::dd_t alive_post = adapter.ithvar(c.dd_var(prime::post));
+    const typename adapter_t::dd_t eq = construct_eq(adapter, c);
 
-#ifdef BDD_BENCHMARK_STATS
-    total_nodes += adapter.nodecount(alive_pre) + adapter.nodecount(alive_post);
-#endif // BDD_BENCHMARK_STATS
-    const typename adapter_t::dd_t eq = adapter.apply_xnor(std::move(alive_pre),
-                                                           std::move(alive_post));
-
-#ifdef BDD_BENCHMARK_STATS
-    total_nodes += adapter.nodecount(out)
-                +  adapter.nodecount(eq) + adapter.nodecount(alive_4);
-#endif // BDD_BENCHMARK_STATS
     out &= adapter.apply_imp(alive_4, std::move(eq));
   }
   { // ---------------------------------------------------------------------------
     // - Otherwise, the inner field is dead.
-#ifdef BDD_BENCHMARK_STATS
-    total_nodes += adapter.nodecount(alive_3) + adapter.nodecount(alive_4);
-#endif // BDD_BENCHMARK_STATS
     const typename adapter_t::dd_t alive_3or4 = std::move(alive_3) | std::move(alive_4);
-
-#ifdef BDD_BENCHMARK_STATS
-    total_nodes += adapter.nodecount(alive_3or4);
-#endif // BDD_BENCHMARK_STATS
     const typename adapter_t::dd_t alive_other = ~std::move(alive_3or4);
-
     const typename adapter_t::dd_t dead_post = adapter.nithvar(c.dd_var(prime::post));
 
-#ifdef BDD_BENCHMARK_STATS
-    total_nodes += adapter.nodecount(out)
-                +  adapter.nodecount(alive_other) + adapter.nodecount(dead_post);
-#endif // BDD_BENCHMARK_STATS
     out &= adapter.apply_imp(std::move(alive_other), std::move(dead_post));
   }
 
-#ifdef BDD_BENCHMARK_STATS
-  // Count output such that it can be ignored in `acc_rel`.
-  total_nodes += adapter.nodecount(out);
-#endif // BDD_BENCHMARK_STATS
   return out;
 }
 
