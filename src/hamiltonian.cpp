@@ -462,7 +462,7 @@ std::vector<cell> cells_descending;
 ///        following the variable ordering.
 void init_cells_descending()
 {
-  assert(cell_descending.size() == 0);
+  assert(cells_descending.size() == 0);
 
   cells_descending.clear();
   cells_descending.reserve(cells());
@@ -471,7 +471,7 @@ void init_cells_descending()
     for (int col = MAX_COL(); MIN_COL() <= col; --col)
       cells_descending.push_back(cell(row, col));
 
-  assert(cell_descending.size() == cells());
+  assert(cells_descending.size() == static_cast<size_t>(cells()));
 
   // TODO (variable orderings):
   // std::sort<std::greater<cell>>(cells_descending.begin(), cells_descending.end());
@@ -1253,7 +1253,7 @@ namespace enc_gadgets
         carry = adapter.build_node(x, bit_val ? bot : carry, bit_val ? carry : bot);
       }
     }
-    assert(x < min_uv_var(opt));
+    assert(x < min_uv_var);
 
     auto root_then = match;
 
@@ -1522,7 +1522,7 @@ namespace enc_gadgets
                                   int v,
                                   const enc_opt &opt)
   {
-    assert(e.u() != e.v());
+    assert(!c.out_of_range());
     assert(p < 1 << bits_per_gadget(p, opt));
 
     // For all gadgets the value `v` is modulo `p`.
