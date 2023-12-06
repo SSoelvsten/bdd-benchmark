@@ -47,8 +47,17 @@ public:
   inline BDD nithvar(int i)
   { return ~_mgr.Id(i+1); }
 
+  inline BDD apply_and(const BDD &f, const BDD &g)
+  { return f.And(g); }
+
+  inline BDD apply_or(const BDD &f, const BDD &g)
+  { return f.Or(g); }
+
   inline BDD apply_imp(const BDD &f, const BDD &g)
-  { return f.Implies(g); }
+  { return f.Not().Or(g); }
+
+  inline BDD apply_xor(const BDD &f, const BDD &g)
+  { return f.Xor(g); }
 
   inline BDD apply_xnor(const BDD &f, const BDD &g)
   { return f.Xnor(g); }
