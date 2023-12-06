@@ -484,11 +484,6 @@ typename adapter_t::dd_t acc_rel(adapter_t &adapter)
 }
 
 // ========================================================================== //
-//                                 BOARD STATE                                //
-
-// TODO: print board state
-
-// ========================================================================== //
 template<typename adapter_t>
 int run_gameoflife(int argc, char** argv)
 {
@@ -560,9 +555,6 @@ int run_gameoflife(int argc, char** argv)
     std::cout << "   | number of states      : " << solutions << "\n"
               << "   | time             (ms) : " << counting_time << "\n"
               << std::flush;
-
-    // ========================================================================
-    // TODO: print solution (if any).
 
     // ========================================================================
     const time_duration total_time =
