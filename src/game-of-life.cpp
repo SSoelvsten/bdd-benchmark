@@ -41,8 +41,11 @@ inline int MIN_COL(bool p = false)
 inline int MAX_COL(bool p = false)
 { return cols(p) - (!p); }
 
+inline int varcount(bool p)
+{ return rows(p) * cols(p); }
+
 inline int varcount()
-{ return rows(false) * cols(false) + rows(true) * cols(true); }
+{ return varcount(false) + varcount(true); }
 
 // ========================================================================== //
 
@@ -393,6 +396,9 @@ typename adapter_t::dd_t construct_rel(adapter_t &adapter, const cell &c)
 // ========================================================================== //
 //                               GARDEN OF EDEN                               //
 
+time_duration acc_rel__apply_time  = 0;
+time_duration acc_rel__exists_time = 0;
+
 template<typename adapter_t>
 typename adapter_t::dd_t acc_rel(adapter_t &adapter)
 {
@@ -403,86 +409,74 @@ typename adapter_t::dd_t acc_rel(adapter_t &adapter)
               << "   |\n";
   }
 
+  const time_point t_apply__before = get_timestamp();
   auto res = adapter.top();
 
 #ifdef BDD_BENCHMARK_STATS
-  {
-    const size_t nodecount = adapter.nodecount(res);
-    total_nodes += nodecount;
-
-    std::cout << "   | Top        : "
-              << nodecount << " DD nodes\n";
-  }
+  std::cout << "   | Top        : "
+            << adapter.nodecount(res) << " DD nodes\n"
+            << std::flush;
 #endif // BDD_BENCHMARK_STATS
 
-  // Accumulate all relations. Previous state variables are quantified as early as possible.
+  // Accumulate all relations. Some of the previous state variables are quantified.
   for (int row = MAX_ROW(prime::post); MIN_ROW(prime::post) <= row; --row) {
     for (int col = MAX_COL(prime::post); MIN_COL(prime::post) <= col; --col) {
       const cell c(row, col);
+
+      // Constrict with relation for cell 'c'.
       res &= construct_rel(adapter, c);
 
 #ifdef BDD_BENCHMARK_STATS
-      {
-        const size_t nodecount = adapter.nodecount(res);
-        largest_bdd = std::max(largest_bdd, nodecount);
-        total_nodes += nodecount;
-
-        std::cout << "   | Rel ( " << c.to_string() << " ) : "
-                  << nodecount << " DD nodes\n"
-                  << std::flush;
-      }
-#endif // BDD_BENCHMARK_STATS
-
-      const cell c_done(row+1, col+1);
-      assert(!c_done.out_of_range(prime::pre));
-
-      res = adapter.exists(res, c_done.dd_var(prime::pre));
-#ifdef BDD_BENCHMARK_STATS
-      {
-        const size_t nodecount = adapter.nodecount(res);
-        largest_bdd = std::max(largest_bdd, nodecount);
-        total_nodes += nodecount;
-
-        std::cout << "   | Exi ( " << c_done.to_string() << " ) : "
-                  << nodecount << " DD nodes\n"
-                  << std::flush;
-      }
-#endif // BDD_BENCHMARK_STATS
-    }
-
-    // Quantify the last variables on row+1
-    const int quant_row = row+1;
-
-    res = adapter.exists(res, [&quant_row](int x) -> bool {
-      return (cell::is_prime(x) == prime::pre) && cell(x).row() == quant_row;
-    });
-#ifdef BDD_BENCHMARK_STATS
-    {
-      const size_t nodecount = adapter.nodecount(res);
-      largest_bdd = std::max(largest_bdd, nodecount);
-      total_nodes += nodecount;
-
-      std::cout << "   | Exi ( " << static_cast<char>('A'+quant_row) << "_ ) : "
-                << nodecount << " DD nodes\n"
+      std::cout << "   | Rel ( " << c.to_string() << " ) : "
+                << adapter.nodecount(res) << " DD nodes\n"
                 << std::flush;
-    }
 #endif // BDD_BENCHMARK_STATS
-  }
+    }
 
-  // Quantify the last 'prime::pre' variables
+    // Quantify variables on row+1, if it is the bottom-most two rows.
+    //
+    // - The bottom-most row of `prime::pre` is only used by the bottom-most row for `prime::post`.
+    //   Hence, we can make the decision diagram it smaller by skipping any checks on the last rows
+    //   values (and merely store them inside the bottom-most `prime::pre` row instead).
+    //
+    // - The second bottom-most row with `prime::pre` is only used by the two bottom-most rows for
+    //   `prime::post`. If we quantify this row, we decrease the size, as we replace the two
+    //   bottom-most rows of `prime::post` checking with said row to just comparing their values.
+    const int quant_row = row+1;
+    if (MAX_ROW(prime::post) <= quant_row) {
+      const time_point t_exists__before = get_timestamp();
+      res = adapter.exists(res, [&row](int x) -> bool {
+        return (cell::is_prime(x) == prime::pre) && cell(x).row() == row+1;
+      });
+      const time_point t_exists__after = get_timestamp();
+
+      acc_rel__exists_time += duration_of(t_exists__before, t_exists__after);
+
+#ifdef BDD_BENCHMARK_STATS
+      std::cout << "   | Exi ( " << static_cast<char>('A'+row+1) << "_ ) : "
+                << adapter.nodecount(res) << " DD nodes\n"
+                << std::flush;
+#endif // BDD_BENCHMARK_STATS
+    }
+  }
+  const time_point t_apply__after = get_timestamp();
+
+  acc_rel__apply_time = duration_of(t_apply__before, t_apply__after) - acc_rel__exists_time;
+
+  // Quantify all 'prime::pre' variables on all other rows. This will explode before it collapses to
+  // `true`.
+  const time_point t_exists__before = get_timestamp();
   res = adapter.exists(res, [](int x) -> bool {
     return cell::is_prime(x) == prime::pre;
   });
-#ifdef BDD_BENCHMARK_STATS
-  {
-    const size_t nodecount = adapter.nodecount(res);
-    largest_bdd = std::max(largest_bdd, nodecount);
-    total_nodes += nodecount;
+  const time_point t_exists__after = get_timestamp();
 
-    std::cout << "   | Exi ( __ ) : "
-              << nodecount << " DD nodes\n"
-              << std::flush;
-  }
+  acc_rel__exists_time += duration_of(t_exists__before, t_exists__after);
+
+#ifdef BDD_BENCHMARK_STATS
+  std::cout << "   | Exi ( __ ) : "
+            << adapter.nodecount(res) << " DD nodes\n"
+            << std::flush;
 #endif // BDD_BENCHMARK_STATS
 
   return res;
@@ -515,8 +509,11 @@ int run_gameoflife(int argc, char** argv)
 
   std::cout << "\n"
             << "   " << adapter_t::NAME << " initialisation:\n"
-            << "   | variables:              " << varcount() << "\n"
-            << "   | time (ms):              " << duration_of(t_init_before, t_init_after) << "\n"
+            << "   | variables             : " << varcount() << "\n"
+            << "   | | 'prev'              : " << varcount(prime::pre) << "\n"
+            << "   | | 'next'              : " << varcount(prime::post) << "\n"
+            << "   |\n"
+            << "   | time             (ms) : " << duration_of(t_init_before, t_init_after) << "\n"
             << "\n";
 
   size_t solutions = 0;
@@ -525,19 +522,13 @@ int run_gameoflife(int argc, char** argv)
     std::cout << "   Construct reachable states:\n"
               << std::flush;
 
-    const time_point t1 = get_timestamp();
     auto res = acc_rel(adapter);
-    const time_point t2 = get_timestamp();
-
-    const time_duration construction_time = duration_of(t1,t2);
 
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << "   |\n"
-              << "   | total no. nodes:        " << total_nodes << "\n"
-              << "   | largest size (nodes):   " << largest_bdd << "\n";
+    std::cout << "   |\n";
 #endif // BDD_BENCHMARK_STATS
-    std::cout << "   | size (nodes):           " << adapter.nodecount(res) << "\n"
-              << "   | time (ms):              " << construction_time << "\n"
+    std::cout << "   | apply  time      (ms) : " << acc_rel__apply_time << "\n"
+              << "   | exists time      (ms) : " << acc_rel__exists_time << "\n"
               << "\n"
               << std::flush;
 
@@ -551,8 +542,7 @@ int run_gameoflife(int argc, char** argv)
 
     const time_duration negation_time = duration_of(t3,t4);
 
-    std::cout << "   | size (nodes):           " << adapter.nodecount(res) << "\n"
-              << "   | time (ms):              " << negation_time << "\n"
+    std::cout << "   | time             (ms) : " << negation_time << "\n"
               << std::flush;
 
     // ========================================================================
@@ -566,13 +556,24 @@ int run_gameoflife(int argc, char** argv)
 
     const time_duration counting_time = duration_of(t5,t6);
 
-    std::cout << "   | number of solutions:    " << solutions << "\n"
-              << "   | time (ms):              " << counting_time << "\n"
+    std::cout << "   | number of states      : " << solutions << "\n"
+              << "   | time             (ms) : " << counting_time << "\n"
               << std::flush;
 
+    // ========================================================================
     // TODO: print solution (if any).
+
+    // ========================================================================
+    const time_duration total_time =
+      acc_rel__apply_time + acc_rel__exists_time + negation_time + counting_time;
+
+    std::cout << "\n"
+              << "   total time         (ms) : " << total_time << "\n"
+              << std::flush;
   }
 
-  // ======================================================================== //
-  return 0;
+  adapter.print_stats();
+
+  // For all solvable sizes, the number of solutions should be 0.
+  return solutions != 0;
 }
