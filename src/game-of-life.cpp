@@ -277,6 +277,8 @@ template<typename adapter_t>
 typename adapter_t::dd_t
 construct_count(adapter_t &adapter, const cell &c, const int alive)
 {
+  assert(0 <= alive);
+
   std::vector<typename adapter_t::build_node_t> init_parts(alive+2, adapter.build_node(false));
   init_parts.at(alive) = adapter.build_node(true);
 
@@ -299,14 +301,15 @@ construct_count(adapter_t &adapter, const cell &c, const int alive)
 
       // Open up for one fewer cell is alive (if not already all prior already could be dead).
       alive_min = std::max(alive_min-1, 0);
+      assert(0 <= alive_min);
 
       // Decrease 'alive_max' if too few variables above could have same number
       // of true variables.
-      if (cells_remaining == alive_max) {
-        assert(cells_remaining == alive_max && alive_max > 0);
+      alive_max = 0 < cells_remaining && cells_remaining == alive_max
+        ? alive_max - 1
+        : alive_max;
 
-        alive_max -= 1;
-      }
+      assert(0 <= alive_max);
 
       // Update all chains with a possible increment.
       for (int curr_idx = alive_min; curr_idx <= alive_max; ++curr_idx) {
