@@ -230,7 +230,6 @@ namespace lib_bdd
 
       // Create node from buffer
       const node n(buffer.begin(), buffer.end());
-      assert(in.size() == 1 || n.is_internal());
 
       // Sanity checks on node
       if (out.size() <= n.low()) {

@@ -306,7 +306,7 @@ construct_count(adapter_t &adapter, const cell &c, const int alive)
 
       // Update all chains with a possible increment.
       for (int curr_idx = alive_min; curr_idx <= alive_max; ++curr_idx) {
-        assert(0 <= && curr_idx <= alive);
+        assert(0 <= curr_idx && curr_idx <= alive);
 
         const auto low  = init_parts.at(curr_idx);
         const auto high = init_parts.at(curr_idx + 1);
@@ -316,7 +316,7 @@ construct_count(adapter_t &adapter, const cell &c, const int alive)
     } else {
       // Update all current chains with "don't-care" nodes
       for (int curr_idx = alive_min; curr_idx <= alive_max; ++curr_idx) {
-        assert(0 <= && curr_idx <= alive);
+        assert(0 <= curr_idx && curr_idx <= alive);
 
         const auto child  = init_parts.at(curr_idx);
 
