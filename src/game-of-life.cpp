@@ -508,11 +508,11 @@ int run_gameoflife(int argc, char** argv)
 
   std::cout << "\n"
             << "   " << adapter_t::NAME << " initialisation:\n"
-            << "   | variables             : " << varcount() << "\n"
-            << "   | | 'prev'              : " << varcount(prime::pre) << "\n"
-            << "   | | 'next'              : " << varcount(prime::post) << "\n"
+            << "   | variables        : " << varcount() << "\n"
+            << "   | | 'prev'         : " << varcount(prime::pre) << "\n"
+            << "   | | 'next'         : " << varcount(prime::post) << "\n"
             << "   |\n"
-            << "   | time             (ms) : " << duration_of(t_init_before, t_init_after) << "\n"
+            << "   | time (ms)        : " << duration_of(t_init_before, t_init_after) << "\n"
             << "\n";
 
   size_t solutions = 0;
@@ -526,8 +526,8 @@ int run_gameoflife(int argc, char** argv)
 #ifdef BDD_BENCHMARK_STATS
     std::cout << "   |\n";
 #endif // BDD_BENCHMARK_STATS
-    std::cout << "   | apply  time      (ms) : " << acc_rel__apply_time << "\n"
-              << "   | exists time      (ms) : " << acc_rel__exists_time << "\n"
+    std::cout << "   | apply  time (ms) : " << acc_rel__apply_time << "\n"
+              << "   | exists time (ms) : " << acc_rel__exists_time << "\n"
               << "\n"
               << std::flush;
 
@@ -541,7 +541,7 @@ int run_gameoflife(int argc, char** argv)
 
     const time_duration negation_time = duration_of(t3,t4);
 
-    std::cout << "   | time             (ms) : " << negation_time << "\n"
+    std::cout << "   | time (ms)        : " << negation_time << "\n"
               << std::flush;
 
     // ========================================================================
@@ -555,8 +555,8 @@ int run_gameoflife(int argc, char** argv)
 
     const time_duration counting_time = duration_of(t5,t6);
 
-    std::cout << "   | number of states      : " << solutions << "\n"
-              << "   | time             (ms) : " << counting_time << "\n"
+    std::cout << "   | number of states : " << solutions << "\n"
+              << "   | time (ms)        : " << counting_time << "\n"
               << std::flush;
 
     // ========================================================================
@@ -564,7 +564,7 @@ int run_gameoflife(int argc, char** argv)
       acc_rel__apply_time + acc_rel__exists_time + negation_time + counting_time;
 
     std::cout << "\n"
-              << "   total time         (ms) : " << total_time << "\n"
+              << "   total time (ms)    : " << total_time << "\n"
               << std::flush;
   }
 
