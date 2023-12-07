@@ -205,8 +205,8 @@ public:
   /// \brief Human-friendly string
   std::string to_string() const
   {
-    const char r = static_cast<char>('A'+this->row());
-    const char c = static_cast<char>('a'+this->col());
+    const char r = static_cast<char>('0'+this->row());
+    const char c = static_cast<char>('A'+this->col()-1);
     const char p = this->prime() == prime::pre ? ' ' : '\'';
 
     return { r, c, p };
@@ -514,11 +514,120 @@ typename adapter_t::dd_t construct_rel(adapter_t &adapter, const var_map &vm, co
 // ============================================================================================== //
 //                                         GARDEN OF EDEN                                         //
 
-time_duration acc_rel__apply_time  = 0;
-time_duration acc_rel__exists_time = 0;
+time_duration goe__apply_time  = 0;
+time_duration goe__exists_time = 0;
 
 template<typename adapter_t>
-typename adapter_t::dd_t acc_rel(adapter_t &adapter, const var_map &vm)
+typename adapter_t::dd_t acc_rel(adapter_t &adapter, const var_map &vm, const int row)
+{
+  auto res = adapter.top();
+
+#ifdef BDD_BENCHMARK_STATS
+  std::cout << "   | | Rel " << row << "\n"
+            << "   | | | --           : "
+            << adapter.nodecount(res) << "\n"
+            << std::flush;
+#endif // BDD_BENCHMARK_STATS
+
+  const time_point t_apply__before = get_timestamp();
+
+  for (int col = MAX_COL(prime::post); MIN_COL(prime::post) <= col; --col) {
+    const cell c(row, col);
+
+    // Constrict with relation for cell 'c'.
+    res &= construct_rel(adapter, vm, c);
+
+#ifdef BDD_BENCHMARK_STATS
+    std::cout << "   | | | " << c.to_string() << "          : "
+              << adapter.nodecount(res) << "\n"
+              << std::flush;
+#endif // BDD_BENCHMARK_STATS
+  }
+
+  const time_point t_apply__after  = get_timestamp();
+  goe__apply_time += duration_of(t_apply__before, t_apply__after);
+
+  return res;
+}
+
+template<typename adapter_t>
+typename adapter_t::dd_t acc_rel(adapter_t &adapter, const var_map &vm, const bool bottom)
+{
+  // TODO (symmetry::none): Use Manual Variable Reordering to only compute a row once.
+
+  const int half_rows = rows(prime::post) / 2;
+
+  const int top_begin = MIN_ROW(prime::post);
+  const int top_end   = top_begin + half_rows - 1;
+
+  const int bot_begin = MAX_ROW(prime::post);
+  const int bot_end   = bot_begin - half_rows + 1;
+
+  const int begin     = bottom ? bot_begin : top_begin;
+  const int end       = bottom ? bot_end   : top_end;
+
+  auto res = adapter.top();
+
+  for (int row = begin; bottom ? end <= row : row <= end; bottom ? --row : ++row) {
+    // ---------------------------------------------------------------------------------------------
+    const auto row_rel = acc_rel(adapter, vm, row);
+
+    const time_point t_apply__before = get_timestamp();
+    res &= std::move(row_rel);
+    const time_point t_apply__after  = get_timestamp();
+    goe__apply_time += duration_of(t_apply__before, t_apply__after);
+
+#ifdef BDD_BENCHMARK_STATS
+    std::cout << "   | |\n"
+              << "   | | Acc [" << begin << "-" << row << "]      : " << adapter.nodecount(res) << "\n" << std::flush;
+#endif // BDD_BENCHMARK_STATS
+
+    // ---------------------------------------------------------------------------------------------
+    // NOTE: Since all transition relations are very local, the complexity of the problem is hidden
+    //       within the quantification. Hence, the decision diagram explodes during this operation.
+    //       The exception is, that we can quantify the top-most and two bottom-most rows early.
+    //
+    //       - The top-most, resp. bottom-most, row of `prime::pre` is only used by the top-most,
+    //         resp. bottom-most, row for `prime::post`. Hence, we can make the decision diagram it
+    //         smaller by skipping any checks on the last rows values (and merely store them inside
+    //         the bottom-most `prime::pre` row instead).
+    //
+    //       For the bottom, the following also applies:
+    //
+    //       - The second bottom-most row with `prime::pre` is only used by the two bottom-most rows
+    //         for `prime::post`. If we quantify this row, we decrease the size, as we replace the
+    //         two bottom-most `prime::post` rows check with said `prime::pre` with them just
+    //         comparing their values.
+    const int quant_row = row + (bottom ? +1 : -1);
+
+    if (bottom ? begin <= quant_row : quant_row < begin) {
+      const time_point t_exists__before = get_timestamp();
+      res = adapter.exists(res, [&quant_row, &vm](int x) -> bool {
+        return vm[x].prime() == prime::pre && vm[x].row() == quant_row;
+      });
+      const time_point t_exists__after = get_timestamp();
+
+      goe__exists_time += duration_of(t_exists__before, t_exists__after);
+
+#ifdef BDD_BENCHMARK_STATS
+      std::cout << "   | | Exi [" << quant_row << "]        : "
+                << adapter.nodecount(res) << "\n"
+                << std::flush;
+#endif // BDD_BENCHMARK_STATS
+    }
+
+    if (row != end) {
+#ifdef BDD_BENCHMARK_STATS
+      std::cout << "   | |\n";
+#endif // BDD_BENCHMARK_STATS
+    }
+  }
+
+  return res;
+}
+
+template<typename adapter_t>
+typename adapter_t::dd_t garden_of_eden(adapter_t &adapter, const var_map &vm)
 {
   if (rows() < cols()) {
     std::cout << "   | Note:\n"
@@ -527,76 +636,58 @@ typename adapter_t::dd_t acc_rel(adapter_t &adapter, const var_map &vm)
               << "   |\n";
   }
 
-  const time_point t_apply__before = get_timestamp();
-  auto res = adapter.top();
+  // -----------------------------------------------------------------------------------------------
+  // Top half
+#ifdef BDD_BENCHMARK_STATS
+  std::cout << "   | Top Half:\n";
+#endif // BDD_BENCHMARK_STATS
+  auto res = acc_rel(adapter, vm, false);
+
+  // -----------------------------------------------------------------------------------------------
+  // Bottom half
+  //
+  // TODO (symmetry::none): Use Manual Variable Reordering to obtain Bottom Half from Top Half
+#ifdef BDD_BENCHMARK_STATS
+  std::cout << "   |\n"
+            << "   | Bottom Half:\n";
+#endif // BDD_BENCHMARK_STATS
+  res &= acc_rel(adapter, vm, true);
+
+  // -----------------------------------------------------------------------------------------------
+  // Missing middle row (?)
+  if (rows(prime::post) % 2 == 1) {
+#ifdef BDD_BENCHMARK_STATS
+    std::cout << "   |\n"
+              << "   | Middle Row:\n";
+#endif // BDD_BENCHMARK_STATS
+    res &= acc_rel(adapter, vm, rows(prime::post) / 2 + 1);
+  }
 
 #ifdef BDD_BENCHMARK_STATS
-  std::cout << "   | Top        : "
-            << adapter.nodecount(res) << " DD nodes\n"
+  std::cout << "   |\n"
+            << "   | Acc [" << MIN_ROW(prime::pre) << "-" << MAX_ROW(prime::pre) << "]        : "
+            << adapter.nodecount(res) << "\n"
             << std::flush;
 #endif // BDD_BENCHMARK_STATS
 
-  // Accumulate all relations. Some of the previous state variables are quantified.
-  for (int row = MAX_ROW(prime::post); MIN_ROW(prime::post) <= row; --row) {
-    for (int col = MAX_COL(prime::post); MIN_COL(prime::post) <= col; --col) {
-      const cell c(row, col);
-
-      // Constrict with relation for cell 'c'.
-      res &= construct_rel(adapter, vm, c);
-
-#ifdef BDD_BENCHMARK_STATS
-      std::cout << "   | Rel ( " << c.to_string() << " ) : "
-                << adapter.nodecount(res) << " DD nodes\n"
-                << std::flush;
-#endif // BDD_BENCHMARK_STATS
-    }
-
-    // Quantify variables on row+1, if it is the bottom-most two rows.
-    //
-    // - The bottom-most row of `prime::pre` is only used by the bottom-most row for `prime::post`.
-    //   Hence, we can make the decision diagram it smaller by skipping any checks on the last rows
-    //   values (and merely store them inside the bottom-most `prime::pre` row instead).
-    //
-    // - The second bottom-most row with `prime::pre` is only used by the two bottom-most rows for
-    //   `prime::post`. If we quantify this row, we decrease the size, as we replace the two
-    //   bottom-most rows of `prime::post` checking with said row to just comparing their values.
-    const int quant_row = row+1;
-    if (MAX_ROW(prime::post) <= quant_row) {
-      const time_point t_exists__before = get_timestamp();
-      res = adapter.exists(res, [&vm, &row](int x) -> bool {
-        return (vm[x].prime() == prime::pre) && vm[x].row() == row+1;
-      });
-      const time_point t_exists__after = get_timestamp();
-
-      acc_rel__exists_time += duration_of(t_exists__before, t_exists__after);
-
-#ifdef BDD_BENCHMARK_STATS
-      std::cout << "   | Exi ( " << static_cast<char>('A'+row+1) << "_ ) : "
-                << adapter.nodecount(res) << " DD nodes\n"
-                << std::flush;
-#endif // BDD_BENCHMARK_STATS
-    }
-  }
-  const time_point t_apply__after = get_timestamp();
-
-  acc_rel__apply_time = duration_of(t_apply__before, t_apply__after) - acc_rel__exists_time;
-
-  // Quantify all 'prime::pre' variables on all other rows. This will explode before it collapses to
-  // `true`.
+  // -----------------------------------------------------------------------------------------------
+  // Quantify all remaining 'prime::pre' variables. This will explode and then collapses to `true`.
   const time_point t_exists__before = get_timestamp();
   res = adapter.exists(res, [&vm](int x) -> bool {
     return vm[x].prime() == prime::pre;
   });
   const time_point t_exists__after = get_timestamp();
 
-  acc_rel__exists_time += duration_of(t_exists__before, t_exists__after);
+  goe__exists_time += duration_of(t_exists__before, t_exists__after);
 
 #ifdef BDD_BENCHMARK_STATS
-  std::cout << "   | Exi ( __ ) : "
-            << adapter.nodecount(res) << " DD nodes\n"
+  std::cout << "   |\n"
+            << "   | Exi [_]          : "
+            << adapter.nodecount(res) << "\n"
             << std::flush;
 #endif // BDD_BENCHMARK_STATS
 
+  // -----------------------------------------------------------------------------------------------
   return res;
 }
 
@@ -615,7 +706,7 @@ int run_gameoflife(int argc, char** argv)
   // -----------------------------------------------------------------------------------------------
   std::cout << "Game of Life : [" << rows(prime::post) << " x " << cols(prime::post) << "] "
             << "(" << adapter_t::NAME << " " << M << " MiB):\n"
-            << "   | Symmetry        : " << option_str(option) << "\n";
+            << "   | Symmetry         : " << option_str(option) << "\n";
 
   var_map vm(option);
 
@@ -635,30 +726,20 @@ int run_gameoflife(int argc, char** argv)
   size_t solutions = 0;
   {
     // ---------------------------------------------------------------------------------------------
-    std::cout << "   Construct reachable states:\n"
+    std::cout << "   Construct reachable initial states:\n"
               << std::flush;
 
-    auto res = acc_rel(adapter, vm);
+    const time_point t1 = get_timestamp();
+    auto res = garden_of_eden(adapter, vm);
+    const time_point t2 = get_timestamp();
 
 #ifdef BDD_BENCHMARK_STATS
     std::cout << "   |\n";
 #endif // BDD_BENCHMARK_STATS
-    std::cout << "   | apply  time (ms) : " << acc_rel__apply_time << "\n"
-              << "   | exists time (ms) : " << acc_rel__exists_time << "\n"
+    std::cout << "   | time (ms)        : " << duration_of(t1,t2) << "\n"
+              << "   | | apply          : " << goe__apply_time << "\n"
+              << "   | | exists         : " << goe__exists_time << "\n"
               << "\n"
-              << std::flush;
-
-    // ---------------------------------------------------------------------------------------------
-    std::cout << "   Complement into unreachable states:\n"
-              << std::flush;
-
-    const time_point t3 = get_timestamp();
-    res = ~res;
-    const time_point t4 = get_timestamp();
-
-    const time_duration negation_time = duration_of(t3,t4);
-
-    std::cout << "   | time (ms)        : " << negation_time << "\n"
               << std::flush;
 
     // ---------------------------------------------------------------------------------------------
@@ -666,11 +747,11 @@ int run_gameoflife(int argc, char** argv)
               << "   Counting unreachable states:\n"
               << std::flush;
 
-    const time_point t5 = get_timestamp();
-    solutions = adapter.satcount(res);
-    const time_point t6 = get_timestamp();
+    const time_point t3 = get_timestamp();
+    solutions = adapter.satcount(~res, vm.varcount(prime::post));
+    const time_point t4 = get_timestamp();
 
-    const time_duration counting_time = duration_of(t5,t6);
+    const time_duration counting_time = duration_of(t3,t4);
 
     std::cout << "   | number of states : " << solutions << "\n"
               << "   | time (ms)        : " << counting_time << "\n"
@@ -678,7 +759,7 @@ int run_gameoflife(int argc, char** argv)
 
     // ---------------------------------------------------------------------------------------------
     const time_duration total_time =
-      acc_rel__apply_time + acc_rel__exists_time + negation_time + counting_time;
+      goe__apply_time + goe__exists_time + counting_time;
 
     std::cout << "\n"
               << "   total time (ms)    : " << total_time << "\n"
