@@ -42,7 +42,12 @@ inline int MAX_COL(bool p = false)
 //                                             OPTION                                             //
 
 /// \brief Enum for choosing the encoding.
-enum symmetry { none };
+enum symmetry {
+  /** No symmetry */
+  none,
+  /** Mirror (vertical) */
+  mirror
+};
 
 /// \brief Specialization for '--help'
 template<>
@@ -57,6 +62,8 @@ symmetry parse_option(const std::string &arg, bool &should_exit)
 
   if (lower_arg == "none")
     { return symmetry::none; }
+  if (lower_arg == "mirror")
+    { return symmetry::mirror; }
 
   std::cerr << "Undefined option: " << arg << "\n";
   should_exit = true;
@@ -70,6 +77,8 @@ std::string option_str(const symmetry& s)
   switch (s) {
   case symmetry::none:
     return "None";
+  case symmetry::mirror:
+    return "Mirror (Vertical)";
   default:
     return "Unknown";
   }
@@ -274,6 +283,48 @@ public:
           }
         }
       }
+      break;
+    }
+    case symmetry::mirror: {
+      const bool odd_cols = cols(prime::pre) % 2;
+      const int  max_col  = MIN_COL(prime::pre) + cols(prime::pre)/2 - !odd_cols;
+
+      for (int row = MIN_ROW(prime::pre); row <= MAX_ROW(prime::pre); ++row) {
+        for (int left_col = MIN_COL(prime::pre); left_col <= max_col; ++left_col) {
+          const int right_col   = MAX_COL(prime::pre) - left_col;
+          const bool add_mirror = max_col < right_col;
+
+          // pre variable(s)
+          const cell pre_left(row, left_col, prime::pre);
+          assert(!pre_left.out_of_range());
+
+          this->_map.insert({ pre_left, x++ });
+          this->_varcount[prime::pre] += 1;
+
+          if (add_mirror) {
+            const cell pre_right(row, right_col, prime::pre);
+            assert(!pre_right.out_of_range());
+
+            this->_map.insert({ pre_right, x++ });
+            this->_varcount[prime::pre] += 1;
+          }
+
+          // post variable
+          const cell post_left(pre_left, prime::post);
+          if (!post_left.out_of_range()) {
+            const int post_var = x++;
+            this->_varcount[prime::post] += 1;
+
+            this->_map.insert({ post_left,  post_var });
+
+            if (add_mirror) {
+              const cell post_right(row, right_col, prime::post);
+              this->_map.insert({ post_right, post_var });
+            }
+          }
+        }
+      }
+      break;
     }
     }
 
