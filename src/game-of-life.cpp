@@ -212,10 +212,16 @@ public:
     return { r, c, p };
   }
 
-  /// \brief Whether two `cell` objects refer to the same coordinate.
+  /// \brief Whether two `cell`s refer to the same coordinate.
   bool operator== (const cell& o) const
   {
     return this->row() == o.row() && this->col() == o.col();
+  }
+
+  /// \brief Whether two `cell`s refer to different coordinates.
+  bool operator!= (const cell& o) const
+  {
+    return !(*this == o);
   }
 };
 
