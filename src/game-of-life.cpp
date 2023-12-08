@@ -357,7 +357,26 @@ public:
     return _map.size();
   }
 
-  // TODO: .to_string() with entire variable mapping?
+public:
+  std::string to_string()
+  {
+    std::stringstream o;
+
+    for (int row = MIN_ROW(prime::pre); row <= MAX_ROW(prime::pre); ++row) {
+      for (int col = MIN_COL(prime::pre); col <= MAX_COL(prime::pre); ++col) {
+        const cell cell_pre(row, col, prime::pre);
+
+        o << cell_pre.to_string() << " -> " << this->var_from_cell(cell_pre) << '\n';
+
+        const cell cell_post(cell_pre, prime::post);
+        if (!cell_post.out_of_range()) {
+          o << cell_post.to_string() << " -> " << this->var_from_cell(cell_post) << '\n';
+        }
+      }
+    }
+
+    return o.str();
+  }
 };
 
 // ============================================================================================== //
