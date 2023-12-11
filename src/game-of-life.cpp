@@ -894,8 +894,7 @@ int run_gameoflife(int argc, char** argv)
               << std::flush;
 
     // ---------------------------------------------------------------------------------------------
-    std::cout << "\n"
-              << "   Counting unreachable states:\n"
+    std::cout << "   Counting unreachable states:\n"
               << std::flush;
 
     const time_point t3 = get_timestamp();
@@ -906,14 +905,14 @@ int run_gameoflife(int argc, char** argv)
 
     std::cout << "   | number of states : " << solutions << "\n"
               << "   | time (ms)        : " << counting_time << "\n"
+              << "\n"
               << std::flush;
 
     // ---------------------------------------------------------------------------------------------
     const time_duration total_time =
       goe__apply_time + goe__exists_time + counting_time;
 
-    std::cout << "\n"
-              << "   total time (ms)    : " << total_time << "\n"
+    std::cout << "   total time (ms)    : " << total_time << "\n"
               << std::flush;
   }
 
