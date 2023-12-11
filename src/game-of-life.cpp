@@ -58,6 +58,8 @@ enum symmetry {
   mirror_double_diagonal,
   /** Mirror (quadrants) */
   mirror_quadrant,
+  /** Rotate (180) */
+  rotate_180,
 };
 
 /// \brief Specialization for '--help'
@@ -81,6 +83,8 @@ symmetry parse_option(const std::string &arg, bool &should_exit)
     { return symmetry::mirror_diagonal; }
   if (lower_arg == "mirror-double_diagonal" || lower_arg == "mirror-double_diag")
     { return symmetry::mirror_double_diagonal; }
+  if (lower_arg == "rotate" || lower_arg == "rotate-180")
+    { return symmetry::rotate_180; }
 
   std::cerr << "Undefined option: " << arg << "\n";
   should_exit = true;
@@ -102,6 +106,8 @@ std::string option_str(const symmetry& s)
     return "Mirror (Diagonal)";
   case symmetry::mirror_double_diagonal:
     return "Mirror (Double Diagonal)";
+  case symmetry::rotate_180:
+    return "Rotate 180°";
   default:
     return "Unknown";
   }
@@ -353,10 +359,10 @@ public:
           this->_map.insert({ pre_left, x++ });
           this->_varcount[prime::pre] += 1;
 
-          if (add_mirror) {
-            const cell pre_right(row, right_col, prime::pre);
-            assert(!pre_right.out_of_range());
+          const cell pre_right(row, right_col, prime::pre);
+          assert(!pre_right.out_of_range());
 
+          if (add_mirror) {
             this->_map.insert({ pre_right, x++ });
             this->_varcount[prime::pre] += 1;
           }
@@ -370,8 +376,7 @@ public:
             this->_map.insert({ post_left, post_var });
 
             if (add_mirror) {
-              const cell post_right(row, right_col, prime::post);
-              this->_map.insert({ post_right, post_var });
+              this->_map.insert({ cell(pre_right, prime::post), post_var });
             }
           }
         }
@@ -397,11 +402,11 @@ public:
           const bool add_mirror = mirror_row < row;
 
           // pre variable(s)
-          if (add_mirror) {
-            const cell c(mirror_row, mirror_col, prime::pre);
-            assert(!c.out_of_range());
+          const cell pre_mirror(mirror_row, mirror_col, prime::pre);
+          assert(!pre_mirror.out_of_range());
 
-            this->_map.insert({ c, x++ });
+          if (add_mirror) {
+            this->_map.insert({ pre_mirror, x++ });
             this->_varcount[prime::pre] += 1;
           }
 
@@ -418,10 +423,7 @@ public:
             this->_varcount[prime::post] += 1;
 
             if (add_mirror) {
-              const cell c(mirror_row, mirror_col, prime::post);
-              assert(!c.out_of_range());
-
-              this->_map.insert({ c, post_var });
+              this->_map.insert({ cell(pre_mirror, prime::post), post_var });
             }
             this->_map.insert({ post, post_var });
           }
@@ -559,9 +561,54 @@ public:
       }
       break;
     }
+    // ---------------------------------------------------------------------------------------------
+    // Loosely based on source code for a CNF encoding by Marijn Heule.
+    //
+    // Reflect top half by rotating by 180 degrees.
+    case symmetry::rotate_180: {
+      for (int top_row = MIN_ROW(prime::pre); top_row <= mid_row; ++top_row) {
+        for (int top_col = MIN_COL(prime::pre); top_col <= MAX_COL(prime::pre); ++top_col) {
+          const int bot_row = MAX_ROW(prime::pre) - top_row;
+          const int bot_col = MAX_COL(prime::pre) - top_col;
+
+          const bool add_bot = top_row < bot_row;
+
+          // pre variable(s)
+          const cell pre_top(top_row, top_col, prime::pre);
+          assert(!pre_top.out_of_range());
+
+          this->_map.insert({ pre_top, x++ });
+          this->_varcount[prime::pre] += 1;
+
+          const cell pre_bot(bot_row, bot_col, prime::pre);
+          assert(!pre_top.out_of_range());
+
+          if (add_bot) {
+            this->_map.insert({ pre_bot, x++ });
+            this->_varcount[prime::pre] += 1;
+          }
+
+          const cell post_top(pre_top, prime::post);
+          if (!post_top.out_of_range()) {
+            const int post_var = x++;
+            this->_varcount[prime::post] += 1;
+
+            this->_map.insert({ post_top, post_var });
+
+            if (add_bot) {
+              this->_map.insert({ cell(pre_bot, prime::post), post_var });
+            }
+          }
+        }
+      }
+      break;
+    }
     }
 
-    // Check there was no sparsity introduced and 'prime::pre' variables have not been merged.
+    // Check there was no sparsity introduced
+    assert(this->varcount() == x);
+
+    // Check 'prime::pre' variables have not been merged.
     assert(this->varcount(prime::pre) == rows(prime::pre) * cols(prime::pre));
 
     // Inverse mapping
