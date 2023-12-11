@@ -223,8 +223,32 @@ Solves the following problem:
 > Given N<sub>1</sub> and N<sub>2</sub>, how many "Garden of Edens" exist of size
 > N<sub>1</sub>xN<sub>2</sub> in Conway's Game of Life?
 
+The search can optionally be restricted to *symmetrical* Garden of Edens:
+
+- `none`: Search through all solutions (default), i.e. no symmetries are
+  introduced.
+
+- `mirror`/`mirror-vertical`: Solutions that are reflected vertically.
+
+- `mirror-quadrant`/`mirror_quad`: Solutions that are reflected both
+  horizontally and vertically.
+
+- `mirror-diagonal`/`mirror-diag`: Solutions that are reflected across one
+  diagonal (requires a square grid).
+
+- `mirror-double_diagonal`/`mirror-double_diag`: Solutions that are reflected
+  across both diagonals (requires a square grid).
+
+- `rotate`/`rotate-90`: Solutions that are rotated by 90 degrees (requires a
+  square grid).
+
+- `rotate-180`: Solutions that are rotated by 180 degrees.
+
+All symmetries use a variable order where the pre/post variables are zipped and
+and follow a row-major ordering.
+
 ```bash
-make run/game-of-life N1=6 N2=5
+make run/game-of-life NR=5 NC=4
 ```
 
 
@@ -267,7 +291,7 @@ whereas the `binary` encoding is designed for BDDs. That is, using the `time`
 encoding with BDDs does not give you great, i.e. small and fast, results.
 
 ```bash
-make run/hamiltonian N1=6 N2=5
+make run/hamiltonian NR=6 NC=5
 ```
 
 
