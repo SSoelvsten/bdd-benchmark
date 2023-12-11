@@ -210,6 +210,15 @@ public:
     return this->vertical_dist_to(o) <= 1 && this->horizontal_dist_to(o) <= 1;
   }
 
+  /// \brief The number of neighbours of this cell.
+  ///
+  /// \see neighbourhood
+  int neighbours() const
+  {
+    assert(!cell(*this, prime::post).out_of_range());
+    return 9;
+  }
+
   /// \brief All unprimed cells that are in the neighbourhood of *this* cell.
   ///
   /// \details The returned list is in ascending row-major order.
@@ -519,7 +528,7 @@ public:
 
           // pre variable(s)
           const cell pre(top_row, left_col, prime::pre);
-          assert(!c.out_of_range());
+          assert(!pre.out_of_range());
 
           this->_map.insert({ pre, x++ });
           this->_varcount[prime::pre] += 1;
@@ -695,7 +704,7 @@ public:
     assert(this->varcount() == x);
 
     // Check all mappings truly are in the map
-    assert(this->_map.size() == this->varcount());
+    assert(this->size() == this->varcount());
 
     // Check 'prime::pre' variables have not been merged.
     assert(this->varcount(prime::pre) == rows(prime::pre) * cols(prime::pre));
@@ -734,7 +743,7 @@ public:
   ///         account for any variable mapping collisions.
   cell cell_from_var(const int x) const
   {
-    assert(0 <= x && x < this->_inv.size());
+    assert(0 <= x && x < this->size());
     return this->_inv.at(x);
   }
 
@@ -826,7 +835,7 @@ construct_count(adapter_t &adapter, const var_map &vm, const cell &c, const int 
   std::vector<typename adapter_t::build_node_t> init_parts(alive+2, adapter.build_node(false));
   init_parts.at(alive) = adapter.build_node(true);
 
-  int remaining_cells = c.neighbourhood().size();
+  int remaining_cells = c.neighbours();
 
   if (alive > remaining_cells) {
     return adapter.bot();
