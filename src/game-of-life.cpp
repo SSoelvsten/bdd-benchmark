@@ -800,7 +800,7 @@ public:
 };
 
 // ============================================================================================== //
-//                                       TRANSITION RELATION                                      //
+//                             TRANSITION RELATION + GARDEN OF EDEN                               //
 //
 // " To avoid decisions and branches in the counting loop, the rules can be rearranged from an
 //   egocentric approach of the inner field regarding its neighbours to a scientific observer's
@@ -809,6 +809,9 @@ public:
 //   retains its current state; and every other sum sets the inner field to death. "
 //
 //                         - [Wikipedia 'https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life']
+
+time_duration goe__apply_time  = 0;
+time_duration goe__exists_time = 0;
 
 /// \brief Decision Diagram that is `true` if exactly `alive` neighbour cells around `c` (including
 ///        itself) are alive at the 'unprimed' time.
@@ -883,10 +886,7 @@ construct_eq(adapter_t &adapter, const var_map &vm, const cell &c)
   const int x_post = vm[cell(c, prime::post)];
   assert(x_pre < x_post);
 
-  /// Main root variable
   auto root0 = adapter.build_node(true);
-  /// Extra variable on equality split
-  auto root1 = root0;
 
   int x = vm.varcount()-1;
 
@@ -898,7 +898,7 @@ construct_eq(adapter_t &adapter, const var_map &vm, const cell &c)
   // 'x_post'
   assert(x_post == x);
 
-  root1 = adapter.build_node(x, adapter.build_node(false), root0);
+  auto root1 = adapter.build_node(x, adapter.build_node(false), root0);
   root0 = adapter.build_node(x, root0, adapter.build_node(false));
 
   // between 'x_pre' and 'x_post'
@@ -923,18 +923,20 @@ construct_eq(adapter_t &adapter, const var_map &vm, const cell &c)
   return adapter.build();
 }
 
-/// \brief Combine decision diagrams together into transition relation.
+/// \brief Combine decision diagrams together into transition relation for a single cell.
 template<typename adapter_t>
-typename adapter_t::dd_t construct_rel(adapter_t &adapter, const var_map &vm, const cell &c)
+typename adapter_t::dd_t acc_rel(adapter_t &adapter, const var_map &vm, const cell &c)
 {
+  const int c_post_var = vm[cell(c, prime::post)];
+
   const typename adapter_t::dd_t alive_3 = construct_count(adapter, vm, c, 3);
   const typename adapter_t::dd_t alive_4 = construct_count(adapter, vm, c, 4);
 
   typename adapter_t::dd_t out;
 
   { // -----------------------------------------------------------------------------------------------
-    // - If the sum is 3, the inner cell will become alife.
-    const typename adapter_t::dd_t alive_post = adapter.ithvar(vm[cell(c, prime::post)]);
+    // - If the sum is 3, the inner cell will become alive.
+    const typename adapter_t::dd_t alive_post = adapter.ithvar(c_post_var);
 
     out = adapter.apply_imp(alive_3, std::move(alive_post));
   }
@@ -946,9 +948,8 @@ typename adapter_t::dd_t construct_rel(adapter_t &adapter, const var_map &vm, co
   }
   { // -----------------------------------------------------------------------------------------------
     // - Otherwise, the inner field is dead.
-    const typename adapter_t::dd_t alive_3or4  = std::move(alive_3) | std::move(alive_4);
-    const typename adapter_t::dd_t alive_other = ~std::move(alive_3or4);
-    const typename adapter_t::dd_t dead_post   = adapter.nithvar(vm[cell(c, prime::post)]);
+    const typename adapter_t::dd_t alive_other = ~(std::move(alive_3) | std::move(alive_4));
+    const typename adapter_t::dd_t dead_post   = adapter.nithvar(c_post_var);
 
     out &= adapter.apply_imp(std::move(alive_other), std::move(dead_post));
   }
@@ -956,12 +957,7 @@ typename adapter_t::dd_t construct_rel(adapter_t &adapter, const var_map &vm, co
   return out;
 }
 
-// ============================================================================================== //
-//                                         GARDEN OF EDEN                                         //
-
-time_duration goe__apply_time  = 0;
-time_duration goe__exists_time = 0;
-
+/// \brief Combine decision diagrams together into transition relation for an entire row.
 template<typename adapter_t>
 typename adapter_t::dd_t acc_rel(adapter_t &adapter, const var_map &vm, const int row)
 {
@@ -980,7 +976,7 @@ typename adapter_t::dd_t acc_rel(adapter_t &adapter, const var_map &vm, const in
     const cell c(row, col);
 
     // Constrict with relation for cell 'c'.
-    res &= construct_rel(adapter, vm, c);
+    res &= acc_rel(adapter, vm, c);
 
 #ifdef BDD_BENCHMARK_STATS
     std::cout << "   | | | " << c.to_string() << "          : "
@@ -995,6 +991,7 @@ typename adapter_t::dd_t acc_rel(adapter_t &adapter, const var_map &vm, const in
   return res;
 }
 
+/// \brief Combine decision diagrams together into transition relation for top/bottom half of grid.
 template<typename adapter_t>
 typename adapter_t::dd_t acc_rel(adapter_t &adapter, const var_map &vm, const bool bottom)
 {
@@ -1071,6 +1068,8 @@ typename adapter_t::dd_t acc_rel(adapter_t &adapter, const var_map &vm, const bo
   return res;
 }
 
+/// \brief Combine decision diagrams together into transition relation for entire grid and then
+///        quantify out all previous-state variables.
 template<typename adapter_t>
 typename adapter_t::dd_t garden_of_eden(adapter_t &adapter, const var_map &vm)
 {
@@ -1116,7 +1115,7 @@ typename adapter_t::dd_t garden_of_eden(adapter_t &adapter, const var_map &vm)
 #endif // BDD_BENCHMARK_STATS
 
   // -----------------------------------------------------------------------------------------------
-  // Quantify all remaining 'prime::pre' variables. This will explode and then collapses to `true`.
+  // Quantify all remaining 'prime::pre' variables. This will explode and then collapses to `top`.
   const time_point t_exists__before = get_timestamp();
   res = adapter.exists(res, [&vm](int x) -> bool {
     return vm[x].prime() == prime::pre;
