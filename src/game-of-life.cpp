@@ -58,7 +58,9 @@ enum symmetry {
   mirror_double_diagonal,
   /** Mirror (quadrants) */
   mirror_quadrant,
-  /** Rotate (180) */
+  /** Rotate (90 degrees) */
+  rotate_90,
+  /** Rotate (180 degrees) */
   rotate_180,
 };
 
@@ -83,7 +85,9 @@ symmetry parse_option(const std::string &arg, bool &should_exit)
     { return symmetry::mirror_diagonal; }
   if (lower_arg == "mirror-double_diagonal" || lower_arg == "mirror-double_diag")
     { return symmetry::mirror_double_diagonal; }
-  if (lower_arg == "rotate" || lower_arg == "rotate-180")
+  if (lower_arg == "rotate" || lower_arg == "rotate-90")
+    { return symmetry::rotate_90; }
+  if (lower_arg == "rotate-180")
     { return symmetry::rotate_180; }
 
   std::cerr << "Undefined option: " << arg << "\n";
@@ -106,6 +110,8 @@ std::string option_str(const symmetry& s)
     return "Mirror (Diagonal)";
   case symmetry::mirror_double_diagonal:
     return "Mirror (Double Diagonal)";
+  case symmetry::rotate_90:
+    return "Rotate 90°";
   case symmetry::rotate_180:
     return "Rotate 180°";
   default:
@@ -562,6 +568,82 @@ public:
       break;
     }
     // ---------------------------------------------------------------------------------------------
+    // Based on source code for a CNF encoding by Marijn Heule.
+    //
+    // " Reflect single quadrant to all 4 rotations "
+    //                  - Randal E. Bryant
+    case symmetry::rotate_90: {
+      if (!is_square()) {
+        throw std::invalid_argument("Rotational symmetry (90 degrees) is only available for square grids.");
+      }
+
+      for (int tl_row = MIN_ROW(prime::pre); tl_row <= mid_row; ++tl_row) {
+        for (int tl_col = MIN_COL(prime::pre); tl_col <= mid_col; ++tl_col) {
+          // pre variable(s)
+          const cell pre_tl(tl_row, tl_col, prime::pre);
+          assert(!pre_tl.out_of_range());
+
+          this->_map.insert({ pre_tl, x++ });
+          this->_varcount[prime::pre] += 1;
+
+          const int tr_row = tl_col;
+          const int tr_col = MAX_COL(prime::pre) - tl_row;
+
+          const cell pre_tr(tr_row, tr_col, prime::pre);
+          assert(!pre_tr.out_of_range());
+
+          const bool add_tr = tr_row <= mid_row && mid_col < tr_col;
+          if (add_tr) {
+            this->_map.insert({ pre_tr, x++ });
+            this->_varcount[prime::pre] += 1;
+          }
+
+          const int bl_row = MAX_ROW(prime::pre) - tl_col;
+          const int bl_col = tl_row;
+
+          const cell pre_bl(bl_row, bl_col, prime::pre);
+          assert(!pre_bl.out_of_range());
+
+          const bool add_bl = mid_row < bl_row && bl_col <= mid_col;
+          if (add_bl) {
+            this->_map.insert({ pre_bl, x++ });
+            this->_varcount[prime::pre] += 1;
+          }
+
+          const int br_row = MAX_ROW(prime::pre) - tl_row;
+          const int br_col = MAX_COL(prime::pre) - tl_col;
+
+          const cell pre_br(br_row, br_col, prime::pre);
+          assert(!pre_br.out_of_range());
+
+          const bool add_br = mid_row < br_row && mid_col < br_col;
+          if (add_br) {
+            this->_map.insert({ pre_br, x++ });
+            this->_varcount[prime::pre] += 1;
+          }
+
+          // post variable
+          if (!cell(pre_tl, prime::post).out_of_range()) {
+            const int post_var = x++;
+            this->_varcount[prime::post] += 1;
+
+            this->_map.insert({ cell(pre_tl, prime::post), post_var });
+
+            if (add_tr) {
+              this->_map.insert({ cell(pre_tr, prime::post), post_var });
+            }
+            if (add_bl) {
+              this->_map.insert({ cell(pre_bl, prime::post), post_var });
+            }
+            if (add_br) {
+              this->_map.insert({ cell(pre_br, prime::post), post_var });
+            }
+          }
+        }
+      }
+      break;
+    }
+    // ---------------------------------------------------------------------------------------------
     // Loosely based on source code for a CNF encoding by Marijn Heule.
     //
     // Reflect top half by rotating by 180 degrees.
@@ -607,6 +689,9 @@ public:
 
     // Check there was no sparsity introduced
     assert(this->varcount() == x);
+
+    // Check all mappings truly are in the map
+    assert(this->_map.size() == this->varcount());
 
     // Check 'prime::pre' variables have not been merged.
     assert(this->varcount(prime::pre) == rows(prime::pre) * cols(prime::pre));
