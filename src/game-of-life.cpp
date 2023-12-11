@@ -1,6 +1,7 @@
 #include "common.cpp"
 #include "expected.h"
 
+#include <set>
 #include <unordered_map>
 #include <utility>
 
@@ -53,6 +54,8 @@ enum symmetry {
   mirror_vertical,
   /** Mirror (diagonal) */
   mirror_diagonal,
+  /** Mirror (double-diagonal) */
+  mirror_double_diagonal,
   /** Mirror (quadrants) */
   mirror_quadrant,
 };
@@ -76,6 +79,8 @@ symmetry parse_option(const std::string &arg, bool &should_exit)
     { return symmetry::mirror_quadrant; }
   if (lower_arg == "mirror-diagonal" || lower_arg == "mirror-diag")
     { return symmetry::mirror_diagonal; }
+  if (lower_arg == "mirror-double_diagonal" || lower_arg == "mirror-double_diag")
+    { return symmetry::mirror_double_diagonal; }
 
   std::cerr << "Undefined option: " << arg << "\n";
   should_exit = true;
@@ -95,6 +100,8 @@ std::string option_str(const symmetry& s)
     return "Mirror (Quadrant)";
   case symmetry::mirror_diagonal:
     return "Mirror (Diagonal)";
+  case symmetry::mirror_double_diagonal:
+    return "Mirror (Double Diagonal)";
   default:
     return "Unknown";
   }
@@ -238,15 +245,28 @@ public:
   }
 
   /// \brief Whether two `cell`s refer to the same coordinate.
-  bool operator== (const cell& o) const
+  bool operator== (const cell &o) const
   {
     return this->row() == o.row() && this->col() == o.col();
   }
 
   /// \brief Whether two `cell`s refer to different coordinates.
-  bool operator!= (const cell& o) const
+  bool operator!= (const cell &o) const
   {
     return !(*this == o);
+  }
+
+  /// \brief Whether a cell preceedes another in the row-major order
+  bool operator< (const cell &o) const
+  {
+    // Sort first on row
+    if (this->row() != o.row()) { return this->row() < o.row(); }
+
+    // Sort secondly on column
+    if (this->col() != o.col()) { return this->col() < o.col(); }
+
+    // Finally, sort on primality
+    return this->prime() < o.prime();
   }
 };
 
@@ -264,6 +284,14 @@ struct std::hash<cell>
 //                                    CELL <-> VARIABLE MAPPING                                   //
 
 /// \brief Container of mapping from `cell` to decision diagram variable.
+///
+/// \remark If a symmetry is applied, then we group all `prime::pre` variables for that cell
+///         together and have it preceede a single variable that is mapped to a single `prime::post`
+///         variable (if any).
+///
+/// \remark All mappings preserve a row-major ordering for the variables. That is, given two cells
+///         u and v, if u preceedes v in the row-major order then the same also applies to their
+///         decision diagram variables.
 class var_map
 {
 private:
@@ -290,6 +318,8 @@ public:
 
     switch (s) {
     // ---------------------------------------------------------------------------------------------
+    // " Every cell has separate value. "
+    //                  - Randal E. Bryant
     case symmetry::none: {
       for (int row = MIN_ROW(prime::pre); row <= MAX_ROW(prime::pre); ++row) {
         for (int col = MIN_COL(prime::pre); col <= MAX_COL(prime::pre); ++col) {
@@ -309,7 +339,7 @@ public:
       break;
     }
     // ---------------------------------------------------------------------------------------------
-    // Based on source code for a CNF encoding by Marijn Heule
+    // Reflect left half.
     case symmetry::mirror_vertical: {
       for (int row = MIN_ROW(prime::pre); row <= MAX_ROW(prime::pre); ++row) {
         for (int left_col = MIN_COL(prime::pre); left_col <= mid_col; ++left_col) {
@@ -349,6 +379,9 @@ public:
       break;
     }
     // ---------------------------------------------------------------------------------------------
+    // Loosely based on source code for a CNF encoding by Marijn Heule.
+    //
+    // Reflect across a diagonal from top-left to bottom-right.
     case symmetry::mirror_diagonal: {
       if (!is_square()) {
         throw std::invalid_argument("Diagonal symmetry is only available for square grids.");
@@ -397,7 +430,72 @@ public:
       break;
     }
     // ---------------------------------------------------------------------------------------------
-    // Based on source code for a CNF encoding by Marijn Heule
+    // Based on source code for a CNF encoding by Marijn Heule.
+    //
+    // " Reflect triangle that is size high and size/2 wide by mirroring to right and rotating this
+    //   pair by 90. "
+    //                  - Randal E. Bryant
+    case symmetry::mirror_double_diagonal: {
+      if (!is_square()) {
+        throw std::invalid_argument("Diagonal symmetry is only available for square grids.");
+      }
+
+      for (int row = MIN_ROW(prime::pre); row <= MAX_ROW(prime::pre); ++row) {
+        const int max_col = MAX_COL(prime::pre) - row;
+
+        for (int col = row; col <= max_col; ++col) {
+          // The mirrors of the pre cell changes order. So, we use a data structure to sort them.
+          std::set<cell> pre_cells;
+
+          // Pre variable(s)
+          const int a_row = row;
+          const int a_col = col;
+
+          const cell pre_a(a_row, a_col, prime::pre);
+          pre_cells.insert(pre_a);
+
+          // mirror 'a' along top-right / bottom-left diagonal
+          const int b_row = MAX_ROW(prime::pre) - row;
+          const int b_col = MAX_COL(prime::pre) - col;
+
+          pre_cells.insert(cell(b_row, b_col, prime::pre));
+
+          // mirror 'b' along top-left / bottom-right diagonal
+          const int c_row = b_col;
+          const int c_col = b_row;
+
+          pre_cells.insert(cell(c_row, c_col, prime::pre));
+
+          // flip along top-left -> bottom-right diagonal
+          const int d_row = col;
+          const int d_col = row;
+
+          pre_cells.insert(cell(d_row, d_col, prime::pre));
+
+          assert(pre_cells.size() > 0);
+          for (const cell &c : pre_cells) {
+            this->_map.insert({ c, x++ });
+            this->_varcount[prime::pre] += 1;
+          }
+
+          // Post variable
+          if (!cell(pre_a, prime::post).out_of_range()) {
+            const int post_var = x++;
+            this->_varcount[prime::post] += 1;
+
+            for (const cell &c : pre_cells) {
+              this->_map.insert({ cell(c, prime::post), post_var });
+            }
+          }
+        }
+      }
+      break;
+    }
+    // ---------------------------------------------------------------------------------------------
+    // Based on source code for a CNF encoding by Marijn Heule.
+    //
+    // " Reflect single quadrant to mirror in X and Y. "
+    //                  - Randal E. Bryant
     case symmetry::mirror_quadrant: {
       for (int top_row = MIN_ROW(prime::pre); top_row <= mid_row; ++top_row) {
         for (int left_col = MIN_COL(prime::pre); left_col <= mid_col; ++left_col) {
