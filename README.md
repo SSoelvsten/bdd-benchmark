@@ -230,7 +230,7 @@ The search can optionally be restricted to *symmetrical* Garden of Edens:
 
 - `mirror`/`mirror-vertical`: Solutions that are reflected vertically.
 
-- `mirror-quadrant`/`mirror_quad`: Solutions that are reflected both
+- `mirror-quadrant`/`mirror-quad`: Solutions that are reflected both
   horizontally and vertically.
 
 - `mirror-diagonal`/`mirror-diag`: Solutions that are reflected across one
