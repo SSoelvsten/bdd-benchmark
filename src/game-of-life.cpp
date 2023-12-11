@@ -320,6 +320,10 @@ public:
   /// \brief Initialize decision diagram variables, given some symmetry.
   var_map(const symmetry &s = symmetry::none)
   {
+    // TODO: Add private 'insert()' function to decrease code complexity below.
+    //
+    // TODO: Skip if-guard on '.insert(...)' and resolve it inside the map instead.
+
     const bool odd_cols = cols(prime::pre) % 2;
     const int  mid_col  = MIN_COL(prime::pre) + cols(prime::pre)/2 - !odd_cols;
 
