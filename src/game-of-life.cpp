@@ -1147,6 +1147,30 @@ typename adapter_t::dd_t garden_of_eden(adapter_t &adapter, const var_map &vm)
   return res;
 }
 
+
+// ============================================================================================== //
+//                                             EXPECTED                                           //
+//
+// For all solvable sizes, we expect to find 'no solution exists'. That is, we expect ALL initial
+// states to have at least one predecessor. That is, the above `garden_of_eden(...)` function should
+// return a decision diagram that is true for all assignments to the `prime::post` variables.
+
+/// \brief Decision Diagram that is `true` for any assignment to `prime::post` variables.
+template<typename adapter_t>
+typename adapter_t::dd_t
+construct_post(adapter_t &adapter, const var_map &vm)
+{
+  auto root = adapter.build_node(true);
+
+  for (int x = vm.varcount()-1; 0 <= x; --x) {
+    if (vm[x].prime() != prime::post) { continue; }
+
+    root = adapter.build_node(x, root, root);
+  }
+
+  return adapter.build();
+}
+
 // ============================================================================================== //
 template<typename adapter_t>
 int run_gameoflife(int argc, char** argv)
@@ -1199,14 +1223,36 @@ int run_gameoflife(int argc, char** argv)
               << std::flush;
 
     // ---------------------------------------------------------------------------------------------
-    std::cout << "   Counting unreachable states:\n"
+    std::cout << "   Obtaining unreachable states:\n"
               << std::flush;
 
     const time_point t3 = get_timestamp();
-    solutions = adapter.satcount(~res, vm.varcount(prime::post));
+    const auto post_top = construct_post(adapter, vm);
+    res = adapter.apply_diff(post_top, res);
+
+#ifdef BDD_BENCHMARK_STATS
+    std::cout << "   | Top              : " << adapter.nodecount(post_top) << "\n"
+              << "   | Top - States     : " << adapter.nodecount(res) << "\n"
+              << "   |\n"
+              << std::flush;
+#endif // BDD_BENCHMARK_STATS
     const time_point t4 = get_timestamp();
 
-    const time_duration counting_time = duration_of(t3,t4);
+    const time_duration flip_time = duration_of(t3,t4);
+
+    std::cout << "   | time (ms)        : " << flip_time << "\n"
+              << "\n"
+              << std::flush;
+
+    // ---------------------------------------------------------------------------------------------
+    std::cout << "   Counting unreachable states:\n"
+              << std::flush;
+
+    const time_point t5 = get_timestamp();
+    solutions = adapter.satcount(res, vm.varcount(prime::post));
+    const time_point t6 = get_timestamp();
+
+    const time_duration counting_time = duration_of(t5,t6);
 
     std::cout << "   | number of states : " << solutions << "\n"
               << "   | time (ms)        : " << counting_time << "\n"
@@ -1215,7 +1261,7 @@ int run_gameoflife(int argc, char** argv)
 
     // ---------------------------------------------------------------------------------------------
     const time_duration total_time =
-      goe__apply_time + goe__exists_time + counting_time;
+      goe__apply_time + goe__exists_time + flip_time + counting_time;
 
     std::cout << "   total time (ms)    : " << total_time << "\n"
               << std::flush;

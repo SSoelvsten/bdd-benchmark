@@ -242,7 +242,7 @@ run/game-of-life/bdd:
 run/game-of-life/zdd: N  := 4
 run/game-of-life/zdd: NR := $(N)
 run/game-of-life/zdd: NC := $(NR)
-run/game-of-life/bdd: O  := "none"
+run/game-of-life/zdd: O  := "none"
 run/game-of-life/zdd:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_game-of-life_zdd -N $(NR) -N $(NC) -M $(M) -o $(O) 2>&1 | tee -a out/VARIANT/zdd/game-of-life.out)
 

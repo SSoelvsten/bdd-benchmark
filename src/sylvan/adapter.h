@@ -113,6 +113,10 @@ public:
   inline sylvan::Bdd nithvar(int i)
   { return ~sylvan::Bdd::bddVar(i); }
 
+  inline sylvan::Bdd apply_diff(const sylvan::Bdd &f,
+                                const sylvan::Bdd &g)
+  { return f - g; }
+
   inline sylvan::Bdd apply_imp(const sylvan::Bdd &f,
                                const sylvan::Bdd &g)
   { return f.Ite(g, sylvan::Bdd::bddOne()); }

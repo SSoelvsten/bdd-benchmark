@@ -80,6 +80,10 @@ public:
   { return adiar::bdd_or(f,g); }
 
   inline adiar::bdd
+  apply_diff(const adiar::bdd &f, const adiar::bdd &g)
+  { return adiar::bdd_diff(f,g); }
+
+  inline adiar::bdd
   apply_imp(const adiar::bdd &f, const adiar::bdd &g)
   { return adiar::bdd_imp(f,g); }
 
@@ -219,6 +223,10 @@ public:
   inline adiar::zdd
   apply_or(const adiar::zdd &f, const adiar::zdd &g)
   { return adiar::zdd_union(f,g); }
+
+  inline adiar::zdd
+  apply_diff(const adiar::zdd &f, const adiar::zdd &g)
+  { return adiar::zdd_diff(f, g); }
 
   inline adiar::zdd
   apply_imp(const adiar::zdd &f, const adiar::zdd &g)
