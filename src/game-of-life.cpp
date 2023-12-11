@@ -299,6 +299,7 @@ public:
       break;
     }
     // ---------------------------------------------------------------------------------------------
+    // Based on source code for a CNF encoding by Marijn Heule
     case symmetry::mirror_vertical: {
       for (int row = MIN_ROW(prime::pre); row <= MAX_ROW(prime::pre); ++row) {
         for (int left_col = MIN_COL(prime::pre); left_col <= mid_col; ++left_col) {
@@ -338,6 +339,7 @@ public:
       break;
     }
     // ---------------------------------------------------------------------------------------------
+    // Based on source code for a CNF encoding by Marijn Heule
     case symmetry::mirror_quadrant: {
       for (int top_row = MIN_ROW(prime::pre); top_row <= mid_row; ++top_row) {
         for (int left_col = MIN_COL(prime::pre); left_col <= mid_col; ++left_col) {
