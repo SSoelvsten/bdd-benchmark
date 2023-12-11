@@ -312,7 +312,7 @@ public:
 
   inline ZDD exists(const ZDD &f, int x)
   {
-    throw std::logic_error("No support to 'Forall' for ZDDs");
+    throw std::logic_error("No support to 'Exists' for ZDDs");
     // One should think this may work, but since the variable is left in the output, then we cannot
     // recreate the BDD semantics.
     //
