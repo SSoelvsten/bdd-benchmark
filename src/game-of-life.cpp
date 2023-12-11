@@ -38,6 +38,10 @@ inline int MIN_COL(bool p = false)
 inline int MAX_COL(bool p = false)
 { return cols(p) - (!p); }
 
+/// \brief Whether the input size describes a sqaure board.
+inline bool is_square()
+{ return rows() == cols(); }
+
 // ============================================================================================== //
 //                                             OPTION                                             //
 
@@ -47,8 +51,10 @@ enum symmetry {
   none,
   /** Mirror (vertical) */
   mirror_vertical,
+  /** Mirror (diagonal) */
+  mirror_diagonal,
   /** Mirror (quadrants) */
-  mirror_quadrant
+  mirror_quadrant,
 };
 
 /// \brief Specialization for '--help'
@@ -68,6 +74,8 @@ symmetry parse_option(const std::string &arg, bool &should_exit)
     { return symmetry::mirror_vertical; }
   if (lower_arg == "mirror-quadrant" || lower_arg == "mirror-quad")
     { return symmetry::mirror_quadrant; }
+  if (lower_arg == "mirror-diagonal" || lower_arg == "mirror-diag")
+    { return symmetry::mirror_diagonal; }
 
   std::cerr << "Undefined option: " << arg << "\n";
   should_exit = true;
@@ -85,6 +93,8 @@ std::string option_str(const symmetry& s)
     return "Mirror (Vertical)";
   case symmetry::mirror_quadrant:
     return "Mirror (Quadrant)";
+  case symmetry::mirror_diagonal:
+    return "Mirror (Diagonal)";
   default:
     return "Unknown";
   }
@@ -327,12 +337,60 @@ public:
             const int post_var = x++;
             this->_varcount[prime::post] += 1;
 
-            this->_map.insert({ post_left,  post_var });
+            this->_map.insert({ post_left, post_var });
 
             if (add_mirror) {
               const cell post_right(row, right_col, prime::post);
               this->_map.insert({ post_right, post_var });
             }
+          }
+        }
+      }
+      break;
+    }
+    // ---------------------------------------------------------------------------------------------
+    case symmetry::mirror_diagonal: {
+      if (!is_square()) {
+        throw std::invalid_argument("Diagonal symmetry is only available for square grids.");
+      }
+
+      for (int row = MIN_ROW(prime::pre); row <= MAX_ROW(prime::pre); ++row) {
+        const int max_col = MAX_COL(prime::pre) - (MAX_ROW(prime::pre) - row);
+
+        for (int col = MIN_COL(prime::pre); col <= max_col; ++col) {
+          const int mirror_row  = col;
+          const int mirror_col  = row;
+
+          const bool add_mirror = mirror_row < row;
+
+          // pre variable(s)
+          if (add_mirror) {
+            const cell c(mirror_row, mirror_col, prime::pre);
+            assert(!c.out_of_range());
+
+            this->_map.insert({ c, x++ });
+            this->_varcount[prime::pre] += 1;
+          }
+
+          const cell pre(row, col, prime::pre);
+          assert(!pre.out_of_range());
+
+          this->_map.insert({ pre, x++ });
+          this->_varcount[prime::pre] += 1;
+
+          // post variable
+          const cell post(pre, prime::post);
+          if (!post.out_of_range()) {
+            const int post_var = x++;
+            this->_varcount[prime::post] += 1;
+
+            if (add_mirror) {
+              const cell c(mirror_row, mirror_col, prime::post);
+              assert(!c.out_of_range());
+
+              this->_map.insert({ c, post_var });
+            }
+            this->_map.insert({ post, post_var });
           }
         }
       }
