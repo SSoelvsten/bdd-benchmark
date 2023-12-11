@@ -819,7 +819,10 @@ public:
 //
 //                         - [Wikipedia 'https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life']
 
+/// \brief Accumulated time for all apply (and negation) operations
 time_duration goe__apply_time  = 0;
+
+/// \brief Accumulated time for all existential quantification operations
 time_duration goe__exists_time = 0;
 
 /// \brief Decision Diagram that is `true` if exactly `alive` neighbour cells around `c` (including
