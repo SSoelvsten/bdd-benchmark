@@ -46,7 +46,9 @@ enum symmetry {
   /** No symmetry */
   none,
   /** Mirror (vertical) */
-  mirror
+  mirror_vertical,
+  /** Mirror (quadrants) */
+  mirror_quadrant
 };
 
 /// \brief Specialization for '--help'
@@ -62,8 +64,10 @@ symmetry parse_option(const std::string &arg, bool &should_exit)
 
   if (lower_arg == "none")
     { return symmetry::none; }
-  if (lower_arg == "mirror")
-    { return symmetry::mirror; }
+  if (lower_arg == "mirror" || lower_arg == "mirror-vertical")
+    { return symmetry::mirror_vertical; }
+  if (lower_arg == "mirror-quadrant" || lower_arg == "mirror-quad")
+    { return symmetry::mirror_quadrant; }
 
   std::cerr << "Undefined option: " << arg << "\n";
   should_exit = true;
@@ -77,8 +81,10 @@ std::string option_str(const symmetry& s)
   switch (s) {
   case symmetry::none:
     return "None";
-  case symmetry::mirror:
+  case symmetry::mirror_vertical:
     return "Mirror (Vertical)";
+  case symmetry::mirror_quadrant:
+    return "Mirror (Quadrant)";
   default:
     return "Unknown";
   }
@@ -264,9 +270,16 @@ public:
   /// \brief Initialize decision diagram variables, given some symmetry.
   var_map(const symmetry &s = symmetry::none)
   {
+    const bool odd_cols = cols(prime::pre) % 2;
+    const int  mid_col  = MIN_COL(prime::pre) + cols(prime::pre)/2 - !odd_cols;
+
+    const bool odd_rows = rows(prime::pre) % 2;
+    const int  mid_row  = MIN_ROW(prime::pre) + rows(prime::pre)/2 - !odd_rows;
+
     int x = 0;
 
     switch (s) {
+    // ---------------------------------------------------------------------------------------------
     case symmetry::none: {
       for (int row = MIN_ROW(prime::pre); row <= MAX_ROW(prime::pre); ++row) {
         for (int col = MIN_COL(prime::pre); col <= MAX_COL(prime::pre); ++col) {
@@ -285,14 +298,12 @@ public:
       }
       break;
     }
-    case symmetry::mirror: {
-      const bool odd_cols = cols(prime::pre) % 2;
-      const int  max_col  = MIN_COL(prime::pre) + cols(prime::pre)/2 - !odd_cols;
-
+    // ---------------------------------------------------------------------------------------------
+    case symmetry::mirror_vertical: {
       for (int row = MIN_ROW(prime::pre); row <= MAX_ROW(prime::pre); ++row) {
-        for (int left_col = MIN_COL(prime::pre); left_col <= max_col; ++left_col) {
-          const int right_col   = MAX_COL(prime::pre) - left_col;
-          const bool add_mirror = max_col < right_col;
+        for (int left_col = MIN_COL(prime::pre); left_col <= mid_col; ++left_col) {
+          const int  right_col  = MAX_COL(prime::pre) - left_col;
+          const bool add_mirror = mid_col < right_col;
 
           // pre variable(s)
           const cell pre_left(row, left_col, prime::pre);
@@ -320,6 +331,70 @@ public:
             if (add_mirror) {
               const cell post_right(row, right_col, prime::post);
               this->_map.insert({ post_right, post_var });
+            }
+          }
+        }
+      }
+      break;
+    }
+    // ---------------------------------------------------------------------------------------------
+    case symmetry::mirror_quadrant: {
+      for (int top_row = MIN_ROW(prime::pre); top_row <= mid_row; ++top_row) {
+        for (int left_col = MIN_COL(prime::pre); left_col <= mid_col; ++left_col) {
+          const int right_col = MAX_COL(prime::pre) - left_col;
+          const int bot_row   = MAX_ROW(prime::pre) - top_row;
+
+          const bool mirror_horizontal = mid_row < bot_row;
+          const bool mirror_vertical   = mid_col < right_col;
+
+          // pre variable(s)
+          const cell pre(top_row, left_col, prime::pre);
+          assert(!c.out_of_range());
+
+          this->_map.insert({ pre, x++ });
+          this->_varcount[prime::pre] += 1;
+
+          if (mirror_vertical) {
+            const cell c(top_row, right_col, prime::pre);
+            assert(!c.out_of_range());
+
+            this->_map.insert({ c, x++ });
+            this->_varcount[prime::pre] += 1;
+          }
+          if (mirror_horizontal) {
+            const cell c(bot_row, left_col, prime::pre);
+            assert(!c.out_of_range());
+
+            this->_map.insert({ c, x++ });
+            this->_varcount[prime::pre] += 1;
+          }
+          if (mirror_horizontal && mirror_vertical) {
+            const cell c(bot_row, right_col, prime::pre);
+            assert(!c.out_of_range());
+
+            this->_map.insert({ c, x++ });
+            this->_varcount[prime::pre] += 1;
+          }
+
+          // post variable
+          const cell post(pre, prime::post);
+          if (!post.out_of_range()) {
+            const int post_var = x++;
+            this->_varcount[prime::post] += 1;
+
+            this->_map.insert({ post, post_var });
+
+            if (mirror_vertical) {
+              const cell c(top_row, right_col, prime::post);
+              this->_map.insert({ c, post_var });
+            }
+            if (mirror_horizontal) {
+              const cell c(bot_row, left_col, prime::post);
+              this->_map.insert({ c, post_var });
+            }
+            if (mirror_horizontal && mirror_vertical) {
+              const cell c(bot_row, right_col, prime::post);
+              this->_map.insert({ c, post_var });
             }
           }
         }
