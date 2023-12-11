@@ -920,7 +920,7 @@ construct_eq(adapter_t &adapter, const var_map &vm, const cell &c)
   // 'x_pre'
   assert(x_pre == x);
 
-  root0 = adapter.build_node(x, root0, root1);
+  root0 = adapter.build_node(x, root0, std::move(root1));
 
   // above 'x_pre'
   x -= 1;
