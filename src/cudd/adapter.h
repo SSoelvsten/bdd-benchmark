@@ -149,6 +149,9 @@ public:
   inline BDD apply_or(const BDD &f, const BDD &g)
   { return f.Or(g); }
 
+  inline BDD apply_diff(const BDD &f, const BDD &g)
+  { return f.And(!g); }
+
   inline BDD apply_imp(const BDD &f, const BDD &g)
   { return f.Ite(g, _mgr.bddOne()); }
 
@@ -287,6 +290,9 @@ public:
 
   inline ZDD apply_or(const ZDD &f, const ZDD &g)
   { return f.Union(g); }
+
+  inline ZDD apply_diff(const ZDD &f, const ZDD &g)
+  { return f.Diff(g); }
 
   inline ZDD apply_imp(const ZDD &f, const ZDD &g)
   { return f.Complement().Union(g); }

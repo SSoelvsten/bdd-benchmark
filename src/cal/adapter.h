@@ -53,6 +53,9 @@ public:
   inline BDD apply_or(const BDD &f, const BDD &g)
   { return f.Or(g); }
 
+  inline BDD apply_diff(const BDD &f, const BDD &g)
+  { return f.And(g.Not()); }
+
   inline BDD apply_imp(const BDD &f, const BDD &g)
   { return f.Not().Or(g); }
 
