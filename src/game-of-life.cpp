@@ -210,10 +210,10 @@ public:
     return this->vertical_dist_to(o) <= 1 && this->horizontal_dist_to(o) <= 1;
   }
 
-  /// \brief The number of neighbours of this cell.
+  /// \brief The number of cells in the neighbourhood.
   ///
   /// \see neighbourhood
-  int neighbours() const
+  int neighbourhood_size() const
   {
     assert(!cell(*this, prime::post).out_of_range());
     return 9;
@@ -835,7 +835,7 @@ construct_count(adapter_t &adapter, const var_map &vm, const cell &c, const int 
   std::vector<typename adapter_t::build_node_t> init_parts(alive+2, adapter.build_node(false));
   init_parts.at(alive) = adapter.build_node(true);
 
-  int remaining_cells = c.neighbours();
+  int remaining_cells = c.neighbourhood_size() + 1;
 
   if (alive > remaining_cells) {
     return adapter.bot();
