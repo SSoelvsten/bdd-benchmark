@@ -353,10 +353,10 @@ class QueenStrategy:
 
     def __init__(self):
         print("Queens Board Size")
-        N = int(input("  | ").lower())
+        self.N = int(input("  | ").lower())
 
-        if N < 1 or N > 16:
-            print(f"  | Value '{N}' is out of range. Aborting...")
+        if self.N < 1 or self.N > 16:
+            print(f"  | Value '{self.N}' is out of range. Aborting...")
             exit(255)
 
         print("")
