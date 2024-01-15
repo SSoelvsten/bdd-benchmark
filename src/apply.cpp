@@ -499,7 +499,7 @@ int run_apply(int argc, char** argv)
 
   std::cout << "  Initialisation:\n"
             << "  | variables:              " << varcount << "\n"
-            << "  | time (ms):              " << duration_of(t_init_before, t_init_after) << "\n"
+            << "  | time (ms):              " << duration_ms(t_init_before, t_init_after) << "\n"
             << std::flush;
 
   // =========================================================================
@@ -514,7 +514,7 @@ int run_apply(int argc, char** argv)
     std::cout << "\n  DD '" << input_files.at(i) << "':\n"
               << "  | size (nodes):           " << adapter.nodecount(inputs_dd.at(i)) << "\n"
               << "  | satcount:               " << adapter.satcount(inputs_dd.at(i)) << "\n"
-              << "  | time (ms):              " << duration_of(t_rebuild_before, t_rebuild_after) << "\n"
+              << "  | time (ms):              " << duration_ms(t_rebuild_before, t_rebuild_after) << "\n"
               << std::flush;
   }
 
@@ -536,7 +536,7 @@ int run_apply(int argc, char** argv)
   std::cout << "\n  Apply ( " << option_str(oper_opt) << " ):\n"
             << "  | size (nodes):           " << adapter.nodecount(result) << "\n"
             << "  | satcount:               " << adapter.satcount(result) << "\n"
-            << "  | time (ms):              " << duration_of(t_apply_before, t_apply_after) << "\n"
+            << "  | time (ms):              " << duration_ms(t_apply_before, t_apply_after) << "\n"
             << std::flush;
 
   // =========================================================================

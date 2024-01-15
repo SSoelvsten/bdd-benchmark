@@ -30,7 +30,7 @@ inline time_point get_timestamp() {
 
 typedef unsigned long int time_duration;
 
-inline unsigned long int duration_of(const time_point &before, const time_point &after) {
+inline unsigned long int duration_ms(const time_point &before, const time_point &after) {
   return std::chrono::duration_cast<std::chrono::milliseconds>(after - before).count();
 }
 

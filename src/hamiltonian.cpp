@@ -2356,7 +2356,7 @@ int run_hamiltonian(int argc, char** argv)
 
   std::cout << "\n   " << adapter_t::NAME << " initialisation:\n"
             << "   | variables:                " << vars << "\n"
-            << "   | time (ms):                " << duration_of(t_init_before, t_init_after) << "\n"
+            << "   | time (ms):                " << duration_ms(t_init_before, t_init_after) << "\n"
             << std::flush;
 
   // -----------------------------------------------------------------------------
@@ -2387,7 +2387,7 @@ int run_hamiltonian(int argc, char** argv)
     }
     }
     const time_point after_paths = get_timestamp();
-    const time_duration paths_time = duration_of(before_paths, after_paths);
+    const time_duration paths_time = duration_ms(before_paths, after_paths);
 
 #ifdef BDD_BENCHMARK_STATS
     std::cout << "   | total no. nodes:          " << total_nodes << "\n"
@@ -2407,7 +2407,7 @@ int run_hamiltonian(int argc, char** argv)
     solutions = adapter.satcount(paths, vc);
     const time_point after_satcount = get_timestamp();
 
-    const time_duration satcount_time = duration_of(before_satcount, after_satcount);
+    const time_duration satcount_time = duration_ms(before_satcount, after_satcount);
 
     std::cout << "\n"
               << "   Counting solutions:\n"

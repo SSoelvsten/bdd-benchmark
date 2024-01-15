@@ -1722,7 +1722,7 @@ solve(adapter_t& adapter, qcir& q,
   std::cout << "]" << std::endl;
 
   std::cout << "  | max solve idx:       " << max_q_idx << "\n"
-            << "  | setup time (ms):     " << duration_of(t_prep_before, t_prep_after) << "\n\n"
+            << "  | setup time (ms):     " << duration_ms(t_prep_before, t_prep_after) << "\n\n"
             << std::flush;
 
   // Set-up BDD computation cache
@@ -1893,7 +1893,7 @@ solve(adapter_t& adapter, qcir& q,
       dd_prenex_max_size = std::max(dd_prenex_max_size, g_dd_size);
     }
     std::cout << "  | | | DD size:         " << g_dd_size << "\n"
-              << "  | | | time (ms):       " << duration_of(t_start,t_end) << "\n";
+              << "  | | | time (ms):       " << duration_ms(t_start,t_end) << "\n";
 
     if (g.is<qcir::output_gate>()) {
       std::cout << "  | Prefix\n";
@@ -1942,8 +1942,8 @@ solve(adapter_t& adapter, qcir& q,
       sat_res,
       witness,
       {
-        duration_of(t_prenex_before, t_solve_after),
-        duration_of(t_solve_before, t_solve_after),
+        duration_ms(t_prenex_before, t_solve_after),
+        duration_ms(t_solve_before, t_solve_after),
         {
           cache_max_size
         },
@@ -2021,7 +2021,7 @@ int run_qbf(int argc, char** argv)
     const time_point t_init_after = get_timestamp();
 
     // Initialise BDD package
-    std::cout << "\n  BDD init (ms):         " << duration_of(t_init_before, t_init_after) << "\n"
+    std::cout << "\n  BDD init (ms):         " << duration_ms(t_init_before, t_init_after) << "\n"
               << "\n"
               << "  Solving Circuit\n"
               << std::flush;

@@ -998,7 +998,7 @@ typename adapter_t::dd_t acc_rel(adapter_t &adapter, const var_map &vm, const in
   }
 
   const time_point t_apply__after  = get_timestamp();
-  goe__apply_time += duration_of(t_apply__before, t_apply__after);
+  goe__apply_time += duration_ms(t_apply__before, t_apply__after);
 
   return res;
 }
@@ -1029,7 +1029,7 @@ typename adapter_t::dd_t acc_rel(adapter_t &adapter, const var_map &vm, const bo
     const time_point t_apply__before = get_timestamp();
     res &= std::move(row_rel);
     const time_point t_apply__after  = get_timestamp();
-    goe__apply_time += duration_of(t_apply__before, t_apply__after);
+    goe__apply_time += duration_ms(t_apply__before, t_apply__after);
 
 #ifdef BDD_BENCHMARK_STATS
     std::cout << "   | |\n"
@@ -1061,7 +1061,7 @@ typename adapter_t::dd_t acc_rel(adapter_t &adapter, const var_map &vm, const bo
       });
       const time_point t_exists__after = get_timestamp();
 
-      goe__exists_time += duration_of(t_exists__before, t_exists__after);
+      goe__exists_time += duration_ms(t_exists__before, t_exists__after);
 
 #ifdef BDD_BENCHMARK_STATS
       std::cout << "   | | Exi [" << quant_row << "]        : "
@@ -1134,7 +1134,7 @@ typename adapter_t::dd_t garden_of_eden(adapter_t &adapter, const var_map &vm)
   });
   const time_point t_exists__after = get_timestamp();
 
-  goe__exists_time += duration_of(t_exists__before, t_exists__after);
+  goe__exists_time += duration_ms(t_exists__before, t_exists__after);
 
 #ifdef BDD_BENCHMARK_STATS
   std::cout << "   |\n"
@@ -1200,7 +1200,7 @@ int run_gameoflife(int argc, char** argv)
             << "   | | 'prev'         : " << vm.varcount(prime::pre) << "\n"
             << "   | | 'next'         : " << vm.varcount(prime::post) << "\n"
             << "   |\n"
-            << "   | time (ms)        : " << duration_of(t_init_before, t_init_after) << "\n"
+            << "   | time (ms)        : " << duration_ms(t_init_before, t_init_after) << "\n"
             << "\n";
 
   size_t solutions = 0;
@@ -1216,7 +1216,7 @@ int run_gameoflife(int argc, char** argv)
 #ifdef BDD_BENCHMARK_STATS
     std::cout << "   |\n";
 #endif // BDD_BENCHMARK_STATS
-    std::cout << "   | time (ms)        : " << duration_of(t1,t2) << "\n"
+    std::cout << "   | time (ms)        : " << duration_ms(t1,t2) << "\n"
               << "   | | apply          : " << goe__apply_time << "\n"
               << "   | | exists         : " << goe__exists_time << "\n"
               << "\n"
@@ -1238,7 +1238,7 @@ int run_gameoflife(int argc, char** argv)
 #endif // BDD_BENCHMARK_STATS
     const time_point t4 = get_timestamp();
 
-    const time_duration flip_time = duration_of(t3,t4);
+    const time_duration flip_time = duration_ms(t3,t4);
 
     std::cout << "   | time (ms)        : " << flip_time << "\n"
               << "\n"
@@ -1252,7 +1252,7 @@ int run_gameoflife(int argc, char** argv)
     solutions = adapter.satcount(res, vm.varcount(prime::post));
     const time_point t6 = get_timestamp();
 
-    const time_duration counting_time = duration_of(t5,t6);
+    const time_duration counting_time = duration_ms(t5,t6);
 
     std::cout << "   | number of states : " << solutions << "\n"
               << "   | time (ms)        : " << counting_time << "\n"
