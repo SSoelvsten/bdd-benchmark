@@ -61,9 +61,18 @@ public:
     const size_t memory_bytes = static_cast<size_t>(M) * 1024u * 1024u;
 
     // Init Sylvan
-    sylvan::sylvan_set_limits(memory_bytes,      // Set memory limit
-                              log2(CACHE_RATIO), // Set (exponent) of cache ratio
-                              0);                // Initialise unique node table to full size
+    sylvan::sylvan_set_limits(// Set memory limit
+                              memory_bytes,
+                              // Set (exponent) of cache ratio
+                              log2(CACHE_RATIO),
+#ifndef BDD_BENCHMARK_GRENDEL
+                              // Initialise unique node table to full size
+                              0
+#else
+                              // On Grendel, initialize unique node table to 1/2^12th (~75 MiB)
+                              12
+#endif
+                              );
     sylvan::sylvan_set_granularity(1);
     sylvan::sylvan_init_package();
     sylvan::sylvan_init_bdd();
