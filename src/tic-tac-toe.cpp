@@ -181,7 +181,7 @@ int run_tictactoe(int argc, char** argv)
   time_point t_init_after = get_timestamp();
   std::cout << "\n"
             << "   " << adapter_t::NAME << " initialisation:\n"
-            << "   | time (ms):              " << duration_of(t_init_before, t_init_after) << "\n";
+            << "   | time (ms):              " << duration_ms(t_init_before, t_init_after) << "\n";
 
   construct_lines();
 
@@ -198,7 +198,7 @@ int run_tictactoe(int argc, char** argv)
     time_point t2 = get_timestamp();
 
     const size_t initial_bdd = adapter.nodecount(res);
-    const time_duration init_time = duration_of(t1,t2);
+    const time_duration init_time = duration_ms(t1,t2);
 
 #ifdef BDD_BENCHMARK_STATS
     total_nodes += initial_bdd;
@@ -231,7 +231,7 @@ int run_tictactoe(int argc, char** argv)
 
     time_point t4 = get_timestamp();
 
-    const time_duration constraints_time = duration_of(t3,t4);
+    const time_duration constraints_time = duration_ms(t3,t4);
 
 #ifdef BDD_BENCHMARK_STATS
     std::cout << "   |\n"
@@ -252,7 +252,7 @@ int run_tictactoe(int argc, char** argv)
     solutions = adapter.satcount(res);
     time_point t6 = get_timestamp();
 
-    const time_duration counting_time = duration_of(t5,t6);
+    const time_duration counting_time = duration_ms(t5,t6);
 
     // =========================================================================
     std::cout << "   | number of solutions:    " << solutions << "\n"

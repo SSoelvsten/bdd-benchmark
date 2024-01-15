@@ -700,7 +700,7 @@ int construct_net_bdd(const std::string &filename,
   }
   const time_point t_construct_after = get_timestamp();
 
-  std::cout << "   | time (ms):              " << duration_of(t_construct_before, t_construct_after) << "\n";
+  std::cout << "   | time (ms):              " << duration_ms(t_construct_before, t_construct_after) << "\n";
 #ifdef BDD_BENCHMARK_STATS
   std::cout << "   | total no. nodes:        " << stats.total_processed << "\n";
 #endif // BDD_BENCHMARK_STATS
@@ -770,7 +770,7 @@ bool verify_outputs(const net_t& net_0, const bdd_cache<adapter_t>& cache_0,
     std::cout << "   | | all outputs match!\n";
   }
 
-  std::cout << "   | time (ms):              " << duration_of(t_compare_before, t_compare_after) << "\n"
+  std::cout << "   | time (ms):              " << duration_ms(t_compare_before, t_compare_after) << "\n"
             << std::flush;
 
   return ret_value;
@@ -886,7 +886,7 @@ int run_picotrav(int argc, char** argv)
   const time_point t_init_after = get_timestamp();
 
   std::cout << "\n"
-            << adapter_t::NAME << " init (ms):      " << duration_of(t_init_before, t_init_after) << "\n"
+            << adapter_t::NAME << " init (ms):      " << duration_ms(t_init_before, t_init_after) << "\n"
             << std::flush;
 
   // ========================================================================
@@ -915,7 +915,7 @@ int run_picotrav(int argc, char** argv)
 
   // TODO: Fix 'total time' below also measures multiple 'std::flush'.
   std::cout << "\n"
-            << "   total time (ms):          " << duration_of(t_before, t_after) << "\n"
+            << "   total time (ms):          " << duration_ms(t_before, t_after) << "\n"
             << std::flush;
 
   adapter.print_stats();

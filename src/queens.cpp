@@ -158,7 +158,7 @@ int run_queens(int argc, char** argv)
   std::cout << "\n"
             << "   " << adapter_t::NAME << " initialisation:\n"
             << "   | variables:              " << N << "\n"
-            << "   | time (ms):              " << duration_of(t_init_before, t_init_after) << "\n";
+            << "   | time (ms):              " << duration_ms(t_init_before, t_init_after) << "\n";
 
   uint64_t solutions;
   {
@@ -172,7 +172,7 @@ int run_queens(int argc, char** argv)
     typename adapter_t::dd_t res = queens_B(adapter);
     const time_point t2 = get_timestamp();
 
-    const time_duration construction_time = duration_of(t1,t2);
+    const time_duration construction_time = duration_ms(t1,t2);
 
 #ifdef BDD_BENCHMARK_STATS
     std::cout << "   |\n"
@@ -193,7 +193,7 @@ int run_queens(int argc, char** argv)
     solutions = adapter.satcount(res);
     const time_point t4 = get_timestamp();
 
-    const time_duration counting_time = duration_of(t3,t4);
+    const time_duration counting_time = duration_ms(t3,t4);
 
     std::cout << "   | number of solutions:    " << solutions << "\n"
               << "   | time (ms):              " << counting_time << "\n"
