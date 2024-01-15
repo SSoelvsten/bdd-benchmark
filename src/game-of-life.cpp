@@ -325,9 +325,13 @@ private:
   /// \brief Partially inversed map
   std::vector<cell> _inv;
 
+  /// \brief Applied symmetry
+  const symmetry _sym;
+
 public:
   /// \brief Initialize decision diagram variables, given some symmetry.
   var_map(const symmetry &s = symmetry::none)
+    : _sym(s)
   {
     // TODO: Add private 'insert()' function to decrease code complexity below.
     //
@@ -341,7 +345,7 @@ public:
 
     int x = 0;
 
-    switch (s) {
+    switch (this->_sym) {
     // ---------------------------------------------------------------------------------------------
     // " Every cell has separate value. "
     //                  - Randal E. Bryant
@@ -783,6 +787,49 @@ public:
     return _map.size();
   }
 
+  /// \brief Get symmetry for variable ordering.
+  symmetry sym() const
+  {
+    return _sym;
+  }
+
+  /// \brief Whether a cell is symmetric to a cell that is on the given row.
+  ///
+  /// \remark For some orderings, this function returns `false` even if it actually is symmetric.
+  ///         That is, this is (at this point) an under under approximation of this fact.
+  bool row_symmetric(const cell& c, const int row) const
+  {
+    if (c.row() == row) {
+      return true;
+    }
+
+    switch (this->_sym) {
+    case symmetry::none:
+    case symmetry::mirror_vertical: {
+      // Already covered by initial check on row.
+      return false;
+    }
+    case symmetry::mirror_diagonal: {
+      // If cell is above diagonal, also check its column.
+      return c.row() < c.col() && c.col() == row;
+    }
+    case symmetry::mirror_double_diagonal: {
+      return false /* TODO */;
+    }
+    case symmetry::rotate_90: {
+      return false /* TODO */;
+    }
+    case symmetry::mirror_quadrant:
+    case symmetry::rotate_180: {
+      // Check row inverted vertically
+      return MAX_ROW(prime::post) - c.row() == row;
+    }
+    default: {
+      return false; // <-- squelches the compiler
+    }
+    }
+  }
+
 public:
   std::string to_string()
   {
@@ -1098,8 +1145,6 @@ typename adapter_t::dd_t garden_of_eden(adapter_t &adapter, const var_map &vm)
 
   // -----------------------------------------------------------------------------------------------
   // Bottom half
-  //
-  // TODO (symmetry::none): Use Manual Variable Reordering to obtain Bottom Half from Top Half
 #ifdef BDD_BENCHMARK_STATS
   std::cout << "   |\n"
             << "   | Bottom Half:\n";
@@ -1107,7 +1152,7 @@ typename adapter_t::dd_t garden_of_eden(adapter_t &adapter, const var_map &vm)
   res &= acc_rel(adapter, vm, true);
 
   // -----------------------------------------------------------------------------------------------
-  // Missing middle row (?)
+  // Middle row between halfs (if any)
   if (rows(prime::post) % 2 == 1) {
 #ifdef BDD_BENCHMARK_STATS
     std::cout << "   |\n"
@@ -1116,6 +1161,10 @@ typename adapter_t::dd_t garden_of_eden(adapter_t &adapter, const var_map &vm)
     res &= acc_rel(adapter, vm, rows(prime::post) / 2 + 1);
   }
 
+  // -----------------------------------------------------------------------------------------------
+  // Top half
+  //
+  // TODO (symmetry::none): Use Manual Variable Reordering to obtain Top Half from Bottom Half
 #ifdef BDD_BENCHMARK_STATS
   std::cout << "   |\n"
             << "   | Acc [" << MIN_ROW(prime::pre) << "-" << MAX_ROW(prime::pre) << "]        : "
@@ -1124,18 +1173,42 @@ typename adapter_t::dd_t garden_of_eden(adapter_t &adapter, const var_map &vm)
 #endif // BDD_BENCHMARK_STATS
 
   // -----------------------------------------------------------------------------------------------
-  // Quantify all remaining 'prime::pre' variables. This will explode and then collapses to `top`.
-  const time_point t_exists__before = now();
-  res = adapter.exists(res, [&vm](int x) -> bool {
-    return vm[x].prime() == prime::pre;
-  });
-  const time_point t_exists__after = now();
+  // Quantify all pre-variables that are symmetric to an 'easy' row.
+  {
+    const time_point t_exists__before = now();
+    res = adapter.exists(res, [&vm](int x) -> bool {
+      return vm[x].prime() == prime::pre
+        && (vm.row_symmetric(vm[x], MIN_ROW(prime::pre))
+            || vm.row_symmetric(vm[x], MAX_ROW(prime::post))
+            || vm.row_symmetric(vm[x], MAX_ROW(prime::pre)));
+    });
+    const time_point t_exists__after = now();
 
-  goe__exists_time += duration_ms(t_exists__before, t_exists__after);
+    goe__exists_time += duration_ms(t_exists__before, t_exists__after);
+  }
 
 #ifdef BDD_BENCHMARK_STATS
   std::cout << "   |\n"
-            << "   | Exi [_]          : "
+            << "   | Exi [EASY]       : "
+            << adapter.nodecount(res) << "\n"
+            << std::flush;
+#endif // BDD_BENCHMARK_STATS
+
+  // -----------------------------------------------------------------------------------------------
+  // Quantify all remaining 'prime::pre' variables. This will explode and then collapses to `top`.
+  {
+    const time_point t_exists__before = now();
+    res = adapter.exists(res, [&vm](int x) -> bool {
+      return vm[x].prime() == prime::pre;
+    });
+    const time_point t_exists__after = now();
+
+    goe__exists_time += duration_ms(t_exists__before, t_exists__after);
+  }
+
+#ifdef BDD_BENCHMARK_STATS
+  std::cout << "   |\n"
+            << "   | Exi [HARD]       : "
             << adapter.nodecount(res) << "\n"
             << std::flush;
 #endif // BDD_BENCHMARK_STATS
