@@ -2350,9 +2350,9 @@ int run_hamiltonian(int argc, char** argv)
     { /* ? */ }
   }
 
-  time_point t_init_before = get_timestamp();
+  time_point t_init_before = now();
   adapter_t adapter(vars);
-  time_point t_init_after = get_timestamp();
+  time_point t_init_after = now();
 
   std::cout << "\n   " << adapter_t::NAME << " initialisation:\n"
             << "   | variables:                " << vars << "\n"
@@ -2372,7 +2372,7 @@ int run_hamiltonian(int argc, char** argv)
 
     typename adapter_t::dd_t paths;
 
-    const time_point before_paths = get_timestamp();
+    const time_point before_paths = now();
     switch (opt) {
     case enc_opt::BINARY:
     case enc_opt::UNARY:
@@ -2386,7 +2386,7 @@ int run_hamiltonian(int argc, char** argv)
       break;
     }
     }
-    const time_point after_paths = get_timestamp();
+    const time_point after_paths = now();
     const time_duration paths_time = duration_ms(before_paths, after_paths);
 
 #ifdef BDD_BENCHMARK_STATS
@@ -2403,9 +2403,9 @@ int run_hamiltonian(int argc, char** argv)
       ? enc_time::satcount_vars()
       : enc_gadgets::satcount_vars(opt);
 
-    const time_point before_satcount = get_timestamp();
+    const time_point before_satcount = now();
     solutions = adapter.satcount(paths, vc);
-    const time_point after_satcount = get_timestamp();
+    const time_point after_satcount = now();
 
     const time_duration satcount_time = duration_ms(before_satcount, after_satcount);
 

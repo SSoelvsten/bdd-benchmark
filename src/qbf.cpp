@@ -1690,7 +1690,7 @@ solve_res
 solve(adapter_t& adapter, qcir& q,
       const variable_order vo = variable_order::INPUT)
 {
-  const time_point t_prep_before = get_timestamp();
+  const time_point t_prep_before = now();
 
 
   // TODO: check there are no free variables; if this is the case, then they
@@ -1703,7 +1703,7 @@ solve(adapter_t& adapter, qcir& q,
   //       execution.
   const exe_order exo = obtain_exe_order(q, variable_order::INPUT);
 
-  const time_point t_prep_after = get_timestamp();
+  const time_point t_prep_after = now();
 
   constexpr size_t max_print = 10;
 
@@ -1755,7 +1755,7 @@ solve(adapter_t& adapter, qcir& q,
   size_t dd_matrix_max_size = 0u;
   size_t dd_prenex_max_size = 0u;
 
-  const time_point t_solve_before = get_timestamp();
+  const time_point t_solve_before = now();
   time_point t_prenex_before = t_solve_before;
 
 #ifdef BDD_BENCHMARK_STATS
@@ -1772,7 +1772,7 @@ solve(adapter_t& adapter, qcir& q,
 
 #ifdef BDD_BENCHMARK_STATS
     std::cout << "  | | " << q_idx << " : " << g.to_string() << "\n";
-    const time_point t_start = get_timestamp();
+    const time_point t_start = now();
 #endif
 
     const typename adapter_t::dd_t g_dd = g.match
@@ -1878,12 +1878,12 @@ solve(adapter_t& adapter, qcir& q,
        },
        [&cache_get, &t_prenex_before]
        (const qcir::output_gate &g) -> typename adapter_t::dd_t {
-         t_prenex_before = get_timestamp();
+         t_prenex_before = now();
          return cache_get(g.lit);
        });
 
 #ifdef BDD_BENCHMARK_STATS
-    const time_point t_end = get_timestamp();
+    const time_point t_end = now();
 
     const size_t g_dd_size = adapter.nodecount(g_dd);
     dd_max_size = std::max(dd_max_size, g_dd_size);
@@ -1908,7 +1908,7 @@ solve(adapter_t& adapter, qcir& q,
 #endif
 
   const auto res = cache_get(max_q_idx);
-  const time_point t_solve_after = get_timestamp();
+  const time_point t_solve_after = now();
 
   const qcir::quant_gate::type_t root_quant =
     q.root_idx() <= max_q_idx
@@ -2016,9 +2016,9 @@ int run_qbf(int argc, char** argv)
               << "  | vars:  " << q.vars() << "\n"
               << std::flush;
 
-    const time_point t_init_before = get_timestamp();
+    const time_point t_init_before = now();
     adapter_t adapter(q.vars());
-    const time_point t_init_after = get_timestamp();
+    const time_point t_init_after = now();
 
     // Initialise BDD package
     std::cout << "\n  BDD init (ms):         " << duration_ms(t_init_before, t_init_after) << "\n"

@@ -152,9 +152,9 @@ int run_queens(int argc, char** argv)
   // Initialise package manager
   const int N = rows() * cols();
 
-  const time_point t_init_before = get_timestamp();
+  const time_point t_init_before = now();
   adapter_t adapter(N);
-  const time_point t_init_after = get_timestamp();
+  const time_point t_init_after = now();
   std::cout << "\n"
             << "   " << adapter_t::NAME << " initialisation:\n"
             << "   | variables:              " << N << "\n"
@@ -168,9 +168,9 @@ int run_queens(int argc, char** argv)
               << "   Decision diagram construction:\n"
               << std::flush;
 
-    const time_point t1 = get_timestamp();
+    const time_point t1 = now();
     typename adapter_t::dd_t res = queens_B(adapter);
-    const time_point t2 = get_timestamp();
+    const time_point t2 = now();
 
     const time_duration construction_time = duration_ms(t1,t2);
 
@@ -189,9 +189,9 @@ int run_queens(int argc, char** argv)
               << "   Counting solutions:\n"
               << std::flush;
 
-    const time_point t3 = get_timestamp();
+    const time_point t3 = now();
     solutions = adapter.satcount(res);
-    const time_point t4 = get_timestamp();
+    const time_point t4 = now();
 
     const time_duration counting_time = duration_ms(t3,t4);
 

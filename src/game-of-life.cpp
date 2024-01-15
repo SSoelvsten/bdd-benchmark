@@ -982,7 +982,7 @@ typename adapter_t::dd_t acc_rel(adapter_t &adapter, const var_map &vm, const in
             << std::flush;
 #endif // BDD_BENCHMARK_STATS
 
-  const time_point t_apply__before = get_timestamp();
+  const time_point t_apply__before = now();
 
   for (int col = MAX_COL(prime::post); MIN_COL(prime::post) <= col; --col) {
     const cell c(row, col);
@@ -997,7 +997,7 @@ typename adapter_t::dd_t acc_rel(adapter_t &adapter, const var_map &vm, const in
 #endif // BDD_BENCHMARK_STATS
   }
 
-  const time_point t_apply__after  = get_timestamp();
+  const time_point t_apply__after  = now();
   goe__apply_time += duration_ms(t_apply__before, t_apply__after);
 
   return res;
@@ -1026,9 +1026,9 @@ typename adapter_t::dd_t acc_rel(adapter_t &adapter, const var_map &vm, const bo
     // ---------------------------------------------------------------------------------------------
     const auto row_rel = acc_rel(adapter, vm, row);
 
-    const time_point t_apply__before = get_timestamp();
+    const time_point t_apply__before = now();
     res &= std::move(row_rel);
-    const time_point t_apply__after  = get_timestamp();
+    const time_point t_apply__after  = now();
     goe__apply_time += duration_ms(t_apply__before, t_apply__after);
 
 #ifdef BDD_BENCHMARK_STATS
@@ -1055,11 +1055,11 @@ typename adapter_t::dd_t acc_rel(adapter_t &adapter, const var_map &vm, const bo
     const int quant_row = row + (bottom ? +1 : -1);
 
     if (bottom ? begin <= quant_row : quant_row < begin) {
-      const time_point t_exists__before = get_timestamp();
+      const time_point t_exists__before = now();
       res = adapter.exists(res, [&quant_row, &vm](int x) -> bool {
         return vm[x].prime() == prime::pre && vm[x].row() == quant_row;
       });
-      const time_point t_exists__after = get_timestamp();
+      const time_point t_exists__after = now();
 
       goe__exists_time += duration_ms(t_exists__before, t_exists__after);
 
@@ -1128,11 +1128,11 @@ typename adapter_t::dd_t garden_of_eden(adapter_t &adapter, const var_map &vm)
 
   // -----------------------------------------------------------------------------------------------
   // Quantify all remaining 'prime::pre' variables. This will explode and then collapses to `top`.
-  const time_point t_exists__before = get_timestamp();
+  const time_point t_exists__before = now();
   res = adapter.exists(res, [&vm](int x) -> bool {
     return vm[x].prime() == prime::pre;
   });
-  const time_point t_exists__after = get_timestamp();
+  const time_point t_exists__after = now();
 
   goe__exists_time += duration_ms(t_exists__before, t_exists__after);
 
@@ -1190,9 +1190,9 @@ int run_gameoflife(int argc, char** argv)
 
   var_map vm(option);
 
-  const time_point t_init_before = get_timestamp();
+  const time_point t_init_before = now();
   adapter_t adapter(vm.varcount());
-  const time_point t_init_after = get_timestamp();
+  const time_point t_init_after = now();
 
   std::cout << "\n"
             << "   " << adapter_t::NAME << " initialisation:\n"
@@ -1209,9 +1209,9 @@ int run_gameoflife(int argc, char** argv)
     std::cout << "   Construct reachable initial states:\n"
               << std::flush;
 
-    const time_point t1 = get_timestamp();
+    const time_point t1 = now();
     auto res = garden_of_eden(adapter, vm);
-    const time_point t2 = get_timestamp();
+    const time_point t2 = now();
 
 #ifdef BDD_BENCHMARK_STATS
     std::cout << "   |\n";
@@ -1226,7 +1226,7 @@ int run_gameoflife(int argc, char** argv)
     std::cout << "   Obtaining unreachable states:\n"
               << std::flush;
 
-    const time_point t3 = get_timestamp();
+    const time_point t3 = now();
     const auto post_top = construct_post(adapter, vm);
     res = adapter.apply_diff(post_top, res);
 
@@ -1236,7 +1236,7 @@ int run_gameoflife(int argc, char** argv)
               << "   |\n"
               << std::flush;
 #endif // BDD_BENCHMARK_STATS
-    const time_point t4 = get_timestamp();
+    const time_point t4 = now();
 
     const time_duration flip_time = duration_ms(t3,t4);
 
@@ -1248,9 +1248,9 @@ int run_gameoflife(int argc, char** argv)
     std::cout << "   Counting unreachable states:\n"
               << std::flush;
 
-    const time_point t5 = get_timestamp();
+    const time_point t5 = now();
     solutions = adapter.satcount(res, vm.varcount(prime::post));
-    const time_point t6 = get_timestamp();
+    const time_point t6 = now();
 
     const time_duration counting_time = duration_ms(t5,t6);
 

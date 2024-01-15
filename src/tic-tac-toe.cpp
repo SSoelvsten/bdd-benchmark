@@ -176,9 +176,9 @@ int run_tictactoe(int argc, char** argv)
   // =========================================================================
   std::cout << "Tic-Tac-Toe with " << N << " crosses (" << adapter_t::NAME << " " << M << " MiB):\n";
 
-  time_point t_init_before = get_timestamp();
+  time_point t_init_before = now();
   adapter_t adapter(64);
-  time_point t_init_after = get_timestamp();
+  time_point t_init_after = now();
   std::cout << "\n"
             << "   " << adapter_t::NAME << " initialisation:\n"
             << "   | time (ms):              " << duration_ms(t_init_before, t_init_after) << "\n";
@@ -193,9 +193,9 @@ int run_tictactoe(int argc, char** argv)
               << "   Initial decision diagram:\n"
               << std::flush;
 
-    time_point t1 = get_timestamp();
+    time_point t1 = now();
     typename adapter_t::dd_t res = construct_init(adapter);
-    time_point t2 = get_timestamp();
+    time_point t2 = now();
 
     const size_t initial_bdd = adapter.nodecount(res);
     const time_duration init_time = duration_ms(t1,t2);
@@ -213,7 +213,7 @@ int run_tictactoe(int argc, char** argv)
               << "   Applying constraints:\n"
               << std::flush;
 
-    time_point t3 = get_timestamp();
+    time_point t3 = now();
 
     for (auto &line : lines) {
       res &= construct_is_not_winning(adapter, line);
@@ -229,7 +229,7 @@ int run_tictactoe(int argc, char** argv)
 #endif // BDD_BENCHMARK_STATS
     }
 
-    time_point t4 = get_timestamp();
+    time_point t4 = now();
 
     const time_duration constraints_time = duration_ms(t3,t4);
 
@@ -248,9 +248,9 @@ int run_tictactoe(int argc, char** argv)
               << "   counting solutions:\n"
               << std::flush;
 
-    time_point t5 = get_timestamp();
+    time_point t5 = now();
     solutions = adapter.satcount(res);
-    time_point t6 = get_timestamp();
+    time_point t6 = now();
 
     const time_duration counting_time = duration_ms(t5,t6);
 

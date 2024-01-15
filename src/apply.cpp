@@ -493,9 +493,9 @@ int run_apply(int argc, char** argv)
   // Initialize BDD package
   const size_t varcount = vm.size();
 
-  const time_point t_init_before = get_timestamp();
+  const time_point t_init_before = now();
   adapter_t adapter(varcount);
-  const time_point t_init_after = get_timestamp();
+  const time_point t_init_after = now();
 
   std::cout << "  Initialisation:\n"
             << "  | variables:              " << varcount << "\n"
@@ -507,9 +507,9 @@ int run_apply(int argc, char** argv)
   std::array<typename adapter_t::dd_t, inputs> inputs_dd;
 
   for (size_t i = 0; i < inputs; ++i) {
-    const time_point t_rebuild_before = get_timestamp();
+    const time_point t_rebuild_before = now();
     inputs_dd.at(i) = reconstruct(adapter, inputs_binary.at(i), vm);
-    const time_point t_rebuild_after = get_timestamp();
+    const time_point t_rebuild_after = now();
 
     std::cout << "\n  DD '" << input_files.at(i) << "':\n"
               << "  | size (nodes):           " << adapter.nodecount(inputs_dd.at(i)) << "\n"
@@ -522,7 +522,7 @@ int run_apply(int argc, char** argv)
   // Apply both DDs together
   typename adapter_t::dd_t result;
 
-  const time_point t_apply_before = get_timestamp();
+  const time_point t_apply_before = now();
   switch (oper_opt) {
   case oper_opt::AND:
     result = inputs_dd.at(0) & inputs_dd.at(1);
@@ -531,7 +531,7 @@ int run_apply(int argc, char** argv)
     result = inputs_dd.at(0) | inputs_dd.at(1);
     break;
   }
-  const time_point t_apply_after = get_timestamp();
+  const time_point t_apply_after = now();
 
   std::cout << "\n  Apply ( " << option_str(oper_opt) << " ):\n"
             << "  | size (nodes):           " << adapter.nodecount(result) << "\n"

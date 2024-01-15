@@ -693,12 +693,12 @@ int construct_net_bdd(const std::string &filename,
   std::cout << "\n"
             << "   Constructing BDD" << (net.outputs.size() > 1 ? "s" : "") << " for '" << filename << "'\n";
 
-  const time_point t_construct_before = get_timestamp();
+  const time_point t_construct_before = now();
   bdd_statistics stats;
   for (const std::string &output : net.outputs_in_order) {
     construct_node_bdd(net, output, cache, adapter, stats);
   }
-  const time_point t_construct_after = get_timestamp();
+  const time_point t_construct_after = now();
 
   std::cout << "   | time (ms):              " << duration_ms(t_construct_before, t_construct_after) << "\n";
 #ifdef BDD_BENCHMARK_STATS
@@ -750,7 +750,7 @@ bool verify_outputs(const net_t& net_0, const bdd_cache<adapter_t>& cache_0,
             << "   | result:\n"
             << std::flush;
 
-  const time_point t_compare_before = get_timestamp();
+  const time_point t_compare_before = now();
   bool ret_value = true;
 
   for (size_t out_idx = 0; out_idx < net_0.outputs_in_order.size(); out_idx++) {
@@ -765,7 +765,7 @@ bool verify_outputs(const net_t& net_0, const bdd_cache<adapter_t>& cache_0,
       ret_value = false;
     }
   }
-  const time_point t_compare_after = get_timestamp();
+  const time_point t_compare_after = now();
   if (ret_value) {
     std::cout << "   | | all outputs match!\n";
   }
@@ -881,9 +881,9 @@ int run_picotrav(int argc, char** argv)
   // Initialise BDD package manager
   const size_t varcount = net_0.inputs_w_order.size();
 
-  const time_point t_init_before = get_timestamp();
+  const time_point t_init_before = now();
   adapter_t adapter(varcount);
-  const time_point t_init_after = get_timestamp();
+  const time_point t_init_after = now();
 
   std::cout << "\n"
             << adapter_t::NAME << " init (ms):      " << duration_ms(t_init_before, t_init_after) << "\n"
@@ -893,7 +893,7 @@ int run_picotrav(int argc, char** argv)
   // Construct BDD for net(s)
   bdd_cache<adapter_t> cache_0;
 
-  const time_point t_before = get_timestamp();
+  const time_point t_before = now();
 
   int errcode_0 = 0;
   int errcode_1 = 0;
@@ -911,7 +911,7 @@ int run_picotrav(int argc, char** argv)
 
     networks_equal = verify_outputs<adapter_t>(net_0, cache_0, net_1, cache_1);
   }
-  const time_point t_after = get_timestamp();
+  const time_point t_after = now();
 
   // TODO: Fix 'total time' below also measures multiple 'std::flush'.
   std::cout << "\n"
