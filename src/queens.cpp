@@ -36,7 +36,47 @@ inline std::string pos_to_string(int r, int c)
 // ========================================================================== //
 //                            SQUARE CONSTRUCTION                             //
 template<typename adapter_t>
-typename adapter_t::dd_t queens_S(adapter_t &mgr, int i, int j);
+typename adapter_t::dd_t queens_S(adapter_t &adapter, int i, int j)
+{
+  auto next = adapter.build_node(true);
+
+  for(int row = MAX_ROW(); row >= 0; row--) {
+    for(int col = MAX_COL(); col >= 0; col--) {
+      const int label = label_of_position(row, col);
+
+      // Queen must be placed here
+      if(row == i && col == j) {
+        auto low = adapter.build_node(false);
+        auto high = next;
+        next = adapter.build_node(label, low, high);
+
+        continue;
+      }
+
+      // Conflicting row, column and diagonal with Queen placement
+      const int row_diff = std::abs(row - i);
+      const int col_diff = std::abs(col - j);
+
+      if((i == row && j != col) || (i != row && j == col) || (col_diff == row_diff)) {
+        auto low = next;
+        auto high = adapter.build_node(false);
+        next = adapter.build_node(label, low, high);
+
+        continue;
+      }
+
+      // No in conflicts
+      next = adapter.build_node(label, next, next);
+    }
+  }
+
+  typename adapter_t::dd_t out = adapter.build();
+#ifdef BDD_BENCHMARK_STATS
+  total_nodes += adapter.nodecount(out);
+#endif // BDD_BENCHMARK_STATS
+  return out;
+}
+
 
 // ========================================================================== //
 //                              ROW CONSTRUCTION                              //
