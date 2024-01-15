@@ -415,13 +415,10 @@ public:
         const int max_col = MAX_COL(prime::pre) - (MAX_ROW(prime::pre) - row);
 
         for (int col = MIN_COL(prime::pre); col <= max_col; ++col) {
-          const int mirror_row  = col;
-          const int mirror_col  = row;
-
-          const bool add_mirror = mirror_row < row;
+          const bool add_mirror = col < row;
 
           // pre variable(s)
-          const cell pre_mirror(mirror_row, mirror_col, prime::pre);
+          const cell pre_mirror(col, row, prime::pre);
           assert(!pre_mirror.out_of_range());
 
           if (add_mirror) {
