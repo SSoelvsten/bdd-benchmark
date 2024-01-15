@@ -19,19 +19,19 @@ constexpr size_t CACHE_RATIO = 64u;
 constexpr size_t INIT_UNIQUE_SLOTS_PER_VAR = 256u;
 
 // =============================================================================
-// A few chrono wrappers to improve readability
+// Timing
 #include <chrono>
 
-typedef std::chrono::steady_clock::time_point time_point;
+using time_point = std::chrono::steady_clock::time_point;
 
-inline time_point get_timestamp() {
+inline time_point get_clock() {
   return std::chrono::steady_clock::now();
 }
 
-typedef unsigned long int time_duration;
+using time_duration = size_t;
 
-inline unsigned long int duration_ms(const time_point &before, const time_point &after) {
-  return std::chrono::duration_cast<std::chrono::milliseconds>(after - before).count();
+inline time_duration duration_ms(const time_point &begin, const time_point &end) {
+  return std::chrono::duration_cast<std::chrono::milliseconds>(dnf - begin).count();
 }
 
 // =============================================================================
