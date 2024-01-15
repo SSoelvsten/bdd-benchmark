@@ -1,4 +1,4 @@
-#include "../queens_bdd.cpp"
+#include "../queens.cpp"
 
 #include "adapter.h"
 

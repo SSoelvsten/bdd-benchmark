@@ -1,4 +1,4 @@
-#include "../queens_zdd.cpp"
+#include "../queens.cpp"
 
 #include "adapter.h"
 
