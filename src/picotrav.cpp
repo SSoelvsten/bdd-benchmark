@@ -820,7 +820,7 @@ int run_picotrav(int argc, char** argv)
 
   if (should_exit) { return -1; }
 
-  bool verify_networks = input_files.size() > 1;
+  const bool verify_networks = input_files.size() > 1;
 
   // =========================================================================
   std::cout << "Picotrav (" << adapter_t::NAME << " " << M << " MiB):\n";
@@ -849,19 +849,19 @@ int run_picotrav(int argc, char** argv)
     const bool parsing_error_1 = construct_net(input_files.at(1), net_1);
     std::cout << "   | input validation:\n"
               << "   | | [" << (parsing_error_1 ? " " : "x") << "] parsing\n";
-    verify_networks &= !parsing_error_1;
 
     const bool is_not_cyclic_1 = is_acyclic(net_1);
     std::cout << "   | | [" << (is_not_cyclic_1 ? "x" : " ") << "] acyclic\n";
-    verify_networks &= is_not_cyclic_1;
 
     const bool inputs_match = net_0.inputs_w_order.size() == net_1.inputs_w_order.size();
     std::cout << "   | | [" << (inputs_match ? "x" : " ") << "] number of inputs match\n";
-    verify_networks &= inputs_match;
 
     const bool outputs_match = net_0.outputs_in_order.size() == net_1.outputs_in_order.size();
     std::cout << "   | | [" << (outputs_match ? "x" : " ") << "] number of outputs match\n";
-    verify_networks &= outputs_match;
+
+    if(parsing_error_1 || !is_not_cyclic_1 || !inputs_match || !outputs_match) {
+      return -1;
+    }
   }
 
   std::cout << "   | net info:\n"
