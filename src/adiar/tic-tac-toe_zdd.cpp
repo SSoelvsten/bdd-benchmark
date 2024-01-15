@@ -1,4 +1,4 @@
-#include "../tic-tac-toe_zdd.cpp"
+#include "../tic-tac-toe.cpp"
 
 #include "adapter.h"
 
