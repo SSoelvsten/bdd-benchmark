@@ -662,7 +662,7 @@ public:
     //
     // Reflect top half by rotating by 180 degrees.
     case symmetry::rotate_180: {
-      for (int top_row = MIN_ROW(prime::pre); top_row <= mid_row; ++top_row) {
+      for (int top_row = mid_row; MIN_ROW(prime::pre) <= top_row; --top_row) {
         for (int top_col = MIN_COL(prime::pre); top_col <= MAX_COL(prime::pre); ++top_col) {
           const int bot_row = MAX_ROW(prime::pre) - top_row;
           const int bot_col = MAX_COL(prime::pre) - top_col;
