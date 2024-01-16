@@ -379,7 +379,7 @@ export LC_ALL=C'''
 def sbatch_str(jobname, time, is_exclusive):
     return f'''#SBATCH --job-name={jobname}
 #SBATCH --partition=q48
-#SBATCH --mem=350G
+#SBATCH --mem={"MaxMemPerNode" if is_exclusive else "16G"}
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
