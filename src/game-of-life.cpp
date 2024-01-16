@@ -519,8 +519,8 @@ public:
     // " Reflect single quadrant to mirror in X and Y. "
     //                  - Randal E. Bryant
     case symmetry::mirror_quadrant: {
-      for (int top_row = MIN_ROW(prime::pre); top_row <= mid_row; ++top_row) {
-        for (int left_col = MIN_COL(prime::pre); left_col <= mid_col; ++left_col) {
+      for (int top_row = mid_row; MIN_ROW(prime::pre) <= top_row; --top_row) {
+        for (int left_col = mid_col; MIN_COL(prime::pre) <= left_col; --left_col) {
           const int right_col = MAX_COL(prime::pre) - left_col;
           const int bot_row   = MAX_ROW(prime::pre) - top_row;
 
