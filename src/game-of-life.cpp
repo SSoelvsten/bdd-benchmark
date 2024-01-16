@@ -453,19 +453,15 @@ public:
     }
     // ---------------------------------------------------------------------------------------------
     // Based on source code for a CNF encoding by Marijn Heule.
-    //
-    // " Reflect triangle that is size high and size/2 wide by mirroring to right and rotating this
-    //   pair by 90. "
-    //                  - Randal E. Bryant
     case symmetry::mirror_double_diagonal: {
       if (!is_square()) {
         throw std::invalid_argument("Diagonal symmetry is only available for square grids.");
       }
 
       for (int row = MIN_ROW(prime::pre); row <= MAX_ROW(prime::pre); ++row) {
-        const int max_col = MAX_COL(prime::pre) - row;
+        const int max_col = std::min(row, MAX_COL(prime::pre) - row);
 
-        for (int col = row; col <= max_col; ++col) {
+        for (int col = 0; col <= max_col; ++col) {
           // The mirrors of the pre cell changes order. So, we use a data structure to sort them.
           std::set<cell> pre_cells;
 
@@ -796,7 +792,7 @@ public:
   /// \brief Whether a cell is symmetric to a cell that is on the given row.
   ///
   /// \remark For some orderings, this function returns `false` even if it actually is symmetric.
-  ///         That is, this is (at this point) an under under approximation of this fact.
+  ///         That is, this is (at this point) an under approximation of this fact.
   bool row_symmetric(const cell& c, const int row) const
   {
     if (c.row() == row) {
