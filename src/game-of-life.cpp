@@ -591,8 +591,8 @@ public:
         throw std::invalid_argument("Rotational symmetry (90 degrees) is only available for square grids.");
       }
 
-      for (int tl_row = MIN_ROW(prime::pre); tl_row <= mid_row; ++tl_row) {
-        for (int tl_col = MIN_COL(prime::pre); tl_col <= mid_col; ++tl_col) {
+      for (int tl_row = mid_row; MIN_ROW(prime::pre) <= tl_row; --tl_row) {
+        for (int tl_col = mid_col; MIN_COL(prime::pre) <= tl_col; --tl_col) {
           // pre variable(s)
           const cell pre_tl(tl_row, tl_col, prime::pre);
           assert(!pre_tl.out_of_range());
