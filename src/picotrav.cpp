@@ -533,8 +533,8 @@ struct bdd_statistics
 #endif // BDD_BENCHMARK_STATS
 };
 
-template<typename adapter_t>
-using bdd_cache = std::unordered_map<std::string, typename adapter_t::dd_t>;
+template<typename Adapter>
+using bdd_cache = std::unordered_map<std::string, typename Adapter::dd_t>;
 
 bool decrease_ref_count(net_t &net, const std::string &node_name)
 {
@@ -559,11 +559,11 @@ bool decrease_ref_count(net_t &net, const std::string &node_name)
   return false;
 }
 
-template<typename adapter_t>
-typename adapter_t::dd_t construct_node_bdd(net_t &net,
+template<typename Adapter>
+typename Adapter::dd_t construct_node_bdd(net_t &net,
                                          const std::string &node_name,
-                                         bdd_cache<adapter_t> &cache,
-                                         adapter_t &adapter,
+                                         bdd_cache<Adapter> &cache,
+                                         Adapter &adapter,
                                          bdd_statistics &stats)
 {
   const auto lookup_cache = cache.find(node_name);
@@ -579,18 +579,18 @@ typename adapter_t::dd_t construct_node_bdd(net_t &net,
   assert (net.nodes.find(node_name) != net.nodes.end());
   const node_t &node_data = net.nodes.find(node_name) -> second;
 
-  typename adapter_t::dd_t so_cover_bdd = adapter.bot();
+  typename Adapter::dd_t so_cover_bdd = adapter.bot();
 #ifdef BDD_BENCHMARK_STATS
   size_t so_nodecount = adapter.nodecount(so_cover_bdd);
   assert(so_nodecount == 0);
 #endif // BDD_BENCHMARK_STATS
 
   for (size_t row_idx = 0; row_idx < node_data.so_cover.size(); row_idx++) {
-    typename adapter_t::dd_t tmp = adapter.top();
+    typename Adapter::dd_t tmp = adapter.top();
 
     for (size_t column_idx = 0; column_idx < node_data.nets.size(); column_idx++) {
       const std::string &dep_name = node_data.nets.at(column_idx);
-      typename adapter_t::dd_t dep_bdd = construct_node_bdd(net, dep_name, cache, adapter, stats);
+      typename Adapter::dd_t dep_bdd = construct_node_bdd(net, dep_name, cache, adapter, stats);
 
       // Add to row accumulation in 'tmp'
       const logic_value lval = node_data.so_cover.at(row_idx).at(column_idx);
@@ -679,11 +679,11 @@ typename adapter_t::dd_t construct_node_bdd(net_t &net,
 
 // ========================================================================== //
 // Construct the BDD for each output gate
-template<typename adapter_t>
+template<typename Adapter>
 int construct_net_bdd(const std::string &filename,
                       net_t &net,
-                      bdd_cache<adapter_t> &cache,
-                      adapter_t &adapter)
+                      bdd_cache<Adapter> &cache,
+                      Adapter &adapter)
 {
   if (cache.size() > 0) {
     std::cerr << "Given BDD cache is non-empty";
@@ -737,9 +737,9 @@ int construct_net_bdd(const std::string &filename,
 
 // ========================================================================== //
 // Test equivalence of every output gate (in-order they were given)
-template<typename adapter_t>
-bool verify_outputs(const net_t& net_0, const bdd_cache<adapter_t>& cache_0,
-                    const net_t& net_1, const bdd_cache<adapter_t>& cache_1)
+template<typename Adapter>
+bool verify_outputs(const net_t& net_0, const bdd_cache<Adapter>& cache_0,
+                    const net_t& net_1, const bdd_cache<Adapter>& cache_1)
 {
   assert(net_0.outputs_in_order.size() == cache_0.size());
   assert(net_1.outputs_in_order.size() == cache_1.size());
@@ -757,8 +757,8 @@ bool verify_outputs(const net_t& net_0, const bdd_cache<adapter_t>& cache_0,
     const std::string &output_0 = net_0.outputs_in_order.at(out_idx);
     const std::string &output_1 = net_1.outputs_in_order.at(out_idx);
 
-    const typename adapter_t::dd_t bdd_0 = cache_0.find(output_0) -> second;
-    const typename adapter_t::dd_t bdd_1 = cache_1.find(output_1) -> second;
+    const typename Adapter::dd_t bdd_0 = cache_0.find(output_0) -> second;
+    const typename Adapter::dd_t bdd_1 = cache_1.find(output_1) -> second;
 
     if (bdd_0 != bdd_1) {
       std::cout << "   | | output differ in ['" << output_0 << "' / '" << output_1 << "']\n";
@@ -807,7 +807,7 @@ variable_order parse_option(const std::string &arg, bool &should_exit)
   return variable_order::INPUT;
 }
 
-template<typename adapter_t>
+template<typename Adapter>
 int run_picotrav(int argc, char** argv)
 {
   variable_order variable_order = variable_order::INPUT;
@@ -823,7 +823,7 @@ int run_picotrav(int argc, char** argv)
   const bool verify_networks = input_files.size() > 1;
 
   // =========================================================================
-  std::cout << "Picotrav (" << adapter_t::NAME << " " << M << " MiB):\n";
+  std::cout << "Picotrav (" << Adapter::NAME << " " << M << " MiB):\n";
 
   // =========================================================================
   // Read file(s) and construct Nets
@@ -882,17 +882,17 @@ int run_picotrav(int argc, char** argv)
   const size_t varcount = net_0.inputs_w_order.size();
 
   const time_point t_init_before = now();
-  adapter_t adapter(varcount);
+  Adapter adapter(varcount);
   const time_point t_init_after = now();
 
   std::cout << "\n"
-            << adapter_t::NAME << " init (ms):      " << duration_ms(t_init_before, t_init_after) << "\n"
+            << Adapter::NAME << " init (ms):      " << duration_ms(t_init_before, t_init_after) << "\n"
             << std::flush;
 
   return adapter.run([&]() {
     // ========================================================================
     // Construct BDD for first net
-    bdd_cache<adapter_t> cache_0;
+    bdd_cache<Adapter> cache_0;
 
     const time_point t_before = now();
 
@@ -907,12 +907,12 @@ int run_picotrav(int argc, char** argv)
     // ========================================================================
     // Construct BDD for second net (if any) and compare them
     if (verify_networks) {
-      bdd_cache<adapter_t> cache_1;
+      bdd_cache<Adapter> cache_1;
       errcode_1 = construct_net_bdd(input_files.at(1), net_1, cache_1, adapter);
 
       if (errcode_1) { return errcode_1; }
 
-      networks_equal = verify_outputs<adapter_t>(net_0, cache_0, net_1, cache_1);
+      networks_equal = verify_outputs<Adapter>(net_0, cache_0, net_1, cache_1);
     }
     const time_point t_after = now();
 

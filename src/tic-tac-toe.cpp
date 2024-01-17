@@ -86,10 +86,10 @@ void construct_lines() {
 
 // ========================================================================== //
 //                           EXACTLY N CONSTRAINT                             //
-template<typename adapter_t>
-typename adapter_t::dd_t construct_init(adapter_t &adapter)
+template<typename Adapter>
+typename Adapter::dd_t construct_init(Adapter &adapter)
 {
-  std::vector<typename adapter_t::build_node_t> init_parts(N+2, adapter.build_node(false));
+  std::vector<typename Adapter::build_node_t> init_parts(N+2, adapter.build_node(false));
   init_parts.at(N) = adapter.build_node(true);
 
   for (int curr_level = 63; curr_level >= 0; curr_level--) {
@@ -104,7 +104,7 @@ typename adapter_t::dd_t construct_init(adapter_t &adapter)
     }
   }
 
-  typename adapter_t::dd_t out = adapter.build();
+  typename Adapter::dd_t out = adapter.build();
 #ifdef BDD_BENCHMARK_STATS
   total_nodes += adapter.nodecount(out);
 #endif // BDD_BENCHMARK_STATS
@@ -113,8 +113,8 @@ typename adapter_t::dd_t construct_init(adapter_t &adapter)
 
 // ========================================================================== //
 //                              LINE CONSTRAINT                               //
-template<typename adapter_t>
-typename adapter_t::dd_t construct_is_not_winning(adapter_t &adapter,
+template<typename Adapter>
+typename Adapter::dd_t construct_is_not_winning(Adapter &adapter,
                                                   std::array<int, 4>& line)
 {
   auto root = adapter.build_node(true);
@@ -156,7 +156,7 @@ typename adapter_t::dd_t construct_is_not_winning(adapter_t &adapter,
     root = adapter.build_node(curr_level, root, root);
   }
 
-  typename adapter_t::dd_t out = adapter.build();
+  typename Adapter::dd_t out = adapter.build();
 #ifdef BDD_BENCHMARK_STATS
   total_nodes += adapter.nodecount(out);
 #endif // BDD_BENCHMARK_STATS
@@ -164,7 +164,7 @@ typename adapter_t::dd_t construct_is_not_winning(adapter_t &adapter,
 }
 
 // =============================================================================
-template<typename adapter_t>
+template<typename Adapter>
 int run_tictactoe(int argc, char** argv)
 {
   no_options option = no_options::NONE;
@@ -174,13 +174,13 @@ int run_tictactoe(int argc, char** argv)
   if (should_exit) { return -1; }
 
   // =========================================================================
-  std::cout << "Tic-Tac-Toe with " << N << " crosses (" << adapter_t::NAME << " " << M << " MiB):\n";
+  std::cout << "Tic-Tac-Toe with " << N << " crosses (" << Adapter::NAME << " " << M << " MiB):\n";
 
   time_point t_init_before = now();
-  adapter_t adapter(64);
+  Adapter adapter(64);
   time_point t_init_after = now();
   std::cout << "\n"
-            << "   " << adapter_t::NAME << " initialisation:\n"
+            << "   " << Adapter::NAME << " initialisation:\n"
             << "   | time (ms):              " << duration_ms(t_init_before, t_init_after) << "\n";
 
   construct_lines();
@@ -195,7 +195,7 @@ int run_tictactoe(int argc, char** argv)
               << std::flush;
 
     time_point t1 = now();
-    typename adapter_t::dd_t res = construct_init(adapter);
+    typename Adapter::dd_t res = construct_init(adapter);
     time_point t2 = now();
 
     const size_t initial_bdd = adapter.nodecount(res);

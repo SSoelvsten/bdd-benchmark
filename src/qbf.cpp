@@ -135,7 +135,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////
     /// \brief Operator to be applied in this gate.
     ////////////////////////////////////////////////////////////////////////////
-    type_t ngate_type;
+    type_t nGateype;
 
     ////////////////////////////////////////////////////////////////////////////
     /// \brief List of literals to accumulate with the operator.
@@ -151,12 +151,12 @@ public:
 
     ngate(const type_t& ng_t,
                const std::vector<int>& lits)
-      : ngate_type(ng_t), lit_list(lits)
+      : nGateype(ng_t), lit_list(lits)
     { }
 
     ngate(const std::string& ng_t,
                const std::vector<int>& lits)
-      : ngate_type(parse_type(ng_t)), lit_list(lits)
+      : nGateype(parse_type(ng_t)), lit_list(lits)
     { }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -164,9 +164,9 @@ public:
     to_string() const
     {
       std::stringstream ss;
-      ss << (  ngate_type == AND ? "and"
-            :  ngate_type == OR  ? "or"
-            :/*ngate_type == XOR*/ "xor")
+      ss << (  nGateype == AND ? "and"
+            :  nGateype == OR  ? "or"
+            :/*nGateype == XOR*/ "xor")
          << "( ";
       for (const int i : lit_list) { ss << i << " "; }
       ss << ")";
@@ -305,21 +305,21 @@ public:
 
   public:
     ////////////////////////////////////////////////////////////////////////////
-    template<typename gate_t>
+    template<typename Gate>
     bool
     is() const
-    { return std::holds_alternative<gate_t>(*this); }
+    { return std::holds_alternative<Gate>(*this); }
 
     ////////////////////////////////////////////////////////////////////////////
-    template<typename gate_t>
-    const gate_t&
+    template<typename Gate>
+    const Gate&
     as() const
-    { return std::get<gate_t>(*this); }
+    { return std::get<Gate>(*this); }
 
-    template<typename gate_t>
-    gate_t&
+    template<typename Gate>
+    Gate&
     as()
-    { return std::get<gate_t>(*this); }
+    { return std::get<Gate>(*this); }
 
     ////////////////////////////////////////////////////////////////////////////
     template<class T>
@@ -355,14 +355,14 @@ public:
     gate(const gate& g) = default;
     gate(gate&& g) = default;
 
-    template<typename gate_t>
-    gate(const size_t d, const gate_t &g)
+    template<typename Gate>
+    gate(const size_t d, const Gate &g)
       : variant_t(g), depth(d)
     { __check_self(); }
 
-    template<typename gate_t>
-    gate(const size_t d, gate_t &&g)
-      : variant_t(std::forward<gate_t>(g)), depth(d)
+    template<typename Gate>
+    gate(const size_t d, Gate &&g)
+      : variant_t(std::forward<Gate>(g)), depth(d)
     { __check_self(); }
 
   public:
@@ -981,10 +981,10 @@ public:
   ///
   /// \returns Unique identifier of the constructed gate.
   //////////////////////////////////////////////////////////////////////////////
-  template<typename lits_t>
+  template<typename Lits>
   int
   add_ite_gate(const std::string gvar,
-               const lits_t& lits)
+               const Lits& lits)
   {
     if (m_has_output_gate) {
       throw std::invalid_argument("Cannot create an ITE gate after having created the OUTPUT gate");
@@ -1368,9 +1368,9 @@ private:
   }
 
   //////////////////////////////////////////////////////////////////////////////
-  template<typename gate_t>
+  template<typename Gate>
   size_t
-  __push_gate(const size_t d, const gate_t& g)
+  __push_gate(const size_t d, const Gate& g)
   {
     const size_t idx = m_circuit.size();
     m_circuit.push_back(gate(d, g));
@@ -1378,16 +1378,16 @@ private:
     m_size++;
     m_depth = std::max(m_depth, d);
 
-    if constexpr (!std::is_same<gate_t, const_gate>::value) {
+    if constexpr (!std::is_same<Gate, const_gate>::value) {
       m_roots++;
     }
 
     return idx;
   }
 
-  template<typename gate_t>
+  template<typename Gate>
   size_t
-  __push_gate(const std::string var, const size_t d, const gate_t& g)
+  __push_gate(const std::string var, const size_t d, const Gate& g)
   {
     const size_t idx = __push_gate(d, g);
     __assoc_idx(var, idx);
@@ -1685,9 +1685,9 @@ public:
   } stats;
 };
 
-template<typename adapter_t>
+template<typename Adapter>
 solve_res
-solve(adapter_t& adapter, qcir& q,
+solve(Adapter& adapter, qcir& q,
       const variable_order vo = variable_order::INPUT)
 {
   const time_point t_prep_before = now();
@@ -1726,7 +1726,7 @@ solve(adapter_t& adapter, qcir& q,
             << std::flush;
 
   // Set-up BDD computation cache
-  std::unordered_map<int, std::pair<typename adapter_t::dd_t, size_t>> cache;
+  std::unordered_map<int, std::pair<typename Adapter::dd_t, size_t>> cache;
 
   const auto cache_get = [&adapter, &cache](int i) {
     // Get idx from identifier
@@ -1775,25 +1775,25 @@ solve(adapter_t& adapter, qcir& q,
     const time_point t_start = now();
 #endif
 
-    const typename adapter_t::dd_t g_dd = g.match
+    const typename Adapter::dd_t g_dd = g.match
       ([&adapter]
-       (const qcir::const_gate &g) -> typename adapter_t::dd_t {
+       (const qcir::const_gate &g) -> typename Adapter::dd_t {
         return g.val ? adapter.top() : adapter.bot();
        },
        [&adapter, &vom]
-       (const qcir::var_gate &g)  -> typename adapter_t::dd_t {
+       (const qcir::var_gate &g)  -> typename Adapter::dd_t {
 #ifdef BDD_BENCHMARK_STATS
          std::cout << "  | | | DD var:          " << vom.dd_var(g.var) << "\n";
 #endif
          return adapter.ithvar(vom.dd_var(g.var));
        },
        [&adapter, &cache_get]
-       (const qcir::ngate &g) -> typename adapter_t::dd_t {
+       (const qcir::ngate &g) -> typename Adapter::dd_t {
          const auto apply = [&g]
-           (const typename adapter_t::dd_t &dd_1,
-            const typename adapter_t::dd_t &dd_2)
+           (const typename Adapter::dd_t &dd_1,
+            const typename Adapter::dd_t &dd_2)
          { // TODO: move switch outside of lambda?
-           switch (g.ngate_type) {
+           switch (g.nGateype) {
            case qcir::ngate::AND:
              return dd_1 & dd_2;
            case qcir::ngate::OR:
@@ -1804,7 +1804,7 @@ solve(adapter_t& adapter, qcir& q,
            throw std::invalid_argument("Unknown Operator");
          };
 
-         std::queue<typename adapter_t::dd_t> tmp;
+         std::queue<typename Adapter::dd_t> tmp;
 
          { // Populate FIFO queue with pairs of BDDs
            auto g_it = g.lit_list.cbegin();
@@ -1837,7 +1837,7 @@ solve(adapter_t& adapter, qcir& q,
          }
        },
        [&adapter, &cache_get]
-       (const qcir::ite_gate &g) -> typename adapter_t::dd_t {
+       (const qcir::ite_gate &g) -> typename Adapter::dd_t {
          const auto dd_if   = cache_get(g.lits[0]);
          const auto dd_then = cache_get(g.lits[1]);
          const auto dd_else = cache_get(g.lits[2]);
@@ -1845,7 +1845,7 @@ solve(adapter_t& adapter, qcir& q,
          return adapter.ite(dd_if, dd_then, dd_else);
        },
        [&adapter, &vom, &cache_get]
-       (const qcir::quant_gate &g) -> typename adapter_t::dd_t {
+       (const qcir::quant_gate &g) -> typename Adapter::dd_t {
          std::set<int> vars;
          for (const int x : g.vars) { vars.insert(vom.dd_var(x)); }
 
@@ -1877,7 +1877,7 @@ solve(adapter_t& adapter, qcir& q,
            : adapter.forall(cache_get(g.lit), pred);
        },
        [&cache_get, &t_prenex_before]
-       (const qcir::output_gate &g) -> typename adapter_t::dd_t {
+       (const qcir::output_gate &g) -> typename Adapter::dd_t {
          t_prenex_before = now();
          return cache_get(g.lit);
        });
@@ -1988,7 +1988,7 @@ variable_order parse_option(const std::string &ARG, bool &should_exit)
   return variable_order::INPUT;
 }
 
-template<typename adapter_t>
+template<typename Adapter>
 int run_qbf(int argc, char** argv)
 {
   variable_order variable_order = variable_order::INPUT;
@@ -2002,7 +2002,7 @@ int run_qbf(int argc, char** argv)
   if (should_exit) { return -1; }
 
   // =========================================================================
-  std::cout << "QBF Solver (" << adapter_t::NAME << " " << M << " MiB):\n";
+  std::cout << "QBF Solver (" << Adapter::NAME << " " << M << " MiB):\n";
 
   // Parse QCir Input
   const std::string input_file = input_files.at(0);
@@ -2016,7 +2016,7 @@ int run_qbf(int argc, char** argv)
             << std::flush;
 
   const time_point t_init_before = now();
-  adapter_t adapter(q.vars());
+  Adapter adapter(q.vars());
   const time_point t_init_after = now();
 
   // Initialise BDD package

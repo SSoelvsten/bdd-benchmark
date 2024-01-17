@@ -382,9 +382,9 @@ var_map remap_vars(const std::array<lib_bdd::bdd, 2> &fs)
 }
 
 /// \brief Reconstruct DD from 'lib-bdd' inside of BDD package.
-template<typename adapter_t>
-typename adapter_t::dd_t
-reconstruct(adapter_t &adapter, const lib_bdd::bdd &in, const var_map &vm)
+template<typename Adapter>
+typename Adapter::dd_t
+reconstruct(Adapter &adapter, const lib_bdd::bdd &in, const var_map &vm)
 {
   if (in.size() <= 2) {
     adapter.build_node(in.size() == 2);
@@ -392,7 +392,7 @@ reconstruct(adapter_t &adapter, const lib_bdd::bdd &in, const var_map &vm)
   }
 
   // Vector of converted DD nodes
-  std::vector<typename adapter_t::build_node_t> out(in.size(),
+  std::vector<typename Adapter::build_node_t> out(in.size(),
                                                     adapter.build_node(false));
 
   // Terminal Nodes
@@ -444,7 +444,7 @@ reconstruct(adapter_t &adapter, const lib_bdd::bdd &in, const var_map &vm)
   return adapter.build();
 }
 
-template<typename adapter_t>
+template<typename Adapter>
 int run_apply(int argc, char** argv)
 {
   oper_opt oper_opt = oper_opt::AND;
@@ -460,7 +460,7 @@ int run_apply(int argc, char** argv)
   if (should_exit) { return -1; }
 
   // =========================================================================
-  std::cout << "Apply (" << adapter_t::NAME << " " << M << " MiB):\n";
+  std::cout << "Apply (" << Adapter::NAME << " " << M << " MiB):\n";
 
   // =========================================================================
   // Load 'lib-bdd' files
@@ -494,7 +494,7 @@ int run_apply(int argc, char** argv)
   const size_t varcount = vm.size();
 
   const time_point t_init_before = now();
-  adapter_t adapter(varcount);
+  Adapter adapter(varcount);
   const time_point t_init_after = now();
 
   std::cout << "  Initialisation:\n"
@@ -505,7 +505,7 @@ int run_apply(int argc, char** argv)
   return adapter.run([&] {
     // =========================================================================
     // Reconstruct DDs
-    std::array<typename adapter_t::dd_t, inputs> inputs_dd;
+    std::array<typename Adapter::dd_t, inputs> inputs_dd;
 
     for (size_t i = 0; i < inputs; ++i) {
       const time_point t_rebuild_before = now();
@@ -521,7 +521,7 @@ int run_apply(int argc, char** argv)
 
     // =========================================================================
     // Apply both DDs together
-    typename adapter_t::dd_t result;
+    typename Adapter::dd_t result;
 
     const time_point t_apply_before = now();
     switch (oper_opt) {
