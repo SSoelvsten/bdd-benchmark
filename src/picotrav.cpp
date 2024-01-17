@@ -889,37 +889,41 @@ int run_picotrav(int argc, char** argv)
             << adapter_t::NAME << " init (ms):      " << duration_ms(t_init_before, t_init_after) << "\n"
             << std::flush;
 
-  // ========================================================================
-  // Construct BDD for net(s)
-  bdd_cache<adapter_t> cache_0;
+  return adapter.run([&]() {
+    // ========================================================================
+    // Construct BDD for first net
+    bdd_cache<adapter_t> cache_0;
 
-  const time_point t_before = now();
+    const time_point t_before = now();
 
-  int errcode_0 = 0;
-  int errcode_1 = 0;
-  bool networks_equal = true;
+    int errcode_0 = 0;
+    int errcode_1 = 0;
+    bool networks_equal = true;
 
-  errcode_0 = construct_net_bdd(input_files.at(0), net_0, cache_0, adapter);
+    errcode_0 = construct_net_bdd(input_files.at(0), net_0, cache_0, adapter);
 
-  if (errcode_0) { return errcode_0; }
+    if (errcode_0) { return errcode_0; }
 
-  if (verify_networks) {
-    bdd_cache<adapter_t> cache_1;
-    errcode_1 = construct_net_bdd(input_files.at(1), net_1, cache_1, adapter);
+    // ========================================================================
+    // Construct BDD for second net (if any) and compare them
+    if (verify_networks) {
+      bdd_cache<adapter_t> cache_1;
+      errcode_1 = construct_net_bdd(input_files.at(1), net_1, cache_1, adapter);
 
-    if (errcode_1) { return errcode_1; }
+      if (errcode_1) { return errcode_1; }
 
-    networks_equal = verify_outputs<adapter_t>(net_0, cache_0, net_1, cache_1);
-  }
-  const time_point t_after = now();
+      networks_equal = verify_outputs<adapter_t>(net_0, cache_0, net_1, cache_1);
+    }
+    const time_point t_after = now();
 
-  // TODO: Fix 'total time' below also measures multiple 'std::flush'.
-  std::cout << "\n"
-            << "   total time (ms):          " << duration_ms(t_before, t_after) << "\n"
-            << std::flush;
+    // TODO: Fix 'total time' below also measures multiple 'std::flush'.
+    std::cout << "\n"
+              << "   total time (ms):          " << duration_ms(t_before, t_after) << "\n"
+              << std::flush;
 
-  adapter.print_stats();
+    adapter.print_stats();
 
-  if (verify_networks && !networks_equal) { return -1; }
-  return 0;
+    if (verify_networks && !networks_equal) { return -1; }
+    return 0;
+  });
 }

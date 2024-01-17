@@ -2002,30 +2002,30 @@ int run_qbf(int argc, char** argv)
   if (should_exit) { return -1; }
 
   // =========================================================================
-  {
-    std::cout << "QBF Solver (" << adapter_t::NAME << " " << M << " MiB):\n";
+  std::cout << "QBF Solver (" << adapter_t::NAME << " " << M << " MiB):\n";
 
-    // Parse QCir Input
-    const std::string input_file = input_files.at(0);
-    std::cout << "\n  Circuit: " << input_file << "\n";
+  // Parse QCir Input
+  const std::string input_file = input_files.at(0);
+  std::cout << "\n  Circuit: " << input_file << "\n";
 
-    qcir q(input_file);
+  qcir q(input_file);
 
-    std::cout << "  | depth: " << q.depth() << "\n"
-              << "  | size:  " << q.size() << "\n"
-              << "  | vars:  " << q.vars() << "\n"
-              << std::flush;
+  std::cout << "  | depth: " << q.depth() << "\n"
+            << "  | size:  " << q.size() << "\n"
+            << "  | vars:  " << q.vars() << "\n"
+            << std::flush;
 
-    const time_point t_init_before = now();
-    adapter_t adapter(q.vars());
-    const time_point t_init_after = now();
+  const time_point t_init_before = now();
+  adapter_t adapter(q.vars());
+  const time_point t_init_after = now();
 
-    // Initialise BDD package
-    std::cout << "\n  BDD init (ms):         " << duration_ms(t_init_before, t_init_after) << "\n"
-              << "\n"
-              << "  Solving Circuit\n"
-              << std::flush;
+  // Initialise BDD package
+  std::cout << "\n  BDD init (ms):         " << duration_ms(t_init_before, t_init_after) << "\n"
+            << "\n"
+            << "  Solving Circuit\n"
+            << std::flush;
 
+  return adapter.run([&]() {
     const auto [ sat_res, witness, stats ] = solve(adapter, q, variable_order);
 
     std::cout << "  | solving time (ms):   " << stats.solve_time << "\n"
@@ -2054,6 +2054,7 @@ int run_qbf(int argc, char** argv)
               << std::flush;
 
     adapter.print_stats();
-  }
-  return 0;
+
+    return 0;
+  });
 }

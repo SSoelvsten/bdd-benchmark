@@ -502,45 +502,47 @@ int run_apply(int argc, char** argv)
             << "  | time (ms):              " << duration_ms(t_init_before, t_init_after) << "\n"
             << std::flush;
 
-  // =========================================================================
-  // Reconstruct DDs
-  std::array<typename adapter_t::dd_t, inputs> inputs_dd;
+  return adapter.run([&] {
+    // =========================================================================
+    // Reconstruct DDs
+    std::array<typename adapter_t::dd_t, inputs> inputs_dd;
 
-  for (size_t i = 0; i < inputs; ++i) {
-    const time_point t_rebuild_before = now();
-    inputs_dd.at(i) = reconstruct(adapter, inputs_binary.at(i), vm);
-    const time_point t_rebuild_after = now();
+    for (size_t i = 0; i < inputs; ++i) {
+      const time_point t_rebuild_before = now();
+      inputs_dd.at(i) = reconstruct(adapter, inputs_binary.at(i), vm);
+      const time_point t_rebuild_after = now();
 
-    std::cout << "\n  DD '" << input_files.at(i) << "':\n"
-              << "  | size (nodes):           " << adapter.nodecount(inputs_dd.at(i)) << "\n"
-              << "  | satcount:               " << adapter.satcount(inputs_dd.at(i)) << "\n"
-              << "  | time (ms):              " << duration_ms(t_rebuild_before, t_rebuild_after) << "\n"
+      std::cout << "\n  DD '" << input_files.at(i) << "':\n"
+                << "  | size (nodes):           " << adapter.nodecount(inputs_dd.at(i)) << "\n"
+                << "  | satcount:               " << adapter.satcount(inputs_dd.at(i)) << "\n"
+                << "  | time (ms):              " << duration_ms(t_rebuild_before, t_rebuild_after) << "\n"
+                << std::flush;
+    }
+
+    // =========================================================================
+    // Apply both DDs together
+    typename adapter_t::dd_t result;
+
+    const time_point t_apply_before = now();
+    switch (oper_opt) {
+    case oper_opt::AND:
+      result = inputs_dd.at(0) & inputs_dd.at(1);
+      break;
+    case oper_opt::OR:
+      result = inputs_dd.at(0) | inputs_dd.at(1);
+      break;
+    }
+    const time_point t_apply_after = now();
+
+    std::cout << "\n  Apply ( " << option_str(oper_opt) << " ):\n"
+              << "  | size (nodes):           " << adapter.nodecount(result) << "\n"
+              << "  | satcount:               " << adapter.satcount(result) << "\n"
+              << "  | time (ms):              " << duration_ms(t_apply_before, t_apply_after) << "\n"
               << std::flush;
-  }
 
-  // =========================================================================
-  // Apply both DDs together
-  typename adapter_t::dd_t result;
+    // =========================================================================
+    adapter.print_stats();
 
-  const time_point t_apply_before = now();
-  switch (oper_opt) {
-  case oper_opt::AND:
-    result = inputs_dd.at(0) & inputs_dd.at(1);
-    break;
-  case oper_opt::OR:
-    result = inputs_dd.at(0) | inputs_dd.at(1);
-    break;
-  }
-  const time_point t_apply_after = now();
-
-  std::cout << "\n  Apply ( " << option_str(oper_opt) << " ):\n"
-            << "  | size (nodes):           " << adapter.nodecount(result) << "\n"
-            << "  | satcount:               " << adapter.satcount(result) << "\n"
-            << "  | time (ms):              " << duration_ms(t_apply_before, t_apply_after) << "\n"
-            << std::flush;
-
-  // =========================================================================
-  adapter.print_stats();
-
-  return 0;
+    return 0;
+  });
 }

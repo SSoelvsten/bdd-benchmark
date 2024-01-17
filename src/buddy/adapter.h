@@ -111,6 +111,10 @@ public:
     bdd_done();
   }
 
+public:
+  int run(const std::function<int()> &f)
+  { return f(); }
+
 private:
   template<typename IT>
   inline bdd make_cube(IT rbegin, IT rend)

@@ -33,8 +33,12 @@ public:
   ~cal_bdd_adapter()
   { /* Do nothing */ }
 
+public:
+  int run(const std::function<int()> &f)
+  { return f(); }
+
   // BDD Operations
- public:
+public:
   inline BDD top()
   { return _mgr.One(); }
 

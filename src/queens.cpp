@@ -160,8 +160,9 @@ int run_queens(int argc, char** argv)
             << "   | variables:              " << N << "\n"
             << "   | time (ms):              " << duration_ms(t_init_before, t_init_after) << "\n";
 
-  uint64_t solutions;
-  {
+  return adapter.run([&]() {
+    uint64_t solutions;
+
     // ========================================================================
     // Compute the bdd that represents the entire board
     std::cout << "\n"
@@ -203,12 +204,12 @@ int run_queens(int argc, char** argv)
     std::cout << "\n"
               << "   total time (ms):          " << (construction_time + counting_time) << "\n"
               << std::flush;
-  }
 
-  adapter.print_stats();
+    adapter.print_stats();
 
-  if (rows() == cols() && N < size(expected_queens) && solutions != expected_queens[N]) {
-    return -1;
-  }
-  return 0;
+    if (rows() == cols() && N < size(expected_queens) && solutions != expected_queens[N]) {
+      return -1;
+    }
+    return 0;
+  });
 }

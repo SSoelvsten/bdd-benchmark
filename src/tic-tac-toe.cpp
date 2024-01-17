@@ -185,8 +185,9 @@ int run_tictactoe(int argc, char** argv)
 
   construct_lines();
 
-  uint64_t solutions;
-  {
+  return adapter.run([&]() {
+    uint64_t solutions;
+
     // =========================================================================
     // Construct is_equal_N
     std::cout << "\n"
@@ -263,12 +264,12 @@ int run_tictactoe(int argc, char** argv)
     std::cout << "\n"
               << "   total time (ms):          " << (init_time + constraints_time + counting_time) << "\n"
               << std::flush;
-  }
 
-  adapter.print_stats();
+    adapter.print_stats();
 
-  if (N < size(expected_tic_tac_toe) && solutions != expected_tic_tac_toe[N]) {
-    return -1;
-  }
-  return 0;
+    if (N < size(expected_tic_tac_toe) && solutions != expected_tic_tac_toe[N]) {
+      return -1;
+    }
+    return 0;
+  });
 }

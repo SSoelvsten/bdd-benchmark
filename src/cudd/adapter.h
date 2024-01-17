@@ -53,6 +53,9 @@ protected:
   ~cudd_adapter()
   { /* Do nothing */ }
 
+public:
+  int run(const std::function<int()> &f)
+  { return f(); }
 
   // Statistics
 public:

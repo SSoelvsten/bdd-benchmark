@@ -1269,8 +1269,9 @@ int run_gameoflife(int argc, char** argv)
             << "   | time (ms)        : " << duration_ms(t_init_before, t_init_after) << "\n"
             << "\n";
 
-  size_t solutions = 0;
-  {
+  return adapter.run([&]() {
+    size_t solutions = 0;
+
     // ---------------------------------------------------------------------------------------------
     std::cout << "   Construct reachable initial states:\n"
               << std::flush;
@@ -1331,10 +1332,10 @@ int run_gameoflife(int argc, char** argv)
 
     std::cout << "   total time (ms)    : " << total_time << "\n"
               << std::flush;
-  }
 
-  adapter.print_stats();
+    adapter.print_stats();
 
-  // For all solvable sizes, the number of solutions should be 0.
-  return solutions != 0;
+    // For all solvable sizes, the number of solutions should be 0.
+    return solutions != 0;
+  });
 }
