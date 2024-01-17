@@ -7,28 +7,27 @@ way, thereby allowing one to compare implementations.
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 **Table of Contents**
 
-- [BDD Benchmark](#bdd-benchmark)
-    - [Implementations](#implementations)
-        - [Enforcing comparability](#enforcing-comparability)
-        - [Dependencies](#dependencies)
-    - [Usage](#usage)
-    - [Benchmarks](#benchmarks)
-        - [Apply](#apply)
-        - [Game of Life](#game-of-life)
-        - [Hamiltonian Cycle](#hamiltonian-cycle)
-        - [Picotrav](#picotrav)
-        - [QBF Solver](#qbf-solver)
-        - [Queens](#queens)
-        - [Tic-Tac-Toe](#tic-tac-toe)
-    - [Performance Regression Testing](#performance-regression-testing)
-    - [License](#license)
-    - [Citation](#citation)
-    - [References](#references)
+- [BDD Packages](#bdd-packages)
+    - [Enforcing comparability](#enforcing-comparability)
+    - [Dependencies](#dependencies)
+- [Usage](#usage)
+- [Benchmarks](#benchmarks)
+    - [Apply](#apply)
+    - [Game of Life](#game-of-life)
+    - [Hamiltonian Cycle](#hamiltonian-cycle)
+    - [Picotrav](#picotrav)
+    - [QBF Solver](#qbf-solver)
+    - [Queens](#queens)
+    - [Tic-Tac-Toe](#tic-tac-toe)
+- [Performance Regression Testing](#performance-regression-testing)
+- [License](#license)
+- [Citation](#citation)
+- [References](#references)
 
 <!-- markdown-toc end -->
 
 
-## Implementations
+## BDD Packages
 We provide all the benchmarks described further below for the following
 libraries.
 
