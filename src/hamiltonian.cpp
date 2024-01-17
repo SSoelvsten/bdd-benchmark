@@ -2363,8 +2363,9 @@ int run_hamiltonian(int argc, char** argv)
   // Initialise cells (i.e. variable ordering)
   init_cells_descending();
 
-  uint64_t solutions;
-  {
+  return adapter.run([&]() {
+    uint64_t solutions;
+
     // ---------------------------------------------------------------------------
     // Construct paths based on chosen encoding
     std::cout << "\n"
@@ -2434,14 +2435,14 @@ int run_hamiltonian(int argc, char** argv)
     std::cout << "\n"
               << "total time (ms):               " << (paths_time + satcount_time) << "\n"
               << std::flush;
-  }
 
-  adapter.print_stats();
+    adapter.print_stats();
 
-  if (rows() == cols() && rows() < size(expected_hamiltonian__grid)
-      && expected_hamiltonian__grid[rows()] != UNKNOWN
-      && solutions != expected_hamiltonian__grid[rows()]) {
-    return -1;
-  }
-  return 0;
+    if (rows() == cols() && rows() < size(expected_hamiltonian__grid)
+        && expected_hamiltonian__grid[rows()] != UNKNOWN
+        && solutions != expected_hamiltonian__grid[rows()]) {
+      return -1;
+    }
+    return 0;
+    });
 }

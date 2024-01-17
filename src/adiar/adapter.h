@@ -19,6 +19,10 @@ protected:
     adiar::adiar_deinit();
   }
 
+public:
+  int run(const std::function<int()>& f)
+  { return f(); }
+
   // Statistics
 public:
   inline size_t allocated_nodes()

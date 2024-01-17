@@ -4,6 +4,21 @@
 #include <sylvan_obj.hpp>
 
 ////////////////////////////////////////////////////////////////////////////////
+/// Running code in a LACE context
+///
+/// If one just uses Sylvan's C++ API as-is without further thought, then every
+/// call to a BDD operation has to start out with initialising the queue of a
+/// LACE worker.
+///
+/// To circumvent the introduction of this overhead, one should run all Sylvan
+/// operations within a single 'main' task.
+////////////////////////////////////////////////////////////////////////////////
+TASK_1(int, lace_lambda, const std::function<int()>*, f)
+{
+  return (*f)();
+}
+
+////////////////////////////////////////////////////////////////////////////////
 /// Initialisation of Sylvan.
 ///
 /// From 'sylvan_commons.h' we know that every node takes up 24 bytes of memory
@@ -84,6 +99,13 @@ public:
   {
     sylvan::sylvan_quit();
     lace_stop();
+  }
+
+public:
+  // LACE context
+  inline int run(const std::function<int()> &f)
+  {
+    return RUN(lace_lambda, &f);
   }
 
 private:
