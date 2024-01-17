@@ -1016,8 +1016,8 @@ typename Adapter::dd_t acc_rel(Adapter &adapter, const var_map &vm, const int ro
   auto res = adapter.top();
 
 #ifdef BDD_BENCHMARK_STATS
-  std::cout << "   | | Rel " << row << "\n"
-            << "   | | | --           : "
+  std::cout << "  | | Rel " << row << "\n"
+            << "  | | | --                    "
             << adapter.nodecount(res) << "\n"
             << std::flush;
 #endif // BDD_BENCHMARK_STATS
@@ -1031,7 +1031,7 @@ typename Adapter::dd_t acc_rel(Adapter &adapter, const var_map &vm, const int ro
     res &= acc_rel(adapter, vm, c);
 
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << "   | | | " << c.to_string() << "          : "
+    std::cout << "  | | | " << c.to_string() << "                   "
               << adapter.nodecount(res) << "\n"
               << std::flush;
 #endif // BDD_BENCHMARK_STATS
@@ -1072,8 +1072,8 @@ typename Adapter::dd_t acc_rel(Adapter &adapter, const var_map &vm, const bool b
     goe__apply_time += duration_ms(t_apply__before, t_apply__after);
 
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << "   | |\n"
-              << "   | | Acc [" << begin << "-" << row << "]      : " << adapter.nodecount(res) << "\n" << std::flush;
+    std::cout << "  | |\n"
+              << "  | | Acc [" << begin << "-" << row << "]               " << adapter.nodecount(res) << "\n" << std::flush;
 #endif // BDD_BENCHMARK_STATS
 
     // ---------------------------------------------------------------------------------------------
@@ -1104,7 +1104,7 @@ typename Adapter::dd_t acc_rel(Adapter &adapter, const var_map &vm, const bool b
       goe__exists_time += duration_ms(t_exists__before, t_exists__after);
 
 #ifdef BDD_BENCHMARK_STATS
-      std::cout << "   | | Exi [" << quant_row << "]        : "
+      std::cout << "  | | Exi [" << quant_row << "]                 "
                 << adapter.nodecount(res) << "\n"
                 << std::flush;
 #endif // BDD_BENCHMARK_STATS
@@ -1112,7 +1112,7 @@ typename Adapter::dd_t acc_rel(Adapter &adapter, const var_map &vm, const bool b
 
     if (row != end) {
 #ifdef BDD_BENCHMARK_STATS
-      std::cout << "   | |\n";
+      std::cout << "  | |\n";
 #endif // BDD_BENCHMARK_STATS
     }
   }
@@ -1126,24 +1126,24 @@ template<typename Adapter>
 typename Adapter::dd_t garden_of_eden(Adapter &adapter, const var_map &vm)
 {
   if (rows() < cols()) {
-    std::cout << "   | Note:\n"
-              << "   |   The variable ordering is designed for 'cols <= rows'.\n"
-              << "   |   Maybe restart with the dimensions flipped?\n"
-              << "   |\n";
+    std::cout << "  | Note:\n"
+              << "  |   The variable ordering is designed for 'cols <= rows'.\n"
+              << "  |   Maybe restart with the dimensions flipped?\n"
+              << "  |\n";
   }
 
   // -----------------------------------------------------------------------------------------------
   // Top half
 #ifdef BDD_BENCHMARK_STATS
-  std::cout << "   | Top Half:\n";
+  std::cout << "  | Top Half\n";
 #endif // BDD_BENCHMARK_STATS
   auto res = acc_rel(adapter, vm, false);
 
   // -----------------------------------------------------------------------------------------------
   // Bottom half
 #ifdef BDD_BENCHMARK_STATS
-  std::cout << "   |\n"
-            << "   | Bottom Half:\n";
+  std::cout << "  |\n"
+            << "  | Bottom Half\n";
 #endif // BDD_BENCHMARK_STATS
   res &= acc_rel(adapter, vm, true);
 
@@ -1151,8 +1151,8 @@ typename Adapter::dd_t garden_of_eden(Adapter &adapter, const var_map &vm)
   // Middle row between halfs (if any)
   if (rows(prime::post) % 2 == 1) {
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << "   |\n"
-              << "   | Middle Row:\n";
+    std::cout << "  |\n"
+              << "  | Middle Row\n";
 #endif // BDD_BENCHMARK_STATS
     res &= acc_rel(adapter, vm, rows(prime::post) / 2 + 1);
   }
@@ -1162,8 +1162,8 @@ typename Adapter::dd_t garden_of_eden(Adapter &adapter, const var_map &vm)
   //
   // TODO (symmetry::none): Use Manual Variable Reordering to obtain Top Half from Bottom Half
 #ifdef BDD_BENCHMARK_STATS
-  std::cout << "   |\n"
-            << "   | Acc [" << MIN_ROW(prime::pre) << "-" << MAX_ROW(prime::pre) << "]        : "
+  std::cout << "  |\n"
+            << "  | Acc [" << MIN_ROW(prime::pre) << "-" << MAX_ROW(prime::pre) << "]                 "
             << adapter.nodecount(res) << "\n"
             << std::flush;
 #endif // BDD_BENCHMARK_STATS
@@ -1184,8 +1184,8 @@ typename Adapter::dd_t garden_of_eden(Adapter &adapter, const var_map &vm)
   }
 
 #ifdef BDD_BENCHMARK_STATS
-  std::cout << "   |\n"
-            << "   | Exi [EASY]       : "
+  std::cout << "  |\n"
+            << "  | Exi [EASY]                "
             << adapter.nodecount(res) << "\n"
             << std::flush;
 #endif // BDD_BENCHMARK_STATS
@@ -1203,8 +1203,8 @@ typename Adapter::dd_t garden_of_eden(Adapter &adapter, const var_map &vm)
   }
 
 #ifdef BDD_BENCHMARK_STATS
-  std::cout << "   |\n"
-            << "   | Exi [HARD]       : "
+  std::cout << "  |\n"
+            << "  | Exi [HARD]                "
             << adapter.nodecount(res) << "\n"
             << std::flush;
 #endif // BDD_BENCHMARK_STATS
@@ -1250,30 +1250,21 @@ int run_gameoflife(int argc, char** argv)
   if (should_exit) { return -1; }
 
   // -----------------------------------------------------------------------------------------------
-  std::cout << "Game of Life : [" << rows(prime::post) << " x " << cols(prime::post) << "] "
-            << "(" << Adapter::NAME << " " << M << " MiB):\n"
-            << "   | Symmetry         : " << option_str(option) << "\n";
+  std::cout << "Game of Life : [" << rows(prime::post) << " x " << cols(prime::post) << "]\n"
+            << "  | Symmetry                  " << option_str(option) << "\n"
+            << "\n";
 
   var_map vm(option);
 
-  const time_point t_init_before = now();
-  Adapter adapter(vm.varcount());
-  const time_point t_init_after = now();
+  return run<Adapter>(vm.varcount(), [&](Adapter &adapter) {
+    std::cout << "  | | 'prev'                  " << vm.varcount(prime::pre) << "\n"
+              << "  | | 'next'                  " << vm.varcount(prime::post) << "\n"
+              << "\n";
 
-  std::cout << "\n"
-            << "   " << Adapter::NAME << " initialisation:\n"
-            << "   | variables        : " << vm.varcount() << "\n"
-            << "   | | 'prev'         : " << vm.varcount(prime::pre) << "\n"
-            << "   | | 'next'         : " << vm.varcount(prime::post) << "\n"
-            << "   |\n"
-            << "   | time (ms)        : " << duration_ms(t_init_before, t_init_after) << "\n"
-            << "\n";
-
-  return adapter.run([&]() {
     size_t solutions = 0;
 
     // ---------------------------------------------------------------------------------------------
-    std::cout << "   Construct reachable initial states:\n"
+    std::cout << "  Construct reachable initial states\n"
               << std::flush;
 
     const time_point t1 = now();
@@ -1281,16 +1272,16 @@ int run_gameoflife(int argc, char** argv)
     const time_point t2 = now();
 
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << "   |\n";
+    std::cout << "  |\n";
 #endif // BDD_BENCHMARK_STATS
-    std::cout << "   | time (ms)        : " << duration_ms(t1,t2) << "\n"
-              << "   | | apply          : " << goe__apply_time << "\n"
-              << "   | | exists         : " << goe__exists_time << "\n"
+    std::cout << "  | time (ms)                 " << duration_ms(t1,t2) << "\n"
+              << "  | | apply                   " << goe__apply_time << "\n"
+              << "  | | exists                  " << goe__exists_time << "\n"
               << "\n"
               << std::flush;
 
     // ---------------------------------------------------------------------------------------------
-    std::cout << "   Obtaining unreachable states:\n"
+    std::cout << "  Obtaining unreachable states\n"
               << std::flush;
 
     const time_point t3 = now();
@@ -1298,21 +1289,21 @@ int run_gameoflife(int argc, char** argv)
     res = adapter.apply_diff(post_top, res);
 
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << "   | Top              : " << adapter.nodecount(post_top) << "\n"
-              << "   | Top - States     : " << adapter.nodecount(res) << "\n"
-              << "   |\n"
+    std::cout << "  | Top                       " << adapter.nodecount(post_top) << "\n"
+              << "  | Top - States              " << adapter.nodecount(res) << "\n"
+              << "  |\n"
               << std::flush;
 #endif // BDD_BENCHMARK_STATS
     const time_point t4 = now();
 
     const time_duration flip_time = duration_ms(t3,t4);
 
-    std::cout << "   | time (ms)        : " << flip_time << "\n"
+    std::cout << "  | time (ms)                 " << flip_time << "\n"
               << "\n"
               << std::flush;
 
     // ---------------------------------------------------------------------------------------------
-    std::cout << "   Counting unreachable states:\n"
+    std::cout << "  Counting unreachable states\n"
               << std::flush;
 
     const time_point t5 = now();
@@ -1321,8 +1312,8 @@ int run_gameoflife(int argc, char** argv)
 
     const time_duration counting_time = duration_ms(t5,t6);
 
-    std::cout << "   | number of states : " << solutions << "\n"
-              << "   | time (ms)        : " << counting_time << "\n"
+    std::cout << "  | number of states          " << solutions << "\n"
+              << "  | time (ms)                 " << counting_time << "\n"
               << "\n"
               << std::flush;
 
@@ -1330,10 +1321,8 @@ int run_gameoflife(int argc, char** argv)
     const time_duration total_time =
       goe__apply_time + goe__exists_time + flip_time + counting_time;
 
-    std::cout << "   total time (ms)    : " << total_time << "\n"
+    std::cout << "  total time (ms)             " << total_time << "\n"
               << std::flush;
-
-    adapter.print_stats();
 
     // For all solvable sizes, the number of solutions should be 0.
     return solutions != 0;

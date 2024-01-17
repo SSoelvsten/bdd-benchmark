@@ -11,14 +11,16 @@
 #include <sstream>        // std::istringstream
 #include <vector>         // std::vector
 
-// =============================================================================
+////////////////////////////////////////////////////////////////////////////////
 // Global constants
+
+/// Value based on recommendation for BuDDy
 constexpr size_t CACHE_RATIO = 64u;
 
-// Initial size taken from CUDD defaults
+/// Initial size taken from CUDD defaults
 constexpr size_t INIT_UNIQUE_SLOTS_PER_VAR = 256u;
 
-// =============================================================================
+////////////////////////////////////////////////////////////////////////////////
 // Timing
 #include <chrono>
 
@@ -34,7 +36,7 @@ inline time_duration duration_ms(const time_point &begin, const time_point &end)
   return std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
 }
 
-// =============================================================================
+////////////////////////////////////////////////////////////////////////////////
 // Input parsing
 
 #include <getopt.h>       // argument parsing
@@ -131,8 +133,8 @@ bool parse_input(int &argc, char* argv[], option_enum &option)
   return exit;
 }
 
-// =============================================================================
-// based on: https://stackoverflow.com/a/313990/13300643
+////////////////////////////////////////////////////////////////////////////////
+/// \details Based on https://stackoverflow.com/a/313990/13300643
 char ascii_tolower(char in)
 {
   if (in <= 'Z' && in >= 'A')
@@ -149,9 +151,35 @@ std::string ascii_tolower(const std::string &in)
   return out;
 }
 
-// =============================================================================
+////////////////////////////////////////////////////////////////////////////////
 template <class T, size_t N>
 constexpr int size(const T (& /*array*/)[N]) noexcept
 {
   return N;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+/// \brief Initializes the BDD package and runs the given benchmark
+template<typename Adapter, typename F>
+int run(const int varcount, const F &f)
+{
+  std::cout << "  " << Adapter::NAME << ":\n";
+
+  const time_point t_before = now();
+  Adapter adapter(varcount);
+  const time_point t_after  = now();
+
+  std::cout << "  | init time (ms)            " << duration_ms(t_before, t_after) << "\n"
+            << "  | memory (MiB)              " << M << "\n"
+            << "  | variables                 " << varcount << "\n"
+            << std::flush;
+
+  const int exit_code = adapter.run([&]() { return f(adapter); });
+
+  if (!exit_code) {
+    adapter.print_stats();
+  }
+
+  return exit_code;
 }

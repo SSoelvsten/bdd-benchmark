@@ -460,7 +460,8 @@ int run_apply(int argc, char** argv)
   if (should_exit) { return -1; }
 
   // =========================================================================
-  std::cout << "Apply (" << Adapter::NAME << " " << M << " MiB):\n";
+  std::cout << "Apply (Pastva & Henzinger)\n"
+            << "\n";
 
   // =========================================================================
   // Load 'lib-bdd' files
@@ -472,17 +473,17 @@ int run_apply(int argc, char** argv)
 
     const lib_bdd::stats_t stats = lib_bdd::stats(inputs_binary.at(i));
 
-    std::cout << "  | size:                   " << stats.size << "\n"
-              << "  | levels:                 " << stats.levels << "\n"
-              << "  | width:                  " << stats.width << "\n"
-              << "  | terminal edges:\n"
-              << "  | | false                 " << stats.terminals[false] << "\n"
-              << "  | | true                  " << stats.terminals[true] << "\n"
-              << "  | parent counts:\n"
-              << "  | | 0                     " << stats.parent_counts[lib_bdd::stats_t::parent_count_idx::None] << "\n"
-              << "  | | 1                     " << stats.parent_counts[lib_bdd::stats_t::parent_count_idx::One] << "\n"
-              << "  | | 2                     " << stats.parent_counts[lib_bdd::stats_t::parent_count_idx::Two] << "\n"
-              << "  | | 3+                    " << stats.parent_counts[lib_bdd::stats_t::parent_count_idx::More] << "\n"
+    std::cout << "  | size                      " << stats.size << "\n"
+              << "  | levels                    " << stats.levels << "\n"
+              << "  | width                     " << stats.width << "\n"
+              << "  | terminal edges\n"
+              << "  | | false                   " << stats.terminals[false] << "\n"
+              << "  | | true                    " << stats.terminals[true] << "\n"
+              << "  | parent counts\n"
+              << "  | | 0                       " << stats.parent_counts[lib_bdd::stats_t::parent_count_idx::None] << "\n"
+              << "  | | 1                       " << stats.parent_counts[lib_bdd::stats_t::parent_count_idx::One] << "\n"
+              << "  | | 2                       " << stats.parent_counts[lib_bdd::stats_t::parent_count_idx::Two] << "\n"
+              << "  | | 3+                      " << stats.parent_counts[lib_bdd::stats_t::parent_count_idx::More] << "\n"
               << "\n"
               << std::flush;
   }
@@ -491,18 +492,7 @@ int run_apply(int argc, char** argv)
 
   // =========================================================================
   // Initialize BDD package
-  const size_t varcount = vm.size();
-
-  const time_point t_init_before = now();
-  Adapter adapter(varcount);
-  const time_point t_init_after = now();
-
-  std::cout << "  Initialisation:\n"
-            << "  | variables:              " << varcount << "\n"
-            << "  | time (ms):              " << duration_ms(t_init_before, t_init_after) << "\n"
-            << std::flush;
-
-  return adapter.run([&] {
+  return run<Adapter>(vm.size(), [&](Adapter &adapter) {
     // =========================================================================
     // Reconstruct DDs
     std::array<typename Adapter::dd_t, inputs> inputs_dd;
@@ -512,10 +502,11 @@ int run_apply(int argc, char** argv)
       inputs_dd.at(i) = reconstruct(adapter, inputs_binary.at(i), vm);
       const time_point t_rebuild_after = now();
 
-      std::cout << "\n  DD '" << input_files.at(i) << "':\n"
-                << "  | size (nodes):           " << adapter.nodecount(inputs_dd.at(i)) << "\n"
-                << "  | satcount:               " << adapter.satcount(inputs_dd.at(i)) << "\n"
-                << "  | time (ms):              " << duration_ms(t_rebuild_before, t_rebuild_after) << "\n"
+      std::cout << "\n"
+                << "  DD '" << input_files.at(i) << "'\n"
+                << "  | size (nodes)              " << adapter.nodecount(inputs_dd.at(i)) << "\n"
+                << "  | satcount                  " << adapter.satcount(inputs_dd.at(i)) << "\n"
+                << "  | time (ms)                 " << duration_ms(t_rebuild_before, t_rebuild_after) << "\n"
                 << std::flush;
     }
 
@@ -534,15 +525,14 @@ int run_apply(int argc, char** argv)
     }
     const time_point t_apply_after = now();
 
-    std::cout << "\n  Apply ( " << option_str(oper_opt) << " ):\n"
-              << "  | size (nodes):           " << adapter.nodecount(result) << "\n"
-              << "  | satcount:               " << adapter.satcount(result) << "\n"
-              << "  | time (ms):              " << duration_ms(t_apply_before, t_apply_after) << "\n"
+    std::cout << "\n"
+              << "  Apply ( " << option_str(oper_opt) << " ):\n"
+              << "  | size (nodes)              " << adapter.nodecount(result) << "\n"
+              << "  | satcount                  " << adapter.satcount(result) << "\n"
+              << "  | time (ms)                 " << duration_ms(t_apply_before, t_apply_after) << "\n"
               << std::flush;
 
     // =========================================================================
-    adapter.print_stats();
-
     return 0;
   });
 }

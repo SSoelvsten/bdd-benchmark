@@ -224,7 +224,7 @@ public:
 
 bool construct_net(std::string &filename, net_t &net)
 {
-  std::cout << "   Parsing '" << filename << "'\n";
+  std::cout << "  Parsing '" << filename << "'\n";
   construct_net_callback callback(net);
   blifparse::blif_parse_filename(filename, callback);
   return callback.has_error();
@@ -472,8 +472,9 @@ enum variable_order { INPUT, DF, LEVEL, LEVEL_DF, RANDOM };
 void apply_variable_order(const variable_order &o, net_t &net_0, net_t &net_1, bool print = true)
 {
   std::unordered_map<int, int> new_ordering;
-  std::cout << "\n"
-            << "Variable order: ";
+  if (print) {
+    std::cout << "  Variable Order              ";
+  }
 
   switch (o) {
   case INPUT:
@@ -511,7 +512,7 @@ void apply_variable_order(const variable_order &o, net_t &net_0, net_t &net_1, b
   if (net_1.inputs_w_order.size() == net_0.inputs_w_order.size()) {
     update_order(net_1, new_ordering);
   }
-  if (print) { std::cout << "   | derived\n"; }
+  if (print) { std::cout << "  | derived\n"; }
 }
 
 // ========================================================================== //
@@ -691,7 +692,7 @@ int construct_net_bdd(const std::string &filename,
   }
 
   std::cout << "\n"
-            << "   Constructing BDD" << (net.outputs.size() > 1 ? "s" : "") << " for '" << filename << "'\n";
+            << "  Constructing BDD" << (net.outputs.size() > 1 ? "s" : "") << " for '" << filename << "'\n";
 
   const time_point t_construct_before = now();
   bdd_statistics stats;
@@ -700,9 +701,9 @@ int construct_net_bdd(const std::string &filename,
   }
   const time_point t_construct_after = now();
 
-  std::cout << "   | time (ms):              " << duration_ms(t_construct_before, t_construct_after) << "\n";
+  std::cout << "  | time (ms)                 " << duration_ms(t_construct_before, t_construct_after) << "\n";
 #ifdef BDD_BENCHMARK_STATS
-  std::cout << "   | total no. nodes:        " << stats.total_processed << "\n";
+  std::cout << "  | total no. nodes           " << stats.total_processed << "\n";
 #endif // BDD_BENCHMARK_STATS
 
   size_t sum_final_sizes = 0;
@@ -712,23 +713,23 @@ int construct_net_bdd(const std::string &filename,
     sum_final_sizes += nodecount;
     max_final_size = std::max(max_final_size, nodecount);
   }
-  std::cout << "   | final BDDs:\n"
-            << "   | | max BDD size:         " << max_final_size << "\n"
-            << "   | | w/ duplicates:        " << sum_final_sizes << "\n"
-            << "   | | allocated:            " << adapter.allocated_nodes() << "\n";
+  std::cout << "  | final BDDs\n"
+            << "  | | max BDD size            " << max_final_size << "\n"
+            << "  | | w/ duplicates           " << sum_final_sizes << "\n"
+            << "  | | allocated               " << adapter.allocated_nodes() << "\n";
 
 #ifdef BDD_BENCHMARK_STATS
-  std::cout << "   | life-time BDDs:\n"
-            << "   | | max no. roots:        " << stats.max_roots << "\n"
-            << "   | | max BDD size:         " << stats.max_bdd_size << "\n"
-            << "   | | sum w/ duplicates:    " << stats.sum_bdd_sizes << "\n"
-            << "   | | max w/ duplicates:    " << stats.max_bdd_size << "\n"
-            << "   | | sum allocated:        " << stats.sum_allocated << "\n"
-            << "   | | max allocated:        " << stats.max_allocated << "\n";
+  std::cout << "  | life-time BDDs\n"
+            << "  | | max no. roots           " << stats.max_roots << "\n"
+            << "  | | max BDD size            " << stats.max_bdd_size << "\n"
+            << "  | | sum w/ duplicates       " << stats.sum_bdd_sizes << "\n"
+            << "  | | max w/ duplicates       " << stats.max_bdd_size << "\n"
+            << "  | | sum allocated           " << stats.sum_allocated << "\n"
+            << "  | | max allocated           " << stats.max_allocated << "\n";
 
-  std::cout << "   | BDD operations:\n"
-            << "   | | Apply:                " <<  stats.total_applys << "\n"
-            << "   | | Negations:            " << stats.total_negations << "\n";
+  std::cout << "  | BDD operations\n"
+            << "  | | Apply                   " <<  stats.total_applys << "\n"
+            << "  | | Negations               " << stats.total_negations << "\n";
 #endif // BDD_BENCHMARK_STATS
   std::cout << std::flush;
 
@@ -746,8 +747,8 @@ bool verify_outputs(const net_t& net_0, const bdd_cache<Adapter>& cache_0,
   assert(net_0.outputs_in_order.size() == net_1.outputs_in_order.size());
 
   std::cout << "\n"
-            << "   Verifying equality:\n"
-            << "   | result:\n"
+            << "  Verifying equality\n"
+            << "  | result\n"
             << std::flush;
 
   const time_point t_compare_before = now();
@@ -761,16 +762,16 @@ bool verify_outputs(const net_t& net_0, const bdd_cache<Adapter>& cache_0,
     const typename Adapter::dd_t bdd_1 = cache_1.find(output_1) -> second;
 
     if (bdd_0 != bdd_1) {
-      std::cout << "   | | output differ in ['" << output_0 << "' / '" << output_1 << "']\n";
+      std::cout << "  | | output differ in ['" << output_0 << "' / '" << output_1 << "']\n";
       ret_value = false;
     }
   }
   const time_point t_compare_after = now();
   if (ret_value) {
-    std::cout << "   | | all outputs match!\n";
+    std::cout << "  | | all outputs match!\n";
   }
 
-  std::cout << "   | time (ms):              " << duration_ms(t_compare_before, t_compare_after) << "\n"
+  std::cout << "  | time (ms)                 " << duration_ms(t_compare_before, t_compare_after) << "\n"
             << std::flush;
 
   return ret_value;
@@ -823,51 +824,52 @@ int run_picotrav(int argc, char** argv)
   const bool verify_networks = input_files.size() > 1;
 
   // =========================================================================
-  std::cout << "Picotrav (" << Adapter::NAME << " " << M << " MiB):\n";
+  std::cout << "Picotrav\n";
 
   // =========================================================================
   // Read file(s) and construct Nets
   net_t net_0;
 
   const bool parsing_error_0 = construct_net(input_files.at(0), net_0);
-  std::cout << "   | input validation:\n";
-  std::cout << "   | | [" << (parsing_error_0 ? " " : "x") << "] parsing\n";
+  std::cout << "  | Input Validation\n";
+  std::cout << "  | | [" << (parsing_error_0 ? " " : "x") << "] parsing\n";
   if(parsing_error_0) { return -1; }
 
   const bool is_not_cyclic_0 = is_acyclic(net_0);
-  std::cout << "   | | [" << (is_not_cyclic_0 ? "x" : " ") << "] acyclic\n";
+  std::cout << "  | | [" << (is_not_cyclic_0 ? "x" : " ") << "] acyclic\n";
   if(!is_not_cyclic_0) { return -1; }
 
-  std::cout << "   | net info:\n"
-            << "   | | inputs:                 " << net_0.inputs_w_order.size() << "\n"
-            << "   | | outputs:                " << net_0.outputs_in_order.size() << "\n"
-            << "   | | internal nodes:         " << net_0.nodes.size() << "\n"
+  std::cout << "  | net info\n"
+            << "  | | inputs                  " << net_0.inputs_w_order.size() << "\n"
+            << "  | | outputs                 " << net_0.outputs_in_order.size() << "\n"
+            << "  | | internal nodes          " << net_0.nodes.size() << "\n"
             << std::flush;
 
   net_t net_1;
   if (verify_networks) {
     const bool parsing_error_1 = construct_net(input_files.at(1), net_1);
-    std::cout << "   | input validation:\n"
-              << "   | | [" << (parsing_error_1 ? " " : "x") << "] parsing\n";
+    std::cout << "  | input validation\n"
+              << "  | | [" << (parsing_error_1 ? " " : "x") << "] parsing\n";
 
     const bool is_not_cyclic_1 = is_acyclic(net_1);
-    std::cout << "   | | [" << (is_not_cyclic_1 ? "x" : " ") << "] acyclic\n";
+    std::cout << "  | | [" << (is_not_cyclic_1 ? "x" : " ") << "] acyclic\n";
 
     const bool inputs_match = net_0.inputs_w_order.size() == net_1.inputs_w_order.size();
-    std::cout << "   | | [" << (inputs_match ? "x" : " ") << "] number of inputs match\n";
+    std::cout << "  | | [" << (inputs_match ? "x" : " ") << "] number of inputs match\n";
 
     const bool outputs_match = net_0.outputs_in_order.size() == net_1.outputs_in_order.size();
-    std::cout << "   | | [" << (outputs_match ? "x" : " ") << "] number of outputs match\n";
+    std::cout << "  | | [" << (outputs_match ? "x" : " ") << "] number of outputs match\n";
 
     if(parsing_error_1 || !is_not_cyclic_1 || !inputs_match || !outputs_match) {
       return -1;
     }
   }
 
-  std::cout << "   | net info:\n"
-            << "   | | inputs:                 " << net_1.inputs_w_order.size() << "\n"
-            << "   | | outputs:                " << net_1.outputs_in_order.size() << "\n"
-            << "   | | internal nodes:         " << net_1.nodes.size() << "\n"
+  std::cout << "  | net info\n"
+            << "  | | inputs                  " << net_1.inputs_w_order.size() << "\n"
+            << "  | | outputs                 " << net_1.outputs_in_order.size() << "\n"
+            << "  | | internal nodes          " << net_1.nodes.size() << "\n"
+            << "\n"
             << std::flush;
 
   // Nanotrav sorts the output in ascending order by their level. The same is
@@ -880,16 +882,9 @@ int run_picotrav(int argc, char** argv)
   // ========================================================================
   // Initialise BDD package manager
   const size_t varcount = net_0.inputs_w_order.size();
+  std::cout << "\n";
 
-  const time_point t_init_before = now();
-  Adapter adapter(varcount);
-  const time_point t_init_after = now();
-
-  std::cout << "\n"
-            << Adapter::NAME << " init (ms):      " << duration_ms(t_init_before, t_init_after) << "\n"
-            << std::flush;
-
-  return adapter.run([&]() {
+  return run<Adapter>(varcount, [&](Adapter &adapter) {
     // ========================================================================
     // Construct BDD for first net
     bdd_cache<Adapter> cache_0;
@@ -918,10 +913,8 @@ int run_picotrav(int argc, char** argv)
 
     // TODO: Fix 'total time' below also measures multiple 'std::flush'.
     std::cout << "\n"
-              << "   total time (ms):          " << duration_ms(t_before, t_after) << "\n"
+              << "  total time (ms)             " << duration_ms(t_before, t_after) << "\n"
               << std::flush;
-
-    adapter.print_stats();
 
     if (verify_networks && !networks_equal) { return -1; }
     return 0;

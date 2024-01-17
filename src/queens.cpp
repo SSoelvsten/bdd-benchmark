@@ -93,7 +93,7 @@ typename Adapter::dd_t queens_R(Adapter &adapter, int r)
     largest_bdd = std::max(largest_bdd, nodecount);
     total_nodes += nodecount;
 
-    std::cout << "   | | R(" << pos_to_string(r,c) << ") : " << nodecount << " DD nodes\n";
+    std::cout << "  | | R(" << pos_to_string(r,c) << ")                   " << nodecount << "\n";
 #endif // BDD_BENCHMARK_STATS
   }
   return out;
@@ -115,7 +115,8 @@ typename Adapter::dd_t queens_B(Adapter &adapter)
     largest_bdd = std::max(largest_bdd, nodecount);
     total_nodes += nodecount;
 
-    std::cout << "   | B(" << 0+1 << ") : " << nodecount << " DD nodes\n";
+    std::cout << "  | B(" << 0+1 << ")                      " << nodecount << "\n"
+              << "  |\n";
 #endif // BDD_BENCHMARK_STATS
   }
 
@@ -127,7 +128,8 @@ typename Adapter::dd_t queens_B(Adapter &adapter)
     largest_bdd = std::max(largest_bdd, nodecount);
     total_nodes += nodecount;
 
-    std::cout << "   | B(" << r+1 << ") : " << nodecount << " DD nodes\n";
+    std::cout << "  | B(" << r+1 << ")                      " << nodecount << "\n"
+              << "  |\n";
 #endif // BDD_BENCHMARK_STATS
   }
   return out;
@@ -146,27 +148,19 @@ int run_queens(int argc, char** argv)
   if (should_exit) { return -1; }
 
   // =========================================================================
-  std::cout << "[" << rows() << " x " << cols() << "]-Queens " << " (" << Adapter::NAME << " " << M << " MiB):\n";
+  std::cout << "[" << rows() << " x " << cols() << "]-Queens\n";
 
   // ========================================================================
   // Initialise package manager
   const int N = rows() * cols();
 
-  const time_point t_init_before = now();
-  Adapter adapter(N);
-  const time_point t_init_after = now();
-  std::cout << "\n"
-            << "   " << Adapter::NAME << " initialisation:\n"
-            << "   | variables:              " << N << "\n"
-            << "   | time (ms):              " << duration_ms(t_init_before, t_init_after) << "\n";
-
-  return adapter.run([&]() {
+  return run<Adapter>(N, [&](Adapter &adapter) {
     uint64_t solutions;
 
     // ========================================================================
     // Compute the bdd that represents the entire board
     std::cout << "\n"
-              << "   Decision diagram construction:\n"
+              << "  Decision diagram construction\n"
               << std::flush;
 
     const time_point t1 = now();
@@ -176,18 +170,17 @@ int run_queens(int argc, char** argv)
     const time_duration construction_time = duration_ms(t1,t2);
 
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << "   |\n"
-              << "   | total no. nodes:        " << total_nodes << "\n"
-              << "   | largest size (nodes):   " << largest_bdd << "\n";
+    std::cout << "  | total no. nodes           " << total_nodes << "\n"
+              << "  | largest size (nodes)      " << largest_bdd << "\n";
 #endif // BDD_BENCHMARK_STATS
-    std::cout << "   | final size (nodes):     " << adapter.nodecount(res) << "\n"
-              << "   | time (ms):              " << construction_time << "\n"
+    std::cout << "  | final size (nodes)        " << adapter.nodecount(res) << "\n"
+              << "  | time (ms)                 " << construction_time << "\n"
               << std::flush;
 
     // ========================================================================
     // Count number of solutions
     std::cout << "\n"
-              << "   Counting solutions:\n"
+              << "  Counting solutions\n"
               << std::flush;
 
     const time_point t3 = now();
@@ -196,16 +189,14 @@ int run_queens(int argc, char** argv)
 
     const time_duration counting_time = duration_ms(t3,t4);
 
-    std::cout << "   | number of solutions:    " << solutions << "\n"
-              << "   | time (ms):              " << counting_time << "\n"
+    std::cout << "  | number of solutions       " << solutions << "\n"
+              << "  | time (ms)                 " << counting_time << "\n"
               << std::flush;
 
     // ========================================================================
     std::cout << "\n"
-              << "   total time (ms):          " << (construction_time + counting_time) << "\n"
+              << "  total time (ms)             " << (construction_time + counting_time) << "\n"
               << std::flush;
-
-    adapter.print_stats();
 
     if (rows() == cols() && N < size(expected_queens) && solutions != expected_queens[N]) {
       return -1;
