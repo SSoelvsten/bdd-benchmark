@@ -58,11 +58,12 @@ libraries.
 
 
 - **CUDD**:
-  The most popular BDD package. It uses depth-first algorithms and a unique node
-  table and memoization and also supports complement edges, Zero-suppressed
-  Decision Diagrams, and variable reordering.
+  Probably the most popular BDD package of all. It uses depth-first algorithms
+  and a unique node table and memoization and also supports complement edges,
+  Zero-suppressed Decision Diagrams, and variable reordering.
 
-  We use version 3.0.0 as distributed on the unofficial mirror
+  We use a version 3.0.0 modified to extend its C++ API. This version can be
+  found here.
   [here](https://github.com/SSoelvsten/cudd).
 
 
@@ -70,9 +71,6 @@ libraries.
   A parallel (multi-core) implementation with depth-first algorithms using a
   unique node table and memoization. It also uses complement edges and supports
   Zero-suppressed Decision Diagrams.
-
-  We will *not* make use of the multi-core aspect to make the results
-  comparable.
 
 We hope to extend the number of packages. See
 [issue #12](https://github.com/SSoelvsten/bdd-benchmark/issues/12) for a list
@@ -83,8 +81,8 @@ help to do so is very much appreciated.
 ### Enforcing comparability
 For comparability, we will enforce all packages to follow the same settings.
 
-- Packages will initialise its unique node table to its full potential size and
-  have its operation cache (memoization table) set to of 64:1.
+- Packages will initialise its unique node table (if any) to its full potential
+  size and have its operation cache (if any) set to of 64:1.
 
 - Dynamic variable reordering is disabled.
 
