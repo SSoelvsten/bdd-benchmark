@@ -2,7 +2,7 @@
 #include <array>          // std::array<>
 #include <assert.h>       // Assertions
 #include <cmath>          // std::abs(), std::min(), ...
-#include <iostream>       // std::cerr
+#include <iostream>       // std::cout, std::cerr, std::getchar()
 #include <iterator>       // iterators
 #include <ostream>        // output streams
 #include <functional>     // std::function<>, ...
@@ -180,6 +180,12 @@ int run(const int varcount, const F &f)
   if (!exit_code) {
     adapter.print_stats();
   }
+
+#ifdef BDD_BENCHMARK_WAIT
+  std::cout << "\npress any key to exit . . .\n" << std::flush;;
+  std::getchar();
+  std::cout << "\n";
+#endif
 
   return exit_code;
 }
