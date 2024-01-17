@@ -7,12 +7,14 @@ MAKE_FLAGS=-j $$(nproc)
 # ============================================================================ #
 BUILD_TYPE := Release
 STATS := OFF
+WAIT := OFF
 
 build:
   # Primary build
 	@echo -e "\nBuild"
 	@mkdir -p build/ && cd build/ && cmake -D CMAKE_BUILD_TYPE=$(BUILD_TYPE) \
                                          -D BDD_BENCHMARK_STATS=$(STATS) \
+                                         -D BDD_BENCHMARK_WAIT=$(WAIT) \
 																				 -D CMAKE_EXPORT_COMPILE_COMMANDS=1 \
                                    ..
 

@@ -29,6 +29,10 @@ if (BDD_BENCHMARK_STATS)
 endif(BDD_BENCHMARK_STATS)
 message(STATUS "")
 
+option(BDD_BENCHMARK_WAIT "Wait to exit program until enter has been pressed." OFF)
+message(STATUS "  Compiled with Waiting: ${BDD_BENCHMARK_WAIT}")
+message(STATUS "")
+
 option(GRENDEL "Build for Grendel-S cluster" OFF)
 message(STATUS "  Compiled for Grendel Cluster: ${BDD_BENCHMARK_GRENDEL}")
 message(STATUS "")

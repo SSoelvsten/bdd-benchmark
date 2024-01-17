@@ -152,8 +152,12 @@ All interactions have been made easy by use of the *makefile* at the root.
 | `clean`   | Remove all build artifacts                |
 | `run/...` | Run a single instance of a benchmark      |
 
-To build all BDD packages with *statistics*, set the Make variable *STATS* to
-*ON* (default *OFF*).
+The benchmarks can be built with multiple options:
+
+| CMake Variable        | Make Variable | Description                                                       |
+|-----------------------|---------------|-------------------------------------------------------------------|
+| `BDD_BENCHMARK_STATS` | `STATS`       | If *ON*, build with statistics (default is *OFF*)                 |
+| `BDD_BENCHMARK_WAIT`  | `WAIT`        | If *ON*, pause before deinitialising the BDD package and exiting. |
 
 Each benchmark below also has its own *make* target too for ease of use. You may
 specify as a make variable the instance size *N* to solve, the amount of
