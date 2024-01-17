@@ -1707,22 +1707,22 @@ solve(Adapter& adapter, qcir& q,
 
   constexpr size_t max_print = 10;
 
-  std::cout << "  | variable order:      [ ";
+  std::cout << "  | variable order            [ ";
   for (size_t x = 0; x < q.vars() && x < max_print; ++x) {
     std::cout << vom.qcir_var(x) << " ";
   }
   if (q.vars() > max_print) { std::cout << "..."; }
   std::cout << "]" << std::endl;
 
-  std::cout << "  | execution order:     [ ";
+  std::cout << "  | execution order           [ ";
   for (size_t x = 0; x < exo.size() && x < max_print; ++x) {
     std::cout << exo.at(x) << " ";
   }
   if (q.size() > max_print) { std::cout << "..."; }
   std::cout << "]" << std::endl;
 
-  std::cout << "  | max solve idx:       " << max_q_idx << "\n"
-            << "  | setup time (ms):     " << duration_ms(t_prep_before, t_prep_after) << "\n\n"
+  std::cout << "  | max solve idx             " << max_q_idx << "\n"
+            << "  | setup time (ms)           " << duration_ms(t_prep_before, t_prep_after) << "\n\n"
             << std::flush;
 
   // Set-up BDD computation cache
@@ -1783,7 +1783,7 @@ solve(Adapter& adapter, qcir& q,
        [&adapter, &vom]
        (const qcir::var_gate &g)  -> typename Adapter::dd_t {
 #ifdef BDD_BENCHMARK_STATS
-         std::cout << "  | | | DD var:          " << vom.dd_var(g.var) << "\n";
+         std::cout << "  | | | DD var                " << vom.dd_var(g.var) << "\n";
 #endif
          return adapter.ithvar(vom.dd_var(g.var));
        },
@@ -1850,7 +1850,7 @@ solve(Adapter& adapter, qcir& q,
          for (const int x : g.vars) { vars.insert(vom.dd_var(x)); }
 
 #ifdef BDD_BENCHMARK_STATS
-         std::cout << "  | | | DD vars:         [ ";
+         std::cout << "  | | | DD vars               [ ";
          size_t out_counter = 0;
          for (auto it = vars.begin(); it != vars.end(); ++it) {
            if (++out_counter > max_print) {
@@ -1892,8 +1892,8 @@ solve(Adapter& adapter, qcir& q,
     } else { // Prenex
       dd_prenex_max_size = std::max(dd_prenex_max_size, g_dd_size);
     }
-    std::cout << "  | | | DD size:         " << g_dd_size << "\n"
-              << "  | | | time (ms):       " << duration_ms(t_start,t_end) << "\n";
+    std::cout << "  | | | DD size               " << g_dd_size << "\n"
+              << "  | | | time (ms)             " << duration_ms(t_start,t_end) << "\n";
 
     if (g.is<qcir::output_gate>()) {
       std::cout << "  | Prefix\n";
@@ -2002,44 +2002,40 @@ int run_qbf(int argc, char** argv)
   if (should_exit) { return -1; }
 
   // =========================================================================
-  std::cout << "QBF Solver (" << Adapter::NAME << " " << M << " MiB):\n";
+  std::cout << "QBF Solver\n";
 
   // Parse QCir Input
   const std::string input_file = input_files.at(0);
-  std::cout << "\n  Circuit: " << input_file << "\n";
+  std::cout << "\n"
+            << "  Circuit: " << input_file << "\n";
 
   qcir q(input_file);
 
-  std::cout << "  | depth: " << q.depth() << "\n"
-            << "  | size:  " << q.size() << "\n"
-            << "  | vars:  " << q.vars() << "\n"
-            << std::flush;
-
-  const time_point t_init_before = now();
-  Adapter adapter(q.vars());
-  const time_point t_init_after = now();
-
-  // Initialise BDD package
-  std::cout << "\n  BDD init (ms):         " << duration_ms(t_init_before, t_init_after) << "\n"
+  std::cout << "  | depth                     " << q.depth() << "\n"
+            << "  | size                      " << q.size() << "\n"
+            << "  | vars                      " << q.vars() << "\n"
             << "\n"
-            << "  Solving Circuit\n"
             << std::flush;
 
-  return adapter.run([&]() {
+  return run<Adapter>(q.vars(), [&](Adapter &adapter) {
+    std::cout << "\n"
+              << "  Solving Circuit\n"
+              << std::flush;
+
     const auto [ sat_res, witness, stats ] = solve(adapter, q, variable_order);
 
-    std::cout << "  | solving time (ms):   " << stats.solve_time << "\n"
-              << "  | | matrix:            " << (stats.solve_time - stats.prenex_time) << "\n"
-              << "  | | prenex:            " << stats.prenex_time << "\n"
-              << "  | cache (max):         " << stats.cache.max_size << "\n"
+    std::cout << "  | solving time (ms)         " << stats.solve_time << "\n"
+              << "  | | matrix                  " << (stats.solve_time - stats.prenex_time) << "\n"
+              << "  | | prenex                  " << stats.prenex_time << "\n"
+              << "  | cache (max)               " << stats.cache.max_size << "\n"
 #ifdef BDD_BENCHMARK_STATS
-              << "  | DD size (max):       " << stats.dd.max_size << "\n"
-              << "  | | matrix:            " << stats.dd.matrix_max_size << "\n"
-              << "  | | prenex:            " << stats.dd.prenex_max_size << "\n"
+              << "  | DD size (max)             " << stats.dd.max_size << "\n"
+              << "  | | matrix                  " << stats.dd.matrix_max_size << "\n"
+              << "  | | prenex                  " << stats.dd.prenex_max_size << "\n"
 #endif
       ;
 
-    std::cout << "  | result:              " << (sat_res ? "SAT" : "UNSAT");
+    std::cout << "  | result                    " << (sat_res ? "SAT" : "UNSAT");
 
     if (witness.size() > 0) {
       std::cout << " [ ";
@@ -2052,8 +2048,6 @@ int run_qbf(int argc, char** argv)
     }
     std::cout << "\n"
               << std::flush;
-
-    adapter.print_stats();
 
     return 0;
   });
