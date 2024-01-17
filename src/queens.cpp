@@ -35,8 +35,8 @@ inline std::string pos_to_string(int r, int c)
 
 // ========================================================================== //
 //                            SQUARE CONSTRUCTION                             //
-template<typename adapter_t>
-typename adapter_t::dd_t queens_S(adapter_t &adapter, int i, int j)
+template<typename Adapter>
+typename Adapter::dd_t queens_S(Adapter &adapter, int i, int j)
 {
   auto next = adapter.build_node(true);
 
@@ -70,7 +70,7 @@ typename adapter_t::dd_t queens_S(adapter_t &adapter, int i, int j)
     }
   }
 
-  typename adapter_t::dd_t out = adapter.build();
+  typename Adapter::dd_t out = adapter.build();
 #ifdef BDD_BENCHMARK_STATS
   total_nodes += adapter.nodecount(out);
 #endif // BDD_BENCHMARK_STATS
@@ -80,10 +80,10 @@ typename adapter_t::dd_t queens_S(adapter_t &adapter, int i, int j)
 
 // ========================================================================== //
 //                              ROW CONSTRUCTION                              //
-template<typename adapter_t>
-typename adapter_t::dd_t queens_R(adapter_t &adapter, int r)
+template<typename Adapter>
+typename Adapter::dd_t queens_R(Adapter &adapter, int r)
 {
-  typename adapter_t::dd_t out = queens_S(adapter, r, 0);
+  typename Adapter::dd_t out = queens_S(adapter, r, 0);
 
   for (int c = 1; c < cols(); c++) {
     out |= queens_S(adapter, r, c);
@@ -101,14 +101,14 @@ typename adapter_t::dd_t queens_R(adapter_t &adapter, int r)
 
 // ========================================================================== //
 //                              ROW ACCUMULATION                              //
-template<typename adapter_t>
-typename adapter_t::dd_t queens_B(adapter_t &adapter)
+template<typename Adapter>
+typename Adapter::dd_t queens_B(Adapter &adapter)
 {
   if (rows() == 1 && cols() == 1) {
     return queens_S(adapter, 0, 0);
   }
 
-  typename adapter_t::dd_t out = queens_R(adapter, 0);
+  typename Adapter::dd_t out = queens_R(adapter, 0);
   {
 #ifdef BDD_BENCHMARK_STATS
     const size_t nodecount = adapter.nodecount(out);
@@ -134,7 +134,7 @@ typename adapter_t::dd_t queens_B(adapter_t &adapter)
 }
 
 // ========================================================================== //
-template<typename adapter_t>
+template<typename Adapter>
 int run_queens(int argc, char** argv)
 {
   no_options option = no_options::NONE;
@@ -146,17 +146,17 @@ int run_queens(int argc, char** argv)
   if (should_exit) { return -1; }
 
   // =========================================================================
-  std::cout << "[" << rows() << " x " << cols() << "]-Queens " << " (" << adapter_t::NAME << " " << M << " MiB):\n";
+  std::cout << "[" << rows() << " x " << cols() << "]-Queens " << " (" << Adapter::NAME << " " << M << " MiB):\n";
 
   // ========================================================================
   // Initialise package manager
   const int N = rows() * cols();
 
   const time_point t_init_before = now();
-  adapter_t adapter(N);
+  Adapter adapter(N);
   const time_point t_init_after = now();
   std::cout << "\n"
-            << "   " << adapter_t::NAME << " initialisation:\n"
+            << "   " << Adapter::NAME << " initialisation:\n"
             << "   | variables:              " << N << "\n"
             << "   | time (ms):              " << duration_ms(t_init_before, t_init_after) << "\n";
 
@@ -170,7 +170,7 @@ int run_queens(int argc, char** argv)
               << std::flush;
 
     const time_point t1 = now();
-    typename adapter_t::dd_t res = queens_B(adapter);
+    typename Adapter::dd_t res = queens_B(adapter);
     const time_point t2 = now();
 
     const time_duration construction_time = duration_ms(t1,t2);

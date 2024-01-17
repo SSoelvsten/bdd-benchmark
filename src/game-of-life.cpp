@@ -869,13 +869,13 @@ time_duration goe__exists_time = 0;
 ///        itself) are alive at the 'unprimed' time.
 ///
 /// \details Major parts of this is copied from `tic-tac-toe.cpp`.
-template<typename adapter_t>
-typename adapter_t::dd_t
-construct_count(adapter_t &adapter, const var_map &vm, const cell &c, const int alive)
+template<typename Adapter>
+typename Adapter::dd_t
+construct_count(Adapter &adapter, const var_map &vm, const cell &c, const int alive)
 {
   assert(0 <= alive);
 
-  std::vector<typename adapter_t::build_node_t> init_parts(alive+2, adapter.build_node(false));
+  std::vector<typename Adapter::build_node_t> init_parts(alive+2, adapter.build_node(false));
   init_parts.at(alive) = adapter.build_node(true);
 
   int remaining_cells = c.neighbourhood_size() + 1;
@@ -930,9 +930,9 @@ construct_count(adapter_t &adapter, const var_map &vm, const cell &c, const int 
 }
 
 /// \brief Decision Diagram that is `true` if cell's state is preserved.
-template<typename adapter_t>
-typename adapter_t::dd_t
-construct_eq(adapter_t &adapter, const var_map &vm, const cell &c)
+template<typename Adapter>
+typename Adapter::dd_t
+construct_eq(Adapter &adapter, const var_map &vm, const cell &c)
 {
   const int x_pre  = vm[cell(c, prime::pre)];
   const int x_post = vm[cell(c, prime::post)];
@@ -976,32 +976,32 @@ construct_eq(adapter_t &adapter, const var_map &vm, const cell &c)
 }
 
 /// \brief Combine decision diagrams together into transition relation for a single cell.
-template<typename adapter_t>
-typename adapter_t::dd_t acc_rel(adapter_t &adapter, const var_map &vm, const cell &c)
+template<typename Adapter>
+typename Adapter::dd_t acc_rel(Adapter &adapter, const var_map &vm, const cell &c)
 {
   const int c_post_var = vm[cell(c, prime::post)];
 
-  const typename adapter_t::dd_t alive_3 = construct_count(adapter, vm, c, 3);
-  const typename adapter_t::dd_t alive_4 = construct_count(adapter, vm, c, 4);
+  const typename Adapter::dd_t alive_3 = construct_count(adapter, vm, c, 3);
+  const typename Adapter::dd_t alive_4 = construct_count(adapter, vm, c, 4);
 
-  typename adapter_t::dd_t out;
+  typename Adapter::dd_t out;
 
   { // -----------------------------------------------------------------------------------------------
     // - If the sum is 3, the inner cell will become alive.
-    const typename adapter_t::dd_t alive_post = adapter.ithvar(c_post_var);
+    const typename Adapter::dd_t alive_post = adapter.ithvar(c_post_var);
 
     out = adapter.apply_imp(alive_3, std::move(alive_post));
   }
   { // -----------------------------------------------------------------------------------------------
     // - If the sum is 4, the inner field retains its state.
-    const typename adapter_t::dd_t eq = construct_eq(adapter, vm, c);
+    const typename Adapter::dd_t eq = construct_eq(adapter, vm, c);
 
     out &= adapter.apply_imp(alive_4, std::move(eq));
   }
   { // -----------------------------------------------------------------------------------------------
     // - Otherwise, the inner field is dead.
-    const typename adapter_t::dd_t alive_other = ~(std::move(alive_3) | std::move(alive_4));
-    const typename adapter_t::dd_t dead_post   = adapter.nithvar(c_post_var);
+    const typename Adapter::dd_t alive_other = ~(std::move(alive_3) | std::move(alive_4));
+    const typename Adapter::dd_t dead_post   = adapter.nithvar(c_post_var);
 
     out &= adapter.apply_imp(std::move(alive_other), std::move(dead_post));
   }
@@ -1010,8 +1010,8 @@ typename adapter_t::dd_t acc_rel(adapter_t &adapter, const var_map &vm, const ce
 }
 
 /// \brief Combine decision diagrams together into transition relation for an entire row.
-template<typename adapter_t>
-typename adapter_t::dd_t acc_rel(adapter_t &adapter, const var_map &vm, const int row)
+template<typename Adapter>
+typename Adapter::dd_t acc_rel(Adapter &adapter, const var_map &vm, const int row)
 {
   auto res = adapter.top();
 
@@ -1044,8 +1044,8 @@ typename adapter_t::dd_t acc_rel(adapter_t &adapter, const var_map &vm, const in
 }
 
 /// \brief Combine decision diagrams together into transition relation for top/bottom half of grid.
-template<typename adapter_t>
-typename adapter_t::dd_t acc_rel(adapter_t &adapter, const var_map &vm, const bool bottom)
+template<typename Adapter>
+typename Adapter::dd_t acc_rel(Adapter &adapter, const var_map &vm, const bool bottom)
 {
   // TODO (symmetry::none): Use Manual Variable Reordering to only compute a row once.
 
@@ -1122,8 +1122,8 @@ typename adapter_t::dd_t acc_rel(adapter_t &adapter, const var_map &vm, const bo
 
 /// \brief Combine decision diagrams together into transition relation for entire grid and then
 ///        quantify out all previous-state variables.
-template<typename adapter_t>
-typename adapter_t::dd_t garden_of_eden(adapter_t &adapter, const var_map &vm)
+template<typename Adapter>
+typename Adapter::dd_t garden_of_eden(Adapter &adapter, const var_map &vm)
 {
   if (rows() < cols()) {
     std::cout << "   | Note:\n"
@@ -1222,9 +1222,9 @@ typename adapter_t::dd_t garden_of_eden(adapter_t &adapter, const var_map &vm)
 // return a decision diagram that is true for all assignments to the `prime::post` variables.
 
 /// \brief Decision Diagram that is `true` for any assignment to `prime::post` variables.
-template<typename adapter_t>
-typename adapter_t::dd_t
-construct_post(adapter_t &adapter, const var_map &vm)
+template<typename Adapter>
+typename Adapter::dd_t
+construct_post(Adapter &adapter, const var_map &vm)
 {
   auto root = adapter.build_node(true);
 
@@ -1238,7 +1238,7 @@ construct_post(adapter_t &adapter, const var_map &vm)
 }
 
 // ============================================================================================== //
-template<typename adapter_t>
+template<typename Adapter>
 int run_gameoflife(int argc, char** argv)
 {
   symmetry option = symmetry::none;
@@ -1251,17 +1251,17 @@ int run_gameoflife(int argc, char** argv)
 
   // -----------------------------------------------------------------------------------------------
   std::cout << "Game of Life : [" << rows(prime::post) << " x " << cols(prime::post) << "] "
-            << "(" << adapter_t::NAME << " " << M << " MiB):\n"
+            << "(" << Adapter::NAME << " " << M << " MiB):\n"
             << "   | Symmetry         : " << option_str(option) << "\n";
 
   var_map vm(option);
 
   const time_point t_init_before = now();
-  adapter_t adapter(vm.varcount());
+  Adapter adapter(vm.varcount());
   const time_point t_init_after = now();
 
   std::cout << "\n"
-            << "   " << adapter_t::NAME << " initialisation:\n"
+            << "   " << Adapter::NAME << " initialisation:\n"
             << "   | variables        : " << vm.varcount() << "\n"
             << "   | | 'prev'         : " << vm.varcount(prime::pre) << "\n"
             << "   | | 'next'         : " << vm.varcount(prime::post) << "\n"

@@ -742,8 +742,8 @@ namespace enc_gadgets
   /// \brief Construct edge-variables with special cells fixed in their choice.
   ///
   /// The gadget is constructed such, that the edge-index is big-endian.
-  template<typename adapter_t>
-  typename adapter_t::dd_t init_special(adapter_t &adapter, const enc_opt &opt)
+  template<typename Adapter>
+  typename Adapter::dd_t init_special(Adapter &adapter, const enc_opt &opt)
   {
     std::array<std::tuple<cell, var_t, int>, 4> fixed_bits {{
         { cell::special_0(), var_t::in_bit,  edge(cell::special_0(), cell::special_2()).idx() },
@@ -772,7 +772,7 @@ namespace enc_gadgets
       continue;
     }
 
-    typename adapter_t::dd_t out = adapter.build();
+    typename Adapter::dd_t out = adapter.build();
 
 #ifdef BDD_BENCHMARK_STATS
     const size_t nodecount = adapter.nodecount(out);
@@ -787,8 +787,8 @@ namespace enc_gadgets
   ///        bits are set to true.
   ///
   /// The gadget is constructed such, that the edge-index is big-endian.
-  template<typename adapter_t>
-  typename adapter_t::dd_t one_hot_edges(adapter_t &adapter, const enc_opt &opt)
+  template<typename Adapter>
+  typename Adapter::dd_t one_hot_edges(Adapter &adapter, const enc_opt &opt)
   {
     // TODO: Support for variable orderings that do not have in/out bits
     //       interleaved and each cell being independent.
@@ -832,7 +832,7 @@ namespace enc_gadgets
       root = __;
     }
 
-    typename adapter_t::dd_t out = adapter.build();
+    typename Adapter::dd_t out = adapter.build();
 
 #ifdef BDD_BENCHMARK_STATS
     const size_t nodecount = adapter.nodecount(out);
@@ -851,8 +851,8 @@ namespace enc_gadgets
   /// this test on-top of each other in one long chain.
   ///
   /// The gadget is constructed such, that the edge-index is big-endian.
-  template<typename adapter_t>
-  typename adapter_t::dd_t unmatch_in_out(adapter_t &adapter, const enc_opt &opt)
+  template<typename Adapter>
+  typename Adapter::dd_t unmatch_in_out(Adapter &adapter, const enc_opt &opt)
   {
     // TODO: Support for variable orderings that do not have in/out bits
     //       interleaved and each cell being independent.
@@ -892,7 +892,7 @@ namespace enc_gadgets
       root = test;
     }
 
-    typename adapter_t::dd_t out = adapter.build();
+    typename Adapter::dd_t out = adapter.build();
 
 #ifdef BDD_BENCHMARK_STATS
     const size_t nodecount = adapter.nodecount(out);
@@ -911,8 +911,8 @@ namespace enc_gadgets
   /// diagram.
   ///
   /// The gadget is constructed such, that the edge-index is big-endian.
-  template<typename adapter_t>
-  typename adapter_t::dd_t remove_illegal(adapter_t &adapter,
+  template<typename Adapter>
+  typename Adapter::dd_t remove_illegal(Adapter &adapter,
                                           const int edge_idx,
                                           const enc_opt &opt)
   {
@@ -989,7 +989,7 @@ namespace enc_gadgets
       }
     }
 
-    typename adapter_t::dd_t out = adapter.build();
+    typename Adapter::dd_t out = adapter.build();
 
 #ifdef BDD_BENCHMARK_STATS
     const size_t nodecount = adapter.nodecount(out);
@@ -1010,8 +1010,8 @@ namespace enc_gadgets
   /// nodes).
   ///
   /// The gadget is constructed such, that the edge-index is big-endian.
-  template<typename adapter_t>
-  typename adapter_t::dd_t match_u_v(adapter_t &adapter,
+  template<typename Adapter>
+  typename Adapter::dd_t match_u_v(Adapter &adapter,
                                      const edge &e,
                                      const enc_opt &opt)
   {
@@ -1126,7 +1126,7 @@ namespace enc_gadgets
       root = adapter.build_node(z, root, root);
     }
 
-    typename adapter_t::dd_t out = adapter.build();
+    typename Adapter::dd_t out = adapter.build();
 
 #ifdef BDD_BENCHMARK_STATS
     const size_t nodecount = adapter.nodecount(out);
@@ -1138,9 +1138,9 @@ namespace enc_gadgets
   }
 
   /// \brief Helper function for the binary adder where `p` is a power of two.
-  template<typename adapter_t>
-  std::pair<typename adapter_t::build_node_t, typename adapter_t::build_node_t>
-  binary_gadget_levels(adapter_t &adapter,
+  template<typename Adapter>
+  std::pair<typename Adapter::build_node_t, typename Adapter::build_node_t>
+  binary_gadget_levels(Adapter &adapter,
                        const edge &e,
                        [[maybe_unused]] const int p,
                        const enc_opt &opt)
@@ -1273,9 +1273,9 @@ namespace enc_gadgets
   /// this a *unary* encoding; a better word for it might be *one-hot*.
   ///
   /// \remark This is expected to primarily work well with ZDDs.
-  template<typename adapter_t>
-  std::pair<typename adapter_t::build_node_t, typename adapter_t::build_node_t>
-  unary_gadget_levels(adapter_t &adapter,
+  template<typename Adapter>
+  std::pair<typename Adapter::build_node_t, typename Adapter::build_node_t>
+  unary_gadget_levels(Adapter &adapter,
                       const edge &e,
                       const int p,
                       const enc_opt &opt)
@@ -1443,8 +1443,8 @@ namespace enc_gadgets
   /// \brief Gadget for increment relation.
   ///
   /// The gadget is constructed such, that the counter is big-endian.
-  template<typename adapter_t>
-  typename adapter_t::dd_t gadget(adapter_t &adapter,
+  template<typename Adapter>
+  typename Adapter::dd_t gadget(Adapter &adapter,
                                   const edge &e,
                                   const int p,
                                   const enc_opt &opt)
@@ -1492,7 +1492,7 @@ namespace enc_gadgets
 
     // -------------------------------------------------------------------------
 
-    typename adapter_t::dd_t out = adapter.build();
+    typename Adapter::dd_t out = adapter.build();
 
 #ifdef BDD_BENCHMARK_STATS
     const size_t nodecount = adapter.nodecount(out);
@@ -1515,8 +1515,8 @@ namespace enc_gadgets
   ///          need to check it has the expected bit-value. Yet, for the LFSR
   ///          gadget this does mean we have to convert `v` into the `v`'th
   ///          iteration of the LFSR before creating the circuit.
-  template<typename adapter_t>
-  typename adapter_t::dd_t gadget(adapter_t &adapter,
+  template<typename Adapter>
+  typename Adapter::dd_t gadget(Adapter &adapter,
                                   const cell &c,
                                   const int p,
                                   int v,
@@ -1547,7 +1547,7 @@ namespace enc_gadgets
       root = adapter.build_node(x, bit_val ? bot : root, bit_val ? root : bot);
     }
 
-    typename adapter_t::dd_t out = adapter.build();
+    typename Adapter::dd_t out = adapter.build();
 
 #ifdef BDD_BENCHMARK_STATS
     const size_t nodecount = adapter.nodecount(out);
@@ -1601,8 +1601,8 @@ namespace enc_gadgets
   ///
   /// If a Binary encoding is chosen and `p` is a Mersenne prime, then an LFSR is
   /// used rather than the Binary Adder.
-  template<typename adapter_t>
-  typename adapter_t::dd_t create(adapter_t &adapter, const enc_opt &opt)
+  template<typename Adapter>
+  typename Adapter::dd_t create(Adapter &adapter, const enc_opt &opt)
   {
     if (rows() < cols()) {
       std::cout << "   | Note:\n"
@@ -1631,7 +1631,7 @@ namespace enc_gadgets
     // -------------------------------------------------------------------------
     // Start with all edges (even illegal ones), but '1A -> 2C', '3B -> 1A'
     // already fixed.
-    typename adapter_t::dd_t paths = init_special(adapter, opt);
+    typename Adapter::dd_t paths = init_special(adapter, opt);
 
 #ifdef BDD_BENCHMARK_STATS
     std::cout << "   | Fix Corner (nodes):       " << adapter.nodecount(paths) << "\n"
@@ -1783,7 +1783,7 @@ namespace enc_gadgets
                 << "   | Add path-length constraints ( % " << p << " )\n";
 #endif // BDD_BENCHMARK_STATS
 
-      if constexpr (adapter_t::needs_extend) {
+      if constexpr (Adapter::needs_extend) {
         // Establish invariant by extending domain with don't care gadget
         // variables for cells: (0,0), (0,1), ..., (1,N).
         std::vector<int> gadget_vars;
@@ -1815,7 +1815,7 @@ namespace enc_gadgets
 
       for (int row = MIN_ROW(); row < rows(); ++row) {
 
-        if constexpr (adapter_t::needs_extend) {
+        if constexpr (Adapter::needs_extend) {
           // Extend variables to include gadget for cell (row+cell::active_rows,0).
 
           const cell new_cell(row+cell::active_rows, MIN_COL());
@@ -1841,7 +1841,7 @@ namespace enc_gadgets
         for (int col = MIN_COL(); col < cols(); ++col) {
           const cell u(row, col);
 
-          if constexpr (adapter_t::needs_extend) {
+          if constexpr (Adapter::needs_extend) {
             // Extend variables to include gadget for cell (row+cell::active_rows,col+1).
 
             const cell new_cell(row+cell::active_rows, col+1);
@@ -2009,11 +2009,11 @@ namespace enc_time
   ///        one time step.
   ///
   /// \see rel_init
-  template<typename adapter_t>
-  void rel_0__fix(adapter_t &adapter,
+  template<typename Adapter>
+  void rel_0__fix(Adapter &adapter,
                   const cell &fixed_cell,
                   int time,
-                  typename adapter_t::build_node_t &root)
+                  typename Adapter::build_node_t &root)
   {
     const int shift = time_shift(time);
 
@@ -2027,8 +2027,8 @@ namespace enc_time
   }
 
   /// \brief Constraint to break symmetries and fix it to be a cycle.
-  template<typename adapter_t>
-  typename adapter_t::dd_t rel_0(adapter_t &adapter)
+  template<typename Adapter>
+  typename Adapter::dd_t rel_0(Adapter &adapter)
   {
     auto root = adapter.build_node(true);
 
@@ -2053,7 +2053,7 @@ namespace enc_time
     rel_0__fix(adapter, cell::special_1(), 1, root);
     rel_0__fix(adapter, cell::special_0(), 0, root);
 
-    typename adapter_t::dd_t out = adapter.build();
+    typename Adapter::dd_t out = adapter.build();
 
 #ifdef BDD_BENCHMARK_STATS
     // This will already be accounted for in 'create()' below
@@ -2066,10 +2066,10 @@ namespace enc_time
   ///        care" nodes (except for the unreachable ones)
   ///
   /// \see rel_t
-  template<typename adapter_t>
-  void rel_t__dont_care(adapter_t &adapter,
+  template<typename Adapter>
+  void rel_t__dont_care(Adapter &adapter,
                         int t_begin, int t_end,
-                        typename adapter_t::build_node_t &out)
+                        typename Adapter::build_node_t &out)
   {
     assert(t_end <= t_begin);
 
@@ -2088,17 +2088,17 @@ namespace enc_time
   }
 
   /// \brief Diagram for a transitions at time step `t` to `t+1`.
-  template<typename adapter_t>
-  typename adapter_t::dd_t rel_t(adapter_t &adapter, int t)
+  template<typename Adapter>
+  typename Adapter::dd_t rel_t(Adapter &adapter, int t)
   {
     // Time steps: t' > t+1
     //   Chain of "don't cares" for whatever happens after t+1.
-    typename adapter_t::build_node_t post_chain = adapter.build_node(true);
+    typename Adapter::build_node_t post_chain = adapter.build_node(true);
     rel_t__dont_care(adapter, MAX_TIME(), t+1, post_chain);
 
     // Time step: t+1
     //   Chain with decision on where to be at time 't+1' given where one was at time 't'.
-    std::vector<typename adapter_t::build_node_t> to_chains(cells(), adapter.build_node(false));
+    std::vector<typename Adapter::build_node_t> to_chains(cells(), adapter.build_node(false));
     {
       const int shift = time_shift(t+1);
 
@@ -2166,7 +2166,7 @@ namespace enc_time
     //   Chain of "don't cares" for whatever happens before t.
     rel_t__dont_care(adapter, t-1, -1, root);
 
-    typename adapter_t::dd_t out = adapter.build();
+    typename Adapter::dd_t out = adapter.build();
 
 #ifdef BDD_BENCHMARK_STATS
     const size_t nodecount = adapter.nodecount(out);
@@ -2181,8 +2181,8 @@ namespace enc_time
   ///
   /// \details Essentially, we have two chains, one for "still not visited" (0)
   /// and the other for "has been visited" (1).
-  template<typename adapter_t>
-  typename adapter_t::dd_t hamiltonian(adapter_t &adapter, const cell& ham_c)
+  template<typename Adapter>
+  typename Adapter::dd_t hamiltonian(Adapter &adapter, const cell& ham_c)
   {
     // TODO: include in the encoding, that one cannot be here at time 0, 1 or MAX
 
@@ -2207,7 +2207,7 @@ namespace enc_time
       }
     }
 
-    typename adapter_t::dd_t out = adapter.build();
+    typename Adapter::dd_t out = adapter.build();
 
 #ifdef BDD_BENCHMARK_STATS
     const size_t nodecount = adapter.nodecount(out);
@@ -2218,8 +2218,8 @@ namespace enc_time
     return out;
   }
 
-  template<typename adapter_t>
-  typename adapter_t::dd_t create(adapter_t &adapter)
+  template<typename Adapter>
+  typename Adapter::dd_t create(Adapter &adapter)
   {
     // -------------------------------------------------------------------------
     // Trivial cases
@@ -2240,7 +2240,7 @@ namespace enc_time
 
     // -------------------------------------------------------------------------
     // Accumulate cell-relation constraints
-    typename adapter_t::dd_t paths = rel_0(adapter);
+    typename Adapter::dd_t paths = rel_0(adapter);
 
 #ifdef BDD_BENCHMARK_STATS
     const size_t nodecount = adapter.nodecount(paths);
@@ -2310,7 +2310,7 @@ namespace enc_time
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief Hamiltonian Cycle program: pick encoding and time its execution.
 ////////////////////////////////////////////////////////////////////////////////
-template<typename adapter_t>
+template<typename Adapter>
 int run_hamiltonian(int argc, char** argv)
 {
   enc_opt opt = enc_opt::TIME; // Default strategy
@@ -2322,7 +2322,7 @@ int run_hamiltonian(int argc, char** argv)
   if (should_exit) { return -1; }
 
   // ---------------------------------------------------------------------------
-  std::cout << rows() << " x " << cols() << " - Hamiltonian Cycle (" << adapter_t::NAME << " " << M << " MiB):\n"
+  std::cout << rows() << " x " << cols() << " - Hamiltonian Cycle (" << Adapter::NAME << " " << M << " MiB):\n"
             << "   | Encoding:                 " << option_str(opt) << "\n";
 
   if (rows() == 0 || cols() == 0) {
@@ -2351,10 +2351,10 @@ int run_hamiltonian(int argc, char** argv)
   }
 
   time_point t_init_before = now();
-  adapter_t adapter(vars);
+  Adapter adapter(vars);
   time_point t_init_after = now();
 
-  std::cout << "\n   " << adapter_t::NAME << " initialisation:\n"
+  std::cout << "\n   " << Adapter::NAME << " initialisation:\n"
             << "   | variables:                " << vars << "\n"
             << "   | time (ms):                " << duration_ms(t_init_before, t_init_after) << "\n"
             << std::flush;
@@ -2371,7 +2371,7 @@ int run_hamiltonian(int argc, char** argv)
     std::cout << "\n"
               << "   Paths Construction\n";
 
-    typename adapter_t::dd_t paths;
+    typename Adapter::dd_t paths;
 
     const time_point before_paths = now();
     switch (opt) {
