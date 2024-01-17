@@ -34,7 +34,8 @@ public:
   { /* Do nothing */ }
 
 public:
-  int run(const std::function<int()> &f)
+  template <typename F>
+  int run(const F& f)
   { return f(); }
 
   // BDD Operations
