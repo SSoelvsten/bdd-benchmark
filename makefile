@@ -250,7 +250,7 @@ run/game-of-life/zdd:
 #  RUN: Hamiltonian Cycles
 # ============================================================================ #
 run/hamiltonian:
-	$(MAKE) run/hamiltonian/zdd
+	$(MAKE) run/hamiltonian/bdd
 
 run/hamiltonian/bdd: N  := 6
 run/hamiltonian/bdd: NR := $(N)
