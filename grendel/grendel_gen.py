@@ -86,6 +86,64 @@ BENCHMARKS = {
     # ------------------------------------------------------------------------ #
 
     # --------------------------------------------------------------------------
+    "game-of-life": {
+        dd_t.bdd: [
+            # All solutions
+            [ [ 0, 0,10], "-o none -N 3 -N 3" ],
+            [ [ 0, 0,10], "-o none -N 4 -N 3" ],
+            [ [ 0, 3,00], "-o none -N 4 -N 4" ],
+            [ [ 0, 1,00], "-o none -N 5 -N 4" ],
+            [ [ 0, 4,00], "-o none -N 5 -N 5" ],
+            [ [ 0,12,00], "-o none -N 6 -N 5" ],
+            [ [ 8, 0,00], "-o none -N 6 -N 6" ],
+            # Mirror Vertical
+            [ [ 0, 0,10], "-o mirror-vertical -N 3 -N 3" ],
+            [ [ 0, 0,10], "-o mirror-vertical -N 4 -N 3" ],
+            [ [ 0, 0,30], "-o mirror-vertical -N 4 -N 4" ],
+            [ [ 0, 0,30], "-o mirror-vertical -N 5 -N 4" ],
+            [ [ 0, 1,00], "-o mirror-vertical -N 5 -N 5" ],
+            [ [ 0, 1,00], "-o mirror-vertical -N 6 -N 5" ],
+            [ [ 0, 4,00], "-o mirror-vertical -N 6 -N 6" ],
+            [ [ 1, 0,00], "-o mirror-vertical -N 7 -N 6" ],
+            [ [ 2, 0,00], "-o mirror-vertical -N 7 -N 7" ],
+            # Mirror Quadrant
+            [ [ 0, 0,10], "-o mirror-quad -N 3 -N 3" ],
+            [ [ 0, 0,10], "-o mirror-quad -N 4 -N 3" ],
+            [ [ 0, 0,10], "-o mirror-quad -N 4 -N 4" ],
+            [ [ 0, 0,10], "-o mirror-quad -N 5 -N 4" ],
+            [ [ 0, 0,10], "-o mirror-quad -N 5 -N 5" ],
+            [ [ 0, 0,30], "-o mirror-quad -N 6 -N 5" ],
+            [ [ 0, 1,00], "-o mirror-quad -N 6 -N 6" ],
+            [ [ 2, 0,00], "-o mirror-quad -N 7 -N 6" ],
+            # Mirror Diagonal
+            [ [ 0, 0,10], "-o mirror-diagonal -N 3 -N 3" ],
+            [ [ 0, 0,10], "-o mirror-diagonal -N 4 -N 4" ],
+            [ [ 0, 0,30], "-o mirror-diagonal -N 5 -N 5" ],
+            [ [ 0, 2,00], "-o mirror-diagonal -N 6 -N 6" ],
+            [ [ 2, 0,00], "-o mirror-diagonal -N 6 -N 6" ],
+            # Mirror Double Diagonal
+            [ [ 0, 0,10], "-o mirror-double_diagonal -N 3 -N 3" ],
+            [ [ 0, 0,30], "-o mirror-double_diagonal -N 4 -N 4" ],
+            [ [ 0, 0,30], "-o mirror-double_diagonal -N 5 -N 5" ],
+            [ [ 0, 3,00], "-o mirror-double_diagonal -N 6 -N 6" ],
+            [ [ 9, 0,00], "-o mirror-double_diagonal -N 7 -N 7" ],
+            # Rotate 90
+            [ [ 0, 0,10], "-o rotate-90 -N 3 -N 3" ],
+            [ [ 0, 0,30], "-o rotate-90 -N 4 -N 4" ],
+            [ [ 0, 1,00], "-o rotate-90 -N 5 -N 5" ],
+            [ [ 0, 2,00], "-o rotate-90 -N 6 -N 6" ],
+         #  [ [15, 0,00], "-o rotate-90 -N 7 -N 7" ], # 1+ TiB disk usage before quantification!
+            # Rotate 180
+            [ [ 0, 0,10], "-o rotate-180 -N 3 -N 3" ],
+            [ [ 0, 0,10], "-o rotate-180 -N 4 -N 3" ],
+            [ [ 0, 0,30], "-o rotate-180 -N 4 -N 4" ],
+            [ [ 0, 1,00], "-o rotate-180 -N 5 -N 4" ],
+            [ [ 0, 2,00], "-o rotate-180 -N 5 -N 5" ],
+            [ [ 0, 4,00], "-o rotate-180 -N 6 -N 5" ],
+            [ [ 2, 0,00], "-o rotate-180 -N 6 -N 6" ],
+        ]
+    },
+    # --------------------------------------------------------------------------
     "hamiltonian": {
         dd_t.bdd: [
             # Binary Encoding
