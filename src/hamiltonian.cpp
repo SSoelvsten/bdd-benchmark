@@ -1788,7 +1788,7 @@ namespace enc_gadgets
       largest_bdd = std::max(largest_bdd, nodecount);
       total_nodes += nodecount;
 
-      std::cout << "  |  Exists __             " << nodecount << "\n"
+      std::cout << "  |  Exists __                " << nodecount << "\n"
                 << std::flush;
 #endif // BDD_BENCHMARK_STATS
     }
@@ -1827,7 +1827,7 @@ namespace enc_gadgets
         largest_bdd = std::max(largest_bdd, nodecount);
         total_nodes += nodecount;
 
-        std::cout << "  | |  Extend __           " << nodecount << "\n"
+        std::cout << "  | |  Extend __              " << nodecount << "\n"
                   << std::flush;
 #endif // BDD_BENCHMARK_STATS
       }
