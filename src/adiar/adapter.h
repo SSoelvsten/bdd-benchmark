@@ -49,7 +49,7 @@ class adiar_bdd_adapter : public adiar_adapter
 public:
   static constexpr std::string_view NAME = "Adiar [BDD]";
 
-  static constexpr bool needs_extend = true;
+  static constexpr bool needs_extend = false;
 
 public:
   using dd_t   = adiar::bdd;
