@@ -811,6 +811,8 @@ public:
       return true;
     }
 
+    const int row_flipped = MAX_ROW(prime::post) - c.row();
+
     switch (this->_sym) {
     case symmetry::none:
     case symmetry::mirror_vertical: {
@@ -823,7 +825,6 @@ public:
     }
     case symmetry::mirror_double_diagonal: {
       // Since everything is mirrored twice, the entire outer border is symmetric and so on...
-      const int row_flipped = MAX_ROW(prime::post) - c.row();
       return c.col() == row || c.row() == row_flipped || c.col() == row_flipped;
     }
     case symmetry::rotate_90: {
@@ -832,7 +833,7 @@ public:
     case symmetry::mirror_quadrant:
     case symmetry::rotate_180: {
       // Check row inverted vertically
-      return MAX_ROW(prime::post) - c.row() == row;
+      return row_flipped == row;
     }
     default: {
       return false; // <-- squelches the compiler
