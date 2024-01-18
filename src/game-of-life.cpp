@@ -823,12 +823,10 @@ public:
       // If cell is above diagonal, also check its column.
       return c.row() < c.col() && c.col() == row;
     }
-    case symmetry::mirror_double_diagonal: {
+    case symmetry::mirror_double_diagonal:
+    case symmetry::rotate_90: {
       // Since everything is mirrored twice, the entire outer border is symmetric and so on...
       return c.col() == row || c.row() == row_flipped || c.col() == row_flipped;
-    }
-    case symmetry::rotate_90: {
-      return false /* TODO */;
     }
     case symmetry::mirror_quadrant:
     case symmetry::rotate_180: {
