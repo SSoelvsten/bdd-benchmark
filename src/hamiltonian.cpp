@@ -1519,10 +1519,10 @@ namespace enc_gadgets
     total_nodes += nodecount;
 #endif // BDD_BENCHMARK_STATS
 
-    std::stringstream ss;
-    ss << "gadget_" << e.u().to_string() << "_" << e.v().to_string() << "_" << p << ".dot";
+    // std::stringstream ss;
+    // ss << "gadget_" << e.u().to_string() << "_" << e.v().to_string() << "_" << p << ".dot";
 
-    adapter.print_dot(out, ss.str());
+    // adapter.print_dot(out, ss.str());
 
     return out;
   }
