@@ -44,7 +44,7 @@ class adiar_bdd_adapter : public adiar_adapter
 public:
   inline static const std::string NAME = "Adiar [BDD]";
 
-  static constexpr bool needs_extend = true;
+  static constexpr bool needs_extend = false;
 
 public:
   using dd_t   = adiar::bdd;
