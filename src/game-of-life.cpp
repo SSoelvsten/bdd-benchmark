@@ -824,14 +824,15 @@ public:
       return c.row() < c.col() && c.col() == row;
     }
     case symmetry::mirror_double_diagonal:
-    case symmetry::rotate_90: {
-      // Since everything is mirrored twice, the entire outer border is symmetric and so on...
-      return c.col() == row || c.row() == row_flipped || c.col() == row_flipped;
-    }
     case symmetry::mirror_quadrant:
     case symmetry::rotate_180: {
       // Check row inverted vertically
       return row_flipped == row;
+    }
+    case symmetry::rotate_90: {
+      // Since everything is is rotated, the top row becomes the right column, which also becomes
+      // the bottom row, and then the left-most column.
+      return c.col() == row || c.row() == row_flipped || c.col() == row_flipped;
     }
     default: {
       return false; // <-- squelches the compiler
