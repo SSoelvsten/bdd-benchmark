@@ -12,6 +12,6 @@ Examples provided in the paper describing the
   - QBFEVAL'17: https://www.qbflib.org/eval17.zip
   - QBFEVAL'16: https://www.qbflib.org/TS2016/Dataset_2.tar.gz
 
-- Irfansha SHaik
+- Irfansha Shaik
 
   - Q-Sage/Benchmarks: https://github.com/irfansha/Q-sage/blob/main/Benchmarks/SAT2023_GDDL.zip
