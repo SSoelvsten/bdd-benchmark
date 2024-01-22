@@ -356,6 +356,27 @@ def output_path(package, benchmark, dd, args):
 # Script Strings
 # =========================================================================== #
 
+print("")
+
+partitions = {
+    "q20":    128, # GB
+    "q20fat": 128, # GB
+    "q24":    256, # GB
+    "q28":    256, # GB
+    "q36":    384, # GB
+    "q40":    384, # GB
+    "q48":    384, # GB
+    "q64":    512, # GB
+}
+
+partition = "q48"
+partition_choice = input("Grendel Node (default: 'q48'): ")
+if partition_choice:
+    if not partition_choice in partitions.keys():
+        print(f"Partition '{partition_choice}' is unknown")
+        exit(-1)
+    partition = partition_choice
+
 MODULE_LOAD = '''module load gcc/10.1.0
 module load cmake/3.23.5 autoconf/2.71 automake/1.16.1
 module load boost/1.68.0 gmp/6.2.1'''
@@ -366,7 +387,7 @@ export LC_ALL=C'''
 
 def sbatch_str(jobname, time, is_exclusive):
     return f'''#SBATCH --job-name={jobname}
-#SBATCH --partition=q48
+#SBATCH --partition={partition}
 #SBATCH --mem={"MaxMemPerNode" if is_exclusive else "16G"}
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
@@ -409,6 +430,8 @@ def benchmark_str(time, benchmarks):
     args_length = max(map(lambda b : len(b[3].split()), benchmarks))
     awk_args = '" "$' + '" "$'.join(map(lambda b : str(b), range(3, args_length+3)))
 
+    memory = (partitions[partition] - 16) * 1024
+
     slurm_content = f'''#!/bin/bash
 {sbatch_str(f"{slurm_job_prefix}__{slurm_job_suffix}", time, True)}
 #SBATCH --array=1-{len(benchmarks)}
@@ -417,7 +440,7 @@ awk '{awk_array_idx} {{ system("touch {SLURM_ORIGIN}/"$1) }}' {SLURM_ORIGIN}/gre
 
 awk '{awk_array_idx} {{ system("echo -e \\"\\n=========  Started `date`  ==========\\n\\" | tee -a {SLURM_ORIGIN}/"$1) }}' {SLURM_ORIGIN}/grendel/{awk_name}
 
-awk '{awk_array_idx} {{ system("{SLURM_ORIGIN}/build/src/"$2 {awk_args} " -M {300*1024} -t /scratch/{SLURM_JOB_ID} 2>&1 | tee -a {SLURM_ORIGIN}/"$1) }}' {SLURM_ORIGIN}/grendel/{awk_name}
+awk '{awk_array_idx} {{ system("{SLURM_ORIGIN}/build/src/"$2 {awk_args} " -M {memory} -t /scratch/{SLURM_JOB_ID} 2>&1 | tee -a {SLURM_ORIGIN}/"$1) }}' {SLURM_ORIGIN}/grendel/{awk_name}
 
 awk '{awk_array_idx} {{ system("echo -e \\"\\nexit code: \\"$? | tee -a {SLURM_ORIGIN}/"$1) }}' {SLURM_ORIGIN}/grendel/{awk_name}
 
