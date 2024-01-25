@@ -57,6 +57,17 @@ macro(add_bdd_benchmark NAME)
     target_compile_definitions(cudd_${NAME}_bdd PRIVATE BDD_BENCHMARK_WAIT)
   endif()
 
+  # Biodivine/LibBDD
+  add_executable(libbdd_${NAME}_bdd libbdd/${NAME}_bdd.cpp)
+  target_link_libraries(libbdd_${NAME}_bdd PRIVATE lib-bdd-ffi)
+  target_link_libraries(libbdd_${NAME}_bdd PRIVATE common)
+  if (BDD_BENCHMARK_GRENDEL)
+    target_compile_definitions(libbdd_${NAME}_bdd PRIVATE BDD_BENCHMARK_GRENDEL)
+  endif()
+  if (BDD_BENCHMARK_STATS)
+    target_compile_definitions(libbdd_${NAME}_bdd PRIVATE BDD_BENCHMARK_STATS)
+  endif()
+
   # Sylvan
   add_executable(sylvan_${NAME}_bdd sylvan/${NAME}_bdd.cpp)
   target_link_libraries(sylvan_${NAME}_bdd PRIVATE Sylvan::Sylvan)
@@ -113,6 +124,7 @@ macro(link_bdd_extra NAME LIB_NAME)
   target_link_libraries(buddy_${NAME}_bdd  PRIVATE ${LIB_NAME})
   target_link_libraries(cal_${NAME}_bdd    PRIVATE ${LIB_NAME})
   target_link_libraries(cudd_${NAME}_bdd   PRIVATE ${LIB_NAME})
+  target_link_libraries(libbdd_${NAME}_bdd PRIVATE ${LIB_NAME})
   target_link_libraries(sylvan_${NAME}_bdd PRIVATE ${LIB_NAME})
 endmacro(link_bdd_extra)
 

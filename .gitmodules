@@ -16,3 +16,6 @@
 [submodule "external/cal"]
 	path = external/cal
 	url = ../../SSoelvsten/cal
+[submodule "external/lib-bdd-ffi"]
+	path = external/lib-bdd-ffi
+	url = ../../nhusung/lib-bdd-ffi

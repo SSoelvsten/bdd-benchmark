@@ -97,6 +97,9 @@ set_target_properties(cudd PROPERTIES
   IMPORTED_LOCATION ${CUDD_INSTALL_DIR}/lib/libcudd.a
   INTERFACE_INCLUDE_DIRECTORIES ${CUDD_INSTALL_DIR}/include)
 
+# Biodivine/LibBDD (Samuel Pastva et al. - Institute of Science and Technology Austria)
+add_subdirectory(external/lib-bdd-ffi lib-bdd-ffi EXCLUDE_FROM_ALL)
+
 # Sylvan Package (Tom van Dijk - University of Twente, Netherlands)
 if (BDD_BENCHMARK_STATS)
   set(SYLVAN_STATS ON)
