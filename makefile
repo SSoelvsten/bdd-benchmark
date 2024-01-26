@@ -278,7 +278,7 @@ run/picotrav/zdd:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_picotrav_zdd -f $(F1) -f $(F2) -M $(M) -o $(O) | tee -a out/VARIANT/zdd/picotrav.out)
 
 # ============================================================================ #
-#  RUN: QCIR QBF solver
+#  RUN: QCIR QBF Solver
 # ============================================================================ #
 run/qbf:
 	$(MAKE) run/qbf/bdd
@@ -289,10 +289,6 @@ run/qbf/bdd:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_qbf_bdd -f $(F) -M $(M) -o $(O) | tee -a out/VARIANT/bdd/qbf.out)
 
 # TODO: run/qbf/zdd
-#
-# To solve this, we somehow need to fix that the final quantifier block compares
-# to `adapter.top()`. Yet, we cannot do so for ZDDs, since we have removed
-# variables.
 
 # ============================================================================ #
 #  RUN: Queens
