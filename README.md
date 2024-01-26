@@ -270,22 +270,22 @@ Solves the following problem:
   set of cycles is obtained.
 
 - `binary`: Based on [[Marijn2021](#references)] with multiple tweaks by Randal
-  E. Bryant to make it for decision diagrams. Each cell's choice of move, i.e.
-  each edge, is represented by a binary number with *log<sub>2</sub>(8) = 3*
+  E. Bryant to adapt it to decision diagrams. Each cell's choice of move, i.e.
+  each edge, is represented by a binary number with *log<sub>2</sub>(4) = 2*
   variables. Yet, this does not enforce the choice of edges correspond to a
-  Hamiltonian Cycle. Hence, we further add gadgets corresponding to *if u->v
-  then v=u+1 % N<sup>2</sup>*.
+  Hamiltonian Cycle. Hence, we further add *log<sub>2</sub>(N<sup>2</sup>)*-bit
+  binary counter gadgets. These encode *if u->v then v=u+1 % N<sup>2</sup>*.
 
 - `unary`/`one-hot`: Similar to `binary` but the edges and the gadgets of *b*
-  bits use a one-hot encoding with *b* variables. Only one out of the *b*
+  values use a one-hot encoding with *b* variables. Only one out of the *b*
   variables are ever set to true at the same time; the value of the gadget is
   the variable set to true.
 
 - `crt_one-hot`/`crt`: Similar to `unary` but one or more prime numbers are used
-  for gadgets added at the end. By use of the Chinese Remainder Theorem, we can
-  still be sure, we only have valid cycles at the end. One hopes this decreases
-  the size of the diagram, since the number of possible values for each gadget
-  are much smaller.
+  for the gadgets added at the end. By use of the Chinese Remainder Theorem, we
+  can still be sure, we only have valid cycles at the end. One hopes this
+  decreases the size of the diagram, since the number of possible values for
+  each gadget are much smaller.
 
 The `time` and the `unary`/`crt_unary` encoding are designed with ZDDs in mind
 whereas the `binary` encoding is designed for BDDs. That is, using the `time`
@@ -295,6 +295,9 @@ encoding with BDDs does not give you great, i.e. small and fast, results.
 make run/hamiltonian NR=6 NC=5
 ```
 
+> [!IMPORTANT]
+> The gadget for the `one-hot` encodings is not yet properly implemented. Hence,
+> this variant has been disabled.
 
 ### Picotrav
 This benchmark is a small recreation of the *Nanotrav* example provided with the
@@ -334,7 +337,8 @@ make run/picotrav F1=benchmarks/picotrav/not_a.blif F2=benchmarks/picotrav/not_b
 
 ### QBF Solver
 
-> **Note:** ZDDs are (yet) unsupported for this benchmark!
+> [!IMPORTANT]
+> ZDDs are not supported for this benchmark (yet)!
 
 Based on Jaco van de Pol's Christmas holiday hobbyproject, this is an
 implementation of a QBF solver. Given an input in the
