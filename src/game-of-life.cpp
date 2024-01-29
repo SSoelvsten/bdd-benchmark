@@ -1285,10 +1285,12 @@ int run_gameoflife(int argc, char** argv)
     auto res = garden_of_eden(adapter, vm);
     const time_point t2 = now();
 
+    const auto goe__total_time = duration_ms(t1,t2);
+
 #ifdef BDD_BENCHMARK_STATS
     std::cout << "  |\n";
 #endif // BDD_BENCHMARK_STATS
-    std::cout << "  | time (ms)                 " << duration_ms(t1,t2) << "\n"
+    std::cout << "  | time (ms)                 " << goe__total_time << "\n"
               << "  | | apply                   " << goe__apply_time << "\n"
               << "  | | exists                  " << goe__exists_time << "\n"
               << "\n"
@@ -1333,7 +1335,7 @@ int run_gameoflife(int argc, char** argv)
 
     // ---------------------------------------------------------------------------------------------
     const time_duration total_time =
-      goe__apply_time + goe__exists_time + flip_time + counting_time;
+      goe__total_time + flip_time + counting_time;
 
     std::cout << "  total time (ms)             " << total_time << "\n"
               << std::flush;
