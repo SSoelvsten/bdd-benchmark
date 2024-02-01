@@ -554,7 +554,13 @@ private:
           if (i != std::sregex_iterator()) {
             const auto Q    = quant_gate::parse_type((*i)[1].str());
             const auto args = __parse_lit_list((*i)[2].str(), var);
-            prenex_buffer.push_back(std::make_pair(Q, args));
+
+            // Merge Quantification gates in prenex
+            if (!prenex_buffer.empty() && prenex_buffer.back().first == Q) {
+              prenex_buffer.back().second.insert(prenex_buffer.back().second.end(), args.begin(), args.end());
+            } else {
+              prenex_buffer.push_back(std::make_pair(Q, args));
+            }
 
             continue;
           }
