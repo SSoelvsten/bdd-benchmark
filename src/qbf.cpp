@@ -1439,11 +1439,19 @@ public:
 
   int
   dd_var(const int qcir_variable) const
-  { return map.find(qcir_variable)->second; }
+  {
+    const auto res_ptr = map.find(qcir_variable);
+    assert(res_ptr != map.end());
+    return res_ptr->second;
+  }
 
   int
   qcir_var(const int dd_variable) const
-  { return invmap.find(dd_variable)->second; }
+  {
+    const auto res_ptr = invmap.find(dd_variable);
+    assert(res_ptr != map.end());
+    return res_ptr->second;
+  }
 
   size_t size() const
   { return map.size(); }
