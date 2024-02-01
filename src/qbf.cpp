@@ -1724,14 +1724,14 @@ solve(Adapter& adapter, qcir& q,
     std::cout << vom.qcir_var(x) << " ";
   }
   if (q.vars() > max_print) { std::cout << "..."; }
-  std::cout << "]" << std::endl;
+  std::cout << "]\n";
 
   std::cout << "  | execution order           [ ";
   for (size_t x = 0; x < exo.size() && x < max_print; ++x) {
     std::cout << exo.at(x) << " ";
   }
   if (q.size() > max_print) { std::cout << "..."; }
-  std::cout << "]" << std::endl;
+  std::cout << "]\n";
 
   std::cout << "  | max solve idx             " << max_q_idx << "\n"
             << "  | setup time (ms)           " << duration_ms(t_prep_before, t_prep_after) << "\n\n"
@@ -1910,6 +1910,7 @@ solve(Adapter& adapter, qcir& q,
     if (g.is<qcir::output_gate>()) {
       std::cout << "  | Prefix\n";
     }
+    std::cout << std::flush;
 #endif
 
     cache.insert({ q_idx, std::make_pair(g_dd, g.refcount) });
