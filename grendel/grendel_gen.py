@@ -67,6 +67,10 @@ def picotrav__opt(opt_t, circuit_name):
 def picotrav__args(spec_t, opt_t, circuit_name, picotrav_opt):
     return f"-o {picotrav_opt.name} -f {picotrav__spec(spec_t, circuit_name)} -f {picotrav__opt(opt_t, circuit_name)}"
 
+def qbf__args(circuit_name):
+    # All of Irfansha Shaik's circuits seem to be output in a depth-first order.
+    return f"-f ../SAT2023_GDDL/QBF_instances/{circuit_name} -o dfs"
+
 # --------------------------------------------------------------------------- #
 # Since we are testing BDD packages over such a wide spectrum, we have some
 # instances that require several days of computaiton time (closing into the 15
@@ -155,7 +159,7 @@ BENCHMARKS = {
             [ [ 0, 2,00], "-o binary -N 7 -N 6" ],
             [ [ 0,12,00], "-o binary -N 8 -N 6" ],
             [ [ 2, 0,00], "-o binary -N 8 -N 7" ],
-            [ [15, 0,00], "-o binary -N 8 -N 8" ],
+          # [ [15, 0,00], "-o binary -N 8 -N 8" ],
         ],
         dd_t.zdd: [
             # Time-based Encoding
@@ -260,7 +264,69 @@ BENCHMARKS = {
     # --------------------------------------------------------------------------
     "qbf": {
         dd_t.bdd: [
-            # TODO
+            # B/ (Breakthrough)
+            [ [ 0, 0,30], qbf__args("B/2x4_13_bwnib.qcir") ],
+            [ [ 0, 1,00], qbf__args("B/2x5_17_bwnib.qcir") ],
+            [ [ 0, 0,30], qbf__args("B/2x6_15_bwnib.qcir") ],
+            [ [ 0, 6,00], qbf__args("B/3x4_19_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("B/3x5_11_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("B/3x6_9_bwnib.qcir") ],
+            # BSP/ (Breakthrough 2nd Player)
+            [ [ 0, 0,10], qbf__args("BSP/2x4_8_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("BSP/3x4_12_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("BSP/2x5_10_bwnib.qcir") ],
+            [ [ 0, 0,30], qbf__args("BSP/3x5_12_bwnib.qcir") ],
+            [ [ 0, 0,30], qbf__args("BSP/2x6_14_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("BSP/3x6_10_bwnib.qcir") ],
+            # C4/ (Connect 4)
+            [ [ 0, 0,10], qbf__args("C4/2x2_3_connect2_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("C4/3x3_3_connect2_bwnib.qcir") ],
+            [ [ 0, 6,00], qbf__args("C4/3x3_9_connect3_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("C4/4x4_3_connect2_bwnib.qcir") ],
+            [ [ 0, 2,00], qbf__args("C4/4x4_9_connect3_bwnib.qcir") ],
+          # [ [ ?, ?,??], qbf__args("C4/4x4_15_connect4_bwnib.qcir") ], # TODO: Obtain a time...
+            [ [ 0, 0,10], qbf__args("C4/5x5_3_connect2_bwnib.qcir") ],
+            [ [ 6, 0,00], qbf__args("C4/5x5_9_connect3_bwnib.qcir") ],
+            [ [15, 0,00], qbf__args("C4/5x5_11_connect4_bwnib.qcir") ], # Adiar : 1+ TiB disk usage during quantification!
+            [ [ 0, 0,10], qbf__args("C4/6x6_3_connect2_bwnib.qcir") ],
+            [ [ 8, 0,00], qbf__args("C4/6x6_9_connect3_bwnib.qcir") ],
+          # [ [ ?, ?,??], qbf__args("C4/6x6_11_connect4_bwnib.qcir") ], # Adiar : 1+ TiB disk usage!
+            # D/ (Domineering)
+            [ [ 0, 0,10], qbf__args("2x2_2_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("2x3_4_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("2x4_4_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("2x5_6_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("2x6_6_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("3x2_2_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("3x3_4_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("3x4_6_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("3x6_6_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("3x5_8_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("4x2_5_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("4x3_7_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("4x4_8_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("4x5_11_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("4x6_12_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("5x2_6_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("5x3_8_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("5x4_10_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("5x5_13_bwnib.qcir") ],
+            [ [ 0, 0,30], qbf__args("5x6_11_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("6x2_6_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("6x3_10_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("6x4_12_bwnib.qcir") ],
+            [ [ 0, 0,30], qbf__args("6x5_11_bwnib.qcir") ],
+            [ [ 0,12,00], qbf__args("6x6_11_bwnib.qcir") ],
+            # EP/ (Evader-Pursuer)
+            [ [ 0, 0,10], qbf__args("4x4_3_e-4-1_p-2-3_bwnib") ],
+            [ [ 0, 3,00], qbf__args("4x4_21_e-4-1_p-1-2_bwnib") ],
+            [ [ 0, 0,10], qbf__args("8x8_7_e-8-1_p-3-4_bwnib") ],
+            [ [ 0, 2,00], qbf__args("8x8_11_e-8-1_p-2-3_bwnib") ],
+            # EP-dual/ (Evader-Pursuer from the other's perspective)
+            [ [ 0, 0,10], qbf__args("4x4_2_e-4-1_p-1-2_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("4x4_10_e-4-1_p-2-3_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("8x8_6_e-8-1_p-2-3_bwnib.qcir") ],
+            [ [ 0, 4,00], qbf__args("8x8_10_e-8-1_p-3-4_bwnib.qcir") ],
         ]
     },
     # --------------------------------------------------------------------------
