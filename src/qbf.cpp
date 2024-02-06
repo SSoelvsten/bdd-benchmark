@@ -1909,7 +1909,7 @@ solve(Adapter& adapter, qcir& q,
               << "  | | | time (ms)             " << duration_ms(t_start,t_end) << "\n";
 
     if (g.is<qcir::output_gate>()) {
-      std::cout << "  | Prefix\n";
+      std::cout << "  | Prenex\n";
     }
     std::cout << std::flush;
 #endif
