@@ -26,7 +26,7 @@ build:
 		mkdir -p ../out/$$package ; \
 		mkdir -p ../out/$$package/bdd ; \
 		for benchmark in 'apply' 'game-of-life' 'hamiltonian' 'picotrav' 'qbf' 'queens' 'tic-tac-toe' ; do \
-			make ${MAKE_FLAGS} $$package'_'$$benchmark'_bdd' ; \
+			$(MAKE) ${MAKE_FLAGS} $$package'_'$$benchmark'_bdd' ; \
 		done ; \
 	done
 
@@ -36,7 +36,7 @@ build:
 		mkdir -p ../out/$$package ; \
 		mkdir -p ../out/$$package/zdd ; \
 		for benchmark in 'apply' 'game-of-life' 'hamiltonian' 'picotrav' 'queens' 'tic-tac-toe' ; do \
-			make ${MAKE_FLAGS} $$package'_'$$benchmark'_zdd' ; \
+			$(MAKE) ${MAKE_FLAGS} $$package'_'$$benchmark'_zdd' ; \
 		done ; \
 	done
 
