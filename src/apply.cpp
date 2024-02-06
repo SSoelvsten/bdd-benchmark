@@ -497,10 +497,15 @@ int run_apply(int argc, char** argv)
     // Reconstruct DDs
     std::array<typename Adapter::dd_t, inputs> inputs_dd;
 
+    size_t total_time = 0;
+
     for (size_t i = 0; i < inputs; ++i) {
       const time_point t_rebuild_before = now();
       inputs_dd.at(i) = reconstruct(adapter, inputs_binary.at(i), vm);
       const time_point t_rebuild_after = now();
+
+      const size_t load_time = duration_ms(t_rebuild_before, t_rebuild_after);
+      total_time += load_time;
 
       std::cout << "\n"
                 << "  DD '" << input_files.at(i) << "'\n"
@@ -525,14 +530,22 @@ int run_apply(int argc, char** argv)
     }
     const time_point t_apply_after = now();
 
+    const size_t apply_time = duration_ms(t_apply_before, t_apply_after);
+    total_time += apply_time;
+
     std::cout << "\n"
               << "  Apply ( " << option_str(oper_opt) << " ):\n"
               << "  | size (nodes)              " << adapter.nodecount(result) << "\n"
               << "  | satcount                  " << adapter.satcount(result) << "\n"
-              << "  | time (ms)                 " << duration_ms(t_apply_before, t_apply_after) << "\n"
+              << "  | time (ms)                 " << apply_time << "\n"
               << std::flush;
 
     // =========================================================================
+
+    std::cout << "\n"
+              << "  total time (ms)             " << total_time << "\n"
+              << std::flush;
+
     return 0;
   });
 }

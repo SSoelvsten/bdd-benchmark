@@ -2024,7 +2024,7 @@ int run_qbf(int argc, char** argv)
 
     const auto [ sat_res, witness, stats ] = solve(adapter, q, variable_order);
 
-    std::cout << "  | solving time (ms)         " << stats.solve_time << "\n"
+    std::cout << "  | total time (ms)           " << stats.solve_time << "\n"
               << "  | | matrix                  " << (stats.solve_time - stats.prenex_time) << "\n"
               << "  | | prenex                  " << stats.prenex_time << "\n"
               << "  | cache (max)               " << stats.cache.max_size << "\n"

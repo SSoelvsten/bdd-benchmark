@@ -512,7 +512,7 @@ def run(remote, branch):
 
     (run_fail, run_output) = run_subprocess([f"{exec_name} {args}"], ".", print_benchmark)
 
-    time = int(re.findall(r".*time.*\s*([0-9\.]+)\s*", run_output)[-1])
+    time = int(re.findall(r".*\s*total time.*\s*([0-9\.]+)\s*", run_output)[0])
 
     if not print_benchmark:
         if run_fail:
