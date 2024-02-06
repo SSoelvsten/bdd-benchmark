@@ -43,8 +43,8 @@ libraries.
   An easy-to-use yet extensive implementation with depth-first algorithms using
   a unique node table and memoization. It also supports variable reordering.
 
-  We use the version from [here](https://github.com/SSoelvsten/BuDDy) that is set
-  up for building with CMake.
+  We use [this](https://github.com/SSoelvsten/BuDDy) version that builds using
+  CMake and has been updated slightly.
 
 
 - [**CAL**](https://github.com/SSoelvsten/cal):
@@ -53,24 +53,24 @@ libraries.
   Unlike Adiar it also supports sharing of nodes between BDDs at the cost of
   memoization and garbage collection.
 
-  We use the [revived version](https://github.com/SSoelvsten/cal) which has
-  CMake support and a C++ API.
+  We use the [revived version](https://github.com/SSoelvsten/cal) with an
+  extended C API, CMake support and a C++ API.
 
 
 - **CUDD**:
   Probably the most popular BDD package of all. It uses depth-first algorithms
-  and a unique node table and memoization and also supports complement edges,
-  Zero-suppressed Decision Diagrams, and variable reordering.
+  and a unique node table, memoization and complement edges, variable reordering,
+  and supports Zero-suppressed Decision Diagrams.
 
-  We use a version 3.0.0 modified to extend its C++ API. This version can be
-  found here.
-  [here](https://github.com/SSoelvsten/cudd).
+  We use [this modified v3.0](https://github.com/SSoelvsten/cudd) in which its
+  C++ API has been extended.
 
 
 - [**Sylvan**](https://github.com/trolando/sylvan):
   A parallel (multi-core) implementation with depth-first algorithms using a
   unique node table and memoization. It also uses complement edges and supports
   Zero-suppressed Decision Diagrams.
+
 
 We hope to extend the number of packages. See
 [issue #12](https://github.com/SSoelvsten/bdd-benchmark/issues/12) for a list
@@ -90,15 +90,23 @@ For comparability, we will enforce all packages to follow the same settings.
 
 
 ### Dependencies
-Almost packages interface with CMake or GNU Autotools, which makes installation
-very simple after having initialised all submodules using the following command.
+All packages, but CUDD, use CMake to build. This makes compilation and linking
+very simple. One merely has to initialise all submodules (recursively) using the
+following command.
 
 ```
 git submodule update --init --recursive
 ```
 
-This also requires *CMake* and a *C++* compiler of your choice. The *Picotrav*
-benchmark requires GNU Bison and Flex, which can be installed with.
+To build, one needs *CMake* and a *C++* compiler of your choice. On Ubuntu, one
+can obtain these with the following command:
+
+```bash
+apt install cmake g++
+```
+
+The *Picotrav* benchmark requires GNU Bison and Flex. On Ubuntu, these can be
+installed with.
 
 ```bash
 apt install bison flex
@@ -106,17 +114,20 @@ apt install bison flex
 
 **Adiar**
 
-Adiar also has dependencies on the *Boost Library*, which can be installed as follows
+Adiar also has dependencies on the *Boost Library*. On Ubuntu, these can be
+installed as follows
 ```bash
 apt install libboost-all-dev
 ```
 
 **CUDD**
 
-The project has been built on Linux and tested on Ubuntu 18.04 and 20.04. On
-*Windows Subsystem for Linux* or *Cygwin* the automake installation will fail
-due to _\r\n_ line endings. To resolve this, first install dos2unix, then
-convert the line endings for the relevant files as shown below in the CUDD
+The project has been built on Linux and tested on Ubuntu 18.04 through 22.04
+and Fedora 36+.
+
+On *Windows Subsystem for Linux* or *Cygwin* the automake installation will
+fail due to *\r\n* line endings. To resolve this, first install *dos2unix*,
+then convert the line endings for the relevant files as shown below in the CUDD
 folder.
 
 ```bash
@@ -125,12 +136,23 @@ find . -name \*.m4|xargs dos2unix
 find . -name \*.ac|xargs dos2unix
 find . -name \*.am|xargs dos2unix
 ```
-Alternatively, run `make clean`.
+Alternatively, run the `make clean` target in this repositories root folder.
 
 Installation of CUDD seems neither possible without also building the
 documentation. For this, you need a local installation of LaTeX.
 ```bash
-sudo apt install texlive texlive-latex-extra
+apt install texlive texlive-latex-extra
+```
+
+Building and linking CUDD in spite of its lack of CMake support is handled in
+the `make build` script (see below). If you want to do it manually instead,
+write the following lines to build and install it to CMake's *build* folder:
+```bash
+cd external/cudd
+autoreconf
+./configure --prefix ../../<cmake-build-folder>/cudd/ --enable-obj
+make MAKEINFO=true
+make install
 ```
 
 **Sylvan**
@@ -160,13 +182,12 @@ The benchmarks can be built with multiple options:
 | `BDD_BENCHMARK_WAIT`  | `WAIT`        | If *ON*, pause before deinitialising the BDD package and exiting. |
 
 Each benchmark below also has its own *make* target too for ease of use. You may
-specify as a make variable the instance size *N* to solve, the amount of
-*M*emory (MiB) to use in, and the *V*ariant (i.e. BDD package). For example, to
-solve the combinatorial Queens with BuDDy for *N* = 10 and with 256 MiB of
-memory you run the following target.
+specify as a make variable the amount of *M*emory (MiB) to use by the *V*ariant\
+(i.e. BDD package) to be tested. For example, to solve the combinatorial Queens
+problem with BuDDy with 256 MiB of memory you run the following target.
 
 ```bash
-make run/queens V=buddy N=10 M=256
+make run/queens V=buddy M=256
 ```
 
 Note, that the memory you set is only for the BDD package. So, the program will
@@ -179,7 +200,7 @@ diagrams, but if possible, then the type can be chosen as part of the make
 target.
 
 ```bash
-make run/queens/zdd V=adiar N=10 M=256
+make run/queens/zdd V=adiar M=256
 ```
 
 Some benchmarks allow for choosing between a set of *O*ptions, e.g. variable
@@ -193,7 +214,6 @@ All Make variables have default values when unspecified.
 
 
 ## Benchmarks
-
 
 ### Apply
 
@@ -221,7 +241,7 @@ make run/apply F1=benchmarks/apply/x0.bdd F2=benchmarks/apply/x1.bdd O=and
 
 Solves the following problem:
 
-> Given N<sub>1</sub> and N<sub>2</sub>, how many "Garden of Edens" exist of size
+> Given N<sub>1</sub> and N<sub>2</sub>, how many *Garden of Edens* exist of size
 > N<sub>1</sub>xN<sub>2</sub> in Conway's Game of Life?
 
 The search can optionally be restricted to *symmetrical* Garden of Edens:
@@ -249,7 +269,7 @@ All symmetries use a variable order where the pre/post variables are zipped and
 and follow a row-major ordering.
 
 ```bash
-make run/game-of-life NR=5 NC=4
+make run/game-of-life NR=5 NC=4 O=mirror-diagonal
 ```
 
 
@@ -369,9 +389,7 @@ in the order they were declared. Otherwise for `df` and `level`, gates are
 resolved in a bottom-up order based on their depth within the circuit.
 
 The *.qcir* file is given with the `-f` parameter (*F* Make variable) and the
-ordering with `-o` (*O* for Make). Some small inputs can be found in the
-*benchmarks/qbf* folder together with links to larger and more interesting
-inputs.
+ordering with `-o` (*O* for Make).
 
 ```bash
 make run/qbf F=benchmarks/qcir/example_a.blif O=df
@@ -385,7 +403,7 @@ Solves the following problem:
 > without threatening eachother?
 
 Our implementation of these benchmarks are based on the description of
-[[Kunkle10](#references)]. We construct an BDD row-by-row that represents
+[[Kunkle10](#references)]. Row by row, we construct an BDD that represents
 whether the row is in a legal state: is at least one queen placed on each row
 and is it also in no conflicts with any other? On the accumulated BDD we then
 count the number of satisfying assignments.
@@ -408,8 +426,8 @@ nought after the other. We add these constraints in a different order than
 intermediate result.
 
 The interesting thing about this benchmark is, that even though the BDDs grow
-near-exponentially, the number of variables is fixed (64) and the number of
-Apply operations is too (76).
+near-exponentially, the initial BDD size grows polynomially with N, it always uses
+64 variables number and 76 Apply operations.
 
 ```bash
 make run/tic-tac-toe N=20
