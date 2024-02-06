@@ -323,10 +323,10 @@ run/queens/zdd:
 run/tic-tac-toe:
 	$(MAKE) run/tic-tac-toe/bdd
 
-run/tic-tac-toe/bdd: N := 20
+run/tic-tac-toe/bdd: N := 19
 run/tic-tac-toe/bdd:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_tic-tac-toe_bdd -N $(N) -M $(M) 2>&1 | tee -a out/VARIANT/bdd/tic-tac-toe.out)
 
-run/tic-tac-toe/zdd: N := 20
+run/tic-tac-toe/zdd: N := 19
 run/tic-tac-toe/zdd:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_tic-tac-toe_zdd -N $(N) -M $(M) 2>&1 | tee -a out/VARIANT/zdd/tic-tac-toe.out)
