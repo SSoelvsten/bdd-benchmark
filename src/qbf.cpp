@@ -554,13 +554,7 @@ private:
           if (i != std::sregex_iterator()) {
             const auto Q    = quant_gate::parse_type((*i)[1].str());
             const auto args = __parse_lit_list((*i)[2].str(), var);
-
-            // Merge Quantification gates in prenex
-            if (!prenex_buffer.empty() && prenex_buffer.back().first == Q) {
-              prenex_buffer.back().second.insert(prenex_buffer.back().second.end(), args.begin(), args.end());
-            } else {
-              prenex_buffer.push_back(std::make_pair(Q, args));
-            }
+            prenex_buffer.push_back(std::make_pair(Q, args));
 
             continue;
           }
@@ -1096,7 +1090,8 @@ public:
     // ---------------------------------------------------
     // Case: Consecutively the same quantifier in Prenex
     if (m_has_output_gate && i_gate.is<quant_gate>() && i_gate.as<quant_gate>().quant == Q) {
-      // TODO: add 'int_vars' to 'i_gate'
+      i_gate.as<quant_gate>().vars.insert(int_vars.begin(), int_vars.end());
+      return i;
     }
 
     // ---------------------------------------------------
