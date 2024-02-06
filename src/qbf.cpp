@@ -139,7 +139,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////
     /// \brief Operator to be applied in this gate.
     ////////////////////////////////////////////////////////////////////////////
-    type_t nGateype;
+    type_t ngate_type;
 
     ////////////////////////////////////////////////////////////////////////////
     /// \brief List of literals to accumulate with the operator.
@@ -155,12 +155,12 @@ public:
 
     ngate(const type_t& ng_t,
                const std::vector<int>& lits)
-      : nGateype(ng_t), lit_list(lits)
+      : ngate_type(ng_t), lit_list(lits)
     { }
 
     ngate(const std::string& ng_t,
                const std::vector<int>& lits)
-      : nGateype(parse_type(ng_t)), lit_list(lits)
+      : ngate_type(parse_type(ng_t)), lit_list(lits)
     { }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -168,9 +168,9 @@ public:
     to_string() const
     {
       std::stringstream ss;
-      ss << (  nGateype == AND ? "and"
-            :  nGateype == OR  ? "or"
-            :/*nGateype == XOR*/ "xor")
+      ss << (  ngate_type == AND ? "and"
+            :  ngate_type == OR  ? "or"
+            :/*ngate_type == XOR*/ "xor")
          << "( ";
       for (const int i : lit_list) { ss << i << " "; }
       ss << ")";
@@ -1811,7 +1811,7 @@ solve(Adapter& adapter, qcir& q,
            (const typename Adapter::dd_t &dd_1,
             const typename Adapter::dd_t &dd_2)
          { // TODO: move switch outside of lambda?
-           switch (g.nGateype) {
+           switch (g.ngate_type) {
            case qcir::ngate::AND:
              return dd_1 & dd_2;
            case qcir::ngate::OR:
