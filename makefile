@@ -121,6 +121,9 @@ help:
 	@echo ""
 	@echo "   + NR=<int> NC=<int> (default: N)"
 	@echo "   | Alternative to using N to specify a non-square grid."
+	@echo ""
+	@echo "   + O=<none,mirror-vertical,mirror-quad,mirror-diag,mirror-double_diag,rotate-90,rotate-180> (default: none)"
+	@echo "   | If not 'none' search only for symmetrical solutions."
 
 	@echo ""
 	@echo "run/hamiltonian/[bdd,zdd]"
