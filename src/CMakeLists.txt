@@ -40,8 +40,7 @@ macro(add_bdd_benchmark NAME)
 
   # CUDD
   add_executable(cudd_${NAME}_bdd cudd/${NAME}_bdd.cpp)
-  target_link_libraries(cudd_${NAME}_bdd PRIVATE "${CUDD_LIB_FILES}")
-  target_include_directories(cudd_${NAME}_bdd PRIVATE "${CUDD_BUILD_DIR}/include")
+  target_link_libraries(cudd_${NAME}_bdd PRIVATE cudd)
   if (BDD_BENCHMARK_GRENDEL)
     target_compile_definitions(cudd_${NAME}_bdd PRIVATE BDD_BENCHMARK_GRENDEL)
   endif()
@@ -82,8 +81,7 @@ macro(add_zdd_benchmark NAME)
 
   # CUDD
   add_executable(cudd_${NAME}_zdd cudd/${NAME}_zdd.cpp)
-  target_link_libraries(cudd_${NAME}_zdd PRIVATE "${CUDD_LIB_FILES}")
-  target_include_directories(cudd_${NAME}_zdd PRIVATE "${CUDD_BUILD_DIR}/include")
+  target_link_libraries(cudd_${NAME}_zdd PRIVATE cudd)
   if (BDD_BENCHMARK_GRENDEL)
     target_compile_definitions(cudd_${NAME}_zdd PRIVATE BDD_BENCHMARK_GRENDEL)
   endif()
