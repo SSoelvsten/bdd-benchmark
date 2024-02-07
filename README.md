@@ -122,37 +122,10 @@ apt install libboost-all-dev
 
 **CUDD**
 
-The project has been built on Linux and tested on Ubuntu 18.04 through 22.04
-and Fedora 36+.
-
-On *Windows Subsystem for Linux* or *Cygwin* the automake installation will
-fail due to *\r\n* line endings. To resolve this, first install *dos2unix*,
-then convert the line endings for the relevant files as shown below in the CUDD
-folder.
-
-```bash
-apt install dos2unix
-find . -name \*.m4|xargs dos2unix
-find . -name \*.ac|xargs dos2unix
-find . -name \*.am|xargs dos2unix
-```
-Alternatively, run the `make clean` target in this repositories root folder.
-
-Installation of CUDD seems neither possible without also building the
+Installation of CUDD seems seems not possible without also building the
 documentation. For this, you need a local installation of LaTeX.
 ```bash
 apt install texlive texlive-latex-extra
-```
-
-Building and linking CUDD in spite of its lack of CMake support is handled in
-the `make build` script (see below). If you want to do it manually instead,
-write the following lines to build and install it to CMake's *build* folder:
-```bash
-cd external/cudd
-autoreconf
-./configure --prefix ../../<cmake-build-folder>/cudd/ --enable-obj
-make MAKEINFO=true
-make install
 ```
 
 **Sylvan**
