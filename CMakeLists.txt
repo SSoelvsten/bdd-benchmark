@@ -43,6 +43,10 @@ message(STATUS "")
 # External
 # ============================================================================ #
 
+include(ExternalProject)
+find_program(AUTORECONF_EXE NAMES autoreconf DOC "autoreconf is required to build CUDD")
+find_program(MAKE_EXE NAMES gmake make DOC "make is required to build CUDD")
+
 # ---------------------------------------------------------------------------- #
 # BDD Packages
 # Adiar Package (Steffan Sølvsten - Aarhus University, Denmark)
@@ -50,7 +54,7 @@ if (BDD_BENCHMARK_STATS)
   set(ADIAR_STATS ON)
 endif(BDD_BENCHMARK_STATS)
 
-add_subdirectory (external/adiar adiar)
+add_subdirectory (external/adiar adiar EXCLUDE_FROM_ALL)
 
 # BuDDy Package (Jørn Lind-Nielsen - Copenhagen University, Denmark)
 set(BUDDY_EXAMPLES OFF)
@@ -58,27 +62,51 @@ if (BDD_BENCHMARK_STATS)
   set(BUDDY_STATS ON)
 endif(BDD_BENCHMARK_STATS)
 
-add_subdirectory (external/BuDDy bdd)
+add_subdirectory (external/BuDDy bdd EXCLUDE_FROM_ALL)
 
 # Cal Package (Jagesh Sanghavi, Rajeev Ranjan et al. - University of California, United States of America)
-add_subdirectory (external/cal cal)
+add_subdirectory (external/cal cal EXCLUDE_FROM_ALL)
 
-# Cudd Package (Fabio Somenzi - University of Colorado Boulder, United States of America)
-# Build separately in the 'make build' target.
-set(CUDD_SRC_DIR "${PROJECT_SOURCE_DIR}/external/cudd")
-set(CUDD_BUILD_DIR "${PROJECT_SOURCE_DIR}/build/cudd")
-set(CUDD_LIB_FILES "${CUDD_BUILD_DIR}/lib/libcudd.a")
+# CUDD Package (Fabio Somenzi - University of Colorado Boulder, United States of America)
+set(CUDD_SRC_DIR ${PROJECT_SOURCE_DIR}/external/cudd)
+set(CUDD_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/cudd-build)
+set(CUDD_INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/cudd-install)
+if (BDD_BENCHMARK_STATS)
+  string(APPEND CUDD_CPPFLAGS -DDD_STATS)
+endif(BDD_BENCHMARK_STATS)
+
+string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_UPPER)
+set(CUDD_CFLAGS "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${CMAKE_BUILD_TYPE_UPPER}} -Wall -Wextra -std=c11")
+set(CUDD_CXXFLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER}} -Wall -Wextra -std=c++11")
+# `cudd-build` is the target that builds CUDD and installs it in `CUDD_INSTALL_DIR`
+ExternalProject_Add(cudd-build
+  PREFIX ${CUDD_BUILD_DIR}
+  SOURCE_DIR ${CUDD_SRC_DIR}
+  DOWNLOAD_COMMAND ${AUTORECONF_EXE} ${CUDD_SRC_DIR}
+  CONFIGURE_COMMAND ${CUDD_SRC_DIR}/configure --srcdir=${CUDD_SRC_DIR} --prefix=${CUDD_INSTALL_DIR} --enable-obj CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} CPPFLAGS=${CUDD_CPPFLAGS} CFLAGS=${CUDD_CFLAGS} CXXFLAGS=${CUDD_CXXFLAGS}
+  BUILD_COMMAND ${MAKE_EXE} install
+  BUILD_BYPRODUCTS ${CUDD_INSTALL_DIR}/lib/libcudd.a ${CUDD_INSTALL_DIR}/include/cudd.h ${CUDD_INSTALL_DIR}/include/cuddObj.hh
+  USES_TERMINAL_CONFIGURE ON
+  USES_TERMINAL_BUILD ON)
+# `cudd` is the target used for `target_link_libraries(… cudd)`
+add_library(cudd STATIC IMPORTED)
+add_dependencies(cudd cudd-build)
+# Already create the include directory now such that we can add it to the `cudd` target
+file(MAKE_DIRECTORY ${CUDD_INSTALL_DIR}/include)
+set_target_properties(cudd PROPERTIES
+  IMPORTED_LOCATION ${CUDD_INSTALL_DIR}/lib/libcudd.a
+  INTERFACE_INCLUDE_DIRECTORIES ${CUDD_INSTALL_DIR}/include)
 
 # Sylvan Package (Tom van Dijk - University of Twente, Netherlands)
 if (BDD_BENCHMARK_STATS)
   set(SYLVAN_STATS ON)
 endif(BDD_BENCHMARK_STATS)
 
-add_subdirectory (external/sylvan sylvan)
+add_subdirectory (external/sylvan sylvan EXCLUDE_FROM_ALL)
 
 # ---------------------------------------------------------------------------- #
 # BLIF parser
-add_subdirectory (external/blifparse libblifparse)
+add_subdirectory (external/blifparse libblifparse EXCLUDE_FROM_ALL)
 
 # ============================================================================ #
 # Examples

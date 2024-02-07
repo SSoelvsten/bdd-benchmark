@@ -17,14 +17,6 @@ build:
                                          -D BDD_BENCHMARK_WAIT=$(WAIT) \
                                    ..
 
-  # Installation of CUDD
-	@echo -e "\n\nInstall CUDD"
-	@[ -d "build/cudd/" ] || (cd external/cudd \
-														&& autoreconf \
-														&& ./configure --prefix ${CURDIR}/build/cudd/ --enable-obj \
-														&& make MAKEINFO=true \
-														&& make install)
-
   # Make out folder
 	@mkdir -p out/
 
