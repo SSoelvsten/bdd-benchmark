@@ -15,7 +15,6 @@ build:
 	@mkdir -p build/ && cd build/ && cmake -D CMAKE_BUILD_TYPE=$(BUILD_TYPE) \
                                          -D BDD_BENCHMARK_STATS=$(STATS) \
                                          -D BDD_BENCHMARK_WAIT=$(WAIT) \
-																				 -D CMAKE_EXPORT_COMPILE_COMMANDS=1 \
                                    ..
 
   # Installation of CUDD
