@@ -1,3 +1,6 @@
+#include <cstdint>
+#include <cstdlib>
+
 constexpr size_t UNKNOWN = static_cast<size_t>(-1);
 
 // =============================================================================
@@ -93,7 +96,7 @@ const size_t expected_queens[28] = {
 // Expected numbers taken from "Parallel Disk-Based Computation for Large,
 // Monolithic Binary Decision Diagrams" by Daniel Kunkle, Vlad Slavici, and Gene
 // Cooperman.
-uint64_t expected_tic_tac_toe[25] = {
+const uint64_t expected_tic_tac_toe[25] = {
   0,
   0,
   0,

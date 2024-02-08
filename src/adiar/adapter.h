@@ -1,5 +1,7 @@
 #include <adiar/adiar.h>
 
+#include "../common.h"
+
 class adiar_adapter
 {
 protected:

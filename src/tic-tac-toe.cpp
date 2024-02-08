@@ -1,4 +1,4 @@
-#include <functional>
+#include <array>          // std::array<>
 #include <vector>
 
 #include "common.cpp"

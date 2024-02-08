@@ -12,7 +12,6 @@
 // Files, Streams, and so on...
 #include <filesystem>
 #include <fstream>
-#include <iterator>
 
 // Types
 #include <stdint.h>

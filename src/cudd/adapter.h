@@ -1,10 +1,15 @@
 #include <cstddef>
 #include <cstdio>
+#include <functional>
+#include <iostream>
+#include <limits>
 
 #include "cudd.h"
 #include "cuddObj.hh"
 
-unsigned int
+#include "../common.h"
+
+inline unsigned int
 cudd_cachesize(int varcount)
 {
   const size_t number_of_buckets = CUDD_UNIQUE_SLOTS * varcount;
@@ -28,7 +33,7 @@ cudd_cachesize(int varcount)
   return y;
 }
 
-unsigned long
+inline unsigned long
 cudd_memorysize()
 {
   constexpr size_t CUDD_MAX = std::numeric_limits<unsigned long>::max();

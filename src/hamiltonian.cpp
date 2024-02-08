@@ -1,8 +1,11 @@
+#include <algorithm>      // std::sort(), ...
+#include <cmath>          // std::abs(), std::min(), ...
+#include <functional>     // std::function<>, ...
+#include <sstream>        // std::istringstream
+#include <utility>
+
 #include "common.cpp"
 #include "expected.h"
-
-#include <unordered_map>
-#include <utility>
 
 #ifdef BDD_BENCHMARK_STATS
 size_t largest_bdd = 0;
@@ -536,8 +539,8 @@ namespace enc_gadgets
       return { cells() };
     }
     case enc_opt::CRT__UNARY: {
-      // Find the smallest number of prime numbers whos least common multiple is
-      // larger than half the number of cells.
+      // Find the smallest number of prime numbers whose least common multiple
+      // is larger than half the number of cells.
       const std::vector<int> candidates[5] = {
         { 7 },
         { 3, 5 },
@@ -551,7 +554,7 @@ namespace enc_gadgets
         int lcm = 1;
 
         for (const int p : candidate)
-          lcm  *= p;
+          lcm *= p;
 
         if (cells() / 2 < lcm)
           return candidate;

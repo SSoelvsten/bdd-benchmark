@@ -1,6 +1,12 @@
 #include <cstddef>
+#include <cstdint>
 #include <cstdio>
+#include <functional>
+#include <iostream>
+#include <string>
+#include <vector>
 
+#include <sstream> // missing in `calObj.hh`
 #include <calObj.hh>
 
 class cal_bdd_adapter
