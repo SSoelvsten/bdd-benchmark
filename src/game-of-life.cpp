@@ -1,9 +1,10 @@
-#include "common.cpp"
-#include "expected.h"
-
 #include <set>
+#include <sstream>        // std::istringstream
 #include <unordered_map>
 #include <utility>
+
+#include "common.cpp"
+#include "expected.h"
 
 // ============================================================================================== //
 //                             PRIMING OF VARIABLES WITH TRANSITIONS                              //
@@ -736,7 +737,7 @@ public:
 
   /// \brief Obtain a cell corresponding to a variable.
   ///
-  /// \remark If symmtries are in use and `x` is a `prime::post` variable, then this does **not**
+  /// \remark If symmetries are in use and `x` is a `prime::post` variable, then this does **not**
   ///         account for any variable mapping collisions.
   cell cell_from_var(const int x) const
   {
@@ -746,7 +747,7 @@ public:
 
   /// \brief Obtain variable for a cell.
   ///
-  /// \remark If symmtries are in use and `x` is a `prime::post` variable, then this does **not**
+  /// \remark If symmetries are in use and `x` is a `prime::post` variable, then this does **not**
   ///         account for any variable mapping collisions.
   cell operator[] (const int& x) const
   {

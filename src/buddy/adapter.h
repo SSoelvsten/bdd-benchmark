@@ -1,4 +1,11 @@
+#include <cmath>
+#include <cstdint>
+#include <functional>
+#include <iostream>
+
 #include <bdd.h>
+
+#include "../common.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Initialisation of BuDDy. The size of each node in the unique table is 6*4 =
@@ -42,7 +49,8 @@ struct buddy_init_size
   int cache_size;
 };
 
-buddy_init_size compute_init_size()
+inline buddy_init_size
+compute_init_size()
 {
   // We need to maximise x and y in the following system of inequalities:
   //              24x + 16y <= M , x = y * CACHE_RATIO

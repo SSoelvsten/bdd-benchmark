@@ -1,24 +1,10 @@
-#include <algorithm>      // std::sort(), ...
-#include <array>          // std::array<>
-#include <assert.h>       // Assertions
-#include <cmath>          // std::abs(), std::min(), ...
 #include <iostream>       // std::cout, std::cerr, std::getchar()
-#include <iterator>       // iterators
 #include <ostream>        // output streams
-#include <functional>     // std::function<>, ...
 #include <stdexcept>      // std::invalid_argument
 #include <string>         // std::string
-#include <sstream>        // std::istringstream
 #include <vector>         // std::vector
 
-////////////////////////////////////////////////////////////////////////////////
-// Global constants
-
-/// Value based on recommendation for BuDDy
-constexpr size_t CACHE_RATIO = 64u;
-
-/// Initial size taken from CUDD defaults
-constexpr size_t INIT_UNIQUE_SLOTS_PER_VAR = 256u;
+#include "common.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Timing

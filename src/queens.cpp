@@ -1,3 +1,5 @@
+#include <sstream>        // std::istringstream
+
 #include "common.cpp"
 #include "expected.h"
 

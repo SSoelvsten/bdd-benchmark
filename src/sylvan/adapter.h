@@ -1,7 +1,13 @@
+#include <functional>
+#include <iostream>
+
 #include <sylvan.h>
 #include <sylvan_table.h>
 
 #include <sylvan_obj.hpp>
+
+#include "../common.h"
+
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Running code in a LACE context
@@ -38,16 +44,6 @@ TASK_1(int, lace_lambda, const std::function<int()>*, f)
 ///
 /// - sylvan_set_granularity: 1 for "use cache for every operation".
 ////////////////////////////////////////////////////////////////////////////////
-size_t log2(size_t n)
-{
-  size_t exp = 1u;
-  size_t val = 2u; // 2^1
-  while (val < n) {
-    val <<= 1u;
-    exp++;
-  }
-  return exp;
-}
 
 
 class sylvan_bdd_adapter
@@ -79,7 +75,7 @@ public:
     sylvan::sylvan_set_limits(// Set memory limit
                               memory_bytes,
                               // Set (exponent) of cache ratio
-                              log2(CACHE_RATIO),
+                              ilog2(CACHE_RATIO),
 #ifndef BDD_BENCHMARK_GRENDEL
                               // Initialise unique node table to full size
                               0
