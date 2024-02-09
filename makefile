@@ -297,7 +297,10 @@ run/qbf/bdd: F := "benchmarks/qbf/example_a.qcir"
 run/qbf/bdd:
 	@$(subst VARIANT,$(V),./build/src/VARIANT_qbf_bdd -f $(F) -M $(M) -o $(O) | tee -a out/VARIANT/bdd/qbf.out)
 
-# TODO: run/qbf/zdd
+run/qbf/zdd:
+	@echo "QBF Solver"
+	@echo ""
+	@echo "  Not yet supported (See #78)"
 
 # ============================================================================ #
 #  RUN: Queens
