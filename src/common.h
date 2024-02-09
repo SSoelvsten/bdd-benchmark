@@ -26,7 +26,7 @@ extern std::string temp_path;
 /// \brief Integer logarithm floor(log2(n))
 ///
 /// \param n  Must not be 0
-inline unsigned
+constexpr unsigned
 ilog2(unsigned long long n)
 {
   assert(n > 0);
