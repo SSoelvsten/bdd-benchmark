@@ -19,14 +19,14 @@ cudd_cachesize(int varcount)
   const size_t number_of_buckets = CUDD_UNIQUE_SLOTS * varcount;
 
   constexpr size_t sizeof_DdSubtable = 8 + 9 * 4 + 8;
-  const size_t buckets_bytes = number_of_buckets * sizeof_DdSubtable;
+  const size_t buckets_bytes         = number_of_buckets * sizeof_DdSubtable;
 
-  const size_t bytes_remaining = static_cast<size_t>(M)*1024u*1024u - buckets_bytes;
+  const size_t bytes_remaining = static_cast<size_t>(M) * 1024u * 1024u - buckets_bytes;
 
   // CUDD may increase the number of buckets, thereby decreasing the space left
   // for nodes. This will skew the ratio in favour of the cache, but this is the
   // best we can do.
-  constexpr size_t sizeof_DdNode = 2*4 + 3*8;
+  constexpr size_t sizeof_DdNode  = 2 * 4 + 3 * 8;
   constexpr size_t sizeof_DdCache = 4 * 8;
 
   // We need to maximise x and y in the following system of inequalities:
@@ -52,27 +52,36 @@ protected:
 
 protected:
   cudd_adapter(const int bdd_varcount, const int zdd_varcount)
-    : _mgr(bdd_varcount, zdd_varcount,
+    : _mgr(bdd_varcount,
+           zdd_varcount,
            CUDD_UNIQUE_SLOTS,
            cudd_cachesize(bdd_varcount + zdd_varcount),
-           cudd_memorysize()),
-      _varcount(bdd_varcount + zdd_varcount)
-  { }
+           cudd_memorysize())
+    , _varcount(bdd_varcount + zdd_varcount)
+  {}
 
   ~cudd_adapter()
-  { /* Do nothing */ }
+  { /* Do nothing */
+  }
 
 public:
   template <typename F>
-  int run(const F& f)
-  { return f(); }
+  int
+  run(const F& f)
+  {
+    return f();
+  }
 
   // Statistics
 public:
-  inline size_t allocated_nodes()
-  { return _mgr.ReadKeys(); }
+  inline size_t
+  allocated_nodes()
+  {
+    return _mgr.ReadKeys();
+  }
 
-  void print_stats()
+  void
+  print_stats()
   {
     std::cout << "\n"
               << "CUDD Statistics:\n"
@@ -82,14 +91,15 @@ public:
               << "   | node count (bdd):    " << _mgr.ReadNodeCount() << "\n"
               << "   | node count (zdd):    " << _mgr.zddReadNodeCount() << "\n"
               << "   | keys:                " << _mgr.ReadKeys() << "\n"
-              << "   | dead:                " <<  _mgr.ReadDead() << "\n"
+              << "   | dead:                " << _mgr.ReadDead()
+              << "\n"
 
-    // Commented lines are only available if 'DD_STATS' flag is set in CUDD compilation
+              // Commented lines are only available if 'DD_STATS' flag is set in CUDD compilation
 
-    // INFO(" | Cache:\n");
-    // INFO(" | | slots:               %zu\n", _mgr.ReadCacheUsedSlots());
-    // INFO(" | | lookups:             %zu\n", _mgr.ReadCacheLookUps());
-    // INFO(" | | hits:                %zu\n", _mgr.ReadCacheHits());
+              // INFO(" | Cache:\n");
+              // INFO(" | | slots:               %zu\n", _mgr.ReadCacheUsedSlots());
+              // INFO(" | | lookups:             %zu\n", _mgr.ReadCacheLookUps());
+              // INFO(" | | hits:                %zu\n", _mgr.ReadCacheHits());
 
               << "   Garbage Collections:\n"
               << "   | runs:                " << _mgr.ReadGarbageCollections() << "\n"
@@ -113,7 +123,8 @@ private:
 
   // Init and Deinit
 public:
-  cudd_bdd_adapter(int varcount) : cudd_adapter(varcount, 0)
+  cudd_bdd_adapter(int varcount)
+    : cudd_adapter(varcount, 0)
   { // Disable dynamic ordering
     _mgr.AutodynDisable();
 
@@ -121,97 +132,158 @@ public:
   }
 
 private:
-  template<typename IT>
-  inline BDD make_cube(IT rbegin, IT rend)
+  template <typename IT>
+  inline BDD
+  make_cube(IT rbegin, IT rend)
   {
     BDD res = top();
-    while (rbegin != rend) {
-      res = _mgr.bddVar(*(rbegin++)).Ite(res, bot());
-    }
+    while (rbegin != rend) { res = _mgr.bddVar(*(rbegin++)).Ite(res, bot()); }
     return res;
   }
 
-  inline BDD make_cube(const std::function<bool(int)> &pred)
+  inline BDD
+  make_cube(const std::function<bool(int)>& pred)
   {
     BDD res = top();
-    for (int i = _varcount-1; 0 <= i; --i) {
-      if (pred(i)) {
-        res = _mgr.bddVar(i).Ite(res, bot());
-      }
+    for (int i = _varcount - 1; 0 <= i; --i) {
+      if (pred(i)) { res = _mgr.bddVar(i).Ite(res, bot()); }
     }
     return res;
   }
 
   // BDD Operations
 public:
-  inline BDD top()
-  { return _mgr.bddOne(); }
+  inline BDD
+  top()
+  {
+    return _mgr.bddOne();
+  }
 
-  inline BDD bot()
-  { return _mgr.bddZero(); }
+  inline BDD
+  bot()
+  {
+    return _mgr.bddZero();
+  }
 
-  inline BDD ithvar(int i)
-  { return _mgr.bddVar(i); }
+  inline BDD
+  ithvar(int i)
+  {
+    return _mgr.bddVar(i);
+  }
 
-  inline BDD nithvar(int i)
-  { return ~_mgr.bddVar(i); }
+  inline BDD
+  nithvar(int i)
+  {
+    return ~_mgr.bddVar(i);
+  }
 
-  inline BDD apply_and(const BDD &f, const BDD &g)
-  { return f.And(g); }
+  inline BDD
+  apply_and(const BDD& f, const BDD& g)
+  {
+    return f.And(g);
+  }
 
-  inline BDD apply_or(const BDD &f, const BDD &g)
-  { return f.Or(g); }
+  inline BDD
+  apply_or(const BDD& f, const BDD& g)
+  {
+    return f.Or(g);
+  }
 
-  inline BDD apply_diff(const BDD &f, const BDD &g)
-  { return f.And(!g); }
+  inline BDD
+  apply_diff(const BDD& f, const BDD& g)
+  {
+    return f.And(!g);
+  }
 
-  inline BDD apply_imp(const BDD &f, const BDD &g)
-  { return f.Ite(g, _mgr.bddOne()); }
+  inline BDD
+  apply_imp(const BDD& f, const BDD& g)
+  {
+    return f.Ite(g, _mgr.bddOne());
+  }
 
-  inline BDD apply_xor(const BDD &f, const BDD &g)
-  { return f.Xor(g); }
+  inline BDD
+  apply_xor(const BDD& f, const BDD& g)
+  {
+    return f.Xor(g);
+  }
 
-  inline BDD apply_xnor(const BDD &f, const BDD &g)
-  { return f.Xnor(g); }
+  inline BDD
+  apply_xnor(const BDD& f, const BDD& g)
+  {
+    return f.Xnor(g);
+  }
 
-  inline BDD ite(const BDD &f, const BDD &g, const BDD &h)
-  { return f.Ite(g,h); }
+  inline BDD
+  ite(const BDD& f, const BDD& g, const BDD& h)
+  {
+    return f.Ite(g, h);
+  }
 
   template <typename IT>
-  inline BDD extend(const BDD &f, IT /*begin*/, IT /*end*/)
-  { return f; }
+  inline BDD
+  extend(const BDD& f, IT /*begin*/, IT /*end*/)
+  {
+    return f;
+  }
 
-  inline BDD exists(const BDD &f, int i)
-  { return f.ExistAbstract(_mgr.bddVar(i)); }
+  inline BDD
+  exists(const BDD& f, int i)
+  {
+    return f.ExistAbstract(_mgr.bddVar(i));
+  }
 
-  inline BDD exists(const BDD &f, const std::function<bool(int)> &pred)
-  { return f.ExistAbstract(make_cube(pred)); }
+  inline BDD
+  exists(const BDD& f, const std::function<bool(int)>& pred)
+  {
+    return f.ExistAbstract(make_cube(pred));
+  }
 
-  template<typename IT>
-  inline BDD exists(const BDD &f, IT rbegin, IT rend)
-  { return f.ExistAbstract(make_cube(rbegin, rend)); }
+  template <typename IT>
+  inline BDD
+  exists(const BDD& f, IT rbegin, IT rend)
+  {
+    return f.ExistAbstract(make_cube(rbegin, rend));
+  }
 
-  inline BDD forall(const BDD &f, int i)
-  { return f.UnivAbstract(_mgr.bddVar(i)); }
+  inline BDD
+  forall(const BDD& f, int i)
+  {
+    return f.UnivAbstract(_mgr.bddVar(i));
+  }
 
-  inline BDD forall(const BDD &f, const std::function<bool(int)> &pred)
-  { return f.UnivAbstract(make_cube(pred)); }
+  inline BDD
+  forall(const BDD& f, const std::function<bool(int)>& pred)
+  {
+    return f.UnivAbstract(make_cube(pred));
+  }
 
-  template<typename IT>
-  inline BDD forall(const BDD &f, IT rbegin, IT rend)
-  { return f.UnivAbstract(make_cube(rbegin, rend)); }
+  template <typename IT>
+  inline BDD
+  forall(const BDD& f, IT rbegin, IT rend)
+  {
+    return f.UnivAbstract(make_cube(rbegin, rend));
+  }
 
-  inline uint64_t nodecount(const BDD &f)
-  { return f.nodeCount(); }
+  inline uint64_t
+  nodecount(const BDD& f)
+  {
+    return f.nodeCount();
+  }
 
-  inline uint64_t satcount(const BDD &f)
-  { return this->satcount(f, _varcount); }
+  inline uint64_t
+  satcount(const BDD& f)
+  {
+    return this->satcount(f, _varcount);
+  }
 
-  inline uint64_t satcount(const BDD &f, const size_t vc)
-  { return f.CountMinterm(vc); }
+  inline uint64_t
+  satcount(const BDD& f, const size_t vc)
+  {
+    return f.CountMinterm(vc);
+  }
 
   inline std::vector<std::pair<int, char>>
-  pickcube(const BDD &f)
+  pickcube(const BDD& f)
   {
     std::string cudd_res(_varcount, '_');
     f.PickOneCube(cudd_res.data());
@@ -221,34 +293,37 @@ public:
       const char cudd_val = cudd_res.at(x);
       if (x == '_') { continue; }
 
-      res.push_back({ x, '0'+cudd_val });
+      res.push_back({ x, '0' + cudd_val });
     }
 
     return res;
   }
 
   void
-  print_dot(const BDD &, const std::string &)
+  print_dot(const BDD&, const std::string&)
   {
     std::cerr << "CUDD::PrintDot does not exist." << std::endl;
   }
 
   // BDD Build operations
 public:
-  inline BDD build_node(const bool value)
+  inline BDD
+  build_node(const bool value)
   {
     const BDD res = value ? top() : bot();
     if (_latest_build == bot()) { _latest_build = res; }
     return res;
   }
 
-  inline BDD build_node(const int label, const BDD &low, const BDD &high)
+  inline BDD
+  build_node(const int label, const BDD& low, const BDD& high)
   {
     _latest_build = _mgr.makeBddNode(label, high, low);
     return _latest_build;
   }
 
-  inline BDD build()
+  inline BDD
+  build()
   {
     const BDD res = _latest_build;
     _latest_build = bot(); // <-- Reset and free builder reference
@@ -275,55 +350,93 @@ private:
 
   // Init and Deinit
 public:
-  cudd_zdd_adapter(int varcount) : cudd_adapter(0, varcount)
+  cudd_zdd_adapter(int varcount)
+    : cudd_adapter(0, varcount)
   { // Disable dynamic ordering
     _mgr.AutodynDisableZdd();
 
-    _leaf0 = _mgr.zddZero();
-    _leaf1 = _mgr.zddOne(std::numeric_limits<int>::max());
+    _leaf0        = _mgr.zddZero();
+    _leaf1        = _mgr.zddOne(std::numeric_limits<int>::max());
     _latest_build = _mgr.zddZero();
   }
 
   // ZDD Operations
 public:
-  inline ZDD top()
-  { return _mgr.zddOne(0); }
+  inline ZDD
+  top()
+  {
+    return _mgr.zddOne(0);
+  }
 
-  inline ZDD bot()
-  { return _leaf0; }
+  inline ZDD
+  bot()
+  {
+    return _leaf0;
+  }
 
-  inline ZDD ithvar(const int i)
-  { return _mgr.zddVar(i); }
+  inline ZDD
+  ithvar(const int i)
+  {
+    return _mgr.zddVar(i);
+  }
 
-  inline ZDD nithvar(const int i)
-  { return ~_mgr.zddVar(i); }
+  inline ZDD
+  nithvar(const int i)
+  {
+    return ~_mgr.zddVar(i);
+  }
 
-  inline ZDD apply_and(const ZDD &f, const ZDD &g)
-  { return f.Intersect(g); }
+  inline ZDD
+  apply_and(const ZDD& f, const ZDD& g)
+  {
+    return f.Intersect(g);
+  }
 
-  inline ZDD apply_or(const ZDD &f, const ZDD &g)
-  { return f.Union(g); }
+  inline ZDD
+  apply_or(const ZDD& f, const ZDD& g)
+  {
+    return f.Union(g);
+  }
 
-  inline ZDD apply_diff(const ZDD &f, const ZDD &g)
-  { return f.Diff(g); }
+  inline ZDD
+  apply_diff(const ZDD& f, const ZDD& g)
+  {
+    return f.Diff(g);
+  }
 
-  inline ZDD apply_imp(const ZDD &f, const ZDD &g)
-  { return f.Complement().Union(g); }
+  inline ZDD
+  apply_imp(const ZDD& f, const ZDD& g)
+  {
+    return f.Complement().Union(g);
+  }
 
-  inline ZDD apply_xor(const ZDD &f, const ZDD &g)
-  { return (f.Union(g)).Diff(f.Intersect(g)); }
+  inline ZDD
+  apply_xor(const ZDD& f, const ZDD& g)
+  {
+    return (f.Union(g)).Diff(f.Intersect(g));
+  }
 
-  inline ZDD apply_xnor(const ZDD &f, const ZDD &g)
-  { return this->apply_xor(f,g).Complement(); }
+  inline ZDD
+  apply_xnor(const ZDD& f, const ZDD& g)
+  {
+    return this->apply_xor(f, g).Complement();
+  }
 
-  inline ZDD ite(const ZDD &f, const ZDD &g, const ZDD &h)
-  { return f.Ite(g,h); }
+  inline ZDD
+  ite(const ZDD& f, const ZDD& g, const ZDD& h)
+  {
+    return f.Ite(g, h);
+  }
 
   template <typename IT>
-  inline ZDD extend(ZDD &f, IT/* begin*/, IT/*end*/)
-  { throw std::logic_error("No support to 'Extend' ZDDs with Don't Cares (?)"); }
+  inline ZDD
+  extend(ZDD& f, IT /* begin*/, IT /*end*/)
+  {
+    throw std::logic_error("No support to 'Extend' ZDDs with Don't Cares (?)");
+  }
 
-  inline ZDD exists(const ZDD &f, int x)
+  inline ZDD
+  exists(const ZDD& f, int x)
   {
     throw std::logic_error("No support to 'Exists' for ZDDs");
     // One should think this may work, but since the variable is left in the output, then we cannot
@@ -332,24 +445,25 @@ public:
     // `return f.Subset0(x).Union(f.Subset1(x));`
   }
 
-  inline ZDD exists(ZDD f, const std::function<bool(int)> &pred)
+  inline ZDD
+  exists(ZDD f, const std::function<bool(int)>& pred)
   {
-    for (int x = _varcount-1; 0 <= x; --x) {
-      if (pred(x)) { f = this->exists(f,x); }
+    for (int x = _varcount - 1; 0 <= x; --x) {
+      if (pred(x)) { f = this->exists(f, x); }
     }
     return f;
   }
 
-  template<typename IT>
-  inline ZDD exists(ZDD f, IT begin, IT end)
+  template <typename IT>
+  inline ZDD
+  exists(ZDD f, IT begin, IT end)
   {
-    for (; begin != end; ++begin) {
-      f = this->exists(*begin);
-    }
+    for (; begin != end; ++begin) { f = this->exists(*begin); }
     return f;
   }
 
-  inline ZDD forall(const ZDD &f, int x)
+  inline ZDD
+  forall(const ZDD& f, int x)
   {
     throw std::logic_error("No support to 'Forall' for ZDDs");
     // One should think this may work, but since the variable is left in the output, then we cannot
@@ -358,57 +472,71 @@ public:
     // `return f.Subset0(x).Intersect(f.Subset1(x));`
   }
 
-  inline ZDD forall(ZDD f, const std::function<bool(int)> &pred)
+  inline ZDD
+  forall(ZDD f, const std::function<bool(int)>& pred)
   {
-    for (int x = _varcount-1; 0 <= x; --x) {
-      if (pred(x)) { f = this->forall(f,x); }
+    for (int x = _varcount - 1; 0 <= x; --x) {
+      if (pred(x)) { f = this->forall(f, x); }
     }
     return f;
   }
 
-  template<typename IT>
-  inline ZDD forall(ZDD f, IT begin, IT end)
+  template <typename IT>
+  inline ZDD
+  forall(ZDD f, IT begin, IT end)
   {
-    for (; begin != end; ++begin) {
-      f = this->forall(*begin);
-    }
+    for (; begin != end; ++begin) { f = this->forall(*begin); }
     return f;
   }
 
-  inline uint64_t nodecount(const ZDD &f)
-  { return f.nodeCount(); }
+  inline uint64_t
+  nodecount(const ZDD& f)
+  {
+    return f.nodeCount();
+  }
 
-  inline uint64_t satcount(const ZDD &f)
-  { return this->satcount(f, _varcount); }
+  inline uint64_t
+  satcount(const ZDD& f)
+  {
+    return this->satcount(f, _varcount);
+  }
 
-  inline uint64_t satcount(const ZDD &f, const size_t vc)
-  { return f.CountMinterm(vc); }
+  inline uint64_t
+  satcount(const ZDD& f, const size_t vc)
+  {
+    return f.CountMinterm(vc);
+  }
 
   inline std::vector<std::pair<int, char>>
-  pickcube(const ZDD &f)
-  { return {}; }
+  pickcube(const ZDD& f)
+  {
+    return {};
+  }
 
   void
-  print_dot(const ZDD &, const std::string &)
+  print_dot(const ZDD&, const std::string&)
   {
     std::cerr << "CUDD::PrintDot does not exist." << std::endl;
   }
 
   // ZDD Build operations
 public:
-  inline ZDD build_node(const bool value)
+  inline ZDD
+  build_node(const bool value)
   {
     const ZDD res = value ? _leaf1 : _leaf0;
     if (_latest_build == _leaf0) { _latest_build = res; }
     return res;
   }
 
-  inline ZDD build_node(const int label, const ZDD &low, const ZDD &high)
+  inline ZDD
+  build_node(const int label, const ZDD& low, const ZDD& high)
   {
     return _latest_build = _mgr.makeZddNode(label, high, low);
   }
 
-  inline ZDD build()
+  inline ZDD
+  build()
   {
     const ZDD res = _latest_build;
     _latest_build = _leaf0; // <-- Reset and free builder reference

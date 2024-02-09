@@ -38,22 +38,28 @@
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief Enum for choosing the desired Apply operation.
 ////////////////////////////////////////////////////////////////////////////////
-enum oper_opt { AND, OR };
+enum oper_opt
+{
+  AND,
+  OR
+};
 
-template<>
-std::string option_help_str<oper_opt>()
-{ return "Desired Boolean Operator for Apply Algorithm"; }
+template <>
+std::string
+option_help_str<oper_opt>()
+{
+  return "Desired Boolean Operator for Apply Algorithm";
+}
 
-template<>
-oper_opt parse_option(const std::string &arg, bool &should_exit)
+template <>
+oper_opt
+parse_option(const std::string& arg, bool& should_exit)
 {
   const std::string lower_arg = ascii_tolower(arg);
 
-  if (lower_arg == "and")
-    { return oper_opt::AND; }
+  if (lower_arg == "and") { return oper_opt::AND; }
 
-  if (lower_arg == "or")
-    { return oper_opt::OR; }
+  if (lower_arg == "or") { return oper_opt::OR; }
 
   std::cerr << "Undefined operand: " << arg << "\n";
   should_exit = true;
@@ -61,15 +67,13 @@ oper_opt parse_option(const std::string &arg, bool &should_exit)
   return oper_opt::AND;
 }
 
-std::string option_str(const oper_opt& enc)
+std::string
+option_str(const oper_opt& enc)
 {
   switch (enc) {
-  case oper_opt::AND:
-    return "and";
-  case oper_opt::OR:
-    return "or";
-  default:
-    return "?";
+  case oper_opt::AND: return "and";
+  case oper_opt::OR: return "or";
+  default: return "?";
   }
 }
 
@@ -79,16 +83,17 @@ std::string option_str(const oper_opt& enc)
 namespace lib_bdd
 {
   /// \brief Similar to Rust's `u??::from_le_bytes`.
-  template<typename UInt>
-  UInt from_le_bytes(const std::array<char, sizeof(UInt)> &bytes)
+  template <typename UInt>
+  UInt
+  from_le_bytes(const std::array<char, sizeof(UInt)>& bytes)
   {
     UInt res = 0;
     for (size_t byte = 0; byte < bytes.size(); ++byte) {
       // HACK: Reinterpret 'char' as an 'unsigned char' without changing any of
       //       the bit values (see also 'fast inverse square root' algorithm).
-      unsigned char unsigned_byte = *((unsigned char*) (&bytes.at(byte)));
+      unsigned char unsigned_byte = *((unsigned char*)(&bytes.at(byte)));
 
-      res |= static_cast<UInt>(unsigned_byte) << (8*byte);
+      res |= static_cast<UInt>(unsigned_byte) << (8 * byte);
     }
     return res;
   }
@@ -113,19 +118,20 @@ namespace lib_bdd
 
   public:
     /// \brief Number of bytes
-    static constexpr size_t size()
-    { return sizeof(var_type) + 2*sizeof(ptr_type); }
+    static constexpr size_t
+    size()
+    {
+      return sizeof(var_type) + 2 * sizeof(ptr_type);
+    }
 
   public:
     /// \brief Constructor for an internal BDD node.
-    node(const var_type &var, const ptr_type &low, const ptr_type &high)
+    node(const var_type& var, const ptr_type& low, const ptr_type& high)
       : _level((low == false_ptr && low == true_ptr && low == high) ? terminal_level : var)
       , _low(low)
       , _high(high)
     {
-      if (var == terminal_level) {
-        throw std::overflow_error("BDD variable level too large");
-      }
+      if (var == terminal_level) { throw std::overflow_error("BDD variable level too large"); }
       if (low == high && low > true_ptr /*|| high > true_ptr*/) {
         throw std::invalid_argument("Creation of suppressed BDD node");
       }
@@ -133,57 +139,82 @@ namespace lib_bdd
 
     /// \brief Constructor for a Boolean BDD terminal.
     node(bool terminal_value)
-      : _level(terminal_level), _low(terminal_value), _high(terminal_value)
-    { }
+      : _level(terminal_level)
+      , _low(terminal_value)
+      , _high(terminal_value)
+    {}
 
     /// \brief Default constructor, creating the `false` terminal.
     node()
       : node(false)
-    { }
+    {}
 
     /// \brief Constructor from serialized (little-endian) bytes
-    template<typename Iterator>
+    template <typename Iterator>
     node(Iterator begin, [[maybe_unused]] Iterator end)
     {
       assert(std::distance(begin, end) == size());
       static_assert(size() == 10u, "Mismatch in size of C++ class in comparison to 'lib-bdd'");
 
-      this->_level = from_le_bytes<var_type>({ *(begin+0), *(begin+1) });
-      this->_low   = from_le_bytes<ptr_type>({ *(begin+2), *(begin+3), *(begin+4), *(begin+5) });
-      this->_high  = from_le_bytes<ptr_type>({ *(begin+6), *(begin+7), *(begin+8), *(begin+9) });
+      this->_level = from_le_bytes<var_type>({ *(begin + 0), *(begin + 1) });
+      this->_low =
+        from_le_bytes<ptr_type>({ *(begin + 2), *(begin + 3), *(begin + 4), *(begin + 5) });
+      this->_high =
+        from_le_bytes<ptr_type>({ *(begin + 6), *(begin + 7), *(begin + 8), *(begin + 9) });
     }
 
   public:
     /// \brief The variable level. Assuming the identity order this is
     /// equivalent to its 'level'.
-    var_type level() const
-    { return _level; }
+    var_type
+    level() const
+    {
+      return _level;
+    }
 
     /// \brief Index of the 'low' child, i.e. the variable being set to `false`.
-    ptr_type low() const
-    { return _low; }
+    ptr_type
+    low() const
+    {
+      return _low;
+    }
 
     /// \brief Index of the 'high' child, i.e. the variable being set to `true`.
-    ptr_type high() const
-    { return _high; }
+    ptr_type
+    high() const
+    {
+      return _high;
+    }
 
   public:
     /// \brief Whether the BDD node is a terminal.
-    bool is_terminal() const
-    { return _level == terminal_level; }
+    bool
+    is_terminal() const
+    {
+      return _level == terminal_level;
+    }
 
     /// \brief Whether the BDD node is the `false` terminal.
-    bool is_false() const
-    { return is_terminal() && _low == false_ptr; }
+    bool
+    is_false() const
+    {
+      return is_terminal() && _low == false_ptr;
+    }
 
     /// \brief Whether the BDD node is the `true` terminal.
-    bool is_true() const
-    { return is_terminal() && _low == true_ptr; }
+    bool
+    is_true() const
+    {
+      return is_terminal() && _low == true_ptr;
+    }
 
     /// \brief Whether the BDD node is an internal BDD node, i.e.
     ///        `!is_terminal()`.
-    bool is_internal() const
-    { return _level < terminal_level; }
+    bool
+    is_internal() const
+    {
+      return _level < terminal_level;
+    }
   };
 
   /// \brief lib-bdd representation of a BDD.
@@ -191,7 +222,7 @@ namespace lib_bdd
 
   /// \brief Parse a binary file from lib-bdd.
   inline bdd
-  deserialize(std::ifstream &in)
+  deserialize(std::ifstream& in)
   {
     bdd out;
 
@@ -202,25 +233,17 @@ namespace lib_bdd
     // Read and Push `false` terminal
     in.read(buffer.data(), buffer.size());
 
-    if (!in.good()) {
-      throw std::runtime_error("Error while parsing `false` terminal.");
-    }
+    if (!in.good()) { throw std::runtime_error("Error while parsing `false` terminal."); }
 
     out.push_back(node(buffer.begin(), buffer.end()));
 
-    if (in.eof()) {
-      return out;
-    }
+    if (in.eof()) { return out; }
 
     // Read and Push `true` terminal
     in.read(buffer.data(), buffer.size());
 
-    if (in.eof()) {
-      return out;
-    }
-    if (!in.good()) {
-      throw std::runtime_error("Error while parsing `true` terminal");
-    }
+    if (in.eof()) { return out; }
+    if (!in.good()) { throw std::runtime_error("Error while parsing `true` terminal"); }
 
     out.push_back(node(buffer.begin(), buffer.end()));
 
@@ -229,9 +252,7 @@ namespace lib_bdd
       in.read(buffer.data(), buffer.size());
 
       // Hit the end?
-      if (in.eof()) {
-        return out;
-      }
+      if (in.eof()) { return out; }
 
       // Any other errors?
       if (!in.good()) {
@@ -262,7 +283,7 @@ namespace lib_bdd
 
   /// \brief Parse a binary file from lib-bdd.
   inline bdd
-  deserialize(const std::string &path)
+  deserialize(const std::string& path)
   {
     std::ifstream is(path, std::ios::binary);
     return deserialize(is);
@@ -270,7 +291,7 @@ namespace lib_bdd
 
   /// \brief Parse a binary file from lib-bdd.
   inline bdd
-  deserialize(const std::filesystem::path &path)
+  deserialize(const std::filesystem::path& path)
   {
     std::ifstream is(path, std::ios::binary);
     return deserialize(is);
@@ -292,12 +313,13 @@ namespace lib_bdd
     node::ptr_type size             = 0u;
     node::var_type levels           = 0u;
     node::ptr_type width            = 0u;
-    node::ptr_type terminals[2]     = {0u, 0u};
-    node::ptr_type parent_counts[4] = {0u, 0u, 0u, 0u};
+    node::ptr_type terminals[2]     = { 0u, 0u };
+    node::ptr_type parent_counts[4] = { 0u, 0u, 0u, 0u };
   };
 
   /// \brief Extract statistics from a BDD.
-  stats_t stats(const bdd &f)
+  stats_t
+  stats(const bdd& f)
   {
     stats_t out;
 
@@ -309,7 +331,7 @@ namespace lib_bdd
 
     std::vector<int> parent_counts(f.size(), 0);
 
-    for (const auto &n : f) {
+    for (const auto& n : f) {
       if (n.level() != curr_level) {
         out.levels += 1;
         curr_level = n.level();
@@ -320,29 +342,21 @@ namespace lib_bdd
 
       if (n.is_internal()) {
         out.terminals[false] += (n.low() == node::false_ptr) + (n.high() == node::false_ptr);
-        out.terminals[true]  += (n.low() == node::true_ptr)  + (n.high() == node::true_ptr);
+        out.terminals[true] += (n.low() == node::true_ptr) + (n.high() == node::true_ptr);
 
         out.width = std::max<size_t>(out.width, curr_width);
 
-        parent_counts.at(n.low())  += 1;
+        parent_counts.at(n.low()) += 1;
         parent_counts.at(n.high()) += 1;
       }
     }
 
     // Accumulate data from 'parent_counts'
-    for (const auto &pc : parent_counts) {
-      if (pc == 0) {
-        out.parent_counts[stats_t::parent_count_idx::None] += 1;
-      }
-      if (pc == 1) {
-        out.parent_counts[stats_t::parent_count_idx::One] += 1;
-      }
-      if (pc == 2) {
-        out.parent_counts[stats_t::parent_count_idx::Two] += 1;
-      }
-      if (pc > 2) {
-        out.parent_counts[stats_t::parent_count_idx::More] += 1;
-      }
+    for (const auto& pc : parent_counts) {
+      if (pc == 0) { out.parent_counts[stats_t::parent_count_idx::None] += 1; }
+      if (pc == 1) { out.parent_counts[stats_t::parent_count_idx::One] += 1; }
+      if (pc == 2) { out.parent_counts[stats_t::parent_count_idx::Two] += 1; }
+      if (pc > 2) { out.parent_counts[stats_t::parent_count_idx::More] += 1; }
     }
 
     return out;
@@ -357,13 +371,14 @@ namespace lib_bdd
 using var_map = std::unordered_map<lib_bdd::node::var_type, int>;
 
 /// \brief Derive a compacted remapping of the variable ordering.
-var_map remap_vars(const lib_bdd::bdd &f, const lib_bdd::bdd &g)
+var_map
+remap_vars(const lib_bdd::bdd& f, const lib_bdd::bdd& g)
 {
   // Minimum Priority Queue
   std::priority_queue<int, std::vector<int>, std::greater<>> pq;
 
-  for (const auto &n : f) { pq.push(n.level()); }
-  for (const auto &n : g) { pq.push(n.level()); }
+  for (const auto& n : f) { pq.push(n.level()); }
+  for (const auto& n : g) { pq.push(n.level()); }
 
   std::unordered_map<lib_bdd::node::var_type, int> out;
   int var = 0;
@@ -373,28 +388,25 @@ var_map remap_vars(const lib_bdd::bdd &f, const lib_bdd::bdd &g)
     const int level = pq.top();
 
     // Add mapping for all non-terminals
-    if (level != lib_bdd::node::terminal_level) {
-      out.insert({ level, var++ });
-    }
+    if (level != lib_bdd::node::terminal_level) { out.insert({ level, var++ }); }
 
     // Pop all duplicates
-    while (!pq.empty() && pq.top() == level) {
-      pq.pop();
-    }
+    while (!pq.empty() && pq.top() == level) { pq.pop(); }
   }
 
   return out;
 }
 
-var_map remap_vars(const std::array<lib_bdd::bdd, 2> &fs)
+var_map
+remap_vars(const std::array<lib_bdd::bdd, 2>& fs)
 {
   return remap_vars(fs.at(0), fs.at(1));
 }
 
 /// \brief Reconstruct DD from 'lib-bdd' inside of BDD package.
-template<typename Adapter>
+template <typename Adapter>
 typename Adapter::dd_t
-reconstruct(Adapter &adapter, const lib_bdd::bdd &in, const var_map &vm)
+reconstruct(Adapter& adapter, const lib_bdd::bdd& in, const var_map& vm)
 {
   if (in.size() <= 2) {
     adapter.build_node(in.size() == 2);
@@ -402,8 +414,7 @@ reconstruct(Adapter &adapter, const lib_bdd::bdd &in, const var_map &vm)
   }
 
   // Vector of converted DD nodes
-  std::vector<typename Adapter::build_node_t> out(in.size(),
-                                                    adapter.build_node(false));
+  std::vector<typename Adapter::build_node_t> out(in.size(), adapter.build_node(false));
 
   // Terminal Nodes
   out.at(0) = adapter.build_node(false);
@@ -414,13 +425,11 @@ reconstruct(Adapter &adapter, const lib_bdd::bdd &in, const var_map &vm)
     assert(in.at(a).is_internal());
     assert(in.at(b).is_internal());
 
-    const lib_bdd::node &a_node = in.at(a);
-    const lib_bdd::node &b_node = in.at(b);
+    const lib_bdd::node& a_node = in.at(a);
+    const lib_bdd::node& b_node = in.at(b);
 
     // Deepest first (but it is a maximum priority queue)
-    if (a_node.level() != b_node.level()) {
-      return a_node.level() < b_node.level();
-    }
+    if (a_node.level() != b_node.level()) { return a_node.level() < b_node.level(); }
     // Break ties on the same level by its index
     return a > b;
   };
@@ -435,7 +444,7 @@ reconstruct(Adapter &adapter, const lib_bdd::bdd &in, const var_map &vm)
     const int i = pq.top();
     pq.pop();
 
-    const lib_bdd::node &n = in.at(i);
+    const lib_bdd::node& n = in.at(i);
 
     const auto var = vm.find(n.level());
 
@@ -454,11 +463,12 @@ reconstruct(Adapter &adapter, const lib_bdd::bdd &in, const var_map &vm)
   return adapter.build();
 }
 
-template<typename Adapter>
-int run_apply(int argc, char** argv)
+template <typename Adapter>
+int
+run_apply(int argc, char** argv)
 {
   oper_opt oper_opt = oper_opt::AND;
-  bool should_exit = parse_input(argc, argv, oper_opt);
+  bool should_exit  = parse_input(argc, argv, oper_opt);
 
   constexpr size_t inputs = 2u;
 
@@ -490,10 +500,14 @@ int run_apply(int argc, char** argv)
               << "  | | false                   " << stats.terminals[false] << "\n"
               << "  | | true                    " << stats.terminals[true] << "\n"
               << "  | parent counts\n"
-              << "  | | 0                       " << stats.parent_counts[lib_bdd::stats_t::parent_count_idx::None] << "\n"
-              << "  | | 1                       " << stats.parent_counts[lib_bdd::stats_t::parent_count_idx::One] << "\n"
-              << "  | | 2                       " << stats.parent_counts[lib_bdd::stats_t::parent_count_idx::Two] << "\n"
-              << "  | | 3+                      " << stats.parent_counts[lib_bdd::stats_t::parent_count_idx::More] << "\n"
+              << "  | | 0                       "
+              << stats.parent_counts[lib_bdd::stats_t::parent_count_idx::None] << "\n"
+              << "  | | 1                       "
+              << stats.parent_counts[lib_bdd::stats_t::parent_count_idx::One] << "\n"
+              << "  | | 2                       "
+              << stats.parent_counts[lib_bdd::stats_t::parent_count_idx::Two] << "\n"
+              << "  | | 3+                      "
+              << stats.parent_counts[lib_bdd::stats_t::parent_count_idx::More] << "\n"
               << "\n"
               << std::flush;
   }
@@ -502,7 +516,7 @@ int run_apply(int argc, char** argv)
 
   // =========================================================================
   // Initialize BDD package
-  return run<Adapter>(vm.size(), [&](Adapter &adapter) {
+  return run<Adapter>(vm.size(), [&](Adapter& adapter) {
     // =========================================================================
     // Reconstruct DDs
     std::array<typename Adapter::dd_t, inputs> inputs_dd;
@@ -511,8 +525,8 @@ int run_apply(int argc, char** argv)
 
     for (size_t i = 0; i < inputs; ++i) {
       const time_point t_rebuild_before = now();
-      inputs_dd.at(i) = reconstruct(adapter, inputs_binary.at(i), vm);
-      const time_point t_rebuild_after = now();
+      inputs_dd.at(i)                   = reconstruct(adapter, inputs_binary.at(i), vm);
+      const time_point t_rebuild_after  = now();
 
       const size_t load_time = duration_ms(t_rebuild_before, t_rebuild_after);
       total_time += load_time;
@@ -521,7 +535,8 @@ int run_apply(int argc, char** argv)
                 << "  DD '" << input_files.at(i) << "'\n"
                 << "  | size (nodes)              " << adapter.nodecount(inputs_dd.at(i)) << "\n"
                 << "  | satcount                  " << adapter.satcount(inputs_dd.at(i)) << "\n"
-                << "  | time (ms)                 " << duration_ms(t_rebuild_before, t_rebuild_after) << "\n"
+                << "  | time (ms)                 "
+                << duration_ms(t_rebuild_before, t_rebuild_after) << "\n"
                 << std::flush;
     }
 
@@ -531,12 +546,8 @@ int run_apply(int argc, char** argv)
 
     const time_point t_apply_before = now();
     switch (oper_opt) {
-    case oper_opt::AND:
-      result = inputs_dd.at(0) & inputs_dd.at(1);
-      break;
-    case oper_opt::OR:
-      result = inputs_dd.at(0) | inputs_dd.at(1);
-      break;
+    case oper_opt::AND: result = inputs_dd.at(0) & inputs_dd.at(1); break;
+    case oper_opt::OR: result = inputs_dd.at(0) | inputs_dd.at(1); break;
     }
     const time_point t_apply_after = now();
 

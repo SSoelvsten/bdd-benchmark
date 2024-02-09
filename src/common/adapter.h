@@ -55,14 +55,15 @@ ilog2(unsigned long long n)
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief Initializes the BDD package and runs the given benchmark
 ////////////////////////////////////////////////////////////////////////////////
-template<typename Adapter, typename F>
-int run(const int varcount, const F &f)
+template <typename Adapter, typename F>
+int
+run(const int varcount, const F& f)
 {
   std::cout << "  " << Adapter::NAME << ":\n";
 
   const time_point t_before = now();
   Adapter adapter(varcount);
-  const time_point t_after  = now();
+  const time_point t_after = now();
 
   std::cout << "  | init time (ms)            " << duration_ms(t_before, t_after) << "\n"
             << "  | memory (MiB)              " << M << "\n"
@@ -71,12 +72,11 @@ int run(const int varcount, const F &f)
 
   const int exit_code = adapter.run([&]() { return f(adapter); });
 
-  if (!exit_code) {
-    adapter.print_stats();
-  }
+  if (!exit_code) { adapter.print_stats(); }
 
 #ifdef BDD_BENCHMARK_WAIT
-  std::cout << "\npress any key to exit . . .\n" << std::flush;;
+  std::cout << "\npress any key to exit . . .\n" << std::flush;
+  ;
   std::getchar();
   std::cout << "\n";
 #endif

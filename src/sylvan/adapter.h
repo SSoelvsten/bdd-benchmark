@@ -47,7 +47,6 @@ TASK_1(int, lace_lambda, const std::function<int()>*, f)
 /// - sylvan_set_granularity: 1 for "use cache for every operation".
 ////////////////////////////////////////////////////////////////////////////////
 
-
 class sylvan_bdd_adapter
 {
 public:
@@ -74,18 +73,18 @@ public:
     const size_t memory_bytes = static_cast<size_t>(M) * 1024u * 1024u;
 
     // Init Sylvan
-    sylvan::sylvan_set_limits(// Set memory limit
-                              memory_bytes,
-                              // Set (exponent) of cache ratio
-                              ilog2(CACHE_RATIO),
+    sylvan::sylvan_set_limits( // Set memory limit
+      memory_bytes,
+      // Set (exponent) of cache ratio
+      ilog2(CACHE_RATIO),
 #ifndef BDD_BENCHMARK_GRENDEL
-                              // Initialise unique node table to full size
-                              0
+      // Initialise unique node table to full size
+      0
 #else
-                              // On Grendel, initialize unique node table to 1/2^12th (~75 MiB)
-                              12
+      // On Grendel, initialize unique node table to 1/2^12th (~75 MiB)
+      12
 #endif
-                              );
+    );
     sylvan::sylvan_set_granularity(1);
     sylvan::sylvan_init_package();
     sylvan::sylvan_init_bdd();
@@ -101,112 +100,158 @@ public:
 
 public:
   // LACE context
-  inline int run(const std::function<int()> &f)
+  inline int
+  run(const std::function<int()>& f)
   {
     return RUN(lace_lambda, &f);
   }
 
 private:
-  template<typename IT>
-  inline sylvan::Bdd make_cube(IT rbegin, IT rend)
+  template <typename IT>
+  inline sylvan::Bdd
+  make_cube(IT rbegin, IT rend)
   {
     sylvan::Bdd res = top();
-    while (rbegin != rend) {
-      res = sylvan::Bdd::bddVar(*(rbegin++)).Ite(res, bot());
-    }
+    while (rbegin != rend) { res = sylvan::Bdd::bddVar(*(rbegin++)).Ite(res, bot()); }
     return res;
   }
 
-  inline sylvan::Bdd make_cube(const std::function<bool(int)> &pred)
+  inline sylvan::Bdd
+  make_cube(const std::function<bool(int)>& pred)
   {
     sylvan::Bdd res = top();
-    for (int i = _varcount-1; 0 <= i; --i) {
-      if (pred(i)) {
-        res = sylvan::Bdd::bddVar(i).Ite(res, bot());
-      }
+    for (int i = _varcount - 1; 0 <= i; --i) {
+      if (pred(i)) { res = sylvan::Bdd::bddVar(i).Ite(res, bot()); }
     }
     return res;
   }
 
   // BDD Operations
 public:
-  inline sylvan::Bdd top()
-  { return sylvan::Bdd::bddOne(); }
+  inline sylvan::Bdd
+  top()
+  {
+    return sylvan::Bdd::bddOne();
+  }
 
-  inline sylvan::Bdd bot()
-  { return sylvan::Bdd::bddZero(); }
+  inline sylvan::Bdd
+  bot()
+  {
+    return sylvan::Bdd::bddZero();
+  }
 
-  inline sylvan::Bdd ithvar(int i)
-  { return sylvan::Bdd::bddVar(i); }
+  inline sylvan::Bdd
+  ithvar(int i)
+  {
+    return sylvan::Bdd::bddVar(i);
+  }
 
-  inline sylvan::Bdd nithvar(int i)
-  { return ~sylvan::Bdd::bddVar(i); }
+  inline sylvan::Bdd
+  nithvar(int i)
+  {
+    return ~sylvan::Bdd::bddVar(i);
+  }
 
-  inline sylvan::Bdd apply_diff(const sylvan::Bdd &f,
-                                const sylvan::Bdd &g)
-  { return f - g; }
+  inline sylvan::Bdd
+  apply_diff(const sylvan::Bdd& f, const sylvan::Bdd& g)
+  {
+    return f - g;
+  }
 
-  inline sylvan::Bdd apply_imp(const sylvan::Bdd &f,
-                               const sylvan::Bdd &g)
-  { return f.Ite(g, sylvan::Bdd::bddOne()); }
+  inline sylvan::Bdd
+  apply_imp(const sylvan::Bdd& f, const sylvan::Bdd& g)
+  {
+    return f.Ite(g, sylvan::Bdd::bddOne());
+  }
 
-  inline sylvan::Bdd apply_xnor(const sylvan::Bdd &f,
-                                const sylvan::Bdd &g)
-  { return f.Xnor(g); }
+  inline sylvan::Bdd
+  apply_xnor(const sylvan::Bdd& f, const sylvan::Bdd& g)
+  {
+    return f.Xnor(g);
+  }
 
-  inline sylvan::Bdd ite(const sylvan::Bdd &f,
-                         const sylvan::Bdd &g,
-                         const sylvan::Bdd &h)
-  { return f.Ite(g,h); }
+  inline sylvan::Bdd
+  ite(const sylvan::Bdd& f, const sylvan::Bdd& g, const sylvan::Bdd& h)
+  {
+    return f.Ite(g, h);
+  }
 
   template <typename IT>
-  inline sylvan::Bdd extend(const sylvan::Bdd &f, IT /*begin*/, IT /*end*/)
-  { return f; }
+  inline sylvan::Bdd
+  extend(const sylvan::Bdd& f, IT /*begin*/, IT /*end*/)
+  {
+    return f;
+  }
 
-  inline sylvan::Bdd exists(const sylvan::Bdd &f, int i)
-  { return f.ExistAbstract(sylvan::Bdd::bddVar(i)); }
+  inline sylvan::Bdd
+  exists(const sylvan::Bdd& f, int i)
+  {
+    return f.ExistAbstract(sylvan::Bdd::bddVar(i));
+  }
 
-  inline sylvan::Bdd exists(const sylvan::Bdd &f,
-                            const std::function<bool(int)> &pred)
-  { return f.ExistAbstract(make_cube(pred)); }
+  inline sylvan::Bdd
+  exists(const sylvan::Bdd& f, const std::function<bool(int)>& pred)
+  {
+    return f.ExistAbstract(make_cube(pred));
+  }
 
-  template<typename IT>
-  inline sylvan::Bdd exists(const sylvan::Bdd &f, IT rbegin, IT rend)
-  { return f.ExistAbstract(make_cube(rbegin, rend)); }
+  template <typename IT>
+  inline sylvan::Bdd
+  exists(const sylvan::Bdd& f, IT rbegin, IT rend)
+  {
+    return f.ExistAbstract(make_cube(rbegin, rend));
+  }
 
-  inline sylvan::Bdd forall(const sylvan::Bdd &f, int i)
-  { return f.UnivAbstract(sylvan::Bdd::bddVar(i)); }
+  inline sylvan::Bdd
+  forall(const sylvan::Bdd& f, int i)
+  {
+    return f.UnivAbstract(sylvan::Bdd::bddVar(i));
+  }
 
-  inline sylvan::Bdd forall(const sylvan::Bdd &f,
-                            const std::function<bool(int)> &pred)
-  { return f.UnivAbstract(make_cube(pred)); }
+  inline sylvan::Bdd
+  forall(const sylvan::Bdd& f, const std::function<bool(int)>& pred)
+  {
+    return f.UnivAbstract(make_cube(pred));
+  }
 
-  template<typename IT>
-  inline sylvan::Bdd forall(const sylvan::Bdd &f, IT rbegin, IT rend)
-  { return f.UnivAbstract(make_cube(rbegin, rend)); }
+  template <typename IT>
+  inline sylvan::Bdd
+  forall(const sylvan::Bdd& f, IT rbegin, IT rend)
+  {
+    return f.UnivAbstract(make_cube(rbegin, rend));
+  }
 
-  inline uint64_t nodecount(const sylvan::Bdd &f)
-  { return f.NodeCount() - 1; }
+  inline uint64_t
+  nodecount(const sylvan::Bdd& f)
+  {
+    return f.NodeCount() - 1;
+  }
 
-  inline uint64_t satcount(const sylvan::Bdd &f)
-  { return this->satcount(f, this->_varcount); }
+  inline uint64_t
+  satcount(const sylvan::Bdd& f)
+  {
+    return this->satcount(f, this->_varcount);
+  }
 
-  inline uint64_t satcount(const sylvan::Bdd &f, const size_t vc)
-  { return f.SatCount(vc); }
+  inline uint64_t
+  satcount(const sylvan::Bdd& f, const size_t vc)
+  {
+    return f.SatCount(vc);
+  }
 
   inline std::vector<std::pair<int, char>>
-  pickcube(const sylvan::Bdd &f)
+  pickcube(const sylvan::Bdd& f)
   {
     std::vector<std::pair<int, char>> res;
 
     sylvan::Bdd sat = f.PickOneCube();
     while (!sat.isOne() && !sat.isZero()) {
-      const int var = sat.TopVar();
-      const sylvan::Bdd sat_low = sat.Else();
+      const int var              = sat.TopVar();
+      const sylvan::Bdd sat_low  = sat.Else();
       const sylvan::Bdd sat_high = sat.Then();
 
       const bool go_high = !sat_high.isZero();
-      res.push_back({ var, '0'+go_high });
+      res.push_back({ var, '0' + go_high });
 
       sat = go_high ? sat_high : sat_low;
     }
@@ -214,7 +259,7 @@ public:
   }
 
   void
-  print_dot(const sylvan::Bdd &f, const std::string &filename)
+  print_dot(const sylvan::Bdd& f, const std::string& filename)
   {
     FILE* p = fopen(filename.data(), "w");
     f.PrintDot(p);
@@ -223,34 +268,39 @@ public:
 
   // BDD Build operations
 public:
-  inline sylvan::Bdd build_node(const bool value)
+  inline sylvan::Bdd
+  build_node(const bool value)
   {
     const sylvan::Bdd res = value ? top() : bot();
     if (_latest_build == bot()) { _latest_build = res; }
     return res;
   }
 
-  inline sylvan::Bdd build_node(const int label,
-                                const sylvan::Bdd &low,
-                                const sylvan::Bdd &high)
+  inline sylvan::Bdd
+  build_node(const int label, const sylvan::Bdd& low, const sylvan::Bdd& high)
   {
     _latest_build = sylvan::Bdd::bddVar(label).Ite(high, low);
     return _latest_build;
   }
 
-  inline sylvan::Bdd build()
+  inline sylvan::Bdd
+  build()
   {
     const sylvan::Bdd res = _latest_build;
-    _latest_build = bot(); // <-- Reset and free builder reference
+    _latest_build         = bot(); // <-- Reset and free builder reference
     return res;
   }
 
   // Statistics
 public:
-  inline size_t allocated_nodes()
-  { return 0; }
+  inline size_t
+  allocated_nodes()
+  {
+    return 0;
+  }
 
-  void print_stats()
+  void
+  print_stats()
   {
     // Requires the "SYLVAN_STATS" property to be set in CMake
     std::cout << "\n";

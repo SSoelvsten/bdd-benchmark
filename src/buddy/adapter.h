@@ -59,13 +59,11 @@ compute_init_size()
   // We need to maximise x and y in the following system of inequalities:
   //              24x + 16y <= M , x = y * CACHE_RATIO
   const size_t memory_bytes = static_cast<size_t>(M) * 1024 * 1024;
-  const size_t x = memory_bytes / ((24u * CACHE_RATIO + 16u) / CACHE_RATIO);
-  const size_t y = x / CACHE_RATIO;
+  const size_t x            = memory_bytes / ((24u * CACHE_RATIO + 16u) / CACHE_RATIO);
+  const size_t y            = x / CACHE_RATIO;
 
-  return {
-    static_cast<int>(std::min(x, MAX_INT)),
-    static_cast<int>(std::min(y, MAX_INT / CACHE_RATIO))
-  };
+  return { static_cast<int>(std::min(x, MAX_INT)),
+           static_cast<int>(std::min(y, MAX_INT / CACHE_RATIO)) };
 }
 
 class buddy_bdd_adapter
@@ -125,109 +123,164 @@ public:
 
 public:
   template <typename F>
-  int run(const F& f)
-  { return f(); }
+  int
+  run(const F& f)
+  {
+    return f();
+  }
 
 private:
-  template<typename IT>
-  inline bdd make_cube(IT rbegin, IT rend)
+  template <typename IT>
+  inline bdd
+  make_cube(IT rbegin, IT rend)
   {
     bdd res = top();
-    while (rbegin != rend) {
-      res = bdd_ite(bdd_ithvar(*(rbegin++)), res, bot());
-    }
+    while (rbegin != rend) { res = bdd_ite(bdd_ithvar(*(rbegin++)), res, bot()); }
     return res;
   }
 
-  inline bdd make_cube(const std::function<bool(int)> &pred)
+  inline bdd
+  make_cube(const std::function<bool(int)>& pred)
   {
     bdd res = top();
-    for (int i = _varcount-1; 0 <= i; --i) {
-      if (pred(i)) {
-        res = bdd_ite(bdd_ithvar(i), res, bot());
-      }
+    for (int i = _varcount - 1; 0 <= i; --i) {
+      if (pred(i)) { res = bdd_ite(bdd_ithvar(i), res, bot()); }
     }
     return res;
   }
 
   // BDD Operations
 public:
-  inline bdd top()
-  { return bddtrue; }
+  inline bdd
+  top()
+  {
+    return bddtrue;
+  }
 
-  inline bdd bot()
-  { return bddfalse; }
+  inline bdd
+  bot()
+  {
+    return bddfalse;
+  }
 
-  inline bdd ithvar(int i)
-  { return bdd_ithvar(i); }
+  inline bdd
+  ithvar(int i)
+  {
+    return bdd_ithvar(i);
+  }
 
-  inline bdd nithvar(int i)
-  { return bdd_nithvar(i); }
+  inline bdd
+  nithvar(int i)
+  {
+    return bdd_nithvar(i);
+  }
 
-  inline bdd apply_and(const bdd &f, const bdd &g)
-  { return bdd_and(f,g); }
+  inline bdd
+  apply_and(const bdd& f, const bdd& g)
+  {
+    return bdd_and(f, g);
+  }
 
-  inline bdd apply_diff(const bdd &f, const bdd &g)
-  { return bdd_and(f, ~g); }
+  inline bdd
+  apply_diff(const bdd& f, const bdd& g)
+  {
+    return bdd_and(f, ~g);
+  }
 
-  inline bdd apply_imp(const bdd &f, const bdd &g)
-  { return bdd_imp(f,g); }
+  inline bdd
+  apply_imp(const bdd& f, const bdd& g)
+  {
+    return bdd_imp(f, g);
+  }
 
-  inline bdd apply_xnor(const bdd &f, const bdd &g)
-  { return bdd_biimp(f,g); }
+  inline bdd
+  apply_xnor(const bdd& f, const bdd& g)
+  {
+    return bdd_biimp(f, g);
+  }
 
-  inline bdd ite(const bdd &f, const bdd &g, const bdd &h)
-  { return bdd_ite(f,g,h); }
+  inline bdd
+  ite(const bdd& f, const bdd& g, const bdd& h)
+  {
+    return bdd_ite(f, g, h);
+  }
 
   template <typename IT>
-  inline bdd extend(const bdd &f, IT /*begin*/, IT /*end*/)
-  { return f; }
+  inline bdd
+  extend(const bdd& f, IT /*begin*/, IT /*end*/)
+  {
+    return f;
+  }
 
-  inline bdd exists(const bdd &f, int i)
-  { return bdd_exist(f, bdd_ithvar(i)); }
+  inline bdd
+  exists(const bdd& f, int i)
+  {
+    return bdd_exist(f, bdd_ithvar(i));
+  }
 
-  inline bdd exists(const bdd &f, const std::function<bool(int)> &pred)
-  { return bdd_exist(f, make_cube(pred)); }
+  inline bdd
+  exists(const bdd& f, const std::function<bool(int)>& pred)
+  {
+    return bdd_exist(f, make_cube(pred));
+  }
 
-  template<typename IT>
-  inline bdd exists(const bdd &f, IT rbegin, IT rend)
-  { return bdd_exist(f, make_cube(rbegin, rend)); }
+  template <typename IT>
+  inline bdd
+  exists(const bdd& f, IT rbegin, IT rend)
+  {
+    return bdd_exist(f, make_cube(rbegin, rend));
+  }
 
-  inline bdd forall(const bdd &f, int i)
-  { return bdd_forall(f, bdd_ithvar(i)); }
+  inline bdd
+  forall(const bdd& f, int i)
+  {
+    return bdd_forall(f, bdd_ithvar(i));
+  }
 
-  inline bdd forall(const bdd &f, const std::function<bool(int)> &pred)
-  { return bdd_forall(f, make_cube(pred)); }
+  inline bdd
+  forall(const bdd& f, const std::function<bool(int)>& pred)
+  {
+    return bdd_forall(f, make_cube(pred));
+  }
 
-  template<typename IT>
-  inline bdd forall(const bdd &f, IT rbegin, IT rend)
-  { return bdd_forall(f, make_cube(rbegin, rend)); }
+  template <typename IT>
+  inline bdd
+  forall(const bdd& f, IT rbegin, IT rend)
+  {
+    return bdd_forall(f, make_cube(rbegin, rend));
+  }
 
-  inline uint64_t nodecount(const bdd &f)
-  { return bdd_nodecount(f); }
+  inline uint64_t
+  nodecount(const bdd& f)
+  {
+    return bdd_nodecount(f);
+  }
 
-  inline uint64_t satcount(const bdd &f)
-  { return this->satcount(f, this->_varcount); }
+  inline uint64_t
+  satcount(const bdd& f)
+  {
+    return this->satcount(f, this->_varcount);
+  }
 
-  inline uint64_t satcount(const bdd &f, const size_t vc)
+  inline uint64_t
+  satcount(const bdd& f, const size_t vc)
   {
     assert(vc <= this->_varcount);
 
-    const double excess_variables =
-      static_cast<double>(this->_varcount) - static_cast<double>(vc);
+    const double excess_variables = static_cast<double>(this->_varcount) - static_cast<double>(vc);
 
     return bdd_satcount(f) / std::pow(2, excess_variables);
   }
 
   inline std::vector<std::pair<int, char>>
-  pickcube(const bdd &f)
+  pickcube(const bdd& f)
   {
     std::vector<std::pair<int, char>> res;
     bdd sat = bdd_satone(f);
 
     while (sat != bddfalse && sat != bddtrue) {
-      const int var = bdd_var(sat);
-      const bdd sat_low = bdd_low(sat);
+      const int var      = bdd_var(sat);
+      const bdd sat_low  = bdd_low(sat);
       const bdd sat_high = bdd_high(sat);
 
       const bool go_high = sat_high != bddfalse;
@@ -239,7 +292,7 @@ public:
   }
 
   void
-  print_dot(const bdd &f, const std::string &filename)
+  print_dot(const bdd& f, const std::string& filename)
   {
     FILE* p = fopen(filename.data(), "w");
     bdd_fprintdot(p, f);
@@ -248,20 +301,23 @@ public:
 
   // BDD Build Operations
 public:
-  inline bdd build_node(const bool value)
+  inline bdd
+  build_node(const bool value)
   {
     const bdd res = value ? top() : bot();
     if (_latest_build == bot()) { _latest_build = res; }
     return res;
   }
 
-  inline bdd build_node(const int label, const bdd &low, const bdd &high)
+  inline bdd
+  build_node(const int label, const bdd& low, const bdd& high)
   {
     _latest_build = ite(bdd_ithvar(label), high, low);
     return _latest_build;
   }
 
-  inline bdd build()
+  inline bdd
+  build()
   {
     const bdd res = _latest_build;
     _latest_build = bot(); // <-- Reset and free builder reference
@@ -270,10 +326,14 @@ public:
 
   // Statistics
 public:
-  inline size_t allocated_nodes()
-  { return bdd_getnodenum(); }
+  inline size_t
+  allocated_nodes()
+  {
+    return bdd_getnodenum();
+  }
 
-  void print_stats()
+  void
+  print_stats()
   {
     std::cout << "\nBuDDy statistics:\n";
 
@@ -281,18 +341,19 @@ public:
     bdd_stats(&stats);
 
     std::cout << "   Table:\n"
-              << "   | total produced:      " << stats.produced << "\n"
+              << "   | total produced:      " << stats.produced
+              << "\n"
 
-    // Commented lines are only available if 'CACHESTATS' flag is set
-    // bddCacheStat cache_stats;
-    // bdd_cachestats(&cache_stats);
+              // Commented lines are only available if 'CACHESTATS' flag is set
+              // bddCacheStat cache_stats;
+              // bdd_cachestats(&cache_stats);
 
-    // INFO(" | | access:              %zu\n", cache_stats.uniqueAccess);
-    // INFO(" | | hits:                %zu\n", cache_stats.uniqueHit);
-    // INFO(" | | miss:                %zu\n", cache_stats.uniqueMiss);
-    // INFO(" | Cache:\n");
-    // INFO(" | | hits:                %zu\n", cache_stats.opHit);
-    // INFO(" | | miss:                %zu\n", cache_stats.opMiss);
+              // INFO(" | | access:              %zu\n", cache_stats.uniqueAccess);
+              // INFO(" | | hits:                %zu\n", cache_stats.uniqueHit);
+              // INFO(" | | miss:                %zu\n", cache_stats.uniqueMiss);
+              // INFO(" | Cache:\n");
+              // INFO(" | | hits:                %zu\n", cache_stats.opHit);
+              // INFO(" | | miss:                %zu\n", cache_stats.opMiss);
 
               << "   Garbage Collections:   " << stats.gbcnum << "\n";
   }
