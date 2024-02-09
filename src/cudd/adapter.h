@@ -7,7 +7,7 @@
 #include "cudd.h"
 #include "cuddObj.hh"
 
-#include "../common.h"
+#include "../common/input.h"
 
 inline unsigned int
 cudd_cachesize(int varcount)

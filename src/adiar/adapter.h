@@ -1,6 +1,6 @@
 #include <adiar/adiar.h>
 
-#include "../common.h"
+#include "../common/input.h"
 
 class adiar_adapter
 {

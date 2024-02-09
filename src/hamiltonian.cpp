@@ -1,11 +1,27 @@
-#include <algorithm>      // std::sort(), ...
-#include <cmath>          // std::abs(), std::min(), ...
-#include <functional>     // std::function<>, ...
-#include <sstream>        // std::istringstream
+// Assertions
+#include <assert.h>
+
+// Data Structures
+#include <array>
+#include <sstream>
+#include <string>
+
+// Math, e.g. absolute and minimum value
+#include <cmath>
+
+// Sorting algorithm
+#include <algorithm>
+
+// Types
+#include <cstdlib>
+
+// Other
 #include <utility>
 
-#include "common.cpp"
-#include "expected.h"
+#include "common/adapter.h"
+#include "common/array.h"
+#include "common/chrono.h"
+#include "common/input.h"
 
 #ifdef BDD_BENCHMARK_STATS
 size_t largest_bdd = 0;
@@ -2310,6 +2326,58 @@ namespace enc_time
   }
 }
 
+constexpr size_t UNKNOWN = static_cast<size_t>(-1);
+
+////////////////////////////////////////////////////////////////////////////////
+/// \brief   Expected number of closed Hamiltonian Knight's Tours.
+///
+/// \details Numbers are taken from https://oeis.org/search?q=knights+tour and
+///          https://en.wikipedia.org/wiki/Knight%27s_tour#Number_of_tours . If
+///          otherwise not stated, they are from our own previous runs.
+////////////////////////////////////////////////////////////////////////////////
+const size_t expected_knight[17] = {
+  0,
+  0,
+  1,                     //  1x1 [1]
+  0,                     //  2x1 [_]
+  0,                     //  2x2 [2]
+  0,                     //  3x2 [_]
+  0,                     //  3x3 [1]
+  0,                     //  4x3 [_]
+  0,                     //  4x4 [1]
+  0,                     //  5x4 [_]
+  0,                     //  5x5 [1]
+  8,                     //  6x5 [_]
+  9862,                  //  6x6 [2]
+  UNKNOWN,               //  7x6 [_]
+  0,                     //  7x7 [1]
+  UNKNOWN,               //  8x7 [_]
+  13267364410532         //  8x8 [1]
+};
+
+////////////////////////////////////////////////////////////////////////////////
+/// \brief   Expected number of closed Hamiltonian Grid Graph Tours.
+///
+/// \details Most numbers are taken from https://oeis.org/A003763 . Otherwise,
+///          they are from our previous runs
+////////////////////////////////////////////////////////////////////////////////
+const size_t expected_grid[13] = {
+  0,                     //  0x0  [_]
+  1,                     //  1x1  [_]
+  1,                     //  2x2  [3]
+  0,                     //  3x3  [3]
+  6,                     //  4x4  [3]
+  0,                     //  5x5  [3]
+  1072,                  //  6x6  [3]
+  0,                     //  7x7  [3]
+  4638576,               //  8x8  [3]
+  0,                     //  9x9  [3]
+  467260456608,          // 10x10 [3]
+  0,                     // 11x11 [3]
+  1076226888605605706,   // 12x12 [3]
+  // remaining numbers do not fit into 64 bits
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief Hamiltonian Cycle program: pick encoding and time its execution.
 ////////////////////////////////////////////////////////////////////////////////
@@ -2432,9 +2500,9 @@ int run_hamiltonian(int argc, char** argv)
               << "  total time (ms)             " << (paths_time + satcount_time) << "\n"
               << std::flush;
 
-    if (rows() == cols() && rows() < size(expected_hamiltonian__grid)
-        && expected_hamiltonian__grid[rows()] != UNKNOWN
-        && solutions != expected_hamiltonian__grid[rows()]) {
+    if (rows() == cols() && rows() < size(expected_grid)
+        && expected_grid[rows()] != UNKNOWN
+        && solutions != expected_grid[rows()]) {
       return -1;
     }
     return 0;

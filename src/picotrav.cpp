@@ -1,10 +1,22 @@
-#include "common.cpp"
+// Assertions
+#include <assert.h>
 
+// Data Structures
 #include <unordered_map>
 #include <unordered_set>
+#include <sstream>
+#include <string>
+#include <vector>
+
+// Randomisation
 #include <random>
 
+// Parser library for BLIF files
 #include <blifparse.hpp>
+
+#include "common/adapter.h"
+#include "common/chrono.h"
+#include "common/input.h"
 
 // ========================================================================== //
 // Parsing the input

@@ -1,10 +1,21 @@
+// Assertions
+#include <assert.h>
+
+// Data Structures
 #include <set>
-#include <sstream>        // std::istringstream
+#include <sstream>
+#include <string>
 #include <unordered_map>
+
+// Types
+#include <cstdlib>
+
+// Other
 #include <utility>
 
-#include "common.cpp"
-#include "expected.h"
+#include "common/adapter.h"
+#include "common/chrono.h"
+#include "common/input.h"
 
 // ============================================================================================== //
 //                             PRIMING OF VARIABLES WITH TRANSITIONS                              //

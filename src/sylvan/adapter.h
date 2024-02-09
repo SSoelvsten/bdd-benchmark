@@ -6,8 +6,7 @@
 
 #include <sylvan_obj.hpp>
 
-#include "../common.h"
-
+#include "../common/input.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Running code in a LACE context

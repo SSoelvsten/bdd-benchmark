@@ -1,8 +1,17 @@
-#include <array>          // std::array<>
+// Assertions
+#include <assert.h>
+
+// Data Structures
+#include <array>
 #include <vector>
 
-#include "common.cpp"
-#include "expected.h"
+// Types
+#include <cstdlib>
+
+#include "common/adapter.h"
+#include "common/array.h"
+#include "common/chrono.h"
+#include "common/input.h"
 
 #ifdef BDD_BENCHMARK_STATS
 size_t largest_bdd = 0;
@@ -163,6 +172,48 @@ typename Adapter::dd_t construct_is_not_winning(Adapter &adapter,
   return out;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+/// \brief   Expected number of draws in a 4x4x4 Tic-Tac-Toe with N crosses.
+///
+/// \details Up to N = 24, these numbers taken from "Parallel Disk-Based
+///          Computation for Large, Monolithic Binary Decision Diagrams" by
+///          Daniel Kunkle, Vlad Slavici, and Gene Cooperman. From N = 25 and
+///          forwards, these numbers are from our previous runs.
+////////////////////////////////////////////////////////////////////////////////
+const uint64_t expected[30] = {
+  0,                     //  0
+  0,                     //  1
+  0,                     //  2
+  0,                     //  3
+  0,                     //  4
+  0,                     //  5
+  0,                     //  6
+  0,                     //  7
+  0,                     //  8
+  0,                     //  9
+  0,                     // 10
+  0,                     // 11
+  0,                     // 12
+  0,                     // 13
+  0,                     // 14
+  0,                     // 15
+  0,                     // 16
+  0,                     // 17
+  0,                     // 18
+  0,                     // 19
+  304,                   // 20
+  136288,                // 21
+  9734400,               // 22
+  296106640,             // 23
+  5000129244,            // 24
+  // From here, it is our numbers...
+  52676341760,           // 25
+  370421947296,          // 26
+  1819169272400,         // 27
+  6444883392304,         // 28
+  16864508850272         // 29
+};
+
 // =============================================================================
 template<typename Adapter>
 int run_tictactoe(int argc, char** argv)
@@ -260,7 +311,7 @@ int run_tictactoe(int argc, char** argv)
               << "  total time (ms)             " << (init_time + constraints_time + counting_time) << "\n"
               << std::flush;
 
-    if (N < size(expected_tic_tac_toe) && solutions != expected_tic_tac_toe[N]) {
+    if (N < size(expected) && solutions != expected[N]) {
       return -1;
     }
     return 0;
