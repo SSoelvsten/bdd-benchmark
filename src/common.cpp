@@ -33,14 +33,25 @@ std::string temp_path = "";
 std::vector<int> input_sizes = {};
 std::vector<std::string> input_files = {};
 
+/// \brief   Parses a given string into an enum. The error code `should_exit` is
+///          made `true` if parsing fails.
+///
+/// \details When using some option ('-o'), specialize this function to convert
+///          the given string to the desired enum value.
 template<typename option_enum>
 option_enum parse_option(const std::string &arg, bool &should_exit);
 
+/// \brief   String to be printed as part of '--help' (compile-time derived)
+///
+/// \details When using some option ('-o'), specialize this function for a
+///          short description.
 template<typename option_enum>
 std::string option_help_str();
 
+/// \brief Enum type for an empty set of options.
 enum no_options { NONE };
 
+/// \brief Option parsing for `no_option` enum
 template<>
 no_options parse_option(const std::string &, bool &should_exit)
 {
@@ -49,10 +60,12 @@ no_options parse_option(const std::string &, bool &should_exit)
   return no_options::NONE;
 }
 
+/// \brief Option parsing for `no_option` enum
 template<>
 std::string option_help_str<no_options>()
 { return "Not part of this benchmark"; }
 
+/// \brief   Logic for parsing input values.
 template<typename option_enum = no_options>
 bool parse_input(int &argc, char* argv[], option_enum &option)
 {
@@ -120,6 +133,9 @@ bool parse_input(int &argc, char* argv[], option_enum &option)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+
+/// \brief Lowercase a single ASCII character.
+///
 /// \details Based on https://stackoverflow.com/a/313990/13300643
 char ascii_tolower(char in)
 {
@@ -128,6 +144,7 @@ char ascii_tolower(char in)
   return in;
 }
 
+/// \brief Lowercase an entire string of ASCII characters.
 std::string ascii_tolower(const std::string &in)
 {
   std::string out;
@@ -138,6 +155,8 @@ std::string ascii_tolower(const std::string &in)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+
+/// \brief Reobtain size of an array with a compile-time known size.
 template <class T, size_t N>
 constexpr int size(const T (& /*array*/)[N]) noexcept
 {
