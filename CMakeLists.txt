@@ -109,7 +109,12 @@ add_subdirectory (external/sylvan sylvan EXCLUDE_FROM_ALL)
 add_subdirectory (external/blifparse libblifparse EXCLUDE_FROM_ALL)
 
 # ============================================================================ #
-# Examples
+# Benchmarks
 # ============================================================================ #
 add_subdirectory (src)
+
+# ============================================================================ #
+# Formatting
+# ============================================================================ #
+include(cmake/clang-cxx-dev-tools.cmake)
 

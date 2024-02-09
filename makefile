@@ -58,6 +58,13 @@ clean/out:
 	@rm -f out/**/*.out
 
 # ============================================================================ #
+#  CLANG TOOLS
+# ============================================================================ #
+format:
+	@mkdir -p build/ && cd build/ && cmake -D CMAKE_BUILD_TYPE=$(BUILD_TYPE) ..
+	@cd build/ && make clang-format
+
+# ============================================================================ #
 #  HELP
 # ============================================================================ #
 help:
@@ -189,6 +196,9 @@ help:
 	@echo ""
 	@echo "Other"
 	@echo "--------------"
+	@echo ""
+	@echo "format:"
+	@echo "   Format all files in the `src/` folder."
 	@echo ""
 	@echo "help:"
 	@echo "   Prints this hopefully helpful piece of text."
