@@ -3,6 +3,7 @@
 #include <functional>
 #include <iostream>
 #include <string>
+#include <string_view>
 
 #include "../common/input.h"
 
@@ -50,7 +51,7 @@ TASK_1(int, lace_lambda, const std::function<int()>*, f)
 class sylvan_bdd_adapter
 {
 public:
-  inline static const std::string NAME = "Sylvan";
+  static constexpr std::string_view NAME = "Sylvan";
 
   static constexpr bool needs_extend = false;
 

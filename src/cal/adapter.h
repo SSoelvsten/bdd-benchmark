@@ -6,6 +6,7 @@
 #include <functional>
 #include <iostream>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <calObj.hh>
@@ -13,7 +14,7 @@
 class cal_bdd_adapter
 {
  public:
-  inline static const std::string NAME = "CAL [BDD]";
+  static constexpr std::string_view NAME = "CAL [BDD]";
 
   static constexpr bool needs_extend = false;
 

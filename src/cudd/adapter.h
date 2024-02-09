@@ -6,6 +6,7 @@
 #include <iostream>
 #include <limits>
 #include <string>
+#include <string_view>
 
 #include "../common/input.h"
 
@@ -99,7 +100,7 @@ public:
 class cudd_bdd_adapter : public cudd_adapter
 {
 public:
-  inline static const std::string NAME = "CUDD [BDD]";
+  static constexpr std::string_view NAME = "CUDD [BDD]";
 
   static constexpr bool needs_extend = false;
 
@@ -258,7 +259,7 @@ public:
 class cudd_zdd_adapter : public cudd_adapter
 {
 public:
-  inline static const std::string NAME = "CUDD [ZDD]";
+  static constexpr std::string_view NAME = "CUDD [ZDD]";
 
   static constexpr bool needs_extend = true;
 

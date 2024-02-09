@@ -5,6 +5,7 @@
 #include <functional>
 #include <iostream>
 #include <string>
+#include <string_view>
 
 #include "../common/input.h"
 
@@ -70,7 +71,7 @@ compute_init_size()
 class buddy_bdd_adapter
 {
 public:
-  inline static const std::string NAME = "BuDDy [BDD]";
+  static constexpr std::string_view NAME = "BuDDy [BDD]";
 
   static constexpr bool needs_extend = false;
 

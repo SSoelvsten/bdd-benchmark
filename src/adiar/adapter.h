@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <cstdlib>
 #include <string>
+#include <string_view>
 
 #include "../common/input.h"
 
@@ -46,7 +47,7 @@ public:
 class adiar_bdd_adapter : public adiar_adapter
 {
 public:
-  inline static const std::string NAME = "Adiar [BDD]";
+  static constexpr std::string_view NAME = "Adiar [BDD]";
 
   static constexpr bool needs_extend = true;
 
@@ -192,7 +193,7 @@ public:
 class adiar_zdd_adapter : public adiar_adapter
 {
 public:
-  inline static const std::string NAME = "Adiar [ZDD]";
+  static constexpr std::string_view NAME = "Adiar [ZDD]";
 
   static constexpr bool needs_extend = true;
 
