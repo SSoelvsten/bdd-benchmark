@@ -1,12 +1,14 @@
+#include <assert.h>
+#include <cstdlib>
 #include <functional>
 #include <iostream>
+#include <string>
+
+#include "../common/input.h"
 
 #include <sylvan.h>
 #include <sylvan_table.h>
-
 #include <sylvan_obj.hpp>
-
-#include "../common/input.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Running code in a LACE context

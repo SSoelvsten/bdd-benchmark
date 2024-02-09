@@ -1,6 +1,10 @@
-#include <adiar/adiar.h>
+#include <assert.h>
+#include <cstdlib>
+#include <string>
 
 #include "../common/input.h"
+
+#include <adiar/adiar.h>
 
 class adiar_adapter
 {

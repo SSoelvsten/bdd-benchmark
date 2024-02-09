@@ -1,11 +1,14 @@
+#include <assert.h>
 #include <cmath>
 #include <cstdint>
+#include <cstdlib>
 #include <functional>
 #include <iostream>
-
-#include <bdd.h>
+#include <string>
 
 #include "../common/input.h"
+
+#include <bdd.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Initialisation of BuDDy. The size of each node in the unique table is 6*4 =

@@ -1,13 +1,16 @@
+#include <assert.h>
 #include <cstddef>
 #include <cstdio>
+#include <cstdlib>
 #include <functional>
 #include <iostream>
 #include <limits>
+#include <string>
+
+#include "../common/input.h"
 
 #include "cudd.h"
 #include "cuddObj.hh"
-
-#include "../common/input.h"
 
 inline unsigned int
 cudd_cachesize(int varcount)
