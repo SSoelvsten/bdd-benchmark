@@ -1,11 +1,17 @@
-#include "common.cpp"
-
 // Algorithms and Operations
 #include <algorithm>
+
+// Assertions
+#include <assert.h>
+
+// Assertions
+#include <assert.h>
 
 // Data Structures
 #include <array>
 #include <queue>
+#include <sstream>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -15,10 +21,15 @@
 
 // Types
 #include <stdint.h>
+#include <cstdlib>
 #include <limits>
 
 // Other
 #include <stdexcept>
+
+#include "common/adapter.h"
+#include "common/chrono.h"
+#include "common/input.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 //                              Apply Operand                                 //

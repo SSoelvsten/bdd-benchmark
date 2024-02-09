@@ -1,9 +1,10 @@
-#include "common.cpp"
-
 // Algorithms and Operations
 #include <algorithm>
 #include <cmath>
 #include <regex>
+
+// Assertions
+#include <assert.h>
 
 // Data Structures
 #include <array>
@@ -21,12 +22,17 @@
 #include <sstream>
 
 // Types
+#include <cstdlib>
 #include <type_traits>
 
 // Other
 #include <functional>
 #include <stdexcept>
 #include <utility>
+
+#include "common/adapter.h"
+#include "common/chrono.h"
+#include "common/input.h"
 
 // https://en.cppreference.com/w/cpp/utility/variant/visit
 template<class... Ts> struct overload : Ts... { using Ts::operator()...; };

@@ -1,71 +1,115 @@
-#include <iostream>       // std::cout, std::cerr, std::getchar()
-#include <ostream>        // output streams
-#include <stdexcept>      // std::invalid_argument
-#include <string>         // std::string
-#include <vector>         // std::vector
+#ifndef BDD_BENCHMARK_COMMON_INPUT_H
+#define BDD_BENCHMARK_COMMON_INPUT_H
 
-#include "common.h"
-
-////////////////////////////////////////////////////////////////////////////////
-// Timing
-#include <chrono>
-
-using time_point = std::chrono::steady_clock::time_point;
-
-inline time_point now() {
-  return std::chrono::steady_clock::now();
-}
-
-using time_duration = size_t;
-
-inline time_duration duration_ms(const time_point &begin, const time_point &end) {
-  return std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
-}
+#include <iostream>  // std::cout, std::cerr, ...
+#include <getopt.h>  // getopt
+#include <stdexcept> // std::invalid_argument
+#include <string>    // std::string, std::stoi, ...
+#include <vector>    // std::vector
 
 ////////////////////////////////////////////////////////////////////////////////
-// Input parsing
 
-#include <getopt.h>       // argument parsing
+////////////////////////////////////////////////////////////////////////////////
+/// \brief Amount of Mebibytes (MiB) of memory to dedicate to the BDD package.
+///
+/// \details This value is provided with `-M`
+////////////////////////////////////////////////////////////////////////////////
+extern int M;
 
-int M = 128; /* MiB */
-std::string temp_path = "";
+////////////////////////////////////////////////////////////////////////////////
+/// \brief Path to temporary files for the BDD package to store data on disk.
+///
+/// \details This value is provided with `-t`
+////////////////////////////////////////////////////////////////////////////////
+extern std::string temp_path;
 
-std::vector<int> input_sizes = {};
-std::vector<std::string> input_files = {};
+////////////////////////////////////////////////////////////////////////////////
+/// \brief List of integer input sizes
+///
+/// \details This value is provided with `-N`
+////////////////////////////////////////////////////////////////////////////////
+extern std::vector<int> input_sizes;
 
+////////////////////////////////////////////////////////////////////////////////
+/// \brief   Paths for input files
+///
+/// \details This value is provided with `-f`
+////////////////////////////////////////////////////////////////////////////////
+extern std::vector<std::string> input_files;
+
+////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////
+/// \brief Lowercase a single ASCII character.
+///
+/// \details Based on https://stackoverflow.com/a/313990/13300643
+////////////////////////////////////////////////////////////////////////////////
+inline char ascii_tolower(char in)
+{
+  if (in <= 'Z' && in >= 'A')
+    return in - ('Z' - 'z');
+  return in;
+}
+
+/// \brief Lowercase an entire string of ASCII characters.
+inline std::string ascii_tolower(const std::string &in)
+{
+  std::string out;
+  for (auto it = in.begin(); it != in.end(); it++) {
+    out.push_back(ascii_tolower(*it));
+  }
+  return out;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////
 /// \brief   Parses a given string into an enum. The error code `should_exit` is
 ///          made `true` if parsing fails.
 ///
 /// \details When using some option ('-o'), specialize this function to convert
 ///          the given string to the desired enum value.
+////////////////////////////////////////////////////////////////////////////////
 template<typename option_enum>
 option_enum parse_option(const std::string &arg, bool &should_exit);
 
+////////////////////////////////////////////////////////////////////////////////
 /// \brief   String to be printed as part of '--help' (compile-time derived)
 ///
 /// \details When using some option ('-o'), specialize this function for a
 ///          short description.
+////////////////////////////////////////////////////////////////////////////////
 template<typename option_enum>
 std::string option_help_str();
 
+////////////////////////////////////////////////////////////////////////////////
 /// \brief Enum type for an empty set of options.
+////////////////////////////////////////////////////////////////////////////////
 enum no_options { NONE };
 
+////////////////////////////////////////////////////////////////////////////////
 /// \brief Option parsing for `no_option` enum
+////////////////////////////////////////////////////////////////////////////////
 template<>
-no_options parse_option(const std::string &, bool &should_exit)
+inline no_options parse_option(const std::string &, bool &should_exit)
 {
   std::cerr << "Options is undefined for this benchmark\n";
   should_exit = true;
   return no_options::NONE;
 }
 
+////////////////////////////////////////////////////////////////////////////////
 /// \brief Option parsing for `no_option` enum
+////////////////////////////////////////////////////////////////////////////////
 template<>
-std::string option_help_str<no_options>()
+inline std::string option_help_str<no_options>()
 { return "Not part of this benchmark"; }
 
+////////////////////////////////////////////////////////////////////////////////
 /// \brief   Logic for parsing input values.
+////////////////////////////////////////////////////////////////////////////////
 template<typename option_enum = no_options>
 bool parse_input(int &argc, char* argv[], option_enum &option)
 {
@@ -132,65 +176,4 @@ bool parse_input(int &argc, char* argv[], option_enum &option)
   return exit;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-
-/// \brief Lowercase a single ASCII character.
-///
-/// \details Based on https://stackoverflow.com/a/313990/13300643
-char ascii_tolower(char in)
-{
-  if (in <= 'Z' && in >= 'A')
-    return in - ('Z' - 'z');
-  return in;
-}
-
-/// \brief Lowercase an entire string of ASCII characters.
-std::string ascii_tolower(const std::string &in)
-{
-  std::string out;
-  for (auto it = in.begin(); it != in.end(); it++) {
-    out.push_back(ascii_tolower(*it));
-  }
-  return out;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-/// \brief Reobtain size of an array with a compile-time known size.
-template <class T, size_t N>
-constexpr int size(const T (& /*array*/)[N]) noexcept
-{
-  return N;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-/// \brief Initializes the BDD package and runs the given benchmark
-template<typename Adapter, typename F>
-int run(const int varcount, const F &f)
-{
-  std::cout << "  " << Adapter::NAME << ":\n";
-
-  const time_point t_before = now();
-  Adapter adapter(varcount);
-  const time_point t_after  = now();
-
-  std::cout << "  | init time (ms)            " << duration_ms(t_before, t_after) << "\n"
-            << "  | memory (MiB)              " << M << "\n"
-            << "  | variables                 " << varcount << "\n"
-            << std::flush;
-
-  const int exit_code = adapter.run([&]() { return f(adapter); });
-
-  if (!exit_code) {
-    adapter.print_stats();
-  }
-
-#ifdef BDD_BENCHMARK_WAIT
-  std::cout << "\npress any key to exit . . .\n" << std::flush;;
-  std::getchar();
-  std::cout << "\n";
-#endif
-
-  return exit_code;
-}
+#endif // BDD_BENCHMARK_COMMON_INPUT_H

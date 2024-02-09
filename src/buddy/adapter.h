@@ -5,7 +5,7 @@
 
 #include <bdd.h>
 
-#include "../common.h"
+#include "../common/input.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Initialisation of BuDDy. The size of each node in the unique table is 6*4 =
