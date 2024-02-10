@@ -66,6 +66,15 @@ libraries.
   C++ API has been extended.
 
 
+- [**LibBDD**](https://github.com/sybila/biodivine-lib-bdd)
+  A thread-safe implementation with depth-first algorithms and memoization. Yet
+  unlike others, it does not use a unique node table. Hence, two diagrams do not
+  share common subtrees. Furthermore, memoization cannot apply across multiple
+  operations.
+
+  We use [this unofficial C FFI](https://github.com/nhusung/lib-bdd-ffi).
+
+
 - [**Sylvan**](https://github.com/trolando/sylvan):
   A parallel (multi-core) implementation with depth-first algorithms using a
   unique node table and memoization. It also uses complement edges and supports
@@ -126,6 +135,16 @@ Installation of CUDD seems seems not possible without also building the
 documentation. For this, you need a local installation of LaTeX.
 ```bash
 apt install texlive texlive-latex-extra
+```
+
+**LibBDD**
+
+This library is implemented in Rust and interacts with C/C++ using an FFI.
+Hence, one needs to use *carg* which in turns requires an internet connection at
+build time.
+
+```bash
+apt install rustup
 ```
 
 **Sylvan**
