@@ -2,10 +2,7 @@
 #include <algorithm>
 
 // Assertions
-#include <assert.h>
-
-// Assertions
-#include <assert.h>
+#include <cassert>
 
 // Data Structures
 #include <array>
@@ -20,7 +17,7 @@
 #include <fstream>
 
 // Types
-#include <stdint.h>
+#include <cstdint>
 #include <cstdlib>
 #include <limits>
 

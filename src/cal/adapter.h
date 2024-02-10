@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>

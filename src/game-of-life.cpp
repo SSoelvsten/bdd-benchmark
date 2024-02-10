@@ -1,5 +1,5 @@
 // Assertions
-#include <assert.h>
+#include <cassert>
 
 // Data Structures
 #include <set>
