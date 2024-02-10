@@ -1,4 +1,4 @@
-#include <assert.h>
+#include <cassert>
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
@@ -7,7 +7,7 @@
 #include <string>
 #include <string_view>
 
-#include "../common/input.h"
+#include "../common/adapter.h"
 
 #include <bdd.h>
 

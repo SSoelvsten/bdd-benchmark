@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
@@ -8,7 +7,7 @@
 #include <string>
 #include <string_view>
 
-#include "../common/input.h"
+#include "../common/adapter.h"
 
 #include "cudd.h"
 #include "cuddObj.hh"

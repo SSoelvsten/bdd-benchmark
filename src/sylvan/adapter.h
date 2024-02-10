@@ -1,11 +1,10 @@
-#include <assert.h>
 #include <cstdlib>
 #include <functional>
 #include <iostream>
 #include <string>
 #include <string_view>
 
-#include "../common/input.h"
+#include "../common/adapter.h"
 
 #include <sylvan.h>
 #include <sylvan_table.h>

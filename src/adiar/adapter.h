@@ -1,9 +1,9 @@
-#include <assert.h>
+#include <cassert>
 #include <cstdlib>
 #include <string>
 #include <string_view>
 
-#include "../common/input.h"
+#include "../common/adapter.h"
 
 #include <adiar/adiar.h>
 
