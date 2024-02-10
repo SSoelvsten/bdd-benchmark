@@ -72,7 +72,7 @@ libraries.
   share common subtrees. Furthermore, memoization cannot apply across multiple
   operations.
 
-  We use [this unofficial C FFI](https://github.com/nhusung/lib-bdd-ffi).
+  We use [this unofficial Rust-to-C FFI](https://github.com/nhusung/lib-bdd-ffi).
 
 
 - [**Sylvan**](https://github.com/trolando/sylvan):
