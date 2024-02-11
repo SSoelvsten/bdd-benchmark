@@ -140,8 +140,8 @@ apt install texlive texlive-latex-extra
 **LibBDD**
 
 This library is implemented in Rust and interacts with C/C++ using an FFI.
-Hence, one needs to use *carg* which in turns requires an internet connection at
-build time.
+Hence, one needs to use *cargo* which in turns requires an internet connection
+at build time.
 
 ```bash
 apt install rustup
