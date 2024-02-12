@@ -136,7 +136,7 @@ BENCHMARKS = {
             [ [ 0, 0,30], "-o rotate-90 -N 4 -N 4" ],
             [ [ 0, 1,00], "-o rotate-90 -N 5 -N 5" ],
             [ [ 0, 2,00], "-o rotate-90 -N 6 -N 6" ],
-         #  [ [15, 0,00], "-o rotate-90 -N 7 -N 7" ], # 1+ TiB disk usage before quantification!
+            [ [15, 0,00], "-o rotate-90 -N 7 -N 7" ], # Adiar : 1+ TiB disk usage before quantification!
             # Rotate 180
             [ [ 0, 0,10], "-o rotate-180 -N 3 -N 3" ],
             [ [ 0, 0,10], "-o rotate-180 -N 4 -N 3" ],
@@ -171,7 +171,7 @@ BENCHMARKS = {
             [ [ 0, 0,30], "-o time -N 7 -N 6" ],
             [ [ 0, 1,00], "-o time -N 8 -N 6" ],
             [ [ 0, 1,00], "-o time -N 8 -N 7" ],
-            [ [15, 0,00], "-o time -N 8 -N 8" ],
+          # [ [15, 0,00], "-o time -N 8 -N 8" ],
         ]
     },
     # --------------------------------------------------------------------------
