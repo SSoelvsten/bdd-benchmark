@@ -539,22 +539,22 @@ class Data:
 
     # Number of collected samples
     def samples(self):
-        return len(self._raw)
+        return max(len(self._raw)-1, 0)
 
     # Average of all samples
     def mean(self):
-        if not self._raw:
-            return 0.0
+        if len(self._raw) <= 1:
+            return float('nan')
 
-        return statistics.mean(self._raw)
+        return statistics.mean(self._raw[1:])
 
     # stdev
     def stdev(self):
-        return statistics.stdev(self._raw)
+        return statistics.stdev(self._raw[1:])
 
     # Normalalised stdev
     def stdev_norm(self):
-        if len(self._raw) <= 1:
+        if len(self._raw) <= 2:
             return 1
 
         return self.stdev() / self.mean()
