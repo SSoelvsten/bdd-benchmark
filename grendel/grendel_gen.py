@@ -290,7 +290,7 @@ BENCHMARKS = {
             [ [15, 0,00], qbf__args("C4/5x5_11_connect4_bwnib.qcir") ], # Adiar : 1+ TiB disk usage during quantification!
             [ [ 0, 0,10], qbf__args("C4/6x6_3_connect2_bwnib.qcir") ],
             [ [ 8, 0,00], qbf__args("C4/6x6_9_connect3_bwnib.qcir") ],
-          # [ [ ?, ?,??], qbf__args("C4/6x6_11_connect4_bwnib.qcir") ], # Adiar : 1+ TiB disk usage!
+            [ [15, 0,00], qbf__args("C4/6x6_11_connect4_bwnib.qcir") ], # Adiar : 1+ TiB disk usage!
             # D/ (Domineering)
             [ [ 0, 0,10], qbf__args("D/2x2_2_bwnib.qcir") ],
             [ [ 0, 0,10], qbf__args("D/2x3_4_bwnib.qcir") ],
