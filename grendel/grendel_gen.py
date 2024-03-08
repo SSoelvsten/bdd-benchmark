@@ -284,7 +284,7 @@ BENCHMARKS = {
             [ [ 0, 6,00], qbf__args("C4/3x3_9_connect3_bwnib.qcir") ],
             [ [ 0, 0,10], qbf__args("C4/4x4_3_connect2_bwnib.qcir") ],
             [ [ 0, 2,00], qbf__args("C4/4x4_9_connect3_bwnib.qcir") ],
-          # [ [ ?, ?,??], qbf__args("C4/4x4_15_connect4_bwnib.qcir") ], # TODO: Obtain a time...
+            [ [ 0, 0,10], qbf__args("C4/4x4_15_connect4_bwnib.qcir") ],
             [ [ 0, 0,10], qbf__args("C4/5x5_3_connect2_bwnib.qcir") ],
             [ [ 6, 0,00], qbf__args("C4/5x5_9_connect3_bwnib.qcir") ],
             [ [15, 0,00], qbf__args("C4/5x5_11_connect4_bwnib.qcir") ], # Adiar : 1+ TiB disk usage during quantification!
