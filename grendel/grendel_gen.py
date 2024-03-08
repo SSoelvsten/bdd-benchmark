@@ -358,6 +358,22 @@ BENCHMARKS = {
             [ [ 0, 1,00], qbf__args("hex/hein_16_5x5-13_bwnib.qcir") ],
             [ [ 0, 0,10], qbf__args("hex/hein_19_5x5-09_bwnib.qcir") ],
             [ [ 0, 0,10], qbf__args("hex/hein_19_5x5-11_bwnib.qcir") ],
+            # httt/ (High-dimensional Tic-Tac-Toe)
+            [ [ 0, 0,10], qbf__args("httt/3x3_3_domino_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("httt/3x3_5_el_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("httt/3x3_9_elly_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("httt/3x3_9_fatty_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("httt/3x3_9_knobby_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("httt/3x3_9_tic_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("httt/3x3_9_tippy_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("httt/4x4_11_knobby_bwnib.qcir") ],
+            [ [ 0, 0,30], qbf__args("httt/4x4_13_skinny_bwnib.qcir") ],
+            [ [ 0, 0,30], qbf__args("httt/4x4_15_fatty_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("httt/4x4_3_domino_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("httt/4x4_5_el_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("httt/4x4_5_tic_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("httt/4x4_7_elly_bwnib.qcir") ],
+            [ [ 0, 0,10], qbf__args("httt/4x4_9_tippy_bwnib.qcir") ],
         ]
     },
     # --------------------------------------------------------------------------
