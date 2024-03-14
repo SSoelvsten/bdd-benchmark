@@ -648,7 +648,7 @@ echo -e "\\n=========  Started `date`  ==========\\n"
 # Build
 echo "Build"
 mkdir -p ./build && cd ./build
-cmake -D CMAKE_C_FLAGS="-march={cpu}" -D CMAKE_CXX_FLAGS="-march={cpu}" -D {CMAKE_GRENDEL_FLAG}=ON -D {CMAKE_STATS}={"ON" if stats else "OFF"} ..
+cmake -D CMAKE_BUILD_TYPE=Release -D CMAKE_C_FLAGS="-march={cpu}" -D CMAKE_CXX_FLAGS="-march={cpu}" -D {CMAKE_GRENDEL_FLAG}=ON -D {CMAKE_STATS}={"ON" if stats else "OFF"} ..
 '''
 
     bdd_build = ""
