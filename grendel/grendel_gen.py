@@ -637,8 +637,6 @@ CMAKE_GRENDEL_FLAG = "BDD_BENCHMARK_GRENDEL"
 
 def build_str(stats):
     prefix = f'''#!/bin/bash
-{sbatch_str("benchmarks_build", time_limit_str([ 0, 0,30]), False)}
-
 echo -e "\\n=========  Started `date`  ==========\\n"
 
 {MODULE_LOAD}
@@ -646,8 +644,8 @@ echo -e "\\n=========  Started `date`  ==========\\n"
 
 # Build
 echo "Build"
-mkdir -p {SLURM_ORIGIN}/build && cd {SLURM_ORIGIN}/build
-cmake -D {CMAKE_GRENDEL_FLAG}=ON -D {CMAKE_STATS}={"ON" if stats else "OFF"} {SLURM_ORIGIN}
+mkdir -p ./build && cd ./build
+cmake -D {CMAKE_GRENDEL_FLAG}=ON -D {CMAKE_STATS}={"ON" if stats else "OFF"} ..
 '''
 
     bdd_build = ""
@@ -658,9 +656,9 @@ echo ""
 echo "Build BDD Benchmarks"
 for package in {' '.join([p.name for p in bdd_packages])} ; do
 		for benchmark in {' '.join([b for b in bdd_benchmarks])} ; do
-			mkdir -p {SLURM_ORIGIN}/out/$package ; \\
-			mkdir -p {SLURM_ORIGIN}/out/$package/$benchmark ; \\
-			mkdir -p {SLURM_ORIGIN}/out/$package/$benchmark/bdd ; \\
+			mkdir -p ../out/$package ; \\
+			mkdir -p ../out/$package/$benchmark ; \\
+			mkdir -p ../out/$package/$benchmark/bdd ; \\
 			make $package'_'$benchmark'_bdd' ;
 		done ;
 done
@@ -674,9 +672,9 @@ echo ""
 echo "Build ZDD Benchmarks"
 for package in {' '.join([p.name for p in zdd_packages])} ; do
 		for benchmark in {' '.join([b for b in zdd_benchmarks])} ; do
-			mkdir -p {SLURM_ORIGIN}/out/$package ; \\
-			mkdir -p {SLURM_ORIGIN}/out/$package/$benchmark ; \\
-			mkdir -p {SLURM_ORIGIN}/out/$package/$benchmark/zdd ; \\
+			mkdir -p ../out/$package ; \\
+			mkdir -p ../out/$package/$benchmark ; \\
+			mkdir -p ../out/$package/$benchmark/zdd ; \\
 			make $package'_'$benchmark'_zdd' ;
 		done ;
 done
