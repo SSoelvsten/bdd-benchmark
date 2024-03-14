@@ -67,6 +67,9 @@ macro(add_bdd_benchmark NAME)
   if (BDD_BENCHMARK_STATS)
     target_compile_definitions(libbdd_${NAME}_bdd PRIVATE BDD_BENCHMARK_STATS)
   endif()
+  if (BDD_BENCHMARK_WAIT)
+    target_compile_definitions(libbdd_${NAME}_bdd PRIVATE BDD_BENCHMARK_WAIT)
+  endif()
 
   # Sylvan
   add_executable(sylvan_${NAME}_bdd sylvan/${NAME}_bdd.cpp)
