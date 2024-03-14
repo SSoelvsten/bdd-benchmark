@@ -13,6 +13,10 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Default build type: Release" FORCE)
+endif()
+
 # ============================================================================ #
 # Compiler settings
 # ============================================================================ #
