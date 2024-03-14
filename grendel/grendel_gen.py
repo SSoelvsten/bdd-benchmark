@@ -16,6 +16,10 @@ for dd in dd_t:
     if input(f"Include '{dd.name.upper()}' benchmarks? (yes/no): ").lower() in yes_choices:
         dd_choice.append(dd)
 
+if not dd_choice:
+    print("\n  At least one kind of Decision Diagram should be included!")
+    exit(1)
+
 package_t = Enum('package_t', ['adiar', 'buddy', 'cal', 'cudd', 'libbdd', 'sylvan'])
 
 package_dd = {
@@ -30,10 +34,15 @@ package_dd = {
 print("")
 
 package_choice = []
+
 for p in package_t:
     if any(dd in package_dd[p] for dd in dd_choice):
         if input(f"Include '{p.name}' package? (yes/no): ").lower() in yes_choices:
             package_choice.append(p)
+
+if not package_choice:
+    print("\n  At least one Library should be included!")
+    exit(1)
 
 bdd_packages = [p for p in package_choice if dd_t.bdd in package_dd[p]] if dd_t.bdd in dd_choice else []
 zdd_packages = [p for p in package_choice if dd_t.zdd in package_dd[p]] if dd_t.zdd in dd_choice else []
