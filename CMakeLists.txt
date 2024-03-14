@@ -62,7 +62,7 @@ if (BDD_BENCHMARK_STATS)
   set(BUDDY_STATS ON)
 endif(BDD_BENCHMARK_STATS)
 
-add_subdirectory (external/BuDDy bdd EXCLUDE_FROM_ALL)
+add_subdirectory (external/BuDDy buddy EXCLUDE_FROM_ALL)
 
 # Cal Package (Jagesh Sanghavi, Rajeev Ranjan et al. - University of California, United States of America)
 add_subdirectory (external/cal cal EXCLUDE_FROM_ALL)
