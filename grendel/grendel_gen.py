@@ -13,7 +13,7 @@ dd_t = Enum('dd_t', ['bdd', 'zdd'])
 
 dd_choice = []
 for dd in dd_t:
-    if input(f"Include '{dd.name.upper()}' benchmarks? (yes/no): ").lower() in yes_choices:
+    if input(f"Include '{dd.name.upper()}' benchmarks? (yes/No): ").lower() in yes_choices:
         dd_choice.append(dd)
 
 if not dd_choice:
@@ -37,7 +37,7 @@ package_choice = []
 
 for p in package_t:
     if any(dd in package_dd[p] for dd in dd_choice):
-        if input(f"Include '{p.name}' package? (yes/no): ").lower() in yes_choices:
+        if input(f"Include '{p.name}' package? (yes/No): ").lower() in yes_choices:
             package_choice.append(p)
 
 if not package_choice:
@@ -471,7 +471,7 @@ print("")
 benchmark_choice = []
 for b in BENCHMARKS.keys():
     if any(dd in BENCHMARKS[b].keys() for dd in dd_choice):
-        if input(f"Include '{b}' Benchmark? (yes/no): ").lower() in yes_choices:
+        if input(f"Include '{b}' Benchmark? (yes/No): ").lower() in yes_choices:
             benchmark_choice.append(b)
 
 bdd_benchmarks = [b for b in benchmark_choice if dd_t.bdd in BENCHMARKS[b].keys()] if dd_t.bdd in dd_choice else []
@@ -694,7 +694,7 @@ echo -e "\\n========= Finished `date` ==========\\n"
 print("")
 
 with open("build.sh", "w") as file:
-    file.write(build_str(input(f"Include Statistics? (yes/no): ").lower() in yes_choices))
+    file.write(build_str(input(f"Include Statistics? (yes/No): ").lower() in yes_choices))
 
 for (t,b) in grouped_instances.items():
     for [filename, content] in benchmark_str(t,b):
