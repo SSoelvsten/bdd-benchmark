@@ -16,13 +16,14 @@ for dd in dd_t:
     if input(f"Include '{dd.name.upper()}' benchmarks? (yes/no): ").lower() in yes_choices:
         dd_choice.append(dd)
 
-package_t = Enum('package_t', ['adiar', 'buddy', 'cal', 'cudd', 'sylvan'])
+package_t = Enum('package_t', ['adiar', 'buddy', 'cal', 'cudd', 'libbdd', 'sylvan'])
 
 package_dd = {
     package_t.adiar  : [dd_t.bdd, dd_t.zdd],
     package_t.buddy  : [dd_t.bdd],
     package_t.cal    : [dd_t.bdd],
     package_t.cudd   : [dd_t.bdd, dd_t.zdd],
+    package_t.libbdd : [dd_t.bdd],
     package_t.sylvan : [dd_t.bdd]
 }
 
