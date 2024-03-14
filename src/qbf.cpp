@@ -1967,7 +1967,11 @@ run_qbf(int argc, char** argv)
   if (should_exit) { return -1; }
 
   // =========================================================================
-  std::cout << "QBF Solver\n";
+  std::cout << "QBF Solver\n"
+#ifndef NDEBUG
+            << "  | Debug Mode!\n"
+#endif
+    ;
 
   // Parse QCir Input
   const std::string input_file = input_files.at(0);

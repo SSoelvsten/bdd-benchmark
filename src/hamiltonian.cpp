@@ -2489,11 +2489,14 @@ run_hamiltonian(int argc, char** argv)
 
   // ---------------------------------------------------------------------------
   std::cout << rows() << " x " << cols() << " - Hamiltonian Cycle\n"
-            << "  | Encoding                  " << option_str(opt) << "\n";
+            << "  | Encoding                  " << option_str(opt) << "\n"
+#ifndef NDEBUG
+            << "  | Debug Mode!\n"
+#endif
+    ;
 
   if (rows() == 0 || cols() == 0) {
-    std::cout << "\n"
-              << "  The board has no cells. Please provide Ns > 1 (-N)\n";
+    std::cout << "  | The board has no cells. Please provide Ns > 1 (-N)\n";
     return 0;
   }
 

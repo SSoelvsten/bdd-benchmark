@@ -873,7 +873,11 @@ run_picotrav(int argc, char** argv)
   const bool verify_networks = input_files.size() > 1;
 
   // =========================================================================
-  std::cout << "Picotrav\n";
+  std::cout << "Picotrav\n"
+#ifndef NDEBUG
+            << "  | Debug Mode!\n"
+#endif
+            << "\n";
 
   // =========================================================================
   // Read file(s) and construct Nets

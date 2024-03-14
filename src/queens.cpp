@@ -211,7 +211,11 @@ run_queens(int argc, char** argv)
   if (should_exit) { return -1; }
 
   // =========================================================================
-  std::cout << "[" << rows() << " x " << cols() << "]-Queens\n";
+  std::cout << "[" << rows() << " x " << cols() << "]-Queens\n"
+#ifndef NDEBUG
+            << "  | Debug Mode!\n"
+#endif
+            << "\n";
 
   // ========================================================================
   // Initialise package manager

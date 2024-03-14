@@ -266,7 +266,11 @@ run_tictactoe(int argc, char** argv)
   if (should_exit) { return -1; }
 
   // =========================================================================
-  std::cout << "Tic-Tac-Toe with " << N << " crosses\n";
+  std::cout << "Tic-Tac-Toe with " << N << " crosses\n"
+#ifndef NDEBUG
+            << "  | Debug Mode!\n"
+#endif
+            << "\n";
 
   construct_lines();
 

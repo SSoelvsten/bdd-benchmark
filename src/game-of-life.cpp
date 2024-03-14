@@ -1298,6 +1298,9 @@ run_gameoflife(int argc, char** argv)
   // -----------------------------------------------------------------------------------------------
   std::cout << "Game of Life : [" << rows(prime::post) << " x " << cols(prime::post) << "]\n"
             << "  | Symmetry                  " << option_str(option) << "\n"
+#ifndef NDEBUG
+            << "  | Debug Mode!\n"
+#endif
             << "\n";
 
   var_map vm(option);
