@@ -21,25 +21,25 @@ endif()
 # Compiler settings
 # ============================================================================ #
 message(STATUS "CMake build configuration for BDD Benchmarks")
-message(STATUS "  OS:          ${CMAKE_SYSTEM_NAME}")
-message(STATUS "  Compiler:    ${CMAKE_CXX_COMPILER_ID}")
-message(STATUS "    C Flags:   ${CMAKE_C_FLAGS}")
-message(STATUS "    CXX Flags: ${CMAKE_CXX_FLAGS}")
+message(STATUS "  OS:                       ${CMAKE_SYSTEM_NAME}")
+message(STATUS "  Compiler:                 ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+message(STATUS "    C Flags:                ${CMAKE_C_FLAGS}")
+message(STATUS "    CXX Flags:              ${CMAKE_CXX_FLAGS}")
 message(STATUS "")
 
 option(BDD_BENCHMARK_STATS "Build with printing of verbose statistics (ruins time measurements)." OFF)
-message(STATUS "  Compiled with verbose Statistics: ${BDD_BENCHMARK_STATS}")
+message(STATUS "  Compiled with Statistics: ${BDD_BENCHMARK_STATS}")
 if (BDD_BENCHMARK_STATS)
   message(WARN "    NOTE: THIS MAKES ANY REPORTED TIME MEASUREMENTS NOT REPRESENTATIVE!")
 endif(BDD_BENCHMARK_STATS)
 message(STATUS "")
 
 option(BDD_BENCHMARK_WAIT "Wait to exit program until enter has been pressed." OFF)
-message(STATUS "  Compiled with Waiting: ${BDD_BENCHMARK_WAIT}")
+message(STATUS "  Compiled with Waiting:    ${BDD_BENCHMARK_WAIT}")
 message(STATUS "")
 
-option(GRENDEL "Build for Grendel-S cluster" OFF)
-message(STATUS "  Compiled for Grendel Cluster: ${BDD_BENCHMARK_GRENDEL}")
+option(GRENDEL "Build for Grendel cluster" OFF)
+message(STATUS "  Compiled for Grendel:     ${BDD_BENCHMARK_GRENDEL}")
 message(STATUS "")
 
 
