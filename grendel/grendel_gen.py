@@ -540,14 +540,15 @@ def output_path(package, benchmark, dd, args):
 print("")
 
 partitions = {
-    "q20":    128, # GB
-    "q20fat": 128, # GB
-    "q24":    256, # GB
-    "q28":    256, # GB
-    "q36":    384, # GB
-    "q40":    384, # GB
-    "q48":    384, # GB
-    "q64":    512, # GB
+             # Mem, CPU
+    "q20":    [128, "ivybridge"],
+    "q20fat": [128, "ivybridge"],
+    "q24":    [256, "haswell"],
+    "q28":    [256, "broadwell"],
+    "q36":    [384, "skylake"],
+    "q40":    [384, "cascadelake"],
+    "q48":    [384, "cascadelake"],
+    "q64":    [512, "icelake-server"],
 }
 
 partition = "q48"
@@ -611,7 +612,7 @@ def benchmark_str(time, benchmarks):
     args_length = max(map(lambda b : len(b[3].split()), benchmarks))
     awk_args = '" "$' + '" "$'.join(map(lambda b : str(b), range(3, args_length+3)))
 
-    memory = (partitions[partition] - 16) * 1024
+    memory = (partitions[partition][0] - 16) * 1024
 
     slurm_content = f'''#!/bin/bash
 {sbatch_str(f"{slurm_job_prefix}__{slurm_job_suffix}", time, True)}
@@ -636,6 +637,8 @@ CMAKE_STATS        = "BDD_BENCHMARK_STATS"
 CMAKE_GRENDEL_FLAG = "BDD_BENCHMARK_GRENDEL"
 
 def build_str(stats):
+    cpu = partitions[partition][1]
+
     prefix = f'''#!/bin/bash
 echo -e "\\n=========  Started `date`  ==========\\n"
 
@@ -645,7 +648,7 @@ echo -e "\\n=========  Started `date`  ==========\\n"
 # Build
 echo "Build"
 mkdir -p ./build && cd ./build
-cmake -D {CMAKE_GRENDEL_FLAG}=ON -D {CMAKE_STATS}={"ON" if stats else "OFF"} ..
+cmake -D CMAKE_C_FLAGS="-march={cpu}" -D CMAKE_CXX_FLAGS="-march={cpu}" -D {CMAKE_GRENDEL_FLAG}=ON -D {CMAKE_STATS}={"ON" if stats else "OFF"} ..
 '''
 
     bdd_build = ""
