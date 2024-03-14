@@ -79,7 +79,7 @@ def picotrav__args(spec_t, opt_t, circuit_name, picotrav_opt):
 
 def qbf__args(circuit_name):
     # All of Irfansha Shaik's circuits seem to be output in a depth-first order.
-    return f"-f ../SAT2023_GDDL/QBF_instances/{circuit_name} -o dfs"
+    return f"-f ../SAT2023_GDDL/QBF_instances/{circuit_name} -o df"
 
 # --------------------------------------------------------------------------- #
 # Since we are testing BDD packages over such a wide spectrum, we have some
