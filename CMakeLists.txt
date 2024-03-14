@@ -38,7 +38,7 @@ option(BDD_BENCHMARK_WAIT "Wait to exit program until enter has been pressed." O
 message(STATUS "  Compiled with Waiting:    ${BDD_BENCHMARK_WAIT}")
 message(STATUS "")
 
-option(GRENDEL "Build for Grendel cluster" OFF)
+option(BDD_BENCHMARK_GRENDEL "Build for Grendel cluster" OFF)
 message(STATUS "  Compiled for Grendel:     ${BDD_BENCHMARK_GRENDEL}")
 message(STATUS "")
 
