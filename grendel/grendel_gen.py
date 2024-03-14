@@ -641,19 +641,6 @@ mkdir -p {SLURM_ORIGIN}/build && cd {SLURM_ORIGIN}/build
 cmake -D {CMAKE_GRENDEL_FLAG}=ON -D {CMAKE_STATS}={"ON" if stats else "OFF"} {SLURM_ORIGIN}
 '''
 
-    cudd_build = ""
-    if package_t.cudd in package_choice:
-        cudd_build = f'''
-echo ""
-echo "Build CUDD"
-cd {SLURM_ORIGIN}/external/cudd
-autoreconf
-./configure --prefix {SLURM_ORIGIN}/build/cudd/ --enable-obj
-make && make install
-
-cd {SLURM_ORIGIN}/build/
-'''
-
     bdd_build = ""
     if bdd_benchmarks:
         assert(bdd_packages)
@@ -690,7 +677,7 @@ done
 echo -e "\\n========= Finished `date` ==========\\n"
 '''
 
-    return prefix + cudd_build + bdd_build + zdd_build + suffix
+    return prefix + bdd_build + zdd_build + suffix
 
 # =========================================================================== #
 # Run Script Strings and Save to Disk
