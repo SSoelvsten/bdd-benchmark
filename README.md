@@ -147,6 +147,14 @@ at build time.
 apt install rustup
 ```
 
+Furthermore, it depends on *cbindgen* to create and compile the FFI from Rust to
+C++. This can either be installed through Cargo (remember to update your *$PATH*
+if doing so) or your OS package manager.
+
+```bash
+cargo install --force cbindgen
+```
+
 **Sylvan**
 
 Sylvan also needs the *The GNU Multiple Precision Arithmetic* and *Portable
