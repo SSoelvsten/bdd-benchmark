@@ -26,18 +26,15 @@ ml load python/3.9.4 && make
 ## Running the .sh scripts
 
 To compile all the benchmarks for the desired CPU (i.e. with the correct
-instruction set), we provide the `grendel_build.sh` script that can be run on
-one of the desired nodes in question. This can be run from the root directory as
-follows:
+instruction set), we provide the `build.sh` script that can be run on the frontend
+node. From the root directory of this repository, call the builde script.
 
 ```bash
-sbatch -p q48 grendel/build.sh
+./grendel/build.sh
 ```
 
-You can follow the build process with `tail -f slurm-<jobid>.out` .
-
 When the build is complete, then you can schedule all the generated shell files
-from the root directory of this repository with
+onto nodes on the cluster. Again, from the root directory, write
 
 ```bash
 for f in grendel/*-*-*-*.sh; do sbatch -p q48 $f; done
