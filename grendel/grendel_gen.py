@@ -481,10 +481,29 @@ print("\nBenchmarks")
 print("  BDD: ", bdd_benchmarks)
 print("  ZDD: ", zdd_benchmarks)
 
+print("")
+
 # --------------------------------------------------------------------------- #
 # To get these benchmarks to not flood the SLURM manager, we need to group them
 # together by their time limit (creating an array of jobs for each time limit).
 # --------------------------------------------------------------------------- #
+try:
+    time_factor = float(input("Time Limit Factor (default: 1.0): "))
+except:
+    time_factor = 1.0
+
+def time_limit_scale(t):
+    hours_to_mins = 60
+    days_to_mins = 24 * hours_to_mins
+
+    total_minutes = t[0] * days_to_mins + t[1] * hours_to_mins + t[2]
+    scaled_minutes = time_factor * total_minutes
+    return [
+        int(scaled_minutes / days_to_mins),
+        int((scaled_minutes % days_to_mins) / hours_to_mins),
+        int(scaled_minutes % hours_to_mins)
+    ]
+
 def time_limit_str(t):
     minutes = t[2]
     if minutes < 10:
@@ -514,7 +533,9 @@ for benchmark in BENCHMARKS:
                 if p not in package_choice: continue
 
                 if dd in package_dd[p]:
-                    grouped_instances.setdefault(time_limit_str(instance[0]), []).append([p, benchmark, dd, instance[1]])
+                    grouped_instances.setdefault(time_limit_str(time_limit_scale(instance[0])), []).append([p, benchmark, dd, instance[1]])
+
+print("")
 
 # --------------------------------------------------------------------------- #
 # For each benchmark, we need to derive a unique name. This is used for the
@@ -536,8 +557,6 @@ def output_path(package, benchmark, dd, args):
 # =========================================================================== #
 # Script Strings
 # =========================================================================== #
-
-print("")
 
 partitions = {
              # Mem, CPU
