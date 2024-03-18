@@ -491,6 +491,27 @@ print("")
 # To get these benchmarks to not flood the SLURM manager, we need to group them
 # together by their time limit (creating an array of jobs for each time limit).
 # --------------------------------------------------------------------------- #
+
+partitions = {
+             # Mem, CPU
+    "q20":    [128, "ivybridge",      15],
+    "q20fat": [128, "ivybridge",      15],
+    "q24":    [256, "haswell",        28],
+    "q28":    [256, "broadwell",      15],
+    "q36":    [384, "skylake",        15],
+    "q40":    [384, "cascadelake",    15],
+    "q48":    [384, "cascadelake",    15],
+    "q64":    [512, "icelake-server", 15],
+}
+
+partition = "q48"
+partition_choice = input("Grendel Node (default: 'q48'): ")
+if partition_choice:
+    if not partition_choice in partitions.keys():
+        print(f"Partition '{partition_choice}' is unknown")
+        exit(-1)
+    partition = partition_choice
+
 try:
     time_factor = float(input("Time Limit Factor (default: 1.0): "))
 except:
@@ -500,8 +521,10 @@ def time_limit_scale(t):
     hours_to_mins = 60
     days_to_mins = 24 * hours_to_mins
 
+    max_time = partitions[partition][2] * days_to_mins
+
     total_minutes = t[0] * days_to_mins + t[1] * hours_to_mins + t[2]
-    scaled_minutes = time_factor * total_minutes
+    scaled_minutes = min(time_factor * total_minutes, max_time)
     return [
         int(scaled_minutes / days_to_mins),
         int((scaled_minutes % days_to_mins) / hours_to_mins),
@@ -537,7 +560,8 @@ for benchmark in BENCHMARKS:
                 if p not in package_choice: continue
 
                 if dd in package_dd[p]:
-                    grouped_instances.setdefault(time_limit_str(time_limit_scale(instance[0])), []).append([p, benchmark, dd, instance[1]])
+                    time_key = time_limit_str(time_limit_scale(instance[0]))
+                    grouped_instances.setdefault(time_key, []).append([p, benchmark, dd, instance[1]])
 
 print("")
 
@@ -561,26 +585,6 @@ def output_path(package, benchmark, dd, args):
 # =========================================================================== #
 # Script Strings
 # =========================================================================== #
-
-partitions = {
-             # Mem, CPU
-    "q20":    [128, "ivybridge"],
-    "q20fat": [128, "ivybridge"],
-    "q24":    [256, "haswell"],
-    "q28":    [256, "broadwell"],
-    "q36":    [384, "skylake"],
-    "q40":    [384, "cascadelake"],
-    "q48":    [384, "cascadelake"],
-    "q64":    [512, "icelake-server"],
-}
-
-partition = "q48"
-partition_choice = input("Grendel Node (default: 'q48'): ")
-if partition_choice:
-    if not partition_choice in partitions.keys():
-        print(f"Partition '{partition_choice}' is unknown")
-        exit(-1)
-    partition = partition_choice
 
 MODULE_LOAD = '''module load gcc/10.1.0
 module load cmake/3.23.5 autoconf/2.71 automake/1.16.1
@@ -715,7 +719,6 @@ echo -e "\\n========= Finished `date` ==========\\n"
 # =========================================================================== #
 # Run Script Strings and Save to Disk
 # =========================================================================== #
-print("")
 
 with open("build.sh", "w") as file:
     file.write(build_str(input(f"Include Statistics? (yes/No): ").lower() in yes_choices))
