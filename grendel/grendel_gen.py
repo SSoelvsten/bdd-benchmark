@@ -109,8 +109,9 @@ BENCHMARKS = {
             [ [ 0, 0,10], "-o none -N 5 -N 4" ],
             [ [ 0, 0,30], "-o none -N 5 -N 5" ],
             [ [ 0, 2,00], "-o none -N 6 -N 5" ],
-            [ [ 4, 0,00], "-o none -N 6 -N 6" ],
-            [ [15, 0,00], "-o none -N 7 -N 6" ],
+            [ [ 2, 0,00], "-o none -N 6 -N 6" ],
+            [ [ 8, 0,00], "-o none -N 7 -N 6" ],
+            [ [15, 0,00], "-o none -N 7 -N 7" ],
             # Mirror Vertical
             [ [ 0, 0,10], "-o mirror-vertical -N 3 -N 3" ],
             [ [ 0, 0,10], "-o mirror-vertical -N 4 -N 3" ],
@@ -132,7 +133,7 @@ BENCHMARKS = {
             [ [ 0, 0,30], "-o mirror-quad -N 6 -N 6" ],
             [ [ 0,12,00], "-o mirror-quad -N 7 -N 6" ],
             [ [ 1, 0,00], "-o mirror-quad -N 7 -N 7" ],
-            [ [ 2, 0,00], "-o mirror-quad -N 7 -N 7" ],
+            [ [ 4, 0,00], "-o mirror-quad -N 8 -N 7" ],
             # Mirror Diagonal
             [ [ 0, 0,10], "-o mirror-diagonal -N 3 -N 3" ],
             [ [ 0, 0,10], "-o mirror-diagonal -N 4 -N 4" ],
