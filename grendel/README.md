@@ -56,7 +56,7 @@ If you want some more control over formatting (e.g. see the names in full), then
 you should instead use something like the following.
 
 ```bash
-squeue --me --format "%i  %t   %j"
+squeue --me --format "%20i | %2t | %42j | %r"
 ```
 
 ## Cancel all jobs
