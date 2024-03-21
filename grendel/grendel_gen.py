@@ -640,7 +640,8 @@ def benchmark_str(time, benchmarks):
     args_length = max(map(lambda b : len(b[3].split()), benchmarks))
     awk_args = '" "$' + '" "$'.join(map(lambda b : str(b), range(3, args_length+3)))
 
-    memory = (partitions[partition][0] - 16) * 1024
+    memory = partitions[partition][0]
+    memory = int(memory - memory/10) * 1024
 
     slurm_content = f'''#!/bin/bash
 {sbatch_str(f"{slurm_job_prefix}__{slurm_job_suffix}", time, True)}
