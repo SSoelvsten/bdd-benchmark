@@ -91,7 +91,8 @@ help to do so is very much appreciated.
 For comparability, we will enforce all packages to follow the same settings.
 
 - Packages will initialise its unique node table (if any) to its full potential
-  size and have its operation cache (if any) set to of 64:1.
+  size to skip any table doublings. Otherwise the table and cache are
+  initialised with their default settings.
 
 - Dynamic variable reordering is disabled.
 

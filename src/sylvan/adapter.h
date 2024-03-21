@@ -44,7 +44,13 @@ TASK_1(int, lace_lambda, const std::function<int()>*, f)
 ///                           table sizes be as big as possible.
 ///
 /// - sylvan_set_granularity: 1 for "use cache for every operation".
+///
+/// From `sylvan_set_limits` we are encouraged to use a table-to-cache ratio
+/// between 3:1 and 1:3.
 ////////////////////////////////////////////////////////////////////////////////
+
+/// Number of table entries per cache entry (as recommended by BuDDy).
+constexpr size_t cache_ratio = 8;
 
 class sylvan_bdd_adapter
 {
@@ -75,7 +81,7 @@ public:
     sylvan::sylvan_set_limits( // Set memory limit
       memory_bytes,
       // Set (exponent) of cache ratio
-      ilog2(CACHE_RATIO),
+      ilog2(cache_ratio),
 #ifndef BDD_BENCHMARK_GRENDEL
       // Initialise unique node table to full size
       0

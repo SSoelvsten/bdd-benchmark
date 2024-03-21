@@ -12,35 +12,11 @@
 #include "cudd.h"
 #include "cuddObj.hh"
 
-inline unsigned int
-cudd_cachesize(int varcount)
-{
-  const size_t number_of_buckets = CUDD_UNIQUE_SLOTS * varcount;
-
-  constexpr size_t sizeof_DdSubtable = 8 + 9 * 4 + 8;
-  const size_t buckets_bytes         = number_of_buckets * sizeof_DdSubtable;
-
-  const size_t bytes_remaining = static_cast<size_t>(M) * 1024u * 1024u - buckets_bytes;
-
-  // CUDD may increase the number of buckets, thereby decreasing the space left
-  // for nodes. This will skew the ratio in favour of the cache, but this is the
-  // best we can do.
-  constexpr size_t sizeof_DdNode  = 2 * 4 + 3 * 8;
-  constexpr size_t sizeof_DdCache = 4 * 8;
-
-  // We need to maximise x and y in the following system of inequalities:
-  //              24x + 32y <= M , x = y * CACHE_RATIO
-  const size_t x = bytes_remaining / ((sizeof_DdNode * CACHE_RATIO + sizeof_DdCache) / CACHE_RATIO);
-  const size_t y = x / CACHE_RATIO;
-
-  return y;
-}
-
 inline unsigned long
 cudd_memorysize()
 {
-  constexpr size_t CUDD_MAX = std::numeric_limits<unsigned long>::max();
-  return std::min(static_cast<size_t>(M), CUDD_MAX / (1024 * 1024)) * 1024 * 1024;
+  const size_t max_value = std::numeric_limits<unsigned long>::max() / (1024 * 1024);
+  return std::min(static_cast<size_t>(M), max_value) * 1024 * 1024;
 }
 
 class cudd_adapter
@@ -54,7 +30,7 @@ protected:
     : _mgr(bdd_varcount,
            zdd_varcount,
            CUDD_UNIQUE_SLOTS,
-           cudd_cachesize(bdd_varcount + zdd_varcount),
+           CUDD_CACHE_SLOTS,
            cudd_memorysize())
     , _varcount(bdd_varcount + zdd_varcount)
   {}

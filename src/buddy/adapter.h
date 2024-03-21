@@ -44,8 +44,11 @@
 ///     Declare the number of variables to expect to be used.
 ////////////////////////////////////////////////////////////////////////////////
 
-// memory ceiling for BuDDy is MAX_INT.
-constexpr size_t MAX_INT = 2147483647;
+/// Number of table entries per cache entry (as recommended by BuDDy).
+constexpr size_t cache_ratio = 64;
+
+/// memory ceiling for BuDDy is what can fit in an `int`.
+constexpr size_t max_int = std::numeric_limits<int>::max();
 
 struct buddy_init_size
 {
@@ -57,13 +60,13 @@ inline buddy_init_size
 compute_init_size()
 {
   // We need to maximise x and y in the following system of inequalities:
-  //              24x + 16y <= M , x = y * CACHE_RATIO
+  //              24x + 16y <= M , x = y * cache_ratio
   const size_t memory_bytes = static_cast<size_t>(M) * 1024 * 1024;
-  const size_t x            = memory_bytes / ((24u * CACHE_RATIO + 16u) / CACHE_RATIO);
-  const size_t y            = x / CACHE_RATIO;
+  const size_t x            = memory_bytes / ((24u * cache_ratio + 16u) / cache_ratio);
+  const size_t y            = x / cache_ratio;
 
-  return { static_cast<int>(std::min(x, MAX_INT)),
-           static_cast<int>(std::min(y, MAX_INT / CACHE_RATIO)) };
+  return { static_cast<int>(std::min(x, max_int)),
+           static_cast<int>(std::min(y, max_int / cache_ratio)) };
 }
 
 class buddy_bdd_adapter
@@ -92,7 +95,7 @@ public:
 
     // Set cache ratio if table changes in size. This is disabled, since the
     // table size is fixed below.
-    // bdd_setcacheratio(CACHE_RATIO);
+    // bdd_setcacheratio(cache_ratio);
 
     // Fix table to current initial size. BuDDy chooses a nodetable size the
     // closest prime BIGGER than the given number. This means, we cannot fix the
@@ -102,7 +105,7 @@ public:
     // TODO: Find the largest prime smaller than the computed number of nodes?
     bdd_setmaxincrease(0);
 #else
-    bdd_init(MAX_INT, MAX_INT / CACHE_RATIO);
+    bdd_init(max_int, max_int / cache_ratio);
 #endif
 
     bdd_setvarnum(varcount);
