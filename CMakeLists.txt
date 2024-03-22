@@ -111,6 +111,7 @@ if (BDD_BENCHMARK_STATS)
 endif(BDD_BENCHMARK_STATS)
 
 add_subdirectory (external/sylvan sylvan EXCLUDE_FROM_ALL)
+set(SYLVAN_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/build/sylvan/usr/local/include")
 
 # ---------------------------------------------------------------------------- #
 # BLIF parser

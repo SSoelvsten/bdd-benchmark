@@ -26,6 +26,10 @@ build:
   # Make out folder
 	@mkdir -p out/
 
+  # Installation of sylvan
+	@echo "\n\nInstall Sylvan"
+	@cd build/sylvan && make DESTDIR=./ && make install DESTDIR=./
+
   # Build all bdd benchmarks
 	@echo -e "\n\nBuild BDD Benchmarks"
 	@cd build/ && for package in 'adiar' 'buddy' 'cal' 'cudd' 'libbdd' 'sylvan' ; do \

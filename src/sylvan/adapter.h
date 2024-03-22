@@ -73,7 +73,9 @@ public:
     : _varcount(varcount)
   {
     // Init LACE
-    lace_start(1, 1000000);
+    lace_init(1, 1000000);
+    lace_startup(0, NULL, NULL);
+    LACE_ME;
 
     const size_t memory_bytes = static_cast<size_t>(M) * 1024u * 1024u;
 
@@ -100,7 +102,7 @@ public:
   ~sylvan_bdd_adapter()
   {
     sylvan::sylvan_quit();
-    lace_stop();
+    lace_exit();
   }
 
 public:
@@ -108,7 +110,7 @@ public:
   inline int
   run(const std::function<int()>& f)
   {
-    return RUN(lace_lambda, &f);
+    return f();
   }
 
 private:
