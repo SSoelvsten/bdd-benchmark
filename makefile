@@ -198,7 +198,7 @@ help:
 	@echo "--------------"
 	@echo ""
 	@echo "format:"
-	@echo "   Format all files in the `src/` folder."
+	@echo "   Format all files in the 'src/' folder."
 	@echo ""
 	@echo "help:"
 	@echo "   Prints this hopefully helpful piece of text."
