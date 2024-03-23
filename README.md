@@ -149,12 +149,15 @@ apt install rustup
 ```
 
 Furthermore, it depends on *cbindgen* to create and compile the FFI from Rust to
-C++. This can either be installed through Cargo (remember to update your *$PATH*
-if doing so) or your OS package manager.
+C++. This can either be installed through Cargo or your OS package manager.
 
 ```bash
 cargo install --force cbindgen
 ```
+
+> [!NOTE]
+> If installing *cbindgen* through cargo, remember to update your *PATH*. Otherwise,
+> CMake will abort with an "*Could not find toolchain ''*" error.
 
 **Sylvan**
 
