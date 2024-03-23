@@ -116,20 +116,20 @@ help:
 	@echo "run/apply/[bdd,zdd]"
 	@echo "   Load two BDDs and combine them with the product construction."
 	@echo ""
-	@echo "   + F1=<file_path> (default: benchmarks/...)"
-	@echo "   | File path (relative to this makefile) to a *binary.bdd* file"
+	@echo "   + F1=<file_path> (default: benchmarks/apply/...)"
+	@echo "   | File path (relative to this makefile) to a *binary.bdd* or *binary.zdd* file"
 	@echo ""
-	@echo "   + F2=<file_path> (default: benchmarks/...)"
-	@echo "   | File path (relative to this makefile) to a *binary.bdd* file"
+	@echo "   + F2=<file_path> (default: benchmarks/apply/...)"
+	@echo "   | File path (relative to this makefile) to a *binary.bdd* or *binary.zdd* file"
 	@echo ""
-	@echo "   + O=[and, or, xor] (default: and)"
+	@echo "   + O=[and, or] (default: and)"
 	@echo "   | The Boolean operand to use."
 
 	@echo ""
 	@echo "run/game-of-life/[bdd,zdd]"
 	@echo "   Counts the number of Garden of Edens in Conway's Game of Life."
 	@echo ""
-	@echo "   + N=<int> (default: 6)"
+	@echo "   + N=<int> (default: 4)"
 	@echo "   | The the width and height of the grid."
 	@echo ""
 	@echo "   + NR=<int> NC=<int> (default: N)"
@@ -171,8 +171,8 @@ help:
 	@echo "   Solves a Quantified Boolean Formula by building the BDD corresponding to a"
 	@echo "   given a circuit in the '.qcir' format and finally quantifying the prenex."
 	@echo ""
-	@echo "   + F=<file_path> (default: benchmarks/not_a.blif)"
-	@echo "   | File path (relative to this makefile) for a '*.blif' file"
+	@echo "   + F=<file_path> (default: benchmarks/qbf/example_a.qcir)"
+	@echo "   | File path (relative to this makefile) for a '*.qcir' file"
 	@echo ""
 	@echo "   + O=[input, df, df_rtl, level, level_df]"
 	@echo "   | Variable order to be precomputed and used throughout computation."
@@ -213,12 +213,6 @@ V:=adiar
 
 # Memory
 M:=128
-
-# Instance size variable (custom default for every target below)
-N:=0
-
-# Benchmark specific Option
-O := ""
 
 # ============================================================================ #
 #  RUN: Apply
