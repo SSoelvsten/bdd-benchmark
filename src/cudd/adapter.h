@@ -266,7 +266,7 @@ public:
     std::vector<std::pair<int, char>> res;
     for (int x = 0; x < _varcount; ++x) {
       const char cudd_val = cudd_res.at(x);
-      if (cudd_val == '_') { continue; }
+      if (cudd_val == '_' || cudd_val == 2) { continue; }
 
       res.push_back({ x, '0' + cudd_val });
     }
