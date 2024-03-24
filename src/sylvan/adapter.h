@@ -96,7 +96,7 @@ public:
     // Init Sylvan
     sylvan::sylvan_set_limits(memory_bytes, ilog2(cache_ratio), table_doublings(memory_bytes)
     );
-    sylvan::sylvan_set_granularity(1);
+    sylvan::sylvan_set_granularity(2);
     sylvan::sylvan_init_package();
     sylvan::sylvan_init_bdd();
 
