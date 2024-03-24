@@ -44,29 +44,40 @@
 ///     Declare the number of variables to expect to be used.
 ////////////////////////////////////////////////////////////////////////////////
 
+/// Largest number in BuDDy
+constexpr size_t max_int = std::numeric_limits<int>::max();
+
 /// Number of table entries per cache entry (as recommended by BuDDy).
 constexpr size_t cache_ratio = 64;
 
-/// memory ceiling for BuDDy is what can fit in an `int`.
-constexpr size_t max_int = std::numeric_limits<int>::max();
+/// Size of a BDD node in BuDDy
+constexpr size_t sizeof_node = 24u;
 
-struct buddy_init_size
+/// Size of a Cache entry in BuDDy
+constexpr size_t sizeof_cache = 16u;
+
+/// Number of Caches in BuDDy
+constexpr size_t caches = 6u;
+
+inline int
+table_size(const size_t memory_bytes)
 {
-  int node_size;
-  int cache_size;
-};
+  // Number of bytes to be used for a single set of table and cache entries.
+  constexpr size_t sizeof_norm = sizeof_node * cache_ratio + sizeof_cache * caches;
 
-inline buddy_init_size
-compute_init_size()
+  // Compute number of nodes posisble
+  const size_t nodes = (memory_bytes / sizeof_norm) * cache_ratio;
+  assert(nodes * sizeof_node + (nodes / cache_ratio) * sizeof_cache <= memory_bytes);
+
+  // Cap at the maximum possible size
+  return std::min<size_t>(nodes, max_int);
+}
+
+inline int
+cache_size(const size_t memory_bytes, const int x)
 {
-  // We need to maximise x and y in the following system of inequalities:
-  //              24x + 16y <= M , x = y * cache_ratio
-  const size_t memory_bytes = static_cast<size_t>(M) * 1024 * 1024;
-  const size_t x            = memory_bytes / ((24u * cache_ratio + 16u) / cache_ratio);
-  const size_t y            = x / cache_ratio;
-
-  return { static_cast<int>(std::min(x, max_int)),
-           static_cast<int>(std::min(y, max_int / cache_ratio)) };
+  // Increase with remaining amount of memory
+  return std::min<size_t>((memory_bytes - x * sizeof_node) / (sizeof_cache * caches), max_int);
 }
 
 class buddy_bdd_adapter
@@ -89,9 +100,12 @@ public:
   buddy_bdd_adapter(int varcount)
     : _varcount(varcount)
   {
-#ifndef BDD_BENCHMARK_GRENDEL
-    const buddy_init_size init_size = compute_init_size();
-    bdd_init(init_size.node_size, init_size.cache_size);
+    const size_t memory_bytes = static_cast<size_t>(M) * 1024 * 1024;
+
+    const int nodes  = table_size(memory_bytes);
+    const int caches = cache_size(memory_bytes, nodes);
+
+    bdd_init(nodes, caches);
 
     // Set cache ratio if table changes in size. This is disabled, since the
     // table size is fixed below.
@@ -104,9 +118,6 @@ public:
     //
     // TODO: Find the largest prime smaller than the computed number of nodes?
     bdd_setmaxincrease(0);
-#else
-    bdd_init(max_int, max_int / cache_ratio);
-#endif
 
     bdd_setvarnum(varcount);
 
