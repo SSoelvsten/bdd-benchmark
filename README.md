@@ -90,10 +90,6 @@ help to do so is very much appreciated.
 ### Enforcing comparability
 For comparability, we will enforce all packages to follow the same settings.
 
-- Packages will initialise its unique node table (if any) to its full potential
-  size to skip any table doublings. Otherwise the table and cache are
-  initialised with their default settings.
-
 - Dynamic variable reordering is disabled.
 
 - Multi-threaded libraries use (except otherwise requested) only a single core.
