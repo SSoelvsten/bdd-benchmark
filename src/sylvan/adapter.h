@@ -49,19 +49,20 @@ TASK_1(int, lace_lambda, const std::function<int()>*, f)
 constexpr size_t cache_ratio = 2;
 
 /// Computation of initial size for Sylvan
-size_t table_doublings(const size_t memory_bytes)
+size_t
+table_doublings(const size_t memory_bytes)
 {
   // Table entry size(s); see implementation of `sylvan::sylvan_set_limits(...)`
   constexpr size_t table_entry = 24;
   constexpr size_t cache_entry = 36;
-  constexpr int entry_log = ilog2(cache_ratio * table_entry + cache_entry) + 1;
+  constexpr int entry_log      = ilog2(cache_ratio * table_entry + cache_entry) + 1;
 
   // Starting table size (normalised for cache ratio)
   constexpr size_t start_bytes = 64 * 1024 * 1024;
-  constexpr int start_log = ilog2(start_bytes) - entry_log;
+  constexpr int start_log      = ilog2(start_bytes) - entry_log;
 
   // Final table size (normalised for cache ratio)
-  const int final_log   = ilog2(memory_bytes) - entry_log;
+  const int final_log = ilog2(memory_bytes) - entry_log;
 
   // Return difference (since we are doing logarithms, this is the number of
   // doublings). Make sure to truncate negative numbers for small memory sizes.
@@ -94,8 +95,7 @@ public:
     const size_t memory_bytes = static_cast<size_t>(M) * 1024u * 1024u;
 
     // Init Sylvan
-    sylvan::sylvan_set_limits(memory_bytes, ilog2(cache_ratio), table_doublings(memory_bytes)
-    );
+    sylvan::sylvan_set_limits(memory_bytes, ilog2(cache_ratio), table_doublings(memory_bytes));
     sylvan::sylvan_set_granularity(2);
     sylvan::sylvan_init_package();
     sylvan::sylvan_init_bdd();

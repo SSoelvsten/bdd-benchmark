@@ -27,11 +27,7 @@ protected:
 
 protected:
   cudd_adapter(const int bdd_varcount, const int zdd_varcount)
-    : _mgr(bdd_varcount,
-           zdd_varcount,
-           CUDD_UNIQUE_SLOTS,
-           CUDD_CACHE_SLOTS,
-           cudd_memorysize())
+    : _mgr(bdd_varcount, zdd_varcount, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS, cudd_memorysize())
     , _varcount(bdd_varcount + zdd_varcount)
   {}
 
