@@ -42,11 +42,11 @@ TASK_1(int, lace_lambda, const std::function<int()>*, f)
 /// - sylvan_set_granularity: 1 for "use cache for every operation".
 ///
 /// From `sylvan_set_limits` we are encouraged to use a table-to-cache ratio
-/// between 3:1 and 1:3.
+/// between 8:1 and 1:8.
 ////////////////////////////////////////////////////////////////////////////////
 
 /// Number of table entries per cache entry (as recommended by Sylvan).
-constexpr size_t cache_ratio = 8;
+constexpr size_t cache_ratio = 2;
 
 /// Computation of initial size for Sylvan
 size_t table_doublings(const size_t memory_bytes)
