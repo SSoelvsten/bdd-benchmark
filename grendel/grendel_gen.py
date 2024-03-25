@@ -119,7 +119,7 @@ BENCHMARKS = {
             [ [ 0, 0,10], "-o mirror-vertical -N 5 -N 4" ],
             [ [ 0, 0,10], "-o mirror-vertical -N 5 -N 5" ],
             [ [ 0, 0,30], "-o mirror-vertical -N 6 -N 5" ],
-            [ [ 0, 4,10], "-o mirror-vertical -N 6 -N 6" ],
+            [ [ 0, 4,00], "-o mirror-vertical -N 6 -N 6" ],
             [ [ 0,12,00], "-o mirror-vertical -N 7 -N 6" ],
             [ [ 1, 0,00], "-o mirror-vertical -N 7 -N 7" ],
             [ [ 4, 0,00], "-o mirror-vertical -N 8 -N 7" ],
