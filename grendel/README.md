@@ -64,7 +64,7 @@ squeue --me --format "%20i | %2t | %42j | %r"
 To cancel all jobs, run the following bash one-liner.
 
 ```bash
-mj | tail -n +3 | while read line ; do echo $line | cut -c1-7 | xargs scancel ; done
+mj | tail -n +3 | while read line ; do echo $line | cut -c1-8 | xargs scancel ; done
 ```
 
 ## Download Output to your Local Machine
