@@ -47,8 +47,11 @@
 /// Largest number in BuDDy
 constexpr size_t max_int = std::numeric_limits<int>::max();
 
+/// Number of table entries per cache entry (double of what is recommended by BuDDy).
+constexpr size_t min_cache_ratio = 32;
+
 /// Number of table entries per cache entry (as recommended by BuDDy).
-constexpr size_t cache_ratio = 64;
+constexpr size_t max_cache_ratio = 64;
 
 /// Size of a BDD node in BuDDy
 constexpr size_t sizeof_node = 24u;
@@ -63,21 +66,30 @@ inline int
 table_size(const size_t memory_bytes)
 {
   // Number of bytes to be used for a single set of table and cache entries.
-  constexpr size_t sizeof_norm = sizeof_node * cache_ratio + sizeof_cache * caches;
+  constexpr size_t sizeof_norm = sizeof_node * max_cache_ratio + sizeof_cache * caches;
 
   // Compute number of nodes posisble
-  const size_t nodes = (memory_bytes / sizeof_norm) * cache_ratio;
-  assert(nodes * sizeof_node + (nodes / cache_ratio) * sizeof_cache <= memory_bytes);
+  const size_t nodes = (memory_bytes / sizeof_norm) * max_cache_ratio;
+  assert(nodes * sizeof_node + (nodes / max_cache_ratio) * sizeof_cache <= memory_bytes);
 
   // Cap at the maximum possible size
   return std::min<size_t>(nodes, max_int);
 }
 
 inline int
-cache_size(const size_t memory_bytes, const int x)
+cache_size(const size_t memory_bytes, const int nodes)
 {
-  // Increase with remaining amount of memory
-  return std::min<size_t>((memory_bytes - x * sizeof_node) / (sizeof_cache * caches), max_int);
+  // Cache size according to largest ratio
+  const size_t min_cache = nodes / max_cache_ratio;
+
+  // Cache size according to smallest ratio
+  const size_t max_cache = nodes / min_cache_ratio;
+
+  // Cache size according to remaining memory
+  const size_t cache_memory = (memory_bytes - nodes * sizeof_node) / (sizeof_cache * caches);
+
+  // Choose cache size based on remaining memory, but bounded from either side.
+  return std::max(min_cache, std::min(max_cache, max_cache));
 }
 
 class buddy_bdd_adapter
