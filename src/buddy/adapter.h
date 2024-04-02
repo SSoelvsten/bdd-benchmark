@@ -68,7 +68,7 @@ table_size(const size_t memory_bytes)
   // Number of bytes to be used for a single set of table and cache entries.
   constexpr size_t sizeof_norm = sizeof_node * max_cache_ratio + sizeof_cache * caches;
 
-  // Compute number of nodes posisble
+  // Compute number of nodes possible
   const size_t nodes = (memory_bytes / sizeof_norm) * max_cache_ratio;
   assert(nodes * sizeof_node + (nodes / max_cache_ratio) * sizeof_cache <= memory_bytes);
 
