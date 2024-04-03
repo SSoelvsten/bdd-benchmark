@@ -105,7 +105,7 @@ class ApplyStrategy:
         # Download Data Set (if necessary)
         if not os.path.isdir(ZENODO_1M__PATH):
             print("Pastva & Henzinger (1M) not found.")
-            if input("  | Download from Zenodo (373 MiB)? (yes/No): ").lower() in yes_choices:
+            if input("  | Download from Zenodo (373 MiB)? (yes/No): ").strip().lower() in yes_choices:
                 self._download_zenodo(ZENODO_1M__PATH, ZENODO_1M__ZIP, ZENODO_1M__TSV)
                 inputs_folder = ZENODO_1M__PATH
         else:
@@ -114,7 +114,7 @@ class ApplyStrategy:
 
         if not os.path.isdir(ZENODO_10M__PATH):
             print("Pastva & Henzinger (10M) not found.")
-            if input("  | Download from Zenodo (4.4 GiB)? (yes/No): ").lower() in yes_choices:
+            if input("  | Download from Zenodo (4.4 GiB)? (yes/No): ").strip().lower() in yes_choices:
                 self._download_zenodo(ZENODO_10M__PATH, ZENODO_10M__ZIP, ZENODO_10M__TSV)
                 inputs_folder = ZENODO_10M__PATH
         else:
@@ -130,7 +130,7 @@ class ApplyStrategy:
 
         # Find largest requested inputs
         print("Upper bound on BDD Size")
-        max_size = int(input(f"  | ").lower())
+        max_size = int(input(f"  | ").strip().lower())
 
         _1_size = 0
         _2_size = 0
@@ -188,7 +188,7 @@ class PicotravStrategy:
 
         if not os.path.isdir(epfl_path):
             print("EPFL Benchmarks not found.")
-            if input("  | Clone with Git? (yes/No): ").lower() in yes_choices:
+            if input("  | Clone with Git? (yes/No): ").strip().lower() in yes_choices:
                 self._download_git()
                 inputs_folder = True
         else:
@@ -203,7 +203,7 @@ class PicotravStrategy:
         print("")
 
         print("Circuit Name.")
-        self._circuit = input("  | ").lower()
+        self._circuit = input("  | ").strip().lower()
 
         _1_base = [f"{epfl_path}/arithmetic", f"{epfl_path}/random_control"]
 
@@ -275,7 +275,7 @@ class QbfStrategy:
 
         if not os.path.isdir(SAT2023_GDDL_PATH):
             print("GDDL SAT 2023 Benchmarks not found.")
-            if input("  | Download from 'github.com/irfansha/q-sage'? (yes/No): ").lower() in yes_choices:
+            if input("  | Download from 'github.com/irfansha/q-sage'? (yes/No): ").strip().lower() in yes_choices:
                 self._download_zip(SAT2023_GDDL_PATH, SAT2023_GDDL_URL)
                 inputs_folder = True
         else:
@@ -296,7 +296,7 @@ class QbfStrategy:
         print(f"Category ({', '.join(SAT2023_GDDL_CATEGORIES._member_names_)})")
         category = SAT2023_GDDL_CATEGORIES.breakthrough
 
-        category_input = input(f"  | ").lower()
+        category_input = input(f"  | ").strip().lower()
         if category_input in SAT2023_GDDL_CATEGORIES._member_names_:
             category = [c for c in SAT2023_GDDL_CATEGORIES if c.name == category_input][0]
         else:
@@ -328,7 +328,7 @@ class QbfStrategy:
         print("Instances")
         print(f"  | {', '.join(instances)}")
         print("  |")
-        circuit = input("  | ").lower()
+        circuit = input("  | ").strip().lower()
 
         if circuit not in instances:
             print(f"\nUnknown Circuit '{circuit}'. Aborting...")
@@ -357,7 +357,7 @@ class QueenStrategy:
 
     def __init__(self):
         print("Queens Board Size")
-        self.N = int(input("  | ").lower())
+        self.N = int(input("  | ").strip().lower())
 
         if self.N < 1 or self.N > 16:
             print(f"  | Value '{self.N}' is out of range. Aborting...")
@@ -381,7 +381,7 @@ Benchmarks = Enum('benchmark_t', ['apply', 'picotrav', 'qbf', 'queens'])
 benchmark = Benchmarks.apply
 
 print(f"Benchmark ({', '.join(Benchmarks._member_names_)})")
-benchmark_input = input(f"  | ").lower()
+benchmark_input = input(f"  | ").strip().lower()
 if benchmark_input in Benchmarks._member_names_:
     benchmark = [b for b in Benchmarks if b.name == benchmark_input][0]
 else:
@@ -410,7 +410,7 @@ Packages = Enum('package_t', ['adiar', 'buddy', 'cal', 'cudd', 'sylvan'])
 package = Packages.adiar
 
 print(f"BDD Package ({', '.join(Packages._member_names_)})")
-package_input = input(f"  | ").lower()
+package_input = input(f"  | ").strip().lower()
 if package_input in Packages._member_names_:
     package = [p for p in Packages if p.name == package_input][0]
 else:
@@ -420,7 +420,7 @@ else:
 submodule_path = f"./external/{package.name}"
 
 print("\nInternal Memory (MiB)")
-package_memory = int(input(f"  | ").lower())
+package_memory = int(input(f"  | ").strip().lower())
 print("")
 
 # ---------------------------------------------------------------------------- #
@@ -429,12 +429,12 @@ print("")
 import os
 
 print(f"Git: Baseline     (e.g. main)")
-baseline_remote = input(f"  | remote: ").lower()
-baseline_branch = input(f"  | branch: ").lower()
+baseline_remote = input(f"  | remote: ").strip().lower()
+baseline_branch = input(f"  | branch: ").strip().lower()
 
 print(f"Git: To-Be Tested (e.g. pull request branch)")
-test_remote = input(f"  | remote: ").lower()
-test_branch = input(f"  | branch: ").lower()
+test_remote = input(f"  | remote: ").strip().lower()
+test_branch = input(f"  | branch: ").strip().lower()
 
 def git__mangle(remote):
     if remote == 'origin':
@@ -478,11 +478,11 @@ import re
 print(f"Verbose Output?")
 
 print_build = False
-if input("  | Build (yes/No): ").lower() in yes_choices:
+if input("  | Build (yes/No): ").strip().lower() in yes_choices:
     print_build = True
 
 print_benchmark = False
-if input("  | Benchmark (yes/No): ").lower() in yes_choices:
+if input("  | Benchmark (yes/No): ").strip().lower() in yes_choices:
     print_benchmark = True
 
 def build(remote, branch):
