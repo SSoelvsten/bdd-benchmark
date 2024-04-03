@@ -2,6 +2,8 @@
 
 int M = 128; /* MiB */
 
+unsigned threads = 1;
+
 std::string temp_path = "";
 
 std::vector<int> input_sizes = {};

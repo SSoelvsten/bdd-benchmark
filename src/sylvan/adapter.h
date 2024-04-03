@@ -90,7 +90,7 @@ public:
     : _varcount(varcount)
   {
     // Init LACE
-    lace_start(1, 1000000);
+    lace_start(threads, 1000000);
 
     const size_t memory_bytes = static_cast<size_t>(M) * 1024u * 1024u;
 
