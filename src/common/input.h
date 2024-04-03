@@ -17,6 +17,13 @@
 extern int M;
 
 ////////////////////////////////////////////////////////////////////////////////
+/// \brief Worker thread count for multithreaded BDD packages
+///
+/// \details This value is provided with `-T`
+////////////////////////////////////////////////////////////////////////////////
+extern unsigned threads;
+
+////////////////////////////////////////////////////////////////////////////////
 /// \brief Path to temporary files for the BDD package to store data on disk.
 ///
 /// \details This value is provided with `-t`
@@ -127,15 +134,23 @@ parse_input(int& argc, char* argv[], option_enum& option)
 
   opterr = 0; // Squelch errors for non-common command-line arguments
 
-  while ((c = getopt(argc, argv, "N:M:f:o:t:h")) != -1) {
+  while ((c = getopt(argc, argv, "N:M:T:f:o:t:h")) != -1) {
     try {
       switch (c) {
       case 'N': input_sizes.push_back(std::stoi(optarg)); continue;
 
       case 'M':
         M = std::stoi(optarg);
-        if (M == 0) {
+        if (M <= 0) {
           std::cerr << "  Must specify positive amount of memory (-M)\n";
+          exit = true;
+        }
+        continue;
+
+      case 'T':
+        threads = std::stoi(optarg);
+        if (threads == 0) {
+          std::cerr << "  Must specify a positive thread count (-T)\n";
           exit = true;
         }
         continue;
@@ -164,6 +179,8 @@ parse_input(int& argc, char* argv[], option_enum& option)
           << std::endl
           << "        -M MiB      [128]     Amount of memory (MiB) to be dedicated to the BDD "
              "package"
+          << std::endl
+          << "        -T THREADS  [1]       Worker thread count for multi-threaded BDD packages"
           << std::endl
           << "        -o OPTION             " << option_help_str<option_enum>() << std::endl
           << "        -t TEMP_PTH [/tmp]    Filepath for temporary files on disk" << std::endl;
