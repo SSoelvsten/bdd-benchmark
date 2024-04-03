@@ -1,8 +1,8 @@
 [submodule "external/adiar"]
 	path = external/adiar
 	url = ../../SSoelvsten/adiar
-[submodule "external/BuDDy"]
-	path = external/BuDDy
+[submodule "external/buddy"]
+	path = external/buddy
 	url = ../../SSoelvsten/buddy
 [submodule "external/sylvan"]
 	path = external/sylvan
