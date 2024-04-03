@@ -291,7 +291,7 @@ class QbfStrategy:
 
         self._path = f"{SAT2023_GDDL_PATH}/QBF_instances"
 
-        SAT2023_GDDL_CATEGORIES = Enum('categories_t', ['breakthrough', 'breakthrough_dual', 'connect4', 'domineering', 'ep', 'ep_dual'])
+        SAT2023_GDDL_CATEGORIES = Enum('categories_t', ['breakthrough', 'breakthrough_dual', 'connect4', 'domineering', 'ep', 'ep_dual', 'hex', 'httt'])
 
         print(f"Category ({', '.join(SAT2023_GDDL_CATEGORIES._member_names_)})")
         category = SAT2023_GDDL_CATEGORIES.breakthrough
@@ -316,6 +316,10 @@ class QbfStrategy:
                 self._path += "/EP"
             case SAT2023_GDDL_CATEGORIES.ep_dual:
                 self._path += "/EP-dual"
+            case SAT2023_GDDL_CATEGORIES.hex:
+                self._path += "/hex"
+            case SAT2023_GDDL_CATEGORIES.httt:
+                self._path += "/httt"
 
         print("")
 
