@@ -105,6 +105,11 @@ if (NOT BDD_BENCHMARK_GRENDEL)
   add_subdirectory(external/lib-bdd-ffi lib-bdd-ffi EXCLUDE_FROM_ALL)
 endif(NOT BDD_BENCHMARK_GRENDEL)
 
+# OxiDD (Nils Husung et al. - Saarland University, Germany and Eindhoven University of Technology, The Netherlands)
+if (NOT BDD_BENCHMARK_GRENDEL)
+  add_subdirectory(external/oxidd oxidd EXCLUDE_FROM_ALL)
+endif(NOT BDD_BENCHMARK_GRENDEL)
+
 # Sylvan Package (Tom van Dijk - University of Twente, Netherlands)
 if (BDD_BENCHMARK_STATS)
   set(SYLVAN_STATS ON)
