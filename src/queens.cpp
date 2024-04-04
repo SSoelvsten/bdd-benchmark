@@ -265,7 +265,7 @@ run_queens(int argc, char** argv)
               << "  total time (ms)             " << (construction_time + counting_time) << "\n"
               << std::flush;
 
-    if (rows() == cols() && N < size(expected) && solutions != expected[N]) { return -1; }
+    if (rows() == cols() && cols() < size(expected) && solutions != expected[cols()]) { return -1; }
     return 0;
   });
 }
