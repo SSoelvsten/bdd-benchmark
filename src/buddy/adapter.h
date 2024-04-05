@@ -97,7 +97,7 @@ class buddy_bdd_adapter
 public:
   static constexpr std::string_view NAME = "BuDDy [BDD]";
   static constexpr bool needs_extend     = false;
-  static constexpr bool complement_edges = true;
+  static constexpr bool complement_edges = false;
 
 public:
   typedef bdd dd_t;
