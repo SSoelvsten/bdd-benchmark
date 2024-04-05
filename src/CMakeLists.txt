@@ -206,6 +206,7 @@ add_benchmark(picotrav)
 link_extra(picotrav libblifparse)
 
 add_bdd_benchmark(qbf)
+add_bcdd_benchmark(qbf)
 
 # ---------------------------------------------------------------------------- #
 # Other Benchmarks
