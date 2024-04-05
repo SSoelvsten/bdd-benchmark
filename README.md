@@ -7,6 +7,7 @@ way, thereby allowing one to compare implementations.
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 **Table of Contents**
 
+- [Kinds of Decision Diagrams](#kinds-of-decision-diagrams)
 - [BDD Packages](#bdd-packages)
     - [Enforcing comparability](#enforcing-comparability)
     - [Dependencies](#dependencies)
@@ -26,6 +27,27 @@ way, thereby allowing one to compare implementations.
 
 <!-- markdown-toc end -->
 
+## Kinds of Decision Diagrams
+
+There are various kinds of decision diagrams, most prominently
+[Binary Decision Diagrams (BDDs)](https://en.wikipedia.org/wiki/Binary_decision_diagram).
+These can be implemented in a shared fashion, i.e., multiple Boolean functions
+are represented in the same diagram, possibly sharing nodes.
+
+To further reduce the node count and enable negation in $\mathcal O(1)$ in case
+of shared BDDs, Brace et al. proposed the use of complement edges
+[[Brace1990](#references)]. Since the functions $f$ and $\lnot f$ are represented by
+the same node, a BDD with complement edges may have only half the node count of
+a simple BDD. Therefore, we view BDDs with complement edges as a distinguished
+kind of decision diagram and abbreviate them as BCDDs. Still, we can run every
+BDD benchmark with BCDDs as well. There are even problems where BCDDs do not
+have any advantage over BDDs (e.g., [Queens](#queens)).
+
+[Zero-Suppressed Binary Decision Diagrams (ZDDs)](https://en.wikipedia.org/wiki/Zero-suppressed_decision_diagram)
+use a different reduction rule than BDDs. Further, the terminal nodes have
+different semantics. ZDDs tend to be a lot more succinct than B(C)DDs for sparse
+sets.
+
 
 ## BDD Packages
 We provide all the benchmarks described further below for the following
@@ -40,8 +62,9 @@ libraries.
 
 
 - [**BuDDy**](http://vlsicad.eecs.umich.edu/BK/Slots/cache/www.itu.dk/research/buddy/):
-  An easy-to-use yet extensive implementation with depth-first algorithms using
-  a unique node table and memoization. It also supports variable reordering.
+  An easy-to-use yet extensive implementation of shared BDDs with depth-first
+  algorithms using a unique node table and memoization. It also supports
+  variable reordering.
 
   We use [this](https://github.com/SSoelvsten/BuDDy) version that builds using
   CMake and has been updated slightly.
@@ -51,7 +74,7 @@ libraries.
   A breadth-first implementation that exploits a specific level-by-level
   locality of nodes on disk to improve performance when dealing with large BDDs.
   Unlike Adiar it also supports sharing of nodes between BDDs at the cost of
-  memoization and garbage collection.
+  memoization and garbage collection. CAL uses complement edges.
 
   We use the [revived version](https://github.com/SSoelvsten/cal) with an
   extended C API, CMake support and a C++ API.
@@ -60,7 +83,9 @@ libraries.
 - **CUDD**:
   Probably the most popular BDD package of all. It uses depth-first algorithms
   and a unique node table, memoization and complement edges, variable reordering,
-  and supports Zero-suppressed Decision Diagrams.
+  and supports Zero-suppressed Decision Diagrams. In principle, CUDD also
+  supports simple BDDs as a special case of Algebraic Decision Diagrams (ADD) /
+  Multi-terminal Decision Diagrams (MTBDDs).
 
   We use [this modified v3.0](https://github.com/SSoelvsten/cudd) in which its
   C++ API has been extended.
@@ -68,17 +93,26 @@ libraries.
 
 - [**LibBDD**](https://github.com/sybila/biodivine-lib-bdd)
   A thread-safe implementation with depth-first algorithms and memoization. Yet
-  unlike others, it does not use a unique node table. Hence, two diagrams do not
-  share common subtrees. Furthermore, memoization cannot apply across multiple
-  operations.
+  unlike others, it does not implement shared BDDs, i.e., two diagrams do not
+  share common subgraphs. Both the unique and memoization tables are recreated
+  for every single operation.
 
   We use [this unofficial Rust-to-C FFI](https://github.com/nhusung/lib-bdd-ffi).
 
 
+- [**OxiDD**](https://github.com/OxiDD/oxidd)
+  A concurrent (multi-core) decision diagram framework written in Rust,
+  currently with depth-first algorithms and memoization. OxiDD supports various
+  kinds of decision diagrams, including BDDs, BCDDs and ZDDs.
+
+
 - [**Sylvan**](https://github.com/trolando/sylvan):
   A parallel (multi-core) implementation with depth-first algorithms using a
-  unique node table and memoization. It also uses complement edges and supports
-  Zero-suppressed Decision Diagrams.
+  unique node table and memoization. It uses complement edges and has initial
+  support for Zero-suppressed Decision Diagrams. However, ZDDs are
+  [not yet included in the official releases](https://github.com/trolando/sylvan/issues/19).
+  Sylvan does not support simple BDDs although it implements Multi-terminal
+  Decision Diagrams (MTBDDs). MTBDDs in Sylvan use complement edges as well.
 
 
 We hope to extend the number of packages. See
@@ -128,32 +162,45 @@ apt install libboost-all-dev
 
 **CUDD**
 
-Installation of CUDD seems seems not possible without also building the
-documentation. For this, you need a local installation of LaTeX.
+Building CUDD requires *autoconf*. On Ubuntu, this gets automatically installed
+as a dependency of the packages required by the other libraries.
+
+**LibBDD** and **OxiDD**
+
+These libraries are implemented in Rust and interact with C/C++ via an FFI.
+Hence, one needs to use *cargo* which in turn requires an internet connection
+to download the dependency crates during the first build ("crate" is the Rust
+term for a package).
+
+There are different ways to install Rust. On all platforms, it is possible to
+use the [official installer script](https://www.rust-lang.org/tools/install) for
+*rustup*, the toolchain manager. Some OSes also provide a *rustup* or
+*rustup-init* package. If you have *rustup* installed, then you can install the
+latest stable Rust toolchain (including *cargo*) using `rustup default stable`.
+Some OSes also provide a fairly recent Rust package. On Ubuntu, you can simply
+install *cargo* via:
+
 ```bash
-apt install texlive texlive-latex-extra
+apt install cargo
 ```
 
-**LibBDD**
-
-This library is implemented in Rust and interacts with C/C++ using an FFI.
-Hence, one needs to use *cargo* which in turns requires an internet connection
-at build time.
-
-```bash
-apt install rustup
-```
-
-Furthermore, it depends on *cbindgen* to create and compile the FFI from Rust to
-C++. This can either be installed through Cargo or your OS package manager.
+Furthermore, the libraries depend on *cbindgen* to generate a C header from Rust
+code. *cbindgen* can either be installed through Cargo or your OS package
+manager. Note however, that a relatively recent version of *cbindgen* is
+required (we tested 0.26.0, which is *not* provided by Ubuntu versions prior to
+24.04).
 
 ```bash
 cargo install --force cbindgen
 ```
 
 > [!NOTE]
-> If installing *cbindgen* through cargo, remember to update your *PATH*. Otherwise,
-> CMake will abort with an "*Could not find toolchain ''*" error.
+> If installing *cbindgen* through cargo, remember to update your *PATH*.
+> Otherwise, CMake will abort with an "*Could not find toolchain ''*" error. The
+> `cargo install` command should print a message "warning: be sure to add
+> `<THE_PATH>` to your PATH to be able to run the installed binaries."
+
+
 
 **Sylvan**
 
@@ -507,6 +554,10 @@ please cite the initial paper on *Adiar*.
 
 
 ## References
+
+- [[Brace1990](https://doi.org/10.1109/DAC.1990.114826)]
+  Brace, K., Rudell, R., Bryant, R.: Efficient implementation of a BDD package.
+  In: 27th ACM/IEEE Design Automation Conference. pp. 40–45 (1990).
 
 - [[Bryant2021](https://github.com/rebryant/Cloud-BDD/blob/conjunction_streamlined/hamiltonian/hpath.py)]
   Bryant, Randal E. “*hpath.py*”. In: *Cloud-BDD* (GitHub). 2021
