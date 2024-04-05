@@ -173,17 +173,22 @@ parse_input(int& argc, char* argv[], option_enum& option)
         std::cout
           << "Usage:  -flag      [default]  Description" << std::endl
           << std::endl
+          << "General options:" << std::endl
           << "        -h                    Print this information" << std::endl
-          << "        -N SIZE               Size(s) of a problem" << std::endl
-          << "        -f FILENAME           Input file to run (use repeatedly for multiple files)"
           << std::endl
+          << "BDD package options:" << std::endl
           << "        -M MiB      [128]     Amount of memory (MiB) to be dedicated to the BDD "
              "package"
           << std::endl
-          << "        -T THREADS  [1]       Worker thread count for multi-threaded BDD packages"
+          << "        -t TEMP_PTH [/tmp]    Filepath for temporary files on disk" << std::endl
+          << "        -T THREADS  [1]       Worker thread count for multithreaded BDD packages"
           << std::endl
-          << "        -o OPTION             " << option_help_str<option_enum>() << std::endl
-          << "        -t TEMP_PTH [/tmp]    Filepath for temporary files on disk" << std::endl;
+          << std::endl
+          << "Benchmark options:" << std::endl
+          << "        -f FILENAME           Input file to run (use repeatedly for multiple files)"
+          << std::endl
+          << "        -N SIZE               Size(s) of a problem" << std::endl
+          << "        -o OPTION             " << option_help_str<option_enum>() << std::endl;
         return true;
       }
     } catch (const std::invalid_argument& ex) {
