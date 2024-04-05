@@ -13,15 +13,15 @@
 #include "oxidd/zbdd.hpp"
 
 inline std::pair<size_t, size_t>
-compute_init_size()
+compute_init_size(unsigned cache_arity)
 {
-  // TODO: We should export these numbers in oxidd, they are dependent on the
+  // TODO: We should export these numbers in OxiDD, they are dependent on the
   // manager, apply cache implementation, and the maximum arity in use. Here, we
   // assume the index-based manager, direct-mapped apply cache, and an operator
   // arity of 2.
-  constexpr double bytes_per_node        = 16 + 8 / 0.75;
-  constexpr double bytes_per_cache_entry = 16;
-  constexpr double cache_ratio           = 64;
+  constexpr double bytes_per_node = 16 + 8 / 0.75;
+  double bytes_per_cache_entry    = 4 + 4 * cache_arity;
+  constexpr double cache_ratio    = 64;
 
   // We need to maximize x and y in the following system of inequalities:
   // bytes_per_node * x + bytes_per_cache_entry * y <= M , x = y * CACHE_RATIO
@@ -52,15 +52,25 @@ private:
   inline oxidd::bdd_function
   make_cube(IT rbegin, IT rend)
   {
-    oxidd::bdd_function res = top();
-    while (rbegin != rend) { res &= _vars[*(rbegin++)]; }
-    return res;
+    oxidd::bdd_function cube = top();
+    while (rbegin != rend) { cube &= _vars[*(rbegin++)]; }
+    return cube;
+  }
+
+  inline oxidd::bdd_function
+  make_cube(const std::function<bool(int)>& pred)
+  {
+    oxidd::bdd_function cube = top();
+    for (size_t i = 0; i < _vars.size(); ++i) {
+      if (pred(i)) cube &= _vars[i];
+    }
+    return cube;
   }
 
   // Init and Deinit
 public:
   oxidd_bdd_adapter(uint32_t varcount)
-    : _manager(compute_init_size().first, compute_init_size().second, threads)
+    : _manager(compute_init_size(2).first, compute_init_size(2).second, threads)
   {
     _vars.reserve(varcount);
     for (uint32_t i = 0; i < varcount; i++) { _vars.emplace_back(_manager.new_var()); }
@@ -157,11 +167,7 @@ public:
   inline oxidd::bdd_function
   exists(const oxidd::bdd_function& b, const std::function<bool(int)>& pred)
   {
-    oxidd::bdd_function vars = top();
-    for (size_t i = 0; i < _vars.size(); ++i) {
-      if (pred(i)) vars &= _vars[i];
-    }
-    return b.exist(vars);
+    return b.exist(make_cube(pred));
   }
 
   template <typename IT>
@@ -180,11 +186,7 @@ public:
   inline oxidd::bdd_function
   forall(const oxidd::bdd_function& b, const std::function<bool(int)>& pred)
   {
-    oxidd::bdd_function vars = top();
-    for (size_t i = 0; i < _vars.size(); ++i) {
-      if (pred(i)) vars &= _vars[i];
-    }
-    return b.forall(vars);
+    return b.forall(make_cube(pred));
   }
 
   template <typename IT>
@@ -299,10 +301,20 @@ private:
     return res;
   }
 
+  inline oxidd::bcdd_function
+  make_cube(const std::function<bool(int)>& pred)
+  {
+    oxidd::bcdd_function cube = top();
+    for (size_t i = 0; i < _vars.size(); ++i) {
+      if (pred(i)) cube &= _vars[i];
+    }
+    return cube;
+  }
+
   // Init and Deinit
 public:
   oxidd_bcdd_adapter(uint32_t varcount)
-    : _manager(compute_init_size().first, compute_init_size().second, threads)
+    : _manager(compute_init_size(2).first, compute_init_size(2).second, threads)
   {
     _vars.reserve(varcount);
     for (uint32_t i = 0; i < varcount; i++) { _vars.emplace_back(_manager.new_var()); }
@@ -399,11 +411,7 @@ public:
   inline oxidd::bcdd_function
   exists(const oxidd::bcdd_function& b, const std::function<bool(int)>& pred)
   {
-    oxidd::bcdd_function vars = top();
-    for (size_t i = 0; i < _vars.size(); ++i) {
-      if (pred(i)) vars &= _vars[i];
-    }
-    return b.exist(vars);
+    return b.exist(make_cube(pred));
   }
 
   template <typename IT>
@@ -422,11 +430,7 @@ public:
   inline oxidd::bcdd_function
   forall(const oxidd::bcdd_function& b, const std::function<bool(int)>& pred)
   {
-    oxidd::bcdd_function vars = top();
-    for (size_t i = 0; i < _vars.size(); ++i) {
-      if (pred(i)) vars &= _vars[i];
-    }
-    return b.forall(vars);
+    return b.forall(make_cube(pred));
   }
 
   template <typename IT>
@@ -538,7 +542,7 @@ private:
   // Init and Deinit
 public:
   oxidd_zdd_adapter(uint32_t varcount)
-    : _manager(compute_init_size().first, compute_init_size().second, threads)
+    : _manager(compute_init_size(3).first, compute_init_size(3).second, threads)
   {
     _vars.reserve(varcount);
     for (uint32_t i = 0; i < varcount; i++) { _vars.emplace_back(_manager.new_singleton()); }
