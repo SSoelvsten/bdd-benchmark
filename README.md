@@ -200,8 +200,6 @@ cargo install --force cbindgen
 > `cargo install` command should print a message "warning: be sure to add
 > `<THE_PATH>` to your PATH to be able to run the installed binaries."
 
-
-
 **Sylvan**
 
 Sylvan also needs the *The GNU Multiple Precision Arithmetic* and *Portable
@@ -213,51 +211,73 @@ apt install libgmp-dev libhwloc-dev
 
 ## Usage
 
-All interactions have been made easy by use of the *makefile* at the root.
-
-| Target    | Description                               |
-|-----------|-------------------------------------------|
-| `build`   | Build all dependencies and all benchmarks |
-| `clean`   | Remove all build artifacts                |
-| `run/...` | Run a single instance of a benchmark      |
-
-The benchmarks can be built with multiple options:
-
-| CMake Variable        | Make Variable | Description                                                       |
-|-----------------------|---------------|-------------------------------------------------------------------|
-| `BDD_BENCHMARK_STATS` | `STATS`       | If *ON*, build with statistics (default is *OFF*)                 |
-| `BDD_BENCHMARK_WAIT`  | `WAIT`        | If *ON*, pause before deinitialising the BDD package and exiting. |
-
-Each benchmark below also has its own *make* target too for ease of use. You may
-specify as a make variable the amount of *M*emory (MiB) to use by the *V*ariant\
-(i.e. BDD package) to be tested. For example, to solve the combinatorial Queens
-problem with BuDDy with 256 MiB of memory you run the following target.
-
+To configure the CMake project run:
 ```bash
-make run/queens V=buddy M=256
+cmake -B build
 ```
+
+For most use cases, the default options are good, still there are a few
+noteworthy ones:
+
+- `-DCMAKE_BUILD_TYPE=<Release|Debug|RelWithDebInfo|...>`: Change the build
+  type. The default is `Release`.
+- `-DCMAKE_C_COMPILER=...`, `-DCMAKE_CXX_COMPILER=...`: Select a specific C/C++
+  compiler.
+- `-DBDD_BENCHMARK_STATS=<OFF|ON>`: If `ON`, build with statistics. Note that
+  this might affect performance, therefore the default is `OFF`.
+- `-DBDD_BENCHMARK_WAIT=<OFF|ON>`: If `ON`, pause before deinitialising the BDD
+  package and exiting. This might be interesting to investigate the use of
+  Hugepages.
+- `-G <Generator>`: Use an alternative generator. On most systems, `Makefile` is
+  the default. To speed up builds you might want to use `Ninja`.
+
+After configuring, you can build the benchmarks:
+```bash
+cmake --build build
+```
+
+This will generate one executable for every possible combination of BDD library,
+benchmark, and DD kind in the `build/src` directory. Not all libraries support
+every kind of DD (see [above](#bdd-packages)), and not all benchmarks are
+available for BDDs/BCDDs or ZDDs.
+
+The naming scheme of the executables is as follows:
+`<BDD Library>_<Benchmark>_<DD Kind>` (none of the three components contain
+underscores). All executables have the same command line interface. There are
+the following BDD library options:
+
+- `-M <MiB>`: Amount of memory (MiB) to be dedicated to the BDD library
+  (default: 128)
+- `-T <THREADS>`: (Maximum) worker thread count for multithreaded BDD library
+  (currently OxiDD and Sylvan). Default: `1`.
+- `-t <TEMP PATH>`: Filepath for temporary files on disk (default: `/tmp`).
 
 Note, that the memory you set is only for the BDD package. So, the program will
 either use swap or be killed if the BDD package takes up more memory in
 conjunction with the benchmark's auxiliary data structures.
 
-We provide benchmarks for both *Binary* and for *Zero-suppressed* Decision
-Diagrams. Not all benchmarks or BDD packages support both types of decision
-diagrams, but if possible, then the type can be chosen as part of the make
-target.
+Furthermore, each benchmark provides options. Not all of the flags below are
+relevant for each benchmark, see the [Benchmarks Section](#benchmarks) for
+details.
 
+- `-f <FILENAME>`: Input file to run (use repeatedly for multiple files)
+- `-N <SIZE>`: Size(s) of a problem
+- `-o <OPTION>`: Some benchmarks allow for choosing between a set of options,
+  e.g., variable ordering, encoding, or algorithm to use.
+
+All flags except `-f` have default values when unspecified.
+
+As an example, you can run the 10x10-Queens benchmark on BuDDy with 1024 MiB
+memory as follows:
 ```bash
-make run/queens/zdd V=adiar M=256
+./build/src/buddy_queens_bdd -N 10 -M 1024
 ```
 
-Some benchmarks allow for choosing between a set of *O*ptions, e.g. variable
-ordering, encoding, or algorithm to use.
-
+Similarly, you can run the Picotrav benchmark on CUDD's ZDD implementation with
+depth-first variable ordering:
 ```bash
-make run/picotrav O=level_df
+./build/src/cudd_picotrav_zdd -f benchmarks/picotrav/not_a.blif -f benchmarks/picotrav/not_b.blif -o df
 ```
-
-All Make variables have default values when unspecified.
 
 
 ## Benchmarks
@@ -275,13 +295,12 @@ diagrams.
 - `and`
 - `or`
 
-The *.bdd* / *.zdd* file(s) is given with the `-f` parameter (*F1* and *F2*
-Make variables) and the apply operand with `-o` (*O* for Make). You can find
-some inputs in the *benchmarks/apply* folder together with links to larger and
-more interesting inputs.
+The *.bdd* / *.zdd* file(s) is given with the `-f` parameter and the apply
+operand with `-o`. You can find some inputs in the *benchmarks/apply* folder
+together with links to larger and more interesting inputs.
 
 ```bash
-make run/apply F1=benchmarks/apply/x0.bdd F2=benchmarks/apply/x1.bdd O=and
+./build/src/${LIB}_apply_${KIND} -f benchmarks/apply/x0.bdd -f benchmarks/apply/x1.bdd -o and
 ```
 
 ### Game Of Life
@@ -316,7 +335,7 @@ All symmetries use a variable order where the pre/post variables are zipped and
 and follow a row-major ordering.
 
 ```bash
-make run/game-of-life NR=5 NC=4 O=mirror-diagonal
+./build/src/${LIB}_game-of-life_${KIND} -N 5 -N 4 -o rotate-180
 ```
 
 
@@ -359,7 +378,7 @@ whereas the `binary` encoding is designed for BDDs. That is, using the `time`
 encoding with BDDs does not give you great, i.e. small and fast, results.
 
 ```bash
-make run/hamiltonian NR=6 NC=5
+./build/src/${LIB}_hamiltonian_${KIND} -N 6 -N 5
 ```
 
 > [!IMPORTANT]
@@ -392,13 +411,12 @@ orderings derived from the given net.
 
 - `random`: A randomized ordering of variables.
 
-The *.blif* file(s) is given with the `-f` parameter (*F1* and *F2* Make
-variables) and the variable order with `-o` (*O* for Make). You can find
-multiple inputs in the *benchmarks/picotrav* folder together with links to
-larger and more interesting inputs.
+The *.blif* file(s) is given with the `-f` parameter and the variable order with
+`-o`. You can find multiple inputs in the *benchmarks/picotrav* folder together
+with links to larger and more interesting inputs.
 
 ```bash
-make run/picotrav F1=benchmarks/picotrav/not_a.blif F2=benchmarks/picotrav/not_b.blif O=level_df
+./build/src/${LIB}_picotrav_${KIND} -f benchmarks/picotrav/not_a.blif -f benchmarks/picotrav/not_b.blif -o level_df
 ```
 
 
@@ -435,11 +453,10 @@ If the `input` ordering is used, then the gates of the circuit are also resolved
 in the order they were declared. Otherwise for `df` and `level`, gates are
 resolved in a bottom-up order based on their depth within the circuit.
 
-The *.qcir* file is given with the `-f` parameter (*F* Make variable) and the
-ordering with `-o` (*O* for Make).
+The *.qcir* file is given with the `-f` parameter and the ordering with `-o`.
 
 ```bash
-make run/qbf F=benchmarks/qcir/example_a.blif O=df
+./build/src/${LIB}_qbf_${KIND} -f benchmarks/qbf/example_a.qcir -o df
 ```
 
 
@@ -456,7 +473,7 @@ and is it also in no conflicts with any other? On the accumulated BDD we then
 count the number of satisfying assignments.
 
 ```bash
-make run/queens N=8
+./build/src/${LIB}_queens_${KIND} -N 8
 ```
 
 
@@ -477,7 +494,7 @@ near-exponentially, the initial BDD size grows polynomially with N, it always us
 64 variables number and 76 Apply operations.
 
 ```bash
-make run/tic-tac-toe N=20
+./build/src/${LIB}_tic-tac-toe_${KIND} -N 20
 ```
 
 
