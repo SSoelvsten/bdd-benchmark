@@ -109,8 +109,8 @@ libraries.
 - [**Sylvan**](https://github.com/trolando/sylvan):
   A parallel (multi-core) implementation with depth-first algorithms using a
   unique node table and memoization. It uses complement edges and has initial
-  support for Zero-suppressed Decision Diagrams. However, ZDDs are
-  [not yet included in the official releases](https://github.com/trolando/sylvan/issues/19).
+  support for Zero-suppressed Decision Diagrams. However, there is
+  [no C++ API for ZDDs yet](https://github.com/trolando/sylvan/issues/19).
   Sylvan does not support simple BDDs although it implements Multi-terminal
   Decision Diagrams (MTBDDs). MTBDDs in Sylvan use complement edges as well.
 
