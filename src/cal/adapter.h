@@ -10,12 +10,12 @@
 
 #include <calObj.hh>
 
-class cal_bdd_adapter
+class cal_bcdd_adapter
 {
 public:
-  static constexpr std::string_view NAME = "CAL [BDD]";
-
-  static constexpr bool needs_extend = false;
+  static constexpr std::string_view NAME = "CAL [BCDD]";
+  static constexpr bool needs_extend     = false;
+  static constexpr bool complement_edges = true;
 
   // Variable type
 public:
@@ -28,7 +28,7 @@ private:
   BDD _latest_build;
 
 public:
-  cal_bdd_adapter(const int bdd_varcount)
+  cal_bcdd_adapter(const int bdd_varcount)
     : _mgr(bdd_varcount)
     , _varcount(bdd_varcount)
   {
@@ -38,7 +38,7 @@ public:
     _latest_build = bot();
   }
 
-  ~cal_bdd_adapter()
+  ~cal_bcdd_adapter()
   { /* Do nothing */
   }
 

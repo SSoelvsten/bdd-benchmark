@@ -5,5 +5,5 @@
 int
 main(int argc, char** argv)
 {
-  return run_gameoflife<cudd_bdd_adapter>(argc, argv);
+  return run_gameoflife<cal_bcdd_adapter>(argc, argv);
 }

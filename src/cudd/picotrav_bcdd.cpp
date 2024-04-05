@@ -5,5 +5,5 @@
 int
 main(int argc, char** argv)
 {
-  return run_picotrav<cal_bdd_adapter>(argc, argv);
+  return run_picotrav<cudd_bcdd_adapter>(argc, argv);
 }

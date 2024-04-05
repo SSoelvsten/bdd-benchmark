@@ -96,8 +96,8 @@ class buddy_bdd_adapter
 {
 public:
   static constexpr std::string_view NAME = "BuDDy [BDD]";
-
-  static constexpr bool needs_extend = false;
+  static constexpr bool needs_extend     = false;
+  static constexpr bool complement_edges = true;
 
 public:
   typedef bdd dd_t;
@@ -279,7 +279,11 @@ public:
   inline uint64_t
   nodecount(const bdd& f)
   {
-    return bdd_nodecount(f);
+    uint64_t c = bdd_nodecount(f);
+    // BuDDy does not count terminal nodes. If a BDD has no inner nodes, then it
+    // consists of a single terminal node. Otherwise, both terminals are
+    // referenced.
+    return c == 0 ? 1 : c + 2;
   }
 
   inline uint64_t

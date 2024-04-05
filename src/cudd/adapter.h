@@ -78,12 +78,12 @@ public:
   }
 };
 
-class cudd_bdd_adapter : public cudd_adapter
+class cudd_bcdd_adapter : public cudd_adapter
 {
 public:
-  static constexpr std::string_view NAME = "CUDD [BDD]";
-
-  static constexpr bool needs_extend = false;
+  static constexpr std::string_view NAME = "CUDD [BCDD]";
+  static constexpr bool needs_extend     = false;
+  static constexpr bool complement_edges = true;
 
 public:
   typedef BDD dd_t;
@@ -94,7 +94,7 @@ private:
 
   // Init and Deinit
 public:
-  cudd_bdd_adapter(int varcount)
+  cudd_bcdd_adapter(int varcount)
     : cudd_adapter(varcount, 0)
   { // Disable dynamic ordering
     _mgr.AutodynDisable();
@@ -306,8 +306,8 @@ class cudd_zdd_adapter : public cudd_adapter
 {
 public:
   static constexpr std::string_view NAME = "CUDD [ZDD]";
-
-  static constexpr bool needs_extend = true;
+  static constexpr bool needs_extend     = true;
+  static constexpr bool complement_edges = false;
 
 public:
   typedef ZDD dd_t;

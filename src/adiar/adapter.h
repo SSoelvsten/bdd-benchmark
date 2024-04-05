@@ -56,8 +56,8 @@ class adiar_bdd_adapter : public adiar_adapter
 {
 public:
   static constexpr std::string_view NAME = "Adiar [BDD]";
-
-  static constexpr bool needs_extend = false;
+  static constexpr bool needs_extend     = false;
+  static constexpr bool complement_edges = false;
 
 public:
   using dd_t   = adiar::bdd;
@@ -254,8 +254,8 @@ class adiar_zdd_adapter : public adiar_adapter
 {
 public:
   static constexpr std::string_view NAME = "Adiar [ZDD]";
-
-  static constexpr bool needs_extend = true;
+  static constexpr bool needs_extend     = true;
+  static constexpr bool complement_edges = false;
 
 public:
   using dd_t   = adiar::zdd;
