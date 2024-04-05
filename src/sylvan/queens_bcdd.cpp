@@ -5,5 +5,5 @@
 int
 main(int argc, char** argv)
 {
-  return run_queens<sylvan_bdd_adapter>(argc, argv);
+  return run_queens<sylvan_bcdd_adapter>(argc, argv);
 }

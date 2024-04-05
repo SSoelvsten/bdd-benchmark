@@ -69,12 +69,12 @@ table_doublings(const size_t memory_bytes)
   return std::max(final_log - start_log, 0);
 }
 
-class sylvan_bdd_adapter
+class sylvan_bcdd_adapter
 {
 public:
-  static constexpr std::string_view NAME = "Sylvan";
-
-  static constexpr bool needs_extend = false;
+  static constexpr std::string_view NAME = "Sylvan [BCDD]";
+  static constexpr bool needs_extend     = false;
+  static constexpr bool complement_edges = true;
 
 public:
   typedef sylvan::Bdd dd_t;
@@ -86,7 +86,7 @@ private:
 
   // Init and Deinit
 public:
-  sylvan_bdd_adapter(int varcount)
+  sylvan_bcdd_adapter(int varcount)
     : _varcount(varcount)
   {
     // Init LACE
@@ -103,7 +103,7 @@ public:
     _latest_build = bot();
   }
 
-  ~sylvan_bdd_adapter()
+  ~sylvan_bcdd_adapter()
   {
     sylvan::sylvan_quit();
     lace_stop();

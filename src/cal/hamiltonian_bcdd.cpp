@@ -5,5 +5,5 @@
 int
 main(int argc, char** argv)
 {
-  return run_hamiltonian<sylvan_bdd_adapter>(argc, argv);
+  return run_hamiltonian<cal_bcdd_adapter>(argc, argv);
 }

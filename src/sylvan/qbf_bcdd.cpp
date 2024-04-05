@@ -5,5 +5,5 @@
 int
 main(int argc, char** argv)
 {
-  return run_qbf<cal_bdd_adapter>(argc, argv);
+  return run_qbf<sylvan_bcdd_adapter>(argc, argv);
 }

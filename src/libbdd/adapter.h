@@ -373,8 +373,8 @@ class libbdd_bdd_adapter
 {
 public:
   static constexpr std::string_view NAME = "LibBDD [BDD]";
-
-  static constexpr bool needs_extend = false;
+  static constexpr bool needs_extend     = false;
+  static constexpr bool complement_edges = false;
 
   using dd_t         = lib_bdd::bdd_function;
   using build_node_t = lib_bdd::bdd_function;
