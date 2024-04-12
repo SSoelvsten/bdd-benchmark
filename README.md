@@ -13,6 +13,8 @@ use of C++ templates such that they are agnostic of the BDD package used.
 - [BDD Packages](#bdd-packages)
     - [Dependencies](#dependencies)
 - [Usage](#usage)
+    - [Build](#build)
+    - [Run](#run)
 - [Benchmarks](#benchmarks)
     - [Apply](#apply)
     - [Game of Life](#game-of-life)
@@ -216,6 +218,11 @@ apt install libgmp-dev libhwloc-dev
 
 ## Usage
 
+When all dependencies have been resolved (see [above](#dependencies)), you can build
+and run the benchmarks as follows.
+
+### Build
+
 To configure the CMake project run:
 ```bash
 cmake -B build
@@ -254,19 +261,29 @@ After configuring, you can build the benchmarks:
 cmake --build build
 ```
 
-This will generate one executable for every possible combination of BDD library,
-benchmark, and DD kind in the `build/src` directory. Not all libraries support
+### Run
+
+After building, the *build/src* folder contains one executable for every possible
+combination of BDD library, benchmark, and DD kind. Not all libraries support
 every kind of DD (see [above](#bdd-packages)), and not all benchmarks are
 available for BDDs/BCDDs or ZDDs.
 
-The naming scheme of the executables is as follows:
-`<BDD Library>_<Benchmark>_<DD Kind>` (each component spelled in *nocase*). All
-executables have the same command line interface. There are the following BDD
-library options:
+The executables follows a `<Library>_<Benchmark>_<DD>` naming scheme (each of the
+three components in *nocase*). All executables have the same command line interface.
+There are the following BDD library options:
+
+- **`-h`**
+
+  Print a help text with all options (including the ones particular to that
+  particular benchmark).
 
 - **`-M <MiB>`** (default: *128*)
 
   Amount of memory (in MiB) to be dedicated to the BDD library.
+
+  Note, that the memory you set is only for the BDD package. So, the program will
+  either use swap or be killed if the BDD package takes up more memory in
+  conjunction with the benchmark's auxiliary data structures.
 
 - **`-T <THREADS>`** (default: *1*)
 
@@ -277,17 +294,13 @@ library options:
 
   Filepath for temporary files on disk for external memory libraries, e.g., Adiar.
 
-Note, that the memory you set is only for the BDD package. So, the program will
-either use swap or be killed if the BDD package takes up more memory in
-conjunction with the benchmark's auxiliary data structures.
-
 For example, you can run the Queens benchmark on Sylvan with 1024 MiB
 of memory and 4 threads as follows:
 ```bash
 ./build/src/sylvan_queens_bcdd -M 1024 -T 4
 ```
 
-Furthermore, each benchmark requires options. See the [Benchmarks
+Furthermore, each benchmark requires options. See `-h` or the [Benchmarks
 Section](#benchmarks) for details.
 
 ## Benchmarks
