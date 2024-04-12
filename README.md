@@ -171,11 +171,6 @@ installed as follows
 apt install libboost-all-dev
 ```
 
-**CUDD**
-
-Building CUDD requires *autoconf*. On Ubuntu, this gets automatically installed
-as a dependency of the packages required by the other libraries.
-
 **LibBDD** and **OxiDD**
 
 These libraries are implemented in Rust and interact with C/C++ via an FFI.
