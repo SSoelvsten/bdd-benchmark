@@ -206,14 +206,6 @@ cargo install --force cbindgen
 > can obtain the path from the print message during *cargo install* which states
 > "*warning: be sure to add <THE_PATH> to your PATH ...*"
 
-**Sylvan**
-
-Sylvan also needs the *The GNU Multiple Precision Arithmetic* and *Portable
-Hardware Locality* libraries, which can be installed as follows
-```bash
-apt install libgmp-dev libhwloc-dev
-```
-
 
 ## Usage
 
