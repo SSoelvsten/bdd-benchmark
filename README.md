@@ -6,6 +6,10 @@ the strengths and weaknesses of implementations and to guide and compare
 developers of new BDD packages. To this end, each benchmark is implemented by
 use of C++ templates such that they are agnostic of the BDD package used.
 
+This project has been developed at the
+[Logic and Semantics](https://logsem.github.io/) group at
+[Aarhus University](https://cs.au.dk).
+
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 **Table of Contents**
 
