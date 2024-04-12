@@ -58,7 +58,7 @@ table_doublings(const size_t memory_bytes)
   constexpr int entry_log      = ilog2(cache_ratio * table_entry + cache_entry) + 1;
 
   // Starting table size (normalised for cache ratio)
-  constexpr size_t start_bytes = 64 * 1024 * 1024;
+  constexpr size_t start_bytes = 1 * 1024 * 1024;
   constexpr int start_log      = ilog2(start_bytes) - entry_log;
 
   // Final table size (normalised for cache ratio)
