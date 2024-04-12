@@ -1,7 +1,7 @@
 # BDD Benchmark
 
 This is a collection of benchmarks for Binary Decision Diagrams (BDDs)
-[[Bryant86](#references)] and some of its variants. These are useful to survey
+[[Bryant1986](#references)] and some of its variants. These are useful to survey
 the strengths and weaknesses of implementations and to guide and compare
 developers of new BDD packages. To this end, each benchmark is implemented by
 use of C++ templates such that they are agnostic of the BDD package used.
@@ -40,7 +40,7 @@ Our benchmarks target the following types of decision diagrams.
 
 - [**Binary Decision Diagrams**](https://en.wikipedia.org/wiki/Binary_decision_diagram)
   **(BDDs)**
-  [[Bryant86](#references)]
+  [[Bryant1986](#references)]
 
 - [**Binary Decision Diagrams with Complemented Edges**](https://en.wikipedia.org/wiki/Binary_decision_diagram#Complemented_edges)
   **(BCDDs)**
@@ -52,22 +52,23 @@ Our benchmarks target the following types of decision diagrams.
 
 ## BDD Packages
 
-The benchmarks are implemented using C++ templates such that they are agnostic
-of the BDD package used. Each BDD package has an adapter which is fully inlined
-at compile time. Currently, we support adapters for the following BDD packages.
+The benchmarks are implemented using C++ templates to make them agnostic of the
+BDD package used. To do so, each implementation has an *adapter* in-between
+which is fully inlined at compile time. Currently, we support the following BDD
+packages.
 
 - [**Adiar**](https://github.com/ssoelvsten/adiar):
 
-  An I/O-efficient implementation with iterative algorithms using
-  time-forward processing to exploit a special sorting of BDD nodes streamed
-  from and to the disk. These algorithms have no need for memoization or garbage
-  collection. But, on the other hand, nodes are also not shareable between BDDs.
+  An I/O-efficient implementation with iterative algorithms using time-forward
+  processing to exploit a special sorting of BDD nodes streamed from and to the
+  disk. These algorithms have no need for memoization or garbage collection.
+  But, on the other hand, nodes are also not shareable between BDDs.
 
 
 - [**BuDDy**](https://buddy.sourceforge.net/manual/main.html):
 
-  An easy-to-use yet extensive implementation of shared BDDs with
-  depth-first algorithms using a unique node table and memoization.
+  An easy-to-use yet extensive implementation of shared BDDs with depth-first
+  algorithms using a unique node table and memoization.
 
   We use [this](https://github.com/SSoelvsten/BuDDy) version that has been
   updated and builds using CMake.
@@ -134,10 +135,10 @@ at compile time. Currently, we support adapters for the following BDD packages.
 | **Ext. Memory**    | ✓         |           | ✓       |          |            |           |            |
 
 
-We hope to extend the number of packages. See
-[issue #12](https://github.com/SSoelvsten/bdd-benchmark/issues/12) for a list
-of BDD packages we would like to have added to this set of benchmarks. Any
-help to do so is very much appreciated.
+We hope to extend the number of packages. See [issue
+#12](https://github.com/SSoelvsten/bdd-benchmark/issues/12) for a list of BDD
+packages we would like to have added to this set of benchmarks. Any help to do
+so is very much appreciated.
 
 
 ### Dependencies
@@ -174,9 +175,9 @@ apt install libboost-all-dev
 **LibBDD** and **OxiDD**
 
 These libraries are implemented in Rust and interact with C/C++ via an FFI.
-Hence, one needs to use *cargo* which in turn requires an internet connection
-to download the dependency crates during the first build ("crate" is the Rust
-term for a package).
+Hence, one needs to use *cargo* which in turn requires an internet connection to
+download the dependency crates during the first build ("crate" is the Rust term
+for a package).
 
 There are different ways to install Rust. On all platforms, it is possible to
 use the [official installer script](https://www.rust-lang.org/tools/install) for
@@ -209,8 +210,8 @@ cargo install --force cbindgen
 
 ## Usage
 
-When all dependencies have been resolved (see [above](#dependencies)), you can build
-and run the benchmarks as follows.
+When all dependencies have been resolved (see [above](#dependencies)), you can
+build and run the benchmarks as follows.
 
 ### Build
 
@@ -254,14 +255,14 @@ cmake --build build
 
 ### Run
 
-After building, the *build/src* folder contains one executable for every possible
-combination of BDD library, benchmark, and DD kind. Not all libraries support
-every kind of DD (see [above](#bdd-packages)), and not all benchmarks are
-available for BDDs/BCDDs or ZDDs.
+After building, the *build/src* folder contains one executable for every
+possible combination of BDD library, benchmark, and DD kind. Not all libraries
+support every kind of DD (see [above](#bdd-packages)), and not all benchmarks
+are available for BDDs/BCDDs or ZDDs.
 
-The executables follows a `<Library>_<Benchmark>_<DD>` naming scheme (each of the
-three components in *nocase*). All executables have the same command line interface.
-There are the following BDD library options:
+The executables follows a `<Library>_<Benchmark>_<DD>` naming scheme (each of
+the three components in *nocase*). All executables have a common command line
+interface to configure the BDD library in question:
 
 - **`-h`**
 
@@ -272,18 +273,19 @@ There are the following BDD library options:
 
   Amount of memory (in MiB) to be dedicated to the BDD library.
 
-  Note, that the memory you set is only for the BDD package. So, the program will
-  either use swap or be killed if the BDD package takes up more memory in
+  Note, that the memory you set is only for the BDD package. So, the program
+  will either use swap or be killed if the BDD package takes up more memory in
   conjunction with the benchmark's auxiliary data structures.
 
 - **`-P <int>`** (default: *1*)
 
-  (Maximum) worker thread count for multi-threaded BDD libraries, e.g., OxiDD and
-  Sylvan.
+  (Maximum) worker thread count for multi-threaded BDD libraries, e.g., OxiDD
+  and Sylvan.
 
 - **`-t <path>`** (default: */tmp*, */usr/tmp/*, ...)
 
-  Filepath for temporary files on disk for external memory libraries, e.g., Adiar.
+  Filepath for temporary files on disk for external memory libraries, e.g.,
+  Adiar.
 
 For example, you can run the Queens benchmark on Sylvan with 1024 MiB
 of memory and 4 threads as follows:
@@ -300,18 +302,18 @@ Section](#benchmarks) for details.
 
 Based on [[Pastva2023](#references)], this benchmark loads two decision diagrams
 stored in a *binary* format (as they are serialized by the
-[LibBDD](https://github.com/sybila/biodivine-lib-bdd)) and then combines them with
-a single *Apply* operation.
+[LibBDD](https://github.com/sybila/biodivine-lib-bdd)) and then combines them
+with a single *Apply* operation.
 
 The benchmark can be configured with the following options:
 
 - **`-f <path>`**
 
-  Path to a *.bdd* / *.zdd* file. Use this twice for the two inputs. You can find
-  some inputs in the *benchmarks/apply* folder together with links to larger and
-  more interesting inputs.
+  Path to a *.bdd* / *.zdd* file. Use this twice for the two inputs. You can
+  find some inputs in the *benchmarks/apply* folder together with links to
+  larger and more interesting inputs.
 
-- **`-o` `<and|or>`**
+- **`-o <and|or>`**
 
   Specify the operator to be used to combine the two decision diagrams.
 
@@ -380,30 +382,31 @@ The benchmark can be configured with the following options:
 
   Pick the encoding/algorithm to solve the problem with:
 
-  - `time`/`t`: Based on [[Bryant2021](#references)], all O(N<sup>4</sup>) states
-    are represented as individual variables, i.e., each variable represents the
-    position and time. A transition relation then encodes the legal moves between
-    two time steps. By intersecting moves at all time steps we obtain all paths.
-    On-top of this, hamiltonian constraints are added and finally the size of the
-    set of cycles is obtained.
+  - `time`/`t`: Based on [[Bryant2021](#references)], all O(N<sup>4</sup>)
+    states are represented as individual variables, i.e., each variable
+    represents the position and time. A transition relation then encodes the
+    legal moves between two time steps. By intersecting moves at all time steps
+    we obtain all paths. On-top of this, hamiltonian constraints are added and
+    finally the size of the set of cycles is obtained.
 
-  - `binary`: Based on [[Marijn2021](#references)] with multiple tweaks by Randal
-    E. Bryant to adapt it to decision diagrams. Each cell's choice of move, i.e.,
-    each edge, is represented by a binary number with *log<sub>2</sub>(4) = 2*
-    variables. Yet, this does not enforce the choice of edges correspond to a
-    Hamiltonian Cycle. Hence, we further add *log<sub>2</sub>(N<sup>2</sup>)*-bit
-    binary counter gadgets. These encode *if u->v then v=u+1 % N<sup>2</sup>*.
+  - `binary`: Based on [[Marijn2021](#references)] with multiple tweaks by
+    Randal E. Bryant to adapt it to decision diagrams. Each cell's choice of
+    move, i.e., each edge, is represented by a binary number with
+    *log<sub>2</sub>(4) = 2* variables. Yet, this does not enforce the choice of
+    edges correspond to a Hamiltonian Cycle. Hence, we further add
+    *log<sub>2</sub>(N<sup>2</sup>)*-bit binary counter gadgets. These encode
+    *if u->v then v=u+1 % N<sup>2</sup>*.
 
   - `unary`/`one-hot`: Similar to `binary` but the edges and the gadgets of *b*
     values use a one-hot encoding with *b* variables. Only one out of the *b*
     variables are ever set to true at the same time; the value of the gadget is
     the variable set to true.
 
-  - `crt_one-hot`/`crt`: Similar to `unary` but one or more prime numbers are used
-    for the gadgets added at the end. By use of the Chinese Remainder Theorem, we
-    can still be sure, we only have valid cycles at the end. One hopes this
-    decreases the size of the diagram, since the number of possible values for
-    each gadget are much smaller.
+  - `crt_one-hot`/`crt`: Similar to `unary` but one or more prime numbers are
+    used for the gadgets added at the end. By use of the Chinese Remainder
+    Theorem, we can still be sure, we only have valid cycles at the end. One
+    hopes this decreases the size of the diagram, since the number of possible
+    values for each gadget are much smaller.
 
   The `time` and the `unary`/`crt_unary` encoding are designed with ZDDs in mind
   whereas the `binary` encoding is designed for BDDs. That is, using the `time`
@@ -430,8 +433,9 @@ The benchmark can be configured with the following options:
 
 - **`-f <path>`**
 
-  Path to a *.blif* file. You can find multiple inputs in the *benchmarks/picotrav*
-  folder together with links to larger and more interesting inputs.
+  Path to a *.blif* file. You can find multiple inputs in the
+  *benchmarks/picotrav* folder together with links to larger and more
+  interesting inputs.
 
   If used twice, the BDDs for both circuits' output gates are constructed and
   checked for logical equality.
@@ -447,8 +451,8 @@ The benchmark can be configured with the following options:
   - `df`/`depth-first`: Variables are ordered based on a depth-first traversal
     where non-input gates are recursed to first; thereby favouring deeper nodes.
 
-  - `level`: Variables are ordered based on the deepest reference by another net.
-    Ties are broken based on the declaration order in the input (`input`).
+  - `level`: Variables are ordered based on the deepest reference by another
+    net. Ties are broken based on the declaration order in the input (`input`).
 
   - `level_df`: Similar to `level` but ties are broken based on the ordering in
     `df` rather than `input`.
@@ -485,7 +489,8 @@ from the diagram.
   different variable orders; each of these are derived from the given circuit
   during initialisation.
 
-  - `input`: Use the order in which variables are introduced in the *.qcir* file.
+  - `input`: Use the order in which variables are introduced in the *.qcir*
+    file.
 
   - `df`/`depth-first`: Order variables based on their first occurence in a
     depth-first traversal of the circuit.
@@ -493,12 +498,13 @@ from the diagram.
   - `df_rtl`/`depth-first_rtl`: Same as `df` but the depth-first traversal is
     *right-to-left* for each gate in the circuit.
 
-  - `level`/`level_df`: Order variables first based on their deepest reference by
-    another gate. Ties are broken based on the depth-first (`df`) order.
+  - `level`/`level_df`: Order variables first based on their deepest reference
+    by another gate. Ties are broken based on the depth-first (`df`) order.
 
-  If the `input` ordering is used, then the gates of the circuit are also resolved
-  in the order they were declared. Otherwise, for `df` and `level`, gates are
-  resolved in a bottom-up order based on their depth within the circuit.
+  If the `input` ordering is used, then the gates of the circuit are also
+  resolved in the order they were declared. Otherwise, for `df` and `level`,
+  gates are resolved in a bottom-up order based on their depth within the
+  circuit.
 
 ```bash
 ./build/src/${LIB}_qbf_${KIND} -f benchmarks/qbf/example_a.qcir -o df
@@ -512,7 +518,7 @@ Solves the following problem:
 > without threatening eachother?
 
 Our implementation of these benchmarks are based on the description of
-[[Kunkle10](#references)]. Row by row, we construct an BDD that represents
+[[Kunkle2010](#references)]. Row by row, we construct an BDD that represents
 whether the row is in a legal state: is at least one queen placed on each row
 and is it also in no conflicts with any other? On the accumulated BDD we then
 count the number of satisfying assignments.
@@ -534,15 +540,15 @@ Solves the following problem:
 > Given N, in how many ways can Player 1 place N crosses in a 3D 4x4x4 cube and
 > have a tie, when Player 2 places noughts in all remaining positions?
 
-This benchmark stems from [[Kunkle10](#references)]. Here we keep an accumulated
-BDD on which we add one of the 76 constraints of at least one cross and one
-nought after the other. We add these constraints in a different order than
-[[Kunkle10](#references)], which does result in an up to 100 times smaller largest
-intermediate result.
+This benchmark stems from [[Kunkle2010](#references)]. Here we keep an
+accumulated BDD on which we add one of the 76 constraints of at least one cross
+and one nought after the other. We add these constraints in a different order
+than [[Kunkle2010](#references)], which does result in an up to 100 times
+smaller largest intermediate result.
 
 The interesting thing about this benchmark is, that even though the BDDs grow
-near-exponentially, the initial BDD size grows polynomially with N, it always uses
-64 variables number and 76 Apply operations.
+near-exponentially, the initial BDD size grows polynomially with N, it always
+uses 64 variables number and 76 Apply operations.
 
 - **`-N <int>`**
 
@@ -631,14 +637,14 @@ please cite the initial paper on *Adiar*.
   Brace, K., Rudell, R., Bryant, R.: Efficient implementation of a BDD package.
   In: 27th ACM/IEEE Design Automation Conference. pp. 40–45 (1990).
 
-- [[Bryant86](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=1676819)]
+- [[Bryant1986](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=1676819)]
   Randal E. Bryant. “*Graph-Based Algorithms for Boolean Function Manipulation*”.
   In: *IEEE Transactions on Computers*. (1986)
 
 - [[Bryant2021](https://github.com/rebryant/Cloud-BDD/blob/conjunction_streamlined/hamiltonian/hpath.py)]
   Bryant, Randal E. “*hpath.py*”. In: *Cloud-BDD* (GitHub). 2021
 
-- [[Kunkle10](https://dl.acm.org/doi/abs/10.1145/1837210.1837222)] Daniel
+- [[Kunkle2010](https://dl.acm.org/doi/abs/10.1145/1837210.1837222)] Daniel
   Kunkle, Vlad Slavici, Gene Cooperman. “*Parallel Disk-Based Computation for
   Large, Monolithic Binary Decision Diagrams*”. In: *PASCO '10: Proceedings of
   the 4th International Workshop on Parallel and Symbolic Computation*. 2010
