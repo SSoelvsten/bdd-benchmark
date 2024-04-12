@@ -309,8 +309,8 @@ Section](#benchmarks) for details.
 
 Based on [[Pastva2023](#references)], this benchmark loads two decision diagrams
 stored in a *binary* format (as they are serialized by the
-[lib-bdd](https://github.com/sybila/biodivine-lib-bdd) BDD package) and then
-combines them with a single *Apply* operation.
+[LibBDD](https://github.com/sybila/biodivine-lib-bdd)) and then combines them with
+a single *Apply* operation.
 
 The benchmark can be configured with the following options:
 
