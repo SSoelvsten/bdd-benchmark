@@ -3,8 +3,8 @@
 This is a collection of benchmarks for Binary Decision Diagrams (BDDs)
 [[Bryant86](#references)] and some of its variants. These are useful to survey
 the strengths and weaknesses of implementations and to guide and compare
-developers of new BDD packags. To this end, each benchmark is by use of C++
-templates agnostic of the BDD package used.
+developers of new BDD packages. To this end, each benchmark is implemented by
+use of C++ templates such that they are agnostic of the BDD package used.
 
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 **Table of Contents**
@@ -136,7 +136,7 @@ help to do so is very much appreciated.
 
 ### Dependencies
 All packages, but CUDD, use CMake to build. This makes compilation and linking
-very simple. One merely has to initialise all submodules (recursively) using the
+very simple. One merely has to initialize all submodules (recursively) using the
 following command.
 
 ```
@@ -201,9 +201,9 @@ cargo install --force cbindgen
 
 > [!NOTE]
 > If installing *cbindgen* through cargo, remember to update your *PATH*.
-> Otherwise, CMake will abort with an "*Could not find toolchain ''*" error. The
-> `cargo install` command should print a message "warning: be sure to add
-> `<THE_PATH>` to your PATH to be able to run the installed binaries."
+> Otherwise, CMake will abort with an "*Could not find toolchain ''*" error. You
+> can obtain the path from the print message during *cargo install* which states
+> "*warning: be sure to add <THE_PATH> to your PATH ...*"
 
 **Sylvan**
 
@@ -224,15 +224,15 @@ cmake -B build
 The default settings can be changed by also parsing various parameters to CMake.
 Here are the values that might be relevant.
 
-- **`-D CMAKE_BUILD_TYPE=<Release|Debug|RelWithDebInfo|...>`** (default: *Release*):
+- **`-D CMAKE_BUILD_TYPE=<Release|Debug|RelWithDebInfo|...>`** (default: *Release*)
 
   Change the build type.
 
-- **`-D CMAKE_C_COMPILER=<...>`, `-D CMAKE_CXX_COMPILER=<...>`**:
+- **`-D CMAKE_C_COMPILER=<...>`, `-D CMAKE_CXX_COMPILER=<...>`**
 
   Select a specific C/C++ compiler.
 
-- **`-G <Generator>`**:
+- **`-G <Generator>`**
 
   Select the build generator; on most systems, `Makefile` would be the default.
   To speed up the build process you may want to try to use `Ninja` instead.
@@ -240,14 +240,14 @@ Here are the values that might be relevant.
 
 Features of the benchmarks and BDD packages can also be turned on and off as follows
 
-- **`-D BDD_BENCHMARK_STATS=<OFF|ON>`**: (default: *OFF*)
+- **`-D BDD_BENCHMARK_STATS=<OFF|ON>`** (default: *OFF*)
 
   If `ON`, build with statistics. This might affect performance.
 
-- **`-D BDD_BENCHMARK_WAIT=<OFF|ON>`**: (default: *OFF*)
+- **`-D BDD_BENCHMARK_WAIT=<OFF|ON>`** (default: *OFF*)
 
   If `ON`, pause before deinitialising the BDD package and exiting. This can be
-  used to investigate its state with external tools, e.g. use of Hugepages.
+  used to investigate its state with external tools, e.g., use of Hugepages.
 
 After configuring, you can build the benchmarks:
 ```bash
@@ -270,12 +270,12 @@ library options:
 
 - **`-T <THREADS>`** (default: *1*)
 
-  (Maximum) worker thread count for multithreaded BDD library, e.g. OxiDD and
+  (Maximum) worker thread count for multithreaded BDD library, e.g., OxiDD and
   Sylvan.
 
 - **`-t <TEMP PATH>`** (default: */tmp*)
 
-  Filepath for temporary files on disk for external memory libraries, e.g. Adiar.
+  Filepath for temporary files on disk for external memory libraries, e.g., Adiar.
 
 Note, that the memory you set is only for the BDD package. So, the program will
 either use swap or be killed if the BDD package takes up more memory in
@@ -299,15 +299,17 @@ stored in a *binary* format (as they are serialized by the
 [lib-bdd](https://github.com/sybila/biodivine-lib-bdd) BDD package) and then
 combines them with a single *Apply* operation.
 
-As an option, you can specify the operator to be used to combine the decision
-diagrams.
+The benchmark can be configured with the following options:
 
-- `and`
-- `or`
+- **`-f <path>`**
 
-The *.bdd* / *.zdd* file(s) is given with the `-f` parameter and the apply
-operand with `-o`. You can find some inputs in the *benchmarks/apply* folder
-together with links to larger and more interesting inputs.
+  Path to a *.bdd* / *.zdd* file. Use this twice for the two inputs. You can find
+  some inputs in the *benchmarks/apply* folder together with links to larger and
+  more interesting inputs.
+
+- **`-o` `<and|or>`**
+
+  Specify the operator to be used to combine the two decision diagrams.
 
 ```bash
 ./build/src/${LIB}_apply_${KIND} -f benchmarks/apply/x0.bdd -f benchmarks/apply/x1.bdd -o and
@@ -320,26 +322,34 @@ Solves the following problem:
 > Given N<sub>1</sub> and N<sub>2</sub>, how many *Garden of Edens* exist of size
 > N<sub>1</sub>xN<sub>2</sub> in Conway's Game of Life?
 
-The search can optionally be restricted to *symmetrical* Garden of Edens:
+The benchmark can be configured with the following options:
 
-- `none`: Search through all solutions (default), i.e. no symmetries are
-  introduced.
+- **`-N <int>`**
 
-- `mirror`/`mirror-vertical`: Solutions that are reflected vertically.
+  The size of the sub-game. Use twice for non-quadratic grids.
 
-- `mirror-quadrant`/`mirror-quad`: Solutions that are reflected both
-  horizontally and vertically.
+- **`-o <...>`**
 
-- `mirror-diagonal`/`mirror-diag`: Solutions that are reflected across one
-  diagonal (requires a square grid).
+  Restrict the search to *symmetrical* Garden of Edens:
 
-- `mirror-double_diagonal`/`mirror-double_diag`: Solutions that are reflected
-  across both diagonals (requires a square grid).
+  - `none`: Search through all solutions (default), i.e., no symmetries are
+    introduced.
 
-- `rotate`/`rotate-90`: Solutions that are rotated by 90 degrees (requires a
-  square grid).
+  - `mirror`/`mirror-vertical`: Solutions that are reflected vertically.
 
-- `rotate-180`: Solutions that are rotated by 180 degrees.
+  - `mirror-quadrant`/`mirror-quad`: Solutions that are reflected both
+    horizontally and vertically.
+
+  - `mirror-diagonal`/`mirror-diag`: Solutions that are reflected across one
+    diagonal (requires a square grid).
+
+  - `mirror-double_diagonal`/`mirror-double_diag`: Solutions that are reflected
+    across both diagonals (requires a square grid).
+
+  - `rotate`/`rotate-90`: Solutions that are rotated by 90 degrees (requires a
+    square grid).
+
+  - `rotate-180`: Solutions that are rotated by 180 degrees.
 
 All symmetries use a variable order where the pre/post variables are zipped and
 and follow a row-major ordering.
@@ -356,43 +366,51 @@ Solves the following problem:
 > Given N<sub>1</sub> and N<sub>2</sub>, how many hamiltonian cycles exist on a
 > Grid Graph size N<sub>1</sub>xN<sub>2</sub>?
 
-*Optionally*, you can pick the encoding/algorithm to solve the problem with:
+The benchmark can be configured with the following options:
 
-- `time`/`t`: Based on [[Bryant2021](#references)], all O(N<sup>4</sup>) states
-  are represented as individual variables, i.e. each variable represents the
-  position and time. A transition relation then encodes the legal moves between
-  two time steps. By intersecting moves at all time steps we obtain all paths.
-  On-top of this, hamiltonian constraints are added and finally the size of the
-  set of cycles is obtained.
+- **`-N <int>`**
 
-- `binary`: Based on [[Marijn2021](#references)] with multiple tweaks by Randal
-  E. Bryant to adapt it to decision diagrams. Each cell's choice of move, i.e.
-  each edge, is represented by a binary number with *log<sub>2</sub>(4) = 2*
-  variables. Yet, this does not enforce the choice of edges correspond to a
-  Hamiltonian Cycle. Hence, we further add *log<sub>2</sub>(N<sup>2</sup>)*-bit
-  binary counter gadgets. These encode *if u->v then v=u+1 % N<sup>2</sup>*.
+  The size of the grid; use twice for non-quadratic grids.
 
-- `unary`/`one-hot`: Similar to `binary` but the edges and the gadgets of *b*
-  values use a one-hot encoding with *b* variables. Only one out of the *b*
-  variables are ever set to true at the same time; the value of the gadget is
-  the variable set to true.
+- **`-o <...>`** (default: *time*)
 
-- `crt_one-hot`/`crt`: Similar to `unary` but one or more prime numbers are used
-  for the gadgets added at the end. By use of the Chinese Remainder Theorem, we
-  can still be sure, we only have valid cycles at the end. One hopes this
-  decreases the size of the diagram, since the number of possible values for
-  each gadget are much smaller.
+  Pick the encoding/algorithm to solve the problem with:
 
-The `time` and the `unary`/`crt_unary` encoding are designed with ZDDs in mind
-whereas the `binary` encoding is designed for BDDs. That is, using the `time`
-encoding with BDDs does not give you great, i.e. small and fast, results.
+  - `time`/`t`: Based on [[Bryant2021](#references)], all O(N<sup>4</sup>) states
+    are represented as individual variables, i.e., each variable represents the
+    position and time. A transition relation then encodes the legal moves between
+    two time steps. By intersecting moves at all time steps we obtain all paths.
+    On-top of this, hamiltonian constraints are added and finally the size of the
+    set of cycles is obtained.
+
+  - `binary`: Based on [[Marijn2021](#references)] with multiple tweaks by Randal
+    E. Bryant to adapt it to decision diagrams. Each cell's choice of move, i.e.,
+    each edge, is represented by a binary number with *log<sub>2</sub>(4) = 2*
+    variables. Yet, this does not enforce the choice of edges correspond to a
+    Hamiltonian Cycle. Hence, we further add *log<sub>2</sub>(N<sup>2</sup>)*-bit
+    binary counter gadgets. These encode *if u->v then v=u+1 % N<sup>2</sup>*.
+
+  - `unary`/`one-hot`: Similar to `binary` but the edges and the gadgets of *b*
+    values use a one-hot encoding with *b* variables. Only one out of the *b*
+    variables are ever set to true at the same time; the value of the gadget is
+    the variable set to true.
+
+  - `crt_one-hot`/`crt`: Similar to `unary` but one or more prime numbers are used
+    for the gadgets added at the end. By use of the Chinese Remainder Theorem, we
+    can still be sure, we only have valid cycles at the end. One hopes this
+    decreases the size of the diagram, since the number of possible values for
+    each gadget are much smaller.
+
+  The `time` and the `unary`/`crt_unary` encoding are designed with ZDDs in mind
+  whereas the `binary` encoding is designed for BDDs. That is, using the `time`
+  encoding with BDDs does not give you great, i.e., small and fast, results.
 
 ```bash
 ./build/src/${LIB}_hamiltonian_${KIND} -N 6 -N 5
 ```
 
 > [!IMPORTANT]
-> The gadget for the `one-hot` encodings is not yet properly implemented. Hence,
+> The gadget for the *unary* encodings is not yet properly implemented. Hence,
 > this variant has been disabled.
 
 ### Picotrav
@@ -404,26 +422,34 @@ every net; dereferencing BDDs for intermediate nets after they have been used
 for the last time. If two *.blif* files are given, then BDDs for both are
 constructed and every output net is compared for equality.
 
-BDD variables represent the value of inputs. Hence, a good variable ordering is
-important for a high performance. To this end, one can use various variable
-orderings derived from the given net.
+The benchmark can be configured with the following options:
 
-- `input`: Use the order in which they are declared in the input *.blif* file.
+- **`-f <path>`**
 
-- `df`/`depth-first`: Variables are ordered based on a depth-first traversal
-  where non-input gates are recursed to first; thereby favouring deeper nodes.
+  Path to a *.blif* file. You can find multiple inputs in the *benchmarks/picotrav*
+  folder together with links to larger and more interesting inputs.
 
-- `level`: Variables are ordered based on the deepest reference by another net.
-  Ties are broken based on the declaration order in the input (`input`).
+  If used twice, the BDDs for both circuits' output gates are constructed and
+  checked for logical equality.
 
-- `level_df`: Similar to `level` but ties are broken based on the ordering in
-  `df` rather than `input`.
+- **`-o <...>`** (default: *input*)
 
-- `random`: A randomized ordering of variables.
+  BDD variables represent the value of inputs. Hence, a good variable ordering
+  is important for a high performance. To this end, one can use various variable
+  orderings derived from the given net.
 
-The *.blif* file(s) is given with the `-f` parameter and the variable order with
-`-o`. You can find multiple inputs in the *benchmarks/picotrav* folder together
-with links to larger and more interesting inputs.
+  - `input`: Use the order in which they are declared in the input *.blif* file.
+
+  - `df`/`depth-first`: Variables are ordered based on a depth-first traversal
+    where non-input gates are recursed to first; thereby favouring deeper nodes.
+
+  - `level`: Variables are ordered based on the deepest reference by another net.
+    Ties are broken based on the declaration order in the input (`input`).
+
+  - `level_df`: Similar to `level` but ties are broken based on the ordering in
+    `df` rather than `input`.
+
+  - `random`: A randomized ordering of variables.
 
 ```bash
 ./build/src/${LIB}_picotrav_${KIND} -f benchmarks/picotrav/not_a.blif -f benchmarks/picotrav/not_b.blif -o level_df
@@ -443,27 +469,32 @@ representing each gate is computed bottom-up. The outermost quantifier in the
 has not already collapsed to a terminal, a witness/counter-example is obtained
 from the diagram.
 
-Each BDD variable corresponds to an input variables, i.e. a literal, of the
-*qcir* circuit. To keep the decision diagrams small, one can choose from using
-different variable orders; each of these are derived from the given circuit
-during initialisation.
+- **`-f <path>`**
 
-- `input`: Use the order in which variables are introduced in the *.qcir* file.
+  Path to a *.qcir* file. You can find multiple inputs in the *benchmarks/qbf*
+  folder together with links to larger and more interesting inputs.
 
-- `df`/`depth-first`: Order variables based on their first occurence in a
-  depth-first traversal of the circuit.
+- **`-o <...>`** (default: *input*)
 
-- `df_rtl`/`depth-first_rtl`: Same as `df` but the depth-first traversal is
-  *right-to-left* for each gate in the circuit.
+  Each BDD variable corresponds to an input variables, i.e., a literal, of the
+  *qcir* circuit. To keep the decision diagrams small, one can choose from using
+  different variable orders; each of these are derived from the given circuit
+  during initialisation.
 
-- `level`/`level_df`: Order variables first based on their deepest reference by
-  another gate. Ties are broken based on the depth-first (`df`) order.
+  - `input`: Use the order in which variables are introduced in the *.qcir* file.
 
-If the `input` ordering is used, then the gates of the circuit are also resolved
-in the order they were declared. Otherwise for `df` and `level`, gates are
-resolved in a bottom-up order based on their depth within the circuit.
+  - `df`/`depth-first`: Order variables based on their first occurence in a
+    depth-first traversal of the circuit.
 
-The *.qcir* file is given with the `-f` parameter and the ordering with `-o`.
+  - `df_rtl`/`depth-first_rtl`: Same as `df` but the depth-first traversal is
+    *right-to-left* for each gate in the circuit.
+
+  - `level`/`level_df`: Order variables first based on their deepest reference by
+    another gate. Ties are broken based on the depth-first (`df`) order.
+
+  If the `input` ordering is used, then the gates of the circuit are also resolved
+  in the order they were declared. Otherwise, for `df` and `level`, gates are
+  resolved in a bottom-up order based on their depth within the circuit.
 
 ```bash
 ./build/src/${LIB}_qbf_${KIND} -f benchmarks/qbf/example_a.qcir -o df
@@ -481,6 +512,12 @@ Our implementation of these benchmarks are based on the description of
 whether the row is in a legal state: is at least one queen placed on each row
 and is it also in no conflicts with any other? On the accumulated BDD we then
 count the number of satisfying assignments.
+
+The benchmark can be configured with the following options:
+
+- **`-N <int>`**
+
+  The size of the chess board.
 
 ```bash
 ./build/src/${LIB}_queens_${KIND} -N 8
@@ -503,6 +540,10 @@ The interesting thing about this benchmark is, that even though the BDDs grow
 near-exponentially, the initial BDD size grows polynomially with N, it always uses
 64 variables number and 76 Apply operations.
 
+- **`-N <int>`**
+
+  The number of crosses are placed in the 64 positions.
+
 ```bash
 ./build/src/${LIB}_tic-tac-toe_${KIND} -N 20
 ```
@@ -516,7 +557,7 @@ also provides a way to test for *performance regression*.
 
 To this end, *regression.py* provides an interactive python program that fully
 automates downloading inputs and running and analysing the benchmark timings of
-two branches. For a non-interactive context, e.g. continuous integration, all
+two branches. For a non-interactive context, e.g., continuous integration, all
 arguments can be parsed through *stdin*. For example, the following goes through
 all the prompts for using the *8*-Queens problem to test Adiar with *128* MiB
 `origin/main` (against itself) with *no* verbose build or runtime output and
