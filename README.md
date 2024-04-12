@@ -1,15 +1,16 @@
 # BDD Benchmark
 
-This repository contains multiple examples for use of Binary Decision Diagrams
-(BDDs) to solve various problems. These are all implemented in exactly the same
-way, thereby allowing one to compare implementations.
+This is a collection of benchmarks for Binary Decision Diagrams (BDDs)
+[[Bryant86](#references)] and some of its variants. These are useful to survey
+the strengths and weaknesses of implementations and to guide and compare
+developers of new BDD packags. To this end, each benchmark is by use of C++
+templates agnostic of the BDD package used.
 
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 **Table of Contents**
 
-- [Kinds of Decision Diagrams](#kinds-of-decision-diagrams)
+- [Decision Diagrams](#decision-diagrams)
 - [BDD Packages](#bdd-packages)
-    - [Enforcing comparability](#enforcing-comparability)
     - [Dependencies](#dependencies)
 - [Usage](#usage)
 - [Benchmarks](#benchmarks)
@@ -27,106 +28,110 @@ way, thereby allowing one to compare implementations.
 
 <!-- markdown-toc end -->
 
-## Kinds of Decision Diagrams
+## Decision Diagrams
 
-There are various kinds of decision diagrams, most prominently
-[Binary Decision Diagrams (BDDs)](https://en.wikipedia.org/wiki/Binary_decision_diagram).
-These can be implemented in a shared fashion, i.e., multiple Boolean functions
-are represented in the same diagram, possibly sharing nodes.
+Our benchmarks target the following types of decision diagrams.
 
-To further reduce the node count and enable negation in $\mathcal O(1)$ in case
-of shared BDDs, Brace et al. proposed the use of complement edges
-[[Brace1990](#references)]. Since the functions $f$ and $\lnot f$ are represented by
-the same node, a BDD with complement edges may have only half the node count of
-a simple BDD. Therefore, we view BDDs with complement edges as a distinguished
-kind of decision diagram and abbreviate them as BCDDs. Still, we can run every
-BDD benchmark with BCDDs as well. There are even problems where BCDDs do not
-have any advantage over BDDs (e.g., [Queens](#queens)).
+- [**Binary Decision Diagrams**](https://en.wikipedia.org/wiki/Binary_decision_diagram)
+  **(BDDs)**
+  [[Bryant86](#references)]
 
-[Zero-Suppressed Binary Decision Diagrams (ZDDs)](https://en.wikipedia.org/wiki/Zero-suppressed_decision_diagram)
-use a different reduction rule than BDDs. Further, the terminal nodes have
-different semantics. ZDDs tend to be a lot more succinct than B(C)DDs for sparse
-sets.
+- [**Binary Decision Diagrams with Complemented Edges**](https://en.wikipedia.org/wiki/Binary_decision_diagram#Complemented_edges)
+  **(BCDDs)**
+  [[Brace1990](#references)]
 
+- [**Zero-suppressed Decision Diagrams**](https://en.wikipedia.org/wiki/Zero-suppressed_decision_diagram)
+  **(ZDDs)**
+  [[Minato1993](#references)]
 
 ## BDD Packages
-We provide all the benchmarks described further below for the following
-libraries.
+
+The benchmarks are implemented using C++ templates such that they are agnostic
+of the BDD package used. Each BDD package has an adapter which is fully inlined
+at compile time. Currently, we support adapters for the following BDD packages.
 
 - [**Adiar**](https://github.com/ssoelvsten/adiar):
-  An I/O Efficient implementation with iterative algorithms using priority
-  queues to exploit a special sorting of BDD nodes streamed from and to the
-  disk. These algorithms have no need for memoization or garbage collection.
-  But, on the other hand, nodes are also not shareable between BDDs. It also
-  supports Zero-suppressed Decision Diagrams.
+
+  An I/O-efficient implementation with iterative algorithms using
+  time-forward processing to exploit a special sorting of BDD nodes streamed
+  from and to the disk. These algorithms have no need for memoization or garbage
+  collection. But, on the other hand, nodes are also not shareable between BDDs.
 
 
-- [**BuDDy**](http://vlsicad.eecs.umich.edu/BK/Slots/cache/www.itu.dk/research/buddy/):
-  An easy-to-use yet extensive implementation of shared BDDs with depth-first
-  algorithms using a unique node table and memoization. It also supports
-  variable reordering.
+- [**BuDDy**](https://buddy.sourceforge.net/manual/main.html):
 
-  We use [this](https://github.com/SSoelvsten/BuDDy) version that builds using
-  CMake and has been updated slightly.
+  An easy-to-use yet extensive implementation of shared BDDs with
+  depth-first algorithms using a unique node table and memoization.
+
+  We use [this](https://github.com/SSoelvsten/BuDDy) version that has been
+  updated and builds using CMake.
 
 
 - [**CAL**](https://github.com/SSoelvsten/cal):
+
   A breadth-first implementation that exploits a specific level-by-level
   locality of nodes on disk to improve performance when dealing with large BDDs.
   Unlike Adiar it also supports sharing of nodes between BDDs at the cost of
-  memoization and garbage collection. CAL uses complement edges.
+  memoization and garbage collection.
 
   We use the [revived version](https://github.com/SSoelvsten/cal) with an
   extended C API, CMake support and a C++ API.
 
 
 - **CUDD**:
+
   Probably the most popular BDD package of all. It uses depth-first algorithms
-  and a unique node table, memoization and complement edges, variable reordering,
-  and supports Zero-suppressed Decision Diagrams. In principle, CUDD also
-  supports simple BDDs as a special case of Algebraic Decision Diagrams (ADD) /
-  Multi-terminal Decision Diagrams (MTBDDs).
+  and a unique node table and memoization.
 
   We use [this modified v3.0](https://github.com/SSoelvsten/cudd) in which its
   C++ API has been extended.
 
 
-- [**LibBDD**](https://github.com/sybila/biodivine-lib-bdd)
+- [**LibBDD**](https://github.com/sybila/biodivine-lib-bdd):
+
   A thread-safe implementation with depth-first algorithms and memoization. Yet
-  unlike others, it does not implement shared BDDs, i.e., two diagrams do not
-  share common subgraphs. Both the unique and memoization tables are recreated
-  for every single operation.
+  unlike others, it does not implement *shared* BDDs, i.e., two diagrams do not
+  share common subgraphs. Hence, the unique and memoization tables are neither
+  reused between operations.
 
   We use [this unofficial Rust-to-C FFI](https://github.com/nhusung/lib-bdd-ffi).
 
 
-- [**OxiDD**](https://github.com/OxiDD/oxidd)
-  A concurrent (multi-core) decision diagram framework written in Rust,
-  currently with depth-first algorithms and memoization. OxiDD supports various
-  kinds of decision diagrams, including BDDs, BCDDs and ZDDs.
+- [**OxiDD**](https://github.com/OxiDD/oxidd):
+
+  A multi-threaded (and thread-safe) framework for the implementation of
+  decision diagrams and their algorithsm. Currently, its algorithms are
+  depth-first on a unique node table and memoization.
 
 
 - [**Sylvan**](https://github.com/trolando/sylvan):
-  A parallel (multi-core) implementation with depth-first algorithms using a
-  unique node table and memoization. It uses complement edges and has initial
-  support for Zero-suppressed Decision Diagrams. However, there is
-  [no C++ API for ZDDs yet](https://github.com/trolando/sylvan/issues/19).
-  Sylvan does not support simple BDDs although it implements Multi-terminal
-  Decision Diagrams (MTBDDs). MTBDDs in Sylvan use complement edges as well.
+
+  A multi-threaded (and thread-safe) implementation with depth-first algorithms
+  using a unique node table and memoization.
+
+
+|                    | **Adiar** | **BuDDy** | **CAL** | **CUDD** | **LibBDD** | **OxiDD** | **Sylvan** |
+|--------------------|-----------|-----------|---------|----------|------------|-----------|------------|
+| **Language**       | C++       | C         | C       | C        | Rust       | Rust      | C          |
+|                    |           |           |         |          |            |           |            |
+| **BDD**            | ✓         | ✓         |         | (✓)      | ✓          | ✓         | (✓)        |
+| **BCDD**           |           |           | ✓       | ✓        |            | ✓         | ✓          |
+| **MTBDD**          |           |           |         | ✓        |            | ✓         | ✓          |
+| **ZDD**            | ✓         |           |         | ✓        |            | ✓         | ✓          |
+|                    |           |           |         |          |            |           |            |
+| **Thread Safe**    |           |           |         |          | ✓          | ✓         | ✓          |
+| **Multi-threaded** |           |           |         |          |            | ✓         | ✓          |
+|                    |           |           |         |          |            |           |            |
+| **Reordering**     |           | ✓         | ✓       | ✓        |            | (✓)       | (✓)        |
+|                    |           |           |         |          |            |           |            |
+| **Shared Nodes**   |           | ✓         | ✓       | ✓        |            | ✓         | ✓          |
+| **Ext. Memory**    | ✓         |           | ✓       |          |            |           |            |
 
 
 We hope to extend the number of packages. See
 [issue #12](https://github.com/SSoelvsten/bdd-benchmark/issues/12) for a list
 of BDD packages we would like to have added to this set of benchmarks. Any
 help to do so is very much appreciated.
-
-
-### Enforcing comparability
-For comparability, we will enforce all packages to follow the same settings.
-
-- Dynamic variable reordering is disabled.
-
-- Multi-threaded libraries use (except otherwise requested) only a single core.
 
 
 ### Dependencies
@@ -576,6 +581,10 @@ please cite the initial paper on *Adiar*.
   Brace, K., Rudell, R., Bryant, R.: Efficient implementation of a BDD package.
   In: 27th ACM/IEEE Design Automation Conference. pp. 40–45 (1990).
 
+- [[Bryant86](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=1676819)]
+  Randal E. Bryant. “*Graph-Based Algorithms for Boolean Function Manipulation*”.
+  In: *IEEE Transactions on Computers*. (1986)
+
 - [[Bryant2021](https://github.com/rebryant/Cloud-BDD/blob/conjunction_streamlined/hamiltonian/hpath.py)]
   Bryant, Randal E. “*hpath.py*”. In: *Cloud-BDD* (GitHub). 2021
 
@@ -587,6 +596,10 @@ please cite the initial paper on *Adiar*.
 - [[Marijn2021](https://link.springer.com/chapter/10.1007/978-3-030-80223-3_15)]
   Heule, Marijn J. H. “*Chinese Remainder Encoding for Hamiltonian Cycles*”. In:
   *Theory and Applications of Satisfiability Testing*. 2021
+
+- [[Minato1993](https://dl.acm.org/doi/10.1145/157485.164890)]
+  Minato, S. “*Zero-suppressed BDDs for Set Manipulation in Combinatorial
+  Problems*”. In: *International Design Automation Conference*. 1993
 
 - [[Pastva2023](https://repositum.tuwien.at/bitstream/20.500.12708/188807/1/Pastva-2023-Binary%20decision%20diagrams%20on%20modern%20hardware-vor.pdf)]
   Samuel Pastva and Thomas Henzinger. “*Binary Decision Diagrams on Modern
