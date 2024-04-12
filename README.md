@@ -89,8 +89,8 @@ at compile time. Currently, we support adapters for the following BDD packages.
   Probably the most popular BDD package of all. It uses depth-first algorithms
   and a unique node table and memoization.
 
-  We use [this modified v3.0](https://github.com/SSoelvsten/cudd) in which its
-  C++ API has been extended.
+  We use [this modified v3.0](https://github.com/SSoelvsten/cudd) with CMake
+  support and an extended C++ API.
 
 
 - [**LibBDD**](https://github.com/sybila/biodivine-lib-bdd):
@@ -141,9 +141,9 @@ help to do so is very much appreciated.
 
 
 ### Dependencies
-All packages, but CUDD, use CMake to build. This makes compilation and linking
-very simple. One merely has to initialize all submodules (recursively) using the
-following command.
+All packages use CMake to build. This makes compilation and linking very simple.
+One merely has to initialize all submodules (recursively) using the following
+command.
 
 ```
 git submodule update --init --recursive
