@@ -221,20 +221,33 @@ To configure the CMake project run:
 cmake -B build
 ```
 
-For most use cases, the default options are good, still there are a few
-noteworthy ones:
+The default settings can be changed by also parsing various parameters to CMake.
+Here are the values that might be relevant.
 
-- `-DCMAKE_BUILD_TYPE=<Release|Debug|RelWithDebInfo|...>`: Change the build
-  type. The default is `Release`.
-- `-DCMAKE_C_COMPILER=...`, `-DCMAKE_CXX_COMPILER=...`: Select a specific C/C++
-  compiler.
-- `-DBDD_BENCHMARK_STATS=<OFF|ON>`: If `ON`, build with statistics. Note that
-  this might affect performance, therefore the default is `OFF`.
-- `-DBDD_BENCHMARK_WAIT=<OFF|ON>`: If `ON`, pause before deinitialising the BDD
-  package and exiting. This might be interesting to investigate the use of
-  Hugepages.
-- `-G <Generator>`: Use an alternative generator. On most systems, `Makefile` is
-  the default. To speed up builds you might want to use `Ninja`.
+- **`-D CMAKE_BUILD_TYPE=<Release|Debug|RelWithDebInfo|...>`** (default: *Release*):
+
+  Change the build type.
+
+- **`-D CMAKE_C_COMPILER=<...>`, `-D CMAKE_CXX_COMPILER=<...>`**:
+
+  Select a specific C/C++ compiler.
+
+- **`-G <Generator>`**:
+
+  Select the build generator; on most systems, `Makefile` would be the default.
+  To speed up the build process you may want to try to use `Ninja` instead.
+
+
+Features of the benchmarks and BDD packages can also be turned on and off as follows
+
+- **`-D BDD_BENCHMARK_STATS=<OFF|ON>`**: (default: *OFF*)
+
+  If `ON`, build with statistics. This might affect performance.
+
+- **`-D BDD_BENCHMARK_WAIT=<OFF|ON>`**: (default: *OFF*)
+
+  If `ON`, pause before deinitialising the BDD package and exiting. This can be
+  used to investigate its state with external tools, e.g. use of Hugepages.
 
 After configuring, you can build the benchmarks:
 ```bash
@@ -247,43 +260,35 @@ every kind of DD (see [above](#bdd-packages)), and not all benchmarks are
 available for BDDs/BCDDs or ZDDs.
 
 The naming scheme of the executables is as follows:
-`<BDD Library>_<Benchmark>_<DD Kind>` (none of the three components contain
-underscores). All executables have the same command line interface. There are
-the following BDD library options:
+`<BDD Library>_<Benchmark>_<DD Kind>` (each component spelled in *nocase*). All
+executables have the same command line interface. There are the following BDD
+library options:
 
-- `-M <MiB>`: Amount of memory (MiB) to be dedicated to the BDD library
-  (default: 128)
-- `-T <THREADS>`: (Maximum) worker thread count for multithreaded BDD library
-  (currently OxiDD and Sylvan). Default: `1`.
-- `-t <TEMP PATH>`: Filepath for temporary files on disk (default: `/tmp`).
+- **`-M <MiB>`** (default: *128*)
+
+  Amount of memory (in MiB) to be dedicated to the BDD library.
+
+- **`-T <THREADS>`** (default: *1*)
+
+  (Maximum) worker thread count for multithreaded BDD library, e.g. OxiDD and
+  Sylvan.
+
+- **`-t <TEMP PATH>`** (default: */tmp*)
+
+  Filepath for temporary files on disk for external memory libraries, e.g. Adiar.
 
 Note, that the memory you set is only for the BDD package. So, the program will
 either use swap or be killed if the BDD package takes up more memory in
 conjunction with the benchmark's auxiliary data structures.
 
-Furthermore, each benchmark provides options. Not all of the flags below are
-relevant for each benchmark, see the [Benchmarks Section](#benchmarks) for
-details.
-
-- `-f <FILENAME>`: Input file to run (use repeatedly for multiple files)
-- `-N <SIZE>`: Size(s) of a problem
-- `-o <OPTION>`: Some benchmarks allow for choosing between a set of options,
-  e.g., variable ordering, encoding, or algorithm to use.
-
-All flags except `-f` have default values when unspecified.
-
-As an example, you can run the 10x10-Queens benchmark on BuDDy with 1024 MiB
-memory as follows:
+For example, you can run the Queens benchmark on Sylvan with 1024 MiB
+of memory and 4 threads as follows:
 ```bash
-./build/src/buddy_queens_bdd -N 10 -M 1024
+./build/src/sylvan_queens_bcdd -M 1024 -T 4
 ```
 
-Similarly, you can run the Picotrav benchmark on CUDD's ZDD implementation with
-depth-first variable ordering:
-```bash
-./build/src/cudd_picotrav_zdd -f benchmarks/picotrav/not_a.blif -f benchmarks/picotrav/not_b.blif -o df
-```
-
+Furthermore, each benchmark requires options. See the [Benchmarks
+Section](#benchmarks) for details.
 
 ## Benchmarks
 
