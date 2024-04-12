@@ -277,7 +277,7 @@ There are the following BDD library options:
   Print a help text with all options (including the ones particular to that
   particular benchmark).
 
-- **`-M <MiB>`** (default: *128*)
+- **`-M <int>`** (default: *128*)
 
   Amount of memory (in MiB) to be dedicated to the BDD library.
 
@@ -285,19 +285,19 @@ There are the following BDD library options:
   either use swap or be killed if the BDD package takes up more memory in
   conjunction with the benchmark's auxiliary data structures.
 
-- **`-T <THREADS>`** (default: *1*)
+- **`-P <int>`** (default: *1*)
 
-  (Maximum) worker thread count for multithreaded BDD library, e.g., OxiDD and
+  (Maximum) worker thread count for multi-threaded BDD libraries, e.g., OxiDD and
   Sylvan.
 
-- **`-t <TEMP PATH>`** (default: */tmp*)
+- **`-t <path>`** (default: */tmp*, */usr/tmp/*, ...)
 
   Filepath for temporary files on disk for external memory libraries, e.g., Adiar.
 
 For example, you can run the Queens benchmark on Sylvan with 1024 MiB
 of memory and 4 threads as follows:
 ```bash
-./build/src/sylvan_queens_bcdd -M 1024 -T 4
+./build/src/sylvan_queens_bcdd -M 1024 -P 4
 ```
 
 Furthermore, each benchmark requires options. See `-h` or the [Benchmarks
