@@ -2,9 +2,9 @@
 
 This is a collection of benchmarks for Binary Decision Diagrams (BDDs)
 [[Bryant1986](#references)] and some of its variants. These are useful to survey
-the strengths and weaknesses of implementations and to guide and compare
-developers of new BDD packages. To this end, each benchmark is implemented by
-use of C++ templates such that they are agnostic of the BDD package used.
+the strengths and weaknesses of different implementations and to guide their
+developers. To this end, each benchmark is implemented by use of C++ templates
+such that they are agnostic of the BDD package used.
 
 This project has been developed at the
 [Logic and Semantics](https://logsem.github.io/) group at
@@ -107,7 +107,7 @@ packages.
 - [**OxiDD**](https://github.com/OxiDD/oxidd):
 
   A multi-threaded (and thread-safe) framework for the implementation of
-  decision diagrams and their algorithsm. Currently, its algorithms are
+  decision diagrams and their algorithms. Currently, its algorithms are
   depth-first on a unique node table and memoization.
 
 
@@ -166,8 +166,9 @@ apt install bison flex
 
 **Adiar**
 
-Adiar also has dependencies on the *Boost Library*. On Ubuntu, these can be
-installed as follows
+Adiar also has a transitive dependency on the *Boost Library*. On Ubuntu, these
+can be installed as follows
+
 ```bash
 apt install libboost-all-dev
 ```
@@ -225,7 +226,8 @@ Here are the values that might be relevant.
 
 - **`-D CMAKE_BUILD_TYPE=<Release|Debug|RelWithDebInfo|...>`** (default: *Release*)
 
-  Change the build type.
+  Change the build type. Except for development purposes, leaving it at *Release*
+  is propaly the most correct choice.
 
 - **`-D CMAKE_C_COMPILER=<...>`, `-D CMAKE_CXX_COMPILER=<...>`**
 
@@ -257,7 +259,7 @@ cmake --build build
 
 After building, the *build/src* folder contains one executable for every
 possible combination of BDD library, benchmark, and DD kind. Not all libraries
-support every kind of DD (see [above](#bdd-packages)), and not all benchmarks
+support every kind of DD (see [above](#bdd-packages)) and not all benchmarks
 are available for BDDs/BCDDs or ZDDs.
 
 The executables follows a `<Library>_<Benchmark>_<DD>` naming scheme (each of
