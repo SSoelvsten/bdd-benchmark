@@ -674,6 +674,10 @@ echo -e "\\n=========  Started `date`  ==========\\n"
 {MODULE_LOAD}
 {ENV_SETUP}
 
+# 'cbindgen' for Rust-to-C FFI
+cargo install --force cbindgen
+export PATH=~/.cargo/bin/:$PATH
+
 # Build
 echo "Build"
 mkdir -p ./build && cd ./build
