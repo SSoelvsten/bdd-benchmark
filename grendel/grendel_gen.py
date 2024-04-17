@@ -20,7 +20,7 @@ if not dd_choice:
     print("\n  At least one kind of Decision Diagram should be included!")
     exit(1)
 
-package_t = Enum('package_t', ['adiar', 'buddy', 'cal', 'cudd', 'libbdd', 'sylvan'])
+package_t = Enum('package_t', ['adiar', 'buddy', 'cal', 'cudd', 'libbdd', 'oxidd', 'sylvan'])
 
 package_dd = {
     package_t.adiar  : [dd_t.bdd, dd_t.zdd],
@@ -28,6 +28,7 @@ package_dd = {
     package_t.cal    : [dd_t.bdd],
     package_t.cudd   : [dd_t.bdd, dd_t.zdd],
     package_t.libbdd : [dd_t.bdd],
+    package_t.oxidd  : [dd_t.bdd, dd_t.zdd],
     package_t.sylvan : [dd_t.bdd]
 }
 
