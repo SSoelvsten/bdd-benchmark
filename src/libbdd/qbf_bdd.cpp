@@ -5,6 +5,5 @@
 int
 main(int argc, char** argv)
 {
-  // TODO: implement pick_cube
-  // run_qbf<lib_bdd_adapter>(argc, argv);
+  run_qbf<libbdd_bdd_adapter>(argc, argv);
 }
