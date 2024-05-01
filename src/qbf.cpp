@@ -1721,7 +1721,7 @@ solve(Adapter& adapter, qcir& q, const variable_order vo = variable_order::INPUT
   // Set-up BDD computation cache
   std::unordered_map<int, std::pair<typename Adapter::dd_t, size_t>> cache;
 
-  const auto cache_get = [&adapter, &cache](int i) {
+  const auto cache_get = [&cache](int i) {
     // Get idx from identifier
     const int idx = std::abs(i);
 
@@ -1785,7 +1785,7 @@ solve(Adapter& adapter, qcir& q, const variable_order vo = variable_order::INPUT
 #endif
                 return adapter.ithvar(vom.dd_var(g.var));
               },
-              [&adapter, &cache_get](const qcir::ngate& g) -> typename Adapter::dd_t {
+              [&cache_get](const qcir::ngate& g) -> typename Adapter::dd_t {
                 const auto apply =
                   [&g](const typename Adapter::dd_t& dd_1,
                        const typename Adapter::dd_t& dd_2) { // TODO: move switch outside of lambda?
