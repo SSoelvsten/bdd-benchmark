@@ -4,7 +4,6 @@
 // Data Structures
 #include <unordered_map>
 #include <unordered_set>
-#include <sstream>
 #include <string>
 #include <vector>
 
@@ -14,6 +13,9 @@
 // Parser library for BLIF files
 #include <blifparse.hpp>
 #include <filesystem>
+
+// sorting, shuffling
+#include <algorithm>
 
 #include "common/adapter.h"
 #include "common/chrono.h"
