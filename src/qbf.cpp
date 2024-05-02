@@ -1701,22 +1701,9 @@ solve(Adapter& adapter, qcir& q, const variable_order vo = variable_order::INPUT
 
   const time_point t_prep_after = now();
 
-  constexpr size_t max_print = 10;
-
-  std::cout << "  | variable order            [ ";
-  for (size_t x = 0; x < q.vars() && x < max_print; ++x) { std::cout << vom.qcir_var(x) << " "; }
-  if (q.vars() > max_print) { std::cout << "..."; }
-  std::cout << "]\n";
-
-  std::cout << "  | execution order           [ ";
-  for (size_t x = 0; x < exo.size() && x < max_print; ++x) { std::cout << exo.at(x) << " "; }
-  if (q.size() > max_print) { std::cout << "..."; }
-  std::cout << "]\n";
-
-  std::cout << "  | max solve idx             " << max_q_idx << "\n"
-            << "  | setup time (ms)           " << duration_ms(t_prep_before, t_prep_after)
-            << "\n\n"
-            << std::flush;
+  std::cout << json::field("max_idx") << json::value(max_q_idx) << json::comma << json::endl;
+  std::cout << json::field("setup_time__ms")
+            << json::value(duration_ms(t_prep_before, t_prep_after)) << json::comma << json::endl;
 
   // Set-up BDD computation cache
   std::unordered_map<int, std::pair<typename Adapter::dd_t, size_t>> cache;
@@ -1752,28 +1739,36 @@ solve(Adapter& adapter, qcir& q, const variable_order vo = variable_order::INPUT
   time_point t_prenex_before      = t_solve_before;
 
 #ifdef BDD_BENCHMARK_STATS
-  std::cout << "  | Matrix\n";
-#endif
+  std::cout << json::field("matrix") << json::array_open << json::endl;
+#endif // BDD_BENCHMARK_STATS
 
   // TODO: bail out, if collapsing to a terminal (and the output gate has been
   //       processed).
   for (auto exo_it = exo.cbegin(); exo_it != exo.cend(); ++exo_it) {
+#ifdef BDD_BENCHMARK_STATS
+#endif // BDD_BENCHMARK_STATS
+
     const int q_idx = *exo_it;
     if (q_idx > max_q_idx) { continue; }
 
     const qcir::gate& g = q.at(q_idx);
 
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << "  | | " << q_idx << " : " << g.to_string() << "\n";
+    std::cout << json::indent << json::brace_open << json::endl;
+    std::cout << json::field("idx") << json::value(q_idx) << json::comma << json::endl;
+    std::cout << json::field("desc") << json::value(g.to_string()) << json::comma << json::endl;
     const time_point t_start = now();
-#endif
+#endif // BDD_BENCHMARK_STATS
 
     const typename Adapter::dd_t g_dd =
       g.match([&adapter](const qcir::const_gate& g) ->
               typename Adapter::dd_t { return g.val ? adapter.top() : adapter.bot(); },
-              [&adapter, &vom](const qcir::var_gate& g) -> typename Adapter::dd_t {
+              [&adapter, &vom, &q](const qcir::var_gate& g) -> typename Adapter::dd_t {
 #ifdef BDD_BENCHMARK_STATS
-                std::cout << "  | | | DD var                " << vom.dd_var(g.var) << "\n";
+                std::cout << json::field("dd_var") << json::value(q.var(g.var)) << json::comma
+                          << json::endl;
+                std::cout << json::field("dd_var") << json::value(vom.dd_var(g.var)) << json::comma
+                          << json::endl;
 #endif
                 return adapter.ithvar(vom.dd_var(g.var));
               },
@@ -1831,16 +1826,18 @@ solve(Adapter& adapter, qcir& q, const variable_order vo = variable_order::INPUT
                 for (const int x : g.vars) { vars.insert(vom.dd_var(x)); }
 
 #ifdef BDD_BENCHMARK_STATS
-                std::cout << "  | | | DD vars               [ ";
+                std::cout << json::field("dd_vars");
+
+                std::stringstream ss;
                 size_t out_counter = 0;
                 for (auto it = vars.begin(); it != vars.end(); ++it) {
                   if (++out_counter > max_print) {
-                    std::cout << "... ";
+                    ss << "... ";
                     break;
                   }
-                  std::cout << *it << " ";
+                  ss << *it << " ";
                 }
-                std::cout << "]\n";
+                std::cout << json::value(ss.str()) << json::comma << json::endl;
 #endif
 
                 // iterator quantification
@@ -1862,8 +1859,6 @@ solve(Adapter& adapter, qcir& q, const variable_order vo = variable_order::INPUT
               });
 
 #ifdef BDD_BENCHMARK_STATS
-    const time_point t_end = now();
-
     const size_t g_dd_size = adapter.nodecount(g_dd);
     dd_max_size            = std::max(dd_max_size, g_dd_size);
     if (t_prenex_before != t_solve_before) { // Matrix
@@ -1871,19 +1866,22 @@ solve(Adapter& adapter, qcir& q, const variable_order vo = variable_order::INPUT
     } else { // Prenex
       dd_prenex_max_size = std::max(dd_prenex_max_size, g_dd_size);
     }
-    std::cout << "  | | | DD size               " << g_dd_size << "\n"
-              << "  | | | time (ms)             " << duration_ms(t_start, t_end) << "\n";
 
-    if (g.is<qcir::output_gate>()) { std::cout << "  | Prenex\n"; }
-    std::cout << std::flush;
-#endif
+    const time_point t_end = now();
+    std::cout << json::field("size__nodes") << json::value(g_dd_size) << json::comma << json::endl;
+    std::cout << json::field("time__ms") << json::value(duration_ms(t_start, t_end)) << json::endl;
+    std::cout << json::brace_close;
+    if (q_idx != max_q_idx) { std::cout << json::comma; }
+    std::cout << json::endl;
+#endif // BDD_BENCHMARK_STATS
 
     cache.insert({ q_idx, std::make_pair(g_dd, g.refcount) });
     cache_max_size = std::max(cache_max_size, cache.size());
   }
+
 #ifdef BDD_BENCHMARK_STATS
-  std::cout << "\n";
-#endif
+  std::cout << json::array_close << json::comma << json::endl;
+#endif // BDD_BENCHMARK_STATS
 
   const auto res                 = cache_get(max_q_idx);
   const time_point t_solve_after = now();
@@ -1967,55 +1965,49 @@ run_qbf(int argc, char** argv)
   if (should_exit) { return -1; }
 
   // =========================================================================
-  std::cout << "QBF Solver\n"
-#ifndef NDEBUG
-            << "  | Debug Mode!\n"
-#endif
-    ;
-
   // Parse QCir Input
   const std::string input_file = input_files.at(0);
-  std::cout << "\n"
-            << "  Circuit: " << input_file << "\n";
-
   qcir q(input_file);
 
-  std::cout << "  | depth                     " << q.depth() << "\n"
-            << "  | size                      " << q.size() << "\n"
-            << "  | vars                      " << q.vars() << "\n"
-            << "\n"
-            << std::flush;
-
-  return run<Adapter>(q.vars(), [&](Adapter& adapter) {
-    std::cout << "\n"
-              << "  Solving Circuit\n"
-              << std::flush;
+  return run<Adapter>("qbf", q.vars(), [&](Adapter& adapter) {
+    std::cout << json::field("path") << json::value(input_file) << json::comma << json::endl;
+    std::cout << json::field("depth") << json::value(q.depth()) << json::comma << json::endl;
+    std::cout << json::field("size") << json::value(q.size()) << json::comma << json::endl;
+    std::cout << json::endl;
 
     const auto [sat_res, witness, stats] = solve(adapter, q, variable_order);
 
-    std::cout << "  | total time (ms)           " << stats.solve_time << "\n"
-              << "  | | matrix                  " << (stats.solve_time - stats.prenex_time) << "\n"
-              << "  | | prenex                  " << stats.prenex_time << "\n"
-              << "  | cache (max)               " << stats.cache.max_size << "\n"
+    std::cout << json::field("max_cache") << json::value(stats.cache.max_size) << json::comma
+              << json::endl;
 #ifdef BDD_BENCHMARK_STATS
-              << "  | DD size (max)             " << stats.dd.max_size << "\n"
-              << "  | | matrix                  " << stats.dd.matrix_max_size << "\n"
-              << "  | | prenex                  " << stats.dd.prenex_max_size << "\n"
-#endif
-      ;
+    std::cout << json::field("largest__nodes") << json::value(stats.dd.max_size) << json::comma
+              << json::endl;
+    std::cout << json::field("largest_matrix__nodes") << json::value(stats.dd.matrix_max_size)
+              << json::comma << json::endl;
+    std::cout << json::field("largest_prenex__nodes") << json::value(stats.dd.prenex_max_size)
+              << json::comma << json::endl;
+#endif //  BDD_BENCHMARK_STATS
 
-    std::cout << "  | result                    " << (sat_res ? "SAT" : "UNSAT");
+    std::cout << json::endl;
+    std::cout << json::field("satisfiable") << json::value(sat_res) << json::comma << json::endl;
 
+    std::cout << json::field("witness") << json::brace_open << json::endl;
     if (witness.size() > 0) {
-      std::cout << " [ ";
-      for (const auto& xv : witness) {
-        const std::string var_name = q.var(xv.first);
-        const char var_value       = xv.second;
-        std::cout << var_name << "=" << var_value << " ";
+      for (size_t i = 0; i < witness.size(); ++i) {
+        std::cout << json::field(q.var(witness.at(i).first)) << json::value(witness.at(i).second);
+        if (i < witness.size() - 1) { std::cout << json::comma; }
+        std::cout << json::endl;
       }
-      std::cout << "]";
     }
-    std::cout << "\n" << std::flush;
+    std::cout << json::brace_close << json::comma << json::endl;
+
+    std::cout << json::endl;
+
+    std::cout << json::field("matrix_time__ms") << json::value(stats.solve_time - stats.prenex_time)
+              << json::comma << json::endl;
+    std::cout << json::field("prenex_time__ms") << json::value(stats.prenex_time) << json::comma
+              << json::endl;
+    std::cout << json::field("total_time__ms") << json::value(stats.solve_time) << json::endl;
 
     return 0;
   });

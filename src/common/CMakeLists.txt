@@ -3,10 +3,12 @@ set(COMMON_HEADERS
   array.h
   chrono.h
   input.h
+  json.h
 )
 
 set(COMMON_SOURCES
   input.cpp
+  json.cpp
 )
 
 add_library(common STATIC ${COMMON_HEADERS} ${COMMON_SOURCES})

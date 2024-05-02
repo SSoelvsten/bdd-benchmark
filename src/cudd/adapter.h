@@ -81,7 +81,9 @@ public:
 class cudd_bcdd_adapter : public cudd_adapter
 {
 public:
-  static constexpr std::string_view NAME = "CUDD [BCDD]";
+  static constexpr std::string_view name = "CUDD";
+  static constexpr std::string_view dd   = "BCDD";
+
   static constexpr bool needs_extend     = false;
   static constexpr bool complement_edges = true;
 
@@ -305,7 +307,9 @@ public:
 class cudd_zdd_adapter : public cudd_adapter
 {
 public:
-  static constexpr std::string_view NAME = "CUDD [ZDD]";
+  static constexpr std::string_view name = "CUDD";
+  static constexpr std::string_view dd   = "zdd";
+
   static constexpr bool needs_extend     = true;
   static constexpr bool complement_edges = false;
 

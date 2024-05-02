@@ -36,7 +36,9 @@ compute_init_size(unsigned cache_arity)
 class oxidd_bdd_adapter
 {
 public:
-  static constexpr std::string_view NAME = "OxiDD [BDD]";
+  static constexpr std::string_view name = "OxiDD";
+  static constexpr std::string_view dd   = "BDD";
+
   static constexpr bool needs_extend     = false;
   static constexpr bool complement_edges = false;
 
@@ -280,7 +282,9 @@ public:
 class oxidd_bcdd_adapter
 {
 public:
-  static constexpr std::string_view NAME = "OxiDD [BCDD]";
+  static constexpr std::string_view name = "OxiDD";
+  static constexpr std::string_view dd   = "BCDD";
+
   static constexpr bool needs_extend     = false;
   static constexpr bool complement_edges = true;
 
@@ -526,7 +530,9 @@ public:
 class oxidd_zdd_adapter
 {
 public:
-  static constexpr std::string_view NAME = "OxiDD [ZDD]";
+  static constexpr std::string_view name = "OxiDD";
+  static constexpr std::string_view dd   = "ZDD";
+
   static constexpr bool needs_extend     = true;
   static constexpr bool complement_edges = false;
 

@@ -262,7 +262,6 @@ public:
 bool
 construct_net(std::string& filename, net_t& net)
 {
-  std::cout << "  Parsing '" << filename << "'\n";
   construct_net_callback callback(net);
   blifparse::blif_parse_filename(filename, callback);
   return callback.has_error();
@@ -281,7 +280,7 @@ is_acyclic_rec(const std::string& node_name,
 
   const auto lookup_pth_visited = pth_visited.find(node_name);
   if (lookup_pth_visited != pth_visited.end()) {
-    std::cerr << "Net is cyclic: ";
+    std::cerr << "Cycle detected: ";
     for (const std::string& n : pth) { std::cerr << n << " -> "; }
     std::cerr << node_name << "\n";
 
@@ -517,39 +516,56 @@ enum variable_order
   RANDOM
 };
 
+std::string
+to_string(const variable_order& o)
+{
+  switch (o) {
+  case INPUT: {
+    return "input";
+  }
+  case DF: {
+    return "depth-first";
+  }
+  case LEVEL: {
+    return "level";
+  }
+  case LEVEL_DF: {
+    return "level-df";
+  }
+  case RANDOM: {
+    return "random";
+  }
+  }
+  return "?";
+}
+
 void
-apply_variable_order(const variable_order& o, net_t& net_0, net_t& net_1, bool print = true)
+apply_variable_order(const variable_order& o, net_t& net_0, net_t& net_1)
 {
   std::unordered_map<int, int> new_ordering;
-  if (print) { std::cout << "  Variable Order              "; }
 
   switch (o) {
   case INPUT:
-    if (print) { std::cout << "INPUT\n"; }
     // Keep as is
     return;
 
   case DF: {
-    if (print) { std::cout << "DF\n"; }
     new_ordering = dfs_variable_order(net_0);
     break;
   }
 
   case LEVEL: {
-    if (print) { std::cout << "LEVEL\n"; }
     new_ordering = level_variable_order(net_0);
     break;
   }
 
   case LEVEL_DF: {
-    if (print) { std::cout << "LEVEL / DF\n"; }
-    apply_variable_order(variable_order::DF, net_0, net_1, false);
+    apply_variable_order(variable_order::DF, net_0, net_1);
     new_ordering = level_variable_order(net_0);
     break;
   }
 
   case RANDOM: {
-    if (print) { std::cout << "RANDOM\n"; }
     new_ordering = random_variable_order(net_0);
     break;
   }
@@ -559,7 +575,6 @@ apply_variable_order(const variable_order& o, net_t& net_0, net_t& net_1, bool p
   if (net_1.inputs_w_order.size() == net_0.inputs_w_order.size()) {
     update_order(net_1, new_ordering);
   }
-  if (print) { std::cout << "  | derived\n"; }
 }
 
 // ========================================================================== //
@@ -725,7 +740,7 @@ construct_node_bdd(net_t& net,
 // ========================================================================== //
 // Construct the BDD for each output gate
 template <typename Adapter>
-int
+std::pair<int, time_duration>
 construct_net_bdd(const std::string& filename,
                   net_t& net,
                   bdd_cache<Adapter>& cache,
@@ -733,12 +748,18 @@ construct_net_bdd(const std::string& filename,
 {
   if (cache.size() > 0) {
     std::cerr << "Given BDD cache is non-empty";
-    return 42;
+    return { -1, 0 };
   }
 
-  std::cout << "\n"
-            << "  Constructing BDD" << (net.outputs.size() > 1 ? "s" : "") << " for '" << filename
-            << "'\n";
+  std::cout << json::indent << json::brace_open << json::endl;
+  std::cout << json::field("path") << json::value(filename) << json::comma << json::endl;
+  std::cout << json::field("input_gates") << json::value(net.inputs_w_order.size()) << json::comma
+            << json::endl;
+  std::cout << json::field("output_gates") << json::value(net.outputs_in_order.size())
+            << json::comma << json::endl;
+  std::cout << json::field("total_gates") << json::value(net.nodes.size()) << json::comma
+            << json::endl;
+  std::cout << json::endl;
 
   const time_point t_construct_before = now();
   bdd_statistics stats;
@@ -747,12 +768,6 @@ construct_net_bdd(const std::string& filename,
   }
   const time_point t_construct_after = now();
 
-  std::cout << "  | time (ms)                 "
-            << duration_ms(t_construct_before, t_construct_after) << "\n";
-#ifdef BDD_BENCHMARK_STATS
-  std::cout << "  | total no. nodes           " << stats.total_processed << "\n";
-#endif // BDD_BENCHMARK_STATS
-
   size_t sum_final_sizes = 0;
   size_t max_final_size  = 0;
   for (auto kv : cache) {
@@ -760,33 +775,50 @@ construct_net_bdd(const std::string& filename,
     sum_final_sizes += nodecount;
     max_final_size = std::max(max_final_size, nodecount);
   }
-  std::cout << "  | final BDDs\n"
-            << "  | | max BDD size            " << max_final_size << "\n"
-            << "  | | w/ duplicates           " << sum_final_sizes << "\n"
-            << "  | | allocated               " << adapter.allocated_nodes() << "\n";
+
+  std::cout << json::field("final_diagrams") << json::brace_open << json::endl;
+  std::cout << json::field("max__nodes") << json::value(max_final_size) << json::comma
+            << json::endl;
+  std::cout << json::field("sum__nodes") << json::value(sum_final_sizes) << json::comma
+            << json::endl;
+  std::cout << json::field("allocated__nodes") << json::value(adapter.allocated_nodes())
+            << json::endl;
+  std::cout << json::brace_close << json::comma << json::endl;
 
 #ifdef BDD_BENCHMARK_STATS
-  std::cout << "  | life-time BDDs\n"
-            << "  | | max no. roots           " << stats.max_roots << "\n"
-            << "  | | max BDD size            " << stats.max_bdd_size << "\n"
-            << "  | | sum w/ duplicates       " << stats.sum_bdd_sizes << "\n"
-            << "  | | max w/ duplicates       " << stats.max_bdd_size << "\n"
-            << "  | | sum allocated           " << stats.sum_allocated << "\n"
-            << "  | | max allocated           " << stats.max_allocated << "\n";
+  std::cout << json::field("life_time") << json::brace_open << json::endl;
+  std::cout << json::field("total__nodes") << stats.total_processed << json::comma << json::endl;
+  std::cout << json::field("max_roots") << json::value(stats.max_roots) << json::comma
+            << json::endl;
+  std::cout << json::field("max_size") << json::value(stats.max_bdd_size) << json::comma
+            << json::endl;
+  std::cout << json::field("sum_sizes") << json::value(stats.sum_bdd_sizes) << json::comma
+            << json::endl;
+  std::cout << json::field("max_sizes") << json::value(stats.max_bdd_sizes) << json::comma
+            << json::endl;
+  std::cout << json::field("sum_allocated") << json::value(stats.sum_allocated) << json::comma
+            << json::endl;
+  std::cout << json::field("max_allocated") << json::value(stats.max_allocated) << json::endl;
+  std::cout << json::brace_close << json::comma << json::endl;
 
-  std::cout << "  | BDD operations\n"
-            << "  | | Apply                   " << stats.total_applys << "\n"
-            << "  | | Negations               " << stats.total_negations << "\n";
+  std::cout << json::field("op_count") << json::brace_open << json::endl;
+  std::cout << json::field("apply") << json::value(stats.total_applys) << json::comma << json::endl;
+  std::cout << json::field("not") << json::value(stats.total_negations) << json::comma
+            << json::endl;
+  std::cout << json::brace_close << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
-  std::cout << std::flush;
 
-  return 0;
+  const time_duration total_time = duration_ms(t_construct_before, t_construct_after);
+  std::cout << json::field("time__ms") << total_time << json::endl;
+  std::cout << json::brace_close; // << json::endl
+
+  return { 0, total_time };
 }
 
 // ========================================================================== //
 // Test equivalence of every output gate (in-order they were given)
 template <typename Adapter>
-bool
+std::pair<bool, time_duration>
 verify_outputs(const net_t& net_0,
                const bdd_cache<Adapter>& cache_0,
                const net_t& net_1,
@@ -796,10 +828,7 @@ verify_outputs(const net_t& net_0,
   assert(net_1.outputs_in_order.size() == cache_1.size());
   assert(net_0.outputs_in_order.size() == net_1.outputs_in_order.size());
 
-  std::cout << "\n"
-            << "  Verifying equality\n"
-            << "  | result\n"
-            << std::flush;
+  std::cout << json::field("equals") << json::brace_open << json::endl;
 
   const time_point t_compare_before = now();
   bool ret_value                    = true;
@@ -812,18 +841,18 @@ verify_outputs(const net_t& net_0,
     const typename Adapter::dd_t bdd_1 = cache_1.find(output_1)->second;
 
     if (bdd_0 != bdd_1) {
-      std::cout << "  | | output differ in ['" << output_0 << "' / '" << output_1 << "']\n";
+      std::cerr << "Output gates ['" << output_0 << "' / '" << output_1 << "'] differ!\n";
       ret_value = false;
     }
   }
   const time_point t_compare_after = now();
-  if (ret_value) { std::cout << "  | | all outputs match!\n"; }
+  std::cout << json::field("result") << json::value(ret_value) << json::comma << json::endl;
 
-  std::cout << "  | time (ms)                 " << duration_ms(t_compare_before, t_compare_after)
-            << "\n"
-            << std::flush;
+  const time_duration time = duration_ms(t_compare_before, t_compare_after);
+  std::cout << json::field("time__ms") << json::value(time) << json::endl;
 
-  return ret_value;
+  std::cout << json::brace_close << json::comma << json::endl;
+  return { ret_value, time };
 }
 
 // ========================================================================== //
@@ -873,59 +902,55 @@ run_picotrav(int argc, char** argv)
   const bool verify_networks = input_files.size() > 1;
 
   // =========================================================================
-  std::cout << "Picotrav\n"
-#ifndef NDEBUG
-            << "  | Debug Mode!\n"
-#endif
-            << "\n";
-
-  // =========================================================================
   // Read file(s) and construct Nets
   net_t net_0;
 
   const bool parsing_error_0 = construct_net(input_files.at(0), net_0);
-  std::cout << "  | Input Validation\n";
-  std::cout << "  | | [" << (parsing_error_0 ? " " : "x") << "] parsing\n";
-  if (parsing_error_0) { return -1; }
+  if (parsing_error_0) {
+    std::cerr << "Parsing error for '" << input_files.at(0) << "'\n";
+    return -1;
+  }
 
-  const bool is_not_cyclic_0 = is_acyclic(net_0);
-  std::cout << "  | | [" << (is_not_cyclic_0 ? "x" : " ") << "] acyclic\n";
-  if (!is_not_cyclic_0) { return -1; }
-
-  std::cout << "  | net info\n"
-            << "  | | inputs                  " << net_0.inputs_w_order.size() << "\n"
-            << "  | | outputs                 " << net_0.outputs_in_order.size() << "\n"
-            << "  | | internal nodes          " << net_0.nodes.size() << "\n"
-            << std::flush;
+  const bool is_acyclic_0 = is_acyclic(net_0);
+  if (!is_acyclic_0) {
+    std::cerr << "Input '" << input_files.at(0) << "' is not acyclic!\n";
+    return -1;
+  }
 
   net_t net_1;
   if (verify_networks) {
     const bool parsing_error_1 = construct_net(input_files.at(1), net_1);
-    std::cout << "  | input validation\n"
-              << "  | | [" << (parsing_error_1 ? " " : "x") << "] parsing\n";
+    if (parsing_error_1) {
+      std::cerr << "Parsing error for '" << input_files.at(1) << "'\n";
+      return -1;
+    }
 
-    const bool is_not_cyclic_1 = is_acyclic(net_1);
-    std::cout << "  | | [" << (is_not_cyclic_1 ? "x" : " ") << "] acyclic\n";
+    const bool is_acyclic_1 = is_acyclic(net_1);
+    if (!is_acyclic_1) {
+      std::cerr << "Input '" << input_files.at(1) << "' is not acyclic!\n";
+      return -1;
+    }
 
     const bool inputs_match = net_0.inputs_w_order.size() == net_1.inputs_w_order.size();
-    std::cout << "  | | [" << (inputs_match ? "x" : " ") << "] number of inputs match\n";
+    if (!inputs_match) {
+      std::cerr << "Number of inputs in '" << input_files.at(0) << "' and '" << input_files.at(1)
+                << "' do not match!\n";
+      return -1;
+    }
 
     const bool outputs_match = net_0.outputs_in_order.size() == net_1.outputs_in_order.size();
-    std::cout << "  | | [" << (outputs_match ? "x" : " ") << "] number of outputs match\n";
-
-    if (parsing_error_1 || !is_not_cyclic_1 || !inputs_match || !outputs_match) { return -1; }
+    if (!outputs_match) {
+      std::cerr << "Number of outputs in '" << input_files.at(0) << "' and '" << input_files.at(1)
+                << "' do not match!\n";
+      return -1;
+    }
   }
-
-  std::cout << "  | net info\n"
-            << "  | | inputs                  " << net_1.inputs_w_order.size() << "\n"
-            << "  | | outputs                 " << net_1.outputs_in_order.size() << "\n"
-            << "  | | internal nodes          " << net_1.nodes.size() << "\n"
-            << "\n"
-            << std::flush;
 
   // Nanotrav sorts the output in ascending order by their level. The same is
   // possible here, but experiments show this at times decreases and other
   // times increases the running time.
+  //
+  // So, well keep it simple by not doing so.
 
   // Derive variable order
   apply_variable_order(variable_order, net_0, net_1);
@@ -933,39 +958,54 @@ run_picotrav(int argc, char** argv)
   // ========================================================================
   // Initialise BDD package manager
   const size_t varcount = net_0.inputs_w_order.size();
-  std::cout << "\n";
 
-  return run<Adapter>(varcount, [&](Adapter& adapter) {
+  return run<Adapter>("Picotrav", varcount, [&](Adapter& adapter) {
+    std::cout << json::field("variable_order") << json::value(to_string(variable_order))
+              << json::comma << json::endl;
+    std::cout << json::endl;
+
     // ========================================================================
     // Construct BDD for first net
+    time_duration total_time = 0;
+
+    std::cout << json::field("apply+not") << json::array_open << json::endl;
+
     bdd_cache<Adapter> cache_0;
 
-    const time_point t_before = now();
-
-    int errcode_0       = 0;
-    int errcode_1       = 0;
     bool networks_equal = true;
 
-    errcode_0 = construct_net_bdd(input_files.at(0), net_0, cache_0, adapter);
+    const auto [errcode_0, time_0] = construct_net_bdd(input_files.at(0), net_0, cache_0, adapter);
 
     if (errcode_0) { return errcode_0; }
+    total_time += time_0;
 
     // ========================================================================
     // Construct BDD for second net (if any) and compare them
     if (verify_networks) {
+      std::cout << json::comma << json::endl;
+
       bdd_cache<Adapter> cache_1;
-      errcode_1 = construct_net_bdd(input_files.at(1), net_1, cache_1, adapter);
+
+      const auto [errcode_1, time_1] =
+        construct_net_bdd(input_files.at(1), net_1, cache_1, adapter);
 
       if (errcode_1) { return errcode_1; }
+      total_time += time_1;
 
-      networks_equal = verify_outputs<Adapter>(net_0, cache_0, net_1, cache_1);
+      std::cout << json::endl;
+      std::cout << json::array_close << json::comma << json::endl;
+
+      const auto [verified, time_eq] = verify_outputs<Adapter>(net_0, cache_0, net_1, cache_1);
+
+      networks_equal = verified;
+      total_time += time_eq;
+    } else {
+      std::cout << json::endl;
+      std::cout << json::array_close << json::comma << json::endl;
     }
-    const time_point t_after = now();
 
     // TODO: Fix 'total time' below also measures multiple 'std::flush'.
-    std::cout << "\n"
-              << "  total time (ms)             " << duration_ms(t_before, t_after) << "\n"
-              << std::flush;
+    std::cout << json::field("total_time__ms") << json::value(total_time) << json::endl;
 
     if (verify_networks && !networks_equal) { return -1; }
     return 0;

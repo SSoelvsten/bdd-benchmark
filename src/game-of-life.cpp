@@ -1063,9 +1063,8 @@ acc_rel(Adapter& adapter, const var_map& vm, const int row)
   auto res = adapter.top();
 
 #ifdef BDD_BENCHMARK_STATS
-  std::cout << "  | | Rel " << row << "\n"
-            << "  | | | --                    " << adapter.nodecount(res) << "\n"
-            << std::flush;
+  std::cout << json::field("Rel [" + std::to_string(row) + "   ]")
+            << json::value(adapter.nodecount(res)) << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
 
   const time_point t_apply__before = now();
@@ -1077,9 +1076,8 @@ acc_rel(Adapter& adapter, const var_map& vm, const int row)
     res &= acc_rel(adapter, vm, c);
 
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << "  | | | " << c.to_string() << "                   " << adapter.nodecount(res)
-              << "\n"
-              << std::flush;
+    std::cout << json::field("Rel [" + c.to_string() + "+]") << json::value(adapter.nodecount(res))
+              << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
   }
 
@@ -1119,10 +1117,8 @@ acc_rel(Adapter& adapter, const var_map& vm, const bool bottom)
     goe__apply_time += duration_ms(t_apply__before, t_apply__after);
 
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << "  | |\n"
-              << "  | | Acc [" << begin << "-" << row << "]               "
-              << adapter.nodecount(res) << "\n"
-              << std::flush;
+    std::cout << json::field("Acc [" + std::to_string(begin) + "-" + std::to_string(row) + "]")
+              << json::value(adapter.nodecount(res)) << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
 
     // ---------------------------------------------------------------------------------------------
@@ -1153,15 +1149,14 @@ acc_rel(Adapter& adapter, const var_map& vm, const bool bottom)
       goe__exists_time += duration_ms(t_exists__before, t_exists__after);
 
 #ifdef BDD_BENCHMARK_STATS
-      std::cout << "  | | Exi [" << quant_row << "]                 " << adapter.nodecount(res)
-                << "\n"
-                << std::flush;
+      std::cout << json::field("Exi [" + std::to_string(quant_row) + "]")
+                << json::value(adapter.nodecount(res)) << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
     }
 
     if (row != end) {
 #ifdef BDD_BENCHMARK_STATS
-      std::cout << "  | |\n";
+      std::cout << json::endl;
 #endif // BDD_BENCHMARK_STATS
     }
   }
@@ -1175,25 +1170,20 @@ template <typename Adapter>
 typename Adapter::dd_t
 garden_of_eden(Adapter& adapter, const var_map& vm)
 {
-  if (rows() < cols()) {
-    std::cout << "  | Note:\n"
-              << "  |   The variable ordering is designed for 'cols <= rows'.\n"
-              << "  |   Maybe restart with the dimensions flipped?\n"
-              << "  |\n";
-  }
+#ifdef BDD_BENCHMARK_STATS
+  std::cout << json::field("intermediate_results") << json::brace_open << json::endl;
+#endif // BDD_BENCHMARK_STATS
 
   // -----------------------------------------------------------------------------------------------
   // Top half
-#ifdef BDD_BENCHMARK_STATS
-  std::cout << "  | Top Half\n";
-#endif // BDD_BENCHMARK_STATS
   auto res = acc_rel(adapter, vm, false);
 
   // -----------------------------------------------------------------------------------------------
   // Bottom half
+  //
+  // TODO (symmetry::none): Use Reordering to obtain Top Half from Bottom Half (or vica versa).
 #ifdef BDD_BENCHMARK_STATS
-  std::cout << "  |\n"
-            << "  | Bottom Half\n";
+  std::cout << json::endl;
 #endif // BDD_BENCHMARK_STATS
   res &= acc_rel(adapter, vm, true);
 
@@ -1201,21 +1191,21 @@ garden_of_eden(Adapter& adapter, const var_map& vm)
   // Middle row between halfs (if any)
   if (rows(prime::post) % 2 == 1) {
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << "  |\n"
-              << "  | Middle Row\n";
+    std::cout << json::endl;
 #endif // BDD_BENCHMARK_STATS
     res &= acc_rel(adapter, vm, rows(prime::post) / 2 + 1);
+
+#ifdef BDD_BENCHMARK_STATS
+    std::cout << json::endl;
+#endif // BDD_BENCHMARK_STATS
   }
 
   // -----------------------------------------------------------------------------------------------
-  // Top half
-  //
-  // TODO (symmetry::none): Use Manual Variable Reordering to obtain Top Half from Bottom Half
+  // Final Merge
 #ifdef BDD_BENCHMARK_STATS
-  std::cout << "  |\n"
-            << "  | Acc [" << MIN_ROW(prime::pre) << "-" << MAX_ROW(prime::pre)
-            << "]                 " << adapter.nodecount(res) << "\n"
-            << std::flush;
+  std::cout << json::field("Acc [" + std::to_string(MIN_ROW(prime::pre)) + "-"
+                           + std::to_string(MAX_ROW(prime::pre)) + "]")
+            << json::value(adapter.nodecount(res)) << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
 
   // -----------------------------------------------------------------------------------------------
@@ -1234,9 +1224,8 @@ garden_of_eden(Adapter& adapter, const var_map& vm)
   }
 
 #ifdef BDD_BENCHMARK_STATS
-  std::cout << "  |\n"
-            << "  | Exi [EASY]                " << adapter.nodecount(res) << "\n"
-            << std::flush;
+  std::cout << json::field("Exi [easy]") << json::value(adapter.nodecount(res)) << json::comma
+            << json::endl;
 #endif // BDD_BENCHMARK_STATS
 
   // -----------------------------------------------------------------------------------------------
@@ -1250,9 +1239,8 @@ garden_of_eden(Adapter& adapter, const var_map& vm)
   }
 
 #ifdef BDD_BENCHMARK_STATS
-  std::cout << "  |\n"
-            << "  | Exi [HARD]                " << adapter.nodecount(res) << "\n"
-            << std::flush;
+  std::cout << json::field("Exi [hard]") << json::value(adapter.nodecount(res)) << json::endl;
+  std::cout << json::brace_close << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
 
   // -----------------------------------------------------------------------------------------------
@@ -1295,25 +1283,29 @@ run_gameoflife(int argc, char** argv)
 
   if (should_exit) { return -1; }
 
-  // -----------------------------------------------------------------------------------------------
-  std::cout << "Game of Life : [" << rows(prime::post) << " x " << cols(prime::post) << "]\n"
-            << "  | Symmetry                  " << option_str(option) << "\n"
-#ifndef NDEBUG
-            << "  | Debug Mode!\n"
-#endif
-            << "\n";
+  if (rows() < cols()) {
+    std::cerr << "  | Note:\n"
+              << "  |   The variable ordering is designed for 'cols <= rows'.\n"
+              << "  |   Maybe restart with the dimensions flipped?\n"
+              << "  |\n";
+  }
 
+  // -----------------------------------------------------------------------------------------------
   var_map vm(option);
 
-  return run<Adapter>(vm.varcount(), [&](Adapter& adapter) {
-    std::cout << "  | | 'prev'                  " << vm.varcount(prime::pre) << "\n"
-              << "  | | 'next'                  " << vm.varcount(prime::post) << "\n"
-              << "\n";
+  return run<Adapter>("game-of-life", vm.varcount(), [&](Adapter& adapter) {
+    std::cout << json::field("N_rows") << json::value(rows()) << json::comma << json::endl;
+    std::cout << json::field("N_cols") << json::value(cols()) << json::comma << json::endl;
+    std::cout << json::field("prev_variables") << json::value(vm.varcount(prime::pre))
+              << json::comma << json::endl;
+    std::cout << json::field("next_variables") << json::value(vm.varcount(prime::post))
+              << json::comma << json::endl;
+    std::cout << json::endl;
 
     size_t solutions = 0;
 
     // ---------------------------------------------------------------------------------------------
-    std::cout << "  Construct reachable initial states\n" << std::flush;
+    std::cout << json::field("reachable") << json::brace_open << json::endl << json::flush;
 
     const time_point t1 = now();
     auto res            = garden_of_eden(adapter, vm);
@@ -1321,38 +1313,36 @@ run_gameoflife(int argc, char** argv)
 
     const auto goe__total_time = duration_ms(t1, t2);
 
-#ifdef BDD_BENCHMARK_STATS
-    std::cout << "  |\n";
-#endif // BDD_BENCHMARK_STATS
-    std::cout << "  | time (ms)                 " << goe__total_time << "\n"
-              << "  | | apply                   " << goe__apply_time << "\n"
-              << "  | | exists                  " << goe__exists_time << "\n"
-              << "\n"
-              << std::flush;
+    std::cout << json::field("time__ms") << json::value(goe__total_time) << json::comma
+              << json::endl;
+    std::cout << json::field("time_apply__ms") << json::value(goe__apply_time) << json::comma
+              << json::endl;
+    std::cout << json::field("time_exists__ms") << json::value(goe__exists_time) << json::endl;
+
+    std::cout << json::brace_close << json::comma << json::endl;
 
     // ---------------------------------------------------------------------------------------------
-    std::cout << "  Obtaining unreachable states\n" << std::flush;
+    std::cout << json::field("unreachable") << json::brace_open << json::endl;
 
     const time_point t3 = now();
     const auto post_top = construct_post(adapter, vm);
     res                 = adapter.apply_diff(post_top, res);
 
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << "  | Top                       " << adapter.nodecount(post_top) << "\n"
-              << "  | Top - States              " << adapter.nodecount(res) << "\n"
-              << "  |\n"
-              << std::flush;
+    std::cout << json::field("top__nodes") << json::value(adapter.nodecount(post_top))
+              << json::comma << json::endl;
+    std::cout << json::field("flipped__nodes") << json::value(adapter.nodecount(res)) << json::comma
+              << json::endl;
 #endif // BDD_BENCHMARK_STATS
     const time_point t4 = now();
 
     const time_duration flip_time = duration_ms(t3, t4);
 
-    std::cout << "  | time (ms)                 " << flip_time << "\n"
-              << "\n"
-              << std::flush;
+    std::cout << json::field("time__ms") << json::value(flip_time) << json::endl;
+    std::cout << json::brace_close << json::comma << json::endl;
 
     // ---------------------------------------------------------------------------------------------
-    std::cout << "  Counting unreachable states\n" << std::flush;
+    std::cout << json::field("satcount") << json::brace_open << json::endl;
 
     const time_point t5 = now();
     solutions           = adapter.satcount(res, vm.varcount(prime::post));
@@ -1360,15 +1350,14 @@ run_gameoflife(int argc, char** argv)
 
     const time_duration counting_time = duration_ms(t5, t6);
 
-    std::cout << "  | number of states          " << solutions << "\n"
-              << "  | time (ms)                 " << counting_time << "\n"
-              << "\n"
-              << std::flush;
+    std::cout << json::field("result") << json::value(solutions) << json::comma << json::endl;
+    std::cout << json::field("time__ms") << json::value(counting_time) << json::endl;
+    std::cout << json::brace_close << json::comma << json::endl;
 
     // ---------------------------------------------------------------------------------------------
     const time_duration total_time = goe__total_time + flip_time + counting_time;
 
-    std::cout << "  total time (ms)             " << total_time << "\n" << std::flush;
+    std::cout << json::field("total_time__ms") << json::value(total_time) << json::endl;
 
     // For all solvable sizes, the number of solutions should be 0.
     return solutions != 0;
