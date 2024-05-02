@@ -55,7 +55,9 @@ run(const int varcount, const F& f)
 
   const int exit_code = adapter.run([&]() { return f(adapter); });
 
+#ifdef BDD_BENCHMARK_STATS
   if (!exit_code) { adapter.print_stats(); }
+#endif
 
 #ifdef BDD_BENCHMARK_WAIT
   std::cout << "\npress any key to exit . . .\n" << std::flush;
