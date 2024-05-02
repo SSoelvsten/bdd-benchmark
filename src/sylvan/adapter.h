@@ -72,7 +72,9 @@ table_doublings(const size_t memory_bytes)
 class sylvan_bcdd_adapter
 {
 public:
-  static constexpr std::string_view NAME = "Sylvan [BCDD]";
+  static constexpr std::string_view name = "Sylvan";
+  static constexpr std::string_view dd   = "BCDD";
+
   static constexpr bool needs_extend     = false;
   static constexpr bool complement_edges = true;
 

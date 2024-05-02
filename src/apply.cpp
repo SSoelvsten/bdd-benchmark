@@ -477,51 +477,65 @@ run_apply(int argc, char** argv)
   if (should_exit) { return -1; }
 
   // =========================================================================
-  std::cout << "Apply (Pastva & Henzinger)\n"
-#ifndef NDEBUG
-            << "  | Debug Mode!\n"
-#endif
-            << "\n";
-
-  // =========================================================================
   // Load 'lib-bdd' files
   std::array<lib_bdd::bdd, inputs> inputs_binary;
 
   for (size_t i = 0; i < inputs; ++i) {
-    std::cout << "  Parsing '" << input_files.at(i) << "':\n";
     inputs_binary.at(i) = lib_bdd::deserialize(input_files.at(i));
-
-    const lib_bdd::stats_t stats = lib_bdd::stats(inputs_binary.at(i));
-
-    std::cout << "  | size                      " << stats.size << "\n"
-              << "  | levels                    " << stats.levels << "\n"
-              << "  | width                     " << stats.width << "\n"
-              << "  | terminal edges\n"
-              << "  | | false                   " << stats.terminals[false] << "\n"
-              << "  | | true                    " << stats.terminals[true] << "\n"
-              << "  | parent counts\n"
-              << "  | | 0                       "
-              << stats.parent_counts[lib_bdd::stats_t::parent_count_idx::None] << "\n"
-              << "  | | 1                       "
-              << stats.parent_counts[lib_bdd::stats_t::parent_count_idx::One] << "\n"
-              << "  | | 2                       "
-              << stats.parent_counts[lib_bdd::stats_t::parent_count_idx::Two] << "\n"
-              << "  | | 3+                      "
-              << stats.parent_counts[lib_bdd::stats_t::parent_count_idx::More] << "\n"
-              << "\n"
-              << std::flush;
   }
 
   var_map vm = remap_vars(inputs_binary);
 
   // =========================================================================
   // Initialize BDD package
-  return run<Adapter>(vm.size(), [&](Adapter& adapter) {
+  return run<Adapter>("apply", vm.size(), [&](Adapter& adapter) {
+    std::cout << json::field("inputs") << json::array_open << json::endl;
+
+    for (size_t i = 0; i < inputs; ++i) {
+      std::cout << json::indent << json::brace_open << json::endl;
+      const lib_bdd::stats_t stats = lib_bdd::stats(inputs_binary.at(i));
+
+      std::cout << json::field("path") << json::value(input_files.at(i)) << json::comma
+                << json::endl;
+
+      std::cout << json::field("size") << json::value(stats.size) << json::comma << json::endl;
+      std::cout << json::field("levels") << json::value(stats.levels) << json::comma << json::endl;
+      std::cout << json::field("width") << json::value(stats.width) << json::comma << json::endl;
+
+      std::cout << json::field("terminal_edges") << json::brace_open << json::endl;
+      std::cout << json::field("false") << json::value(stats.terminals[false]) << json::comma
+                << json::endl;
+      std::cout << json::field("true") << json::value(stats.terminals[true]) << json::endl;
+      std::cout << json::brace_close << json::endl;
+
+      std::cout << json::field("parent_counts") << json::brace_open << json::endl;
+      std::cout << json::field("0")
+                << json::value(stats.parent_counts[lib_bdd::stats_t::parent_count_idx::None])
+                << json::comma << json::endl;
+      std::cout << json::field("1")
+                << json::value(stats.parent_counts[lib_bdd::stats_t::parent_count_idx::One])
+                << json::comma << json::endl;
+      std::cout << json::field("2")
+                << json::value(stats.parent_counts[lib_bdd::stats_t::parent_count_idx::Two])
+                << json::comma << json::endl;
+      std::cout << json::field("3")
+                << json::value(stats.parent_counts[lib_bdd::stats_t::parent_count_idx::More])
+                << json::endl;
+      std::cout << json::brace_close << json::endl;
+
+      std::cout << json::brace_close;
+      if (!i) { std::cout << json::comma; }
+      std::cout << json::endl;
+    }
+    std::cout << json::array_close << json::comma << json::endl << json::endl;
+
     // =========================================================================
     // Reconstruct DDs
     std::array<typename Adapter::dd_t, inputs> inputs_dd;
 
     size_t total_time = 0;
+
+    std::cout << json::field("rebuild") << json::array_open << json::endl << json::flush;
 
     for (size_t i = 0; i < inputs; ++i) {
       const time_point t_rebuild_before = now();
@@ -531,18 +545,28 @@ run_apply(int argc, char** argv)
       const size_t load_time = duration_ms(t_rebuild_before, t_rebuild_after);
       total_time += load_time;
 
-      std::cout << "\n"
-                << "  DD '" << input_files.at(i) << "'\n"
-                << "  | size (nodes)              " << adapter.nodecount(inputs_dd.at(i)) << "\n"
-                << "  | satcount                  " << adapter.satcount(inputs_dd.at(i)) << "\n"
-                << "  | time (ms)                 "
-                << duration_ms(t_rebuild_before, t_rebuild_after) << "\n"
-                << std::flush;
+      std::cout << json::indent << json::brace_open << json::endl;
+      std::cout << json::field("path") << json::value(input_files.at(i)) << json::comma
+                << json::endl;
+      std::cout << json::field("size__nodes") << json::value(adapter.nodecount(inputs_dd.at(i)))
+                << json::comma << json::endl;
+      std::cout << json::field("satcount") << json::value(adapter.satcount(inputs_dd.at(i)))
+                << json::comma << json::endl;
+      std::cout << json::field("time__ms")
+                << json::value(duration_ms(t_rebuild_before, t_rebuild_after)) << json::endl;
+
+      std::cout << json::brace_close;
+      if (!i) { std::cout << json::comma; }
+      std::cout << json::endl;
     }
+
+    std::cout << json::array_close << json::comma << json::endl;
 
     // =========================================================================
     // Apply both DDs together
     typename Adapter::dd_t result;
+
+    std::cout << json::field("apply") << json::brace_open << json::endl << json::flush;
 
     const time_point t_apply_before = now();
     switch (oper_opt) {
@@ -554,18 +578,18 @@ run_apply(int argc, char** argv)
     const size_t apply_time = duration_ms(t_apply_before, t_apply_after);
     total_time += apply_time;
 
-    std::cout << "\n"
-              << "  Apply ( " << option_str(oper_opt) << " ):\n"
-              << "  | size (nodes)              " << adapter.nodecount(result) << "\n"
-              << "  | satcount                  " << adapter.satcount(result) << "\n"
-              << "  | time (ms)                 " << apply_time << "\n"
-              << std::flush;
+    std::cout << json::field("operand") << json::value(option_str(oper_opt)) << json::comma
+              << json::endl;
+    std::cout << json::field("size__nodes") << adapter.nodecount(result) << json::comma
+              << json::endl;
+    std::cout << json::field("satcount") << adapter.satcount(result) << json::comma << json::endl;
+    std::cout << json::field("time__ms") << apply_time << json::endl;
+
+    std::cout << json::brace_close << json::comma << json::endl;
 
     // =========================================================================
 
-    std::cout << "\n"
-              << "  total time (ms)             " << total_time << "\n"
-              << std::flush;
+    std::cout << json::field("total_time__ms") << json::value(total_time) << json::endl;
 
     return 0;
   });

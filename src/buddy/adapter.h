@@ -95,7 +95,9 @@ cache_size(const size_t memory_bytes, const int nodes)
 class buddy_bdd_adapter
 {
 public:
-  static constexpr std::string_view NAME = "BuDDy [BDD]";
+  static constexpr std::string_view name = "BuDDy";
+  static constexpr std::string_view dd   = "BDD";
+
   static constexpr bool needs_extend     = false;
   static constexpr bool complement_edges = false;
 

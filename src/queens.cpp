@@ -12,6 +12,7 @@
 #include "common/array.h"
 #include "common/chrono.h"
 #include "common/input.h"
+#include "common/json.h"
 
 #ifdef BDD_BENCHMARK_STATS
 size_t largest_bdd = 0;
@@ -52,11 +53,21 @@ label_of_position(int r, int c)
 }
 
 inline std::string
+row_to_string(int r)
+{
+  return std::to_string(r + 1);
+}
+
+inline std::string
+col_to_string(int c)
+{
+  return std::string(1, (char)('A' + c));
+}
+
+inline std::string
 pos_to_string(int r, int c)
 {
-  std::stringstream ss;
-  ss << (r + 1) << (char)('A' + c);
-  return ss.str();
+  return row_to_string(r) + col_to_string(c);
 }
 
 // ========================================================================== //
@@ -112,6 +123,11 @@ queens_R(Adapter& adapter, int r)
 {
   typename Adapter::dd_t out = queens_S(adapter, r, 0);
 
+#ifdef BDD_BENCHMARK_STATS
+  std::cout << json::field("R(" + pos_to_string(r, 0) + ")") << json::value(adapter.nodecount(out))
+            << json::comma << json::endl;
+#endif // BDD_BENCHMARK_STATS
+
   for (int c = 1; c < cols(); c++) {
     out |= queens_S(adapter, r, c);
 
@@ -120,7 +136,9 @@ queens_R(Adapter& adapter, int r)
     largest_bdd            = std::max(largest_bdd, nodecount);
     total_nodes += nodecount;
 
-    std::cout << "  | | R(" << pos_to_string(r, c) << ")                   " << nodecount << "\n";
+    std::cout << json::field("R(" + pos_to_string(r, c) + ")") << json::value(nodecount)
+              << json::comma << json::endl
+              << json::flush;
 #endif // BDD_BENCHMARK_STATS
   }
   return out;
@@ -141,8 +159,9 @@ queens_B(Adapter& adapter)
     largest_bdd            = std::max(largest_bdd, nodecount);
     total_nodes += nodecount;
 
-    std::cout << "  | B(" << 0 + 1 << ")                      " << nodecount << "\n"
-              << "  |\n";
+    std::cout << json::field("B(" + row_to_string(0) + ")") << json::value(nodecount) << json::comma
+              << json::endl
+              << json::endl;
 #endif // BDD_BENCHMARK_STATS
   }
 
@@ -154,8 +173,9 @@ queens_B(Adapter& adapter)
     largest_bdd            = std::max(largest_bdd, nodecount);
     total_nodes += nodecount;
 
-    std::cout << "  | B(" << r + 1 << ")                      " << nodecount << "\n"
-              << "  |\n";
+    std::cout << json::field("B(" + row_to_string(r) + ")") << json::value(nodecount);
+    if (r != MAX_ROW()) { std::cout << json::comma << json::endl; }
+    std::cout << json::endl << json::flush;
 #endif // BDD_BENCHMARK_STATS
   }
   return out;
@@ -211,24 +231,22 @@ run_queens(int argc, char** argv)
   if (should_exit) { return -1; }
 
   // =========================================================================
-  std::cout << "[" << rows() << " x " << cols() << "]-Queens\n"
-#ifndef NDEBUG
-            << "  | Debug Mode!\n"
-#endif
-            << "\n";
-
-  // ========================================================================
   // Initialise package manager
   const int N = rows() * cols();
 
-  return run<Adapter>(N, [&](Adapter& adapter) {
+  return run<Adapter>("queens", N, [&](Adapter& adapter) {
     uint64_t solutions;
+
+    std::cout << json::field("N") << json::value(rows()) << json::comma << json::endl;
+    std::cout << json::endl << json::flush;
 
     // ========================================================================
     // Compute the bdd that represents the entire board
-    std::cout << "\n"
-              << "  Decision diagram construction\n"
-              << std::flush;
+    std::cout << json::field("apply") << json::brace_open << json::endl << json::flush;
+
+#ifdef BDD_BENCHMARK_STATS
+    std::cout << json::field("intermediate_results") << json::brace_open << json::endl;
+#endif
 
     const time_point t1        = now();
     typename Adapter::dd_t res = queens_B(adapter);
@@ -237,18 +255,20 @@ run_queens(int argc, char** argv)
     const time_duration construction_time = duration_ms(t1, t2);
 
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << "  | total no. nodes           " << total_nodes << "\n"
-              << "  | largest size (nodes)      " << largest_bdd << "\n";
+    std::cout << json::brace_close << json::comma << json::endl;
+    std::cout << json::field("total__nodes") << json::value(total_nodes) << json::comma
+              << json::endl;
+    std::cout << json::field("largest__nodes") << json::value(largest_bdd) << json::comma
+              << json::endl;
 #endif // BDD_BENCHMARK_STATS
-    std::cout << "  | final size (nodes)        " << adapter.nodecount(res) << "\n"
-              << "  | time (ms)                 " << construction_time << "\n"
-              << std::flush;
+    std::cout << json::field("final__nodes") << json::value(adapter.nodecount(res)) << json::comma
+              << json::endl;
+    std::cout << json::field("time__ms") << json::value(construction_time) << json::endl;
+    std::cout << json::brace_close << json::comma << json::endl << json::flush;
 
     // ========================================================================
     // Count number of solutions
-    std::cout << "\n"
-              << "  Counting solutions\n"
-              << std::flush;
+    std::cout << json::field("satcount") << json::brace_open << json::endl << json::flush;
 
     const time_point t3 = now();
     solutions           = adapter.satcount(res);
@@ -256,14 +276,14 @@ run_queens(int argc, char** argv)
 
     const time_duration counting_time = duration_ms(t3, t4);
 
-    std::cout << "  | number of solutions       " << solutions << "\n"
-              << "  | time (ms)                 " << counting_time << "\n"
-              << std::flush;
+    std::cout << json::field("result") << json::value(solutions) << json::comma << json::endl;
+    std::cout << json::field("time__ms") << json::value(counting_time) << json::endl;
+    std::cout << json::brace_close << json::endl << json::flush;
 
     // ========================================================================
-    std::cout << "\n"
-              << "  total time (ms)             " << (construction_time + counting_time) << "\n"
-              << std::flush;
+    std::cout << json::field("total_time__ms") << json::value(construction_time + counting_time)
+              << json::endl
+              << json::flush;
 
     if (rows() == cols() && cols() < size(expected) && solutions != expected[cols()]) { return -1; }
     return 0;

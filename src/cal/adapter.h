@@ -13,7 +13,9 @@
 class cal_bcdd_adapter
 {
 public:
-  static constexpr std::string_view NAME = "CAL [BCDD]";
+  static constexpr std::string_view name = "CAL";
+  static constexpr std::string_view dd   = "BCDD";
+
   static constexpr bool needs_extend     = false;
   static constexpr bool complement_edges = true;
 
