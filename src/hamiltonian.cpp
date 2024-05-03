@@ -1727,7 +1727,7 @@ namespace enc_gadgets
     typename Adapter::dd_t paths = init_special(adapter, opt);
 
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << json::field("fix_corner") << json::value(adapter.nodecount(paths)) << json::comma
+    std::cout << json::field("fix corner") << json::value(adapter.nodecount(paths)) << json::comma
               << json::endl;
 #endif // BDD_BENCHMARK_STATS
 
@@ -1741,7 +1741,7 @@ namespace enc_gadgets
       largest_bdd            = std::max(largest_bdd, nodecount);
       total_nodes += nodecount;
 
-      std::cout << json::field("force_one-hot") << json::value(nodecount) << json::comma
+      std::cout << json::field("force one-hot") << json::value(nodecount) << json::comma
                 << json::endl;
 #endif // BDD_BENCHMARK_STATS
     }
@@ -1756,14 +1756,14 @@ namespace enc_gadgets
     largest_bdd            = std::max(largest_bdd, nodecount);
     total_nodes += nodecount;
 
-    std::cout << json::field("in_neq_out") << json::value(nodecount) << json::comma << json::endl;
+    std::cout << json::field("in != out") << json::value(nodecount) << json::comma << json::endl;
     std::cout << json::endl;
 #endif // BDD_BENCHMARK_STATS
 
     // -------------------------------------------------------------------------
     // Remove illegal edges
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << json::field("remove_illegal") << json::brace_open << json::endl;
+    std::cout << json::field("remove illegal edges") << json::brace_open << json::endl;
 #endif // BDD_BENCHMARK_STATS
     for (int edge_idx = cell::max_moves - 1; 0 <= edge_idx; --edge_idx) {
       paths &= remove_illegal(adapter, edge_idx, opt);
@@ -1784,7 +1784,7 @@ namespace enc_gadgets
     // -------------------------------------------------------------------------
     // Force matching choice in in-going and out-going edge
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << json::field("match_edge_indices") << json::brace_open << json::comma << json::endl;
+    std::cout << json::field("match edge-indices") << json::brace_open << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
     for (int row = MAX_ROW(); 0 <= row; --row) {
       for (int col = MAX_COL(); 0 <= col; --col) {
@@ -1805,7 +1805,7 @@ namespace enc_gadgets
             largest_bdd            = std::max(largest_bdd, nodecount);
             total_nodes += nodecount;
 
-            std::cout << json::field("apply_" + u.to_string() + "_" + v.to_string())
+            std::cout << json::field("apply(" + e.to_string() + ")")
                       << json::value(nodecount) << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
           }
@@ -1823,7 +1823,7 @@ namespace enc_gadgets
           largest_bdd            = std::max(largest_bdd, nodecount);
           total_nodes += nodecount;
 
-          std::cout << json::field("exists_" + q_cell.to_string()) << json::value(nodecount)
+          std::cout << json::field("exists(" + q_cell.to_string() + ")") << json::value(nodecount)
                     << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
         }
@@ -1840,7 +1840,7 @@ namespace enc_gadgets
         largest_bdd            = std::max(largest_bdd, nodecount);
         total_nodes += nodecount;
 
-        std::cout << json::field("exists_" + q_cell.to_string()) << json::value(nodecount)
+        std::cout << json::field("exists(" + q_cell.to_string() + ")") << json::value(nodecount)
                   << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
       }
@@ -1854,7 +1854,7 @@ namespace enc_gadgets
       largest_bdd            = std::max(largest_bdd, nodecount);
       total_nodes += nodecount;
 
-      std::cout << json::field("exists_1x") << json::value(nodecount) << json::comma << json::endl;
+      std::cout << json::field("exists(1x)") << json::value(nodecount) << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
     }
 
@@ -1867,7 +1867,7 @@ namespace enc_gadgets
     const std::vector<int> ps = gadget_moduli(opt);
     for (const int p : ps) {
 #ifdef BDD_BENCHMARK_STATS
-      std::cout << json::field("path_length") << json::brace_open << json::endl;
+      std::cout << json::field("path length") << json::brace_open << json::endl;
       std::cout << json::field("modulo") << json::value(p) << json::comma << json::endl;
       std::cout << json::endl;
 #endif // BDD_BENCHMARK_STATS
@@ -1897,7 +1897,7 @@ namespace enc_gadgets
         largest_bdd            = std::max(largest_bdd, nodecount);
         total_nodes += nodecount;
 
-        std::cout << json::field(std::string("extend_1x") + (cell::active_rows > 1 ? "_2x" : ""))
+        std::cout << json::field(std::string("extend(1x") + (cell::active_rows > 1 ? ",2x" : "") + ")")
                   << json::value(nodecount) << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
       }
@@ -1921,7 +1921,7 @@ namespace enc_gadgets
             largest_bdd            = std::max(largest_bdd, nodecount);
             total_nodes += nodecount;
 
-            std::cout << json::field("extend_" + new_cell.to_string()) << json::value(nodecount)
+            std::cout << json::field("extend(" + new_cell.to_string() + ")") << json::value(nodecount)
                       << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
           }
@@ -1948,7 +1948,7 @@ namespace enc_gadgets
               largest_bdd            = std::max(largest_bdd, nodecount);
               total_nodes += nodecount;
 
-              std::cout << json::field("extend_" + new_cell.to_string()) << json::value(nodecount)
+              std::cout << json::field("extend(" + new_cell.to_string() + ")") << json::value(nodecount)
                         << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
             }
@@ -1967,7 +1967,7 @@ namespace enc_gadgets
             largest_bdd            = std::max(largest_bdd, nodecount);
             total_nodes += nodecount;
 
-            std::cout << json::field("gadget_" + u.to_string()) << json::value(nodecount)
+            std::cout << json::field("gadget(" + u.to_string() + ")") << json::value(nodecount)
                       << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
           } else {
@@ -1981,7 +1981,7 @@ namespace enc_gadgets
               largest_bdd            = std::max(largest_bdd, nodecount);
               total_nodes += nodecount;
 
-              std::cout << json::field("gadget_" + u.to_string() + "_" + v.to_string())
+              std::cout << json::field("gadget(" + e.to_string() + ")")
                         << json::value(nodecount) << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
             }
@@ -1997,7 +1997,7 @@ namespace enc_gadgets
               largest_bdd            = std::max(largest_bdd, nodecount);
               total_nodes += nodecount;
 
-              std::cout << json::field("exists_" + q_cell.to_string()) << json::value(nodecount)
+              std::cout << json::field("exists(" + q_cell.to_string() + ")") << json::value(nodecount)
                         << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
             }
@@ -2015,7 +2015,7 @@ namespace enc_gadgets
           largest_bdd            = std::max(largest_bdd, nodecount);
           total_nodes += nodecount;
 
-          std::cout << json::field("exists_" + q_cell.to_string()) << json::value(nodecount)
+          std::cout << json::field("exists(" + q_cell.to_string() + ")") << json::value(nodecount)
                     << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
         }
@@ -2029,8 +2029,8 @@ namespace enc_gadgets
         largest_bdd            = std::max(largest_bdd, nodecount);
         total_nodes += nodecount;
 
-        std::cout << json::field("exists_" + std::to_string(MAX_ROW() - 1) + "x_"
-                                 + std::to_string(MAX_ROW()) + "x")
+        std::cout << json::field("exists(" + std::to_string(MAX_ROW() - 1) + "x,"
+                                 + std::to_string(MAX_ROW()) + "x)")
                   << json::value(nodecount) << json::endl;
 #endif // BDD_BENCHMARK_STATS
       }
@@ -2347,8 +2347,8 @@ namespace enc_time
     largest_bdd            = std::max(largest_bdd, nodecount);
     total_nodes += nodecount;
 
-    std::cout << json::field("transition_relation") << json::brace_open << json::endl;
-    std::cout << json::field(std::to_string(MAX_TIME()) + ", 0") << json::value(nodecount)
+    std::cout << json::field("transition relation") << json::brace_open << json::endl;
+    std::cout << json::field("t = " + std::to_string(MAX_TIME()) + ", 0") << json::value(nodecount)
               << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
 
@@ -2361,7 +2361,7 @@ namespace enc_time
       largest_bdd            = std::max(largest_bdd, nodecount);
       total_nodes += nodecount;
 
-      std::cout << json::field(std::to_string(t)) << json::value(nodecount);
+      std::cout << json::field("t = " + std::to_string(t)) << json::value(nodecount);
       if (t != MIN_TIME() + 1) { std::cout << json::comma; }
       std::cout << json::endl;
 #endif // BDD_BENCHMARK_STATS
@@ -2375,7 +2375,7 @@ namespace enc_time
     //
     // TODO: Follow 'cells_descending' ordering (possibly in reverse)?
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << json::field("hamiltonian_constraint") << json::brace_open << json::endl;
+    std::cout << json::field("hamiltonian constraint") << json::brace_open << json::endl;
 #endif // BDD_BENCHMARK_STATS
 
     for (int row = MIN_ROW(); row <= MAX_ROW(); ++row) {
@@ -2522,11 +2522,11 @@ run_hamiltonian(int argc, char** argv)
 
     // ---------------------------------------------------------------------------
     // Construct paths based on chosen encoding
-    std::cout << json::field(opt == enc_opt::TIME ? "apply" : "apply_exists") << json::brace_open
+    std::cout << json::field(opt == enc_opt::TIME ? "apply" : "apply+exists") << json::brace_open
               << json::endl;
 
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << json::field("intermediate_results") << json::brace_open << json::endl;
+    std::cout << json::field("intermediate results") << json::brace_open << json::endl;
 #endif // BDD_BENCHMARK_STATS
 
     typename Adapter::dd_t paths;
@@ -2550,14 +2550,14 @@ run_hamiltonian(int argc, char** argv)
 
 #ifdef BDD_BENCHMARK_STATS
     std::cout << json::brace_close << json::endl;
-    std::cout << json::field("total__nodes") << json::value(total_nodes) << json::comma
+    std::cout << json::field("total processed (nodes)") << json::value(total_nodes) << json::comma
               << json::endl;
-    std::cout << json::field("largest__nodes") << json::value(largest_bdd) << json::comma
+    std::cout << json::field("largest size (nodes)") << json::value(largest_bdd) << json::comma
               << json::endl;
 #endif // BDD_BENCHMARK_STATS
-    std::cout << json::field("final__nodes") << json::value(adapter.nodecount(paths)) << json::comma
+    std::cout << json::field("final size (nodes)") << json::value(adapter.nodecount(paths)) << json::comma
               << json::endl;
-    std::cout << json::field("time__ms") << json::value(paths_time) << json::endl;
+    std::cout << json::field("time (ms)") << json::value(paths_time) << json::endl;
     std::cout << json::brace_close << json::comma << json::endl << json::flush;
 
     // -------------------------------------------------------------------------
@@ -2574,7 +2574,7 @@ run_hamiltonian(int argc, char** argv)
     const time_duration satcount_time = duration_ms(before_satcount, after_satcount);
 
     std::cout << json::field("result") << json::value(solutions) << json::comma << json::endl;
-    std::cout << json::field("time__ms") << json::value(satcount_time) << json::endl;
+    std::cout << json::field("time (ms)") << json::value(satcount_time) << json::endl;
     std::cout << json::brace_close << json::endl << json::flush;
 
     // -------------------------------------------------------------------------
@@ -2592,7 +2592,7 @@ run_hamiltonian(int argc, char** argv)
     */
 
     // -------------------------------------------------------------------------
-    std::cout << json::field("total_time__ms") << json::value(paths_time + satcount_time)
+    std::cout << json::field("total time (ms)") << json::value(paths_time + satcount_time)
               << json::endl
               << json::flush;
 

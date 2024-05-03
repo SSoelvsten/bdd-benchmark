@@ -1171,7 +1171,7 @@ typename Adapter::dd_t
 garden_of_eden(Adapter& adapter, const var_map& vm)
 {
 #ifdef BDD_BENCHMARK_STATS
-  std::cout << json::field("intermediate_results") << json::brace_open << json::endl;
+  std::cout << json::field("intermediate results") << json::brace_open << json::endl;
 #endif // BDD_BENCHMARK_STATS
 
   // -----------------------------------------------------------------------------------------------
@@ -1294,11 +1294,11 @@ run_gameoflife(int argc, char** argv)
   var_map vm(option);
 
   return run<Adapter>("game-of-life", vm.varcount(), [&](Adapter& adapter) {
-    std::cout << json::field("N_rows") << json::value(rows()) << json::comma << json::endl;
-    std::cout << json::field("N_cols") << json::value(cols()) << json::comma << json::endl;
-    std::cout << json::field("prev_variables") << json::value(vm.varcount(prime::pre))
+    std::cout << json::field("rows") << json::value(rows()) << json::comma << json::endl;
+    std::cout << json::field("cols") << json::value(cols()) << json::comma << json::endl;
+    std::cout << json::field("variables[prev]") << json::value(vm.varcount(prime::pre))
               << json::comma << json::endl;
-    std::cout << json::field("next_variables") << json::value(vm.varcount(prime::post))
+    std::cout << json::field("variables[next]") << json::value(vm.varcount(prime::post))
               << json::comma << json::endl;
     std::cout << json::endl;
 
@@ -1313,11 +1313,11 @@ run_gameoflife(int argc, char** argv)
 
     const auto goe__total_time = duration_ms(t1, t2);
 
-    std::cout << json::field("time__ms") << json::value(goe__total_time) << json::comma
+    std::cout << json::field("time (ms)") << json::value(goe__total_time) << json::comma
               << json::endl;
-    std::cout << json::field("time_apply__ms") << json::value(goe__apply_time) << json::comma
+    std::cout << json::field("time[apply] (ms)") << json::value(goe__apply_time) << json::comma
               << json::endl;
-    std::cout << json::field("time_exists__ms") << json::value(goe__exists_time) << json::endl;
+    std::cout << json::field("time[exists] (ms)") << json::value(goe__exists_time) << json::endl;
 
     std::cout << json::brace_close << json::comma << json::endl;
 
@@ -1329,16 +1329,16 @@ run_gameoflife(int argc, char** argv)
     res                 = adapter.apply_diff(post_top, res);
 
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << json::field("top__nodes") << json::value(adapter.nodecount(post_top))
+    std::cout << json::field("top (nodes)") << json::value(adapter.nodecount(post_top))
               << json::comma << json::endl;
-    std::cout << json::field("flipped__nodes") << json::value(adapter.nodecount(res)) << json::comma
+    std::cout << json::field("flipped (nodes)") << json::value(adapter.nodecount(res)) << json::comma
               << json::endl;
 #endif // BDD_BENCHMARK_STATS
     const time_point t4 = now();
 
     const time_duration flip_time = duration_ms(t3, t4);
 
-    std::cout << json::field("time__ms") << json::value(flip_time) << json::endl;
+    std::cout << json::field("time (ms)") << json::value(flip_time) << json::endl;
     std::cout << json::brace_close << json::comma << json::endl;
 
     // ---------------------------------------------------------------------------------------------
@@ -1351,13 +1351,13 @@ run_gameoflife(int argc, char** argv)
     const time_duration counting_time = duration_ms(t5, t6);
 
     std::cout << json::field("result") << json::value(solutions) << json::comma << json::endl;
-    std::cout << json::field("time__ms") << json::value(counting_time) << json::endl;
+    std::cout << json::field("time (ms)") << json::value(counting_time) << json::endl;
     std::cout << json::brace_close << json::comma << json::endl;
 
     // ---------------------------------------------------------------------------------------------
     const time_duration total_time = goe__total_time + flip_time + counting_time;
 
-    std::cout << json::field("total_time__ms") << json::value(total_time) << json::endl;
+    std::cout << json::field("total time (ms)") << json::value(total_time) << json::endl;
 
     // For all solvable sizes, the number of solutions should be 0.
     return solutions != 0;

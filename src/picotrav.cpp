@@ -753,11 +753,11 @@ construct_net_bdd(const std::string& filename,
 
   std::cout << json::indent << json::brace_open << json::endl;
   std::cout << json::field("path") << json::value(filename) << json::comma << json::endl;
-  std::cout << json::field("input_gates") << json::value(net.inputs_w_order.size()) << json::comma
+  std::cout << json::field("input gates") << json::value(net.inputs_w_order.size()) << json::comma
             << json::endl;
-  std::cout << json::field("output_gates") << json::value(net.outputs_in_order.size())
+  std::cout << json::field("output gates") << json::value(net.outputs_in_order.size())
             << json::comma << json::endl;
-  std::cout << json::field("total_gates") << json::value(net.nodes.size()) << json::comma
+  std::cout << json::field("total gates") << json::value(net.nodes.size()) << json::comma
             << json::endl;
   std::cout << json::endl;
 
@@ -777,31 +777,31 @@ construct_net_bdd(const std::string& filename,
   }
 
   std::cout << json::field("final_diagrams") << json::brace_open << json::endl;
-  std::cout << json::field("max__nodes") << json::value(max_final_size) << json::comma
+  std::cout << json::field("size[max] (nodes)") << json::value(max_final_size) << json::comma
             << json::endl;
-  std::cout << json::field("sum__nodes") << json::value(sum_final_sizes) << json::comma
+  std::cout << json::field("size[sum] (nodes)") << json::value(sum_final_sizes) << json::comma
             << json::endl;
-  std::cout << json::field("allocated__nodes") << json::value(adapter.allocated_nodes())
+  std::cout << json::field("allocated (nodes)") << json::value(adapter.allocated_nodes())
             << json::endl;
   std::cout << json::brace_close << json::comma << json::endl;
 
 #ifdef BDD_BENCHMARK_STATS
   std::cout << json::field("life_time") << json::brace_open << json::endl;
-  std::cout << json::field("total__nodes") << stats.total_processed << json::comma << json::endl;
-  std::cout << json::field("max_roots") << json::value(stats.max_roots) << json::comma
+  std::cout << json::field("total processed (nodes)") << stats.total_processed << json::comma << json::endl;
+  std::cout << json::field("max roots") << json::value(stats.max_roots) << json::comma
             << json::endl;
-  std::cout << json::field("max_size") << json::value(stats.max_bdd_size) << json::comma
+  std::cout << json::field("size[max] (nodes)") << json::value(stats.max_bdd_size) << json::comma
             << json::endl;
-  std::cout << json::field("sum_sizes") << json::value(stats.sum_bdd_sizes) << json::comma
+  std::cout << json::field("sizes[sum] (nodes)") << json::value(stats.sum_bdd_sizes) << json::comma
             << json::endl;
-  std::cout << json::field("max_sizes") << json::value(stats.max_bdd_sizes) << json::comma
+  std::cout << json::field("sizes[max] (nodes)") << json::value(stats.max_bdd_sizes) << json::comma
             << json::endl;
-  std::cout << json::field("sum_allocated") << json::value(stats.sum_allocated) << json::comma
+  std::cout << json::field("allocated[sum]") << json::value(stats.sum_allocated) << json::comma
             << json::endl;
-  std::cout << json::field("max_allocated") << json::value(stats.max_allocated) << json::endl;
+  std::cout << json::field("allocated[max]") << json::value(stats.max_allocated) << json::endl;
   std::cout << json::brace_close << json::comma << json::endl;
 
-  std::cout << json::field("op_count") << json::brace_open << json::endl;
+  std::cout << json::field("operation count") << json::brace_open << json::endl;
   std::cout << json::field("apply") << json::value(stats.total_applys) << json::comma << json::endl;
   std::cout << json::field("not") << json::value(stats.total_negations) << json::comma
             << json::endl;
@@ -809,7 +809,7 @@ construct_net_bdd(const std::string& filename,
 #endif // BDD_BENCHMARK_STATS
 
   const time_duration total_time = duration_ms(t_construct_before, t_construct_after);
-  std::cout << json::field("time__ms") << total_time << json::endl;
+  std::cout << json::field("time (ms)") << total_time << json::endl;
   std::cout << json::brace_close; // << json::endl
 
   return { 0, total_time };
@@ -828,7 +828,7 @@ verify_outputs(const net_t& net_0,
   assert(net_1.outputs_in_order.size() == cache_1.size());
   assert(net_0.outputs_in_order.size() == net_1.outputs_in_order.size());
 
-  std::cout << json::field("equals") << json::brace_open << json::endl;
+  std::cout << json::field("equal") << json::brace_open << json::endl;
 
   const time_point t_compare_before = now();
   bool ret_value                    = true;
@@ -849,7 +849,7 @@ verify_outputs(const net_t& net_0,
   std::cout << json::field("result") << json::value(ret_value) << json::comma << json::endl;
 
   const time_duration time = duration_ms(t_compare_before, t_compare_after);
-  std::cout << json::field("time__ms") << json::value(time) << json::endl;
+  std::cout << json::field("time (ms)") << json::value(time) << json::endl;
 
   std::cout << json::brace_close << json::comma << json::endl;
   return { ret_value, time };
@@ -960,7 +960,7 @@ run_picotrav(int argc, char** argv)
   const size_t varcount = net_0.inputs_w_order.size();
 
   return run<Adapter>("Picotrav", varcount, [&](Adapter& adapter) {
-    std::cout << json::field("variable_order") << json::value(to_string(variable_order))
+    std::cout << json::field("variable order") << json::value(to_string(variable_order))
               << json::comma << json::endl;
     std::cout << json::endl;
 
@@ -1005,7 +1005,7 @@ run_picotrav(int argc, char** argv)
     }
 
     // TODO: Fix 'total time' below also measures multiple 'std::flush'.
-    std::cout << json::field("total_time__ms") << json::value(total_time) << json::endl;
+    std::cout << json::field("total time (ms)") << json::value(total_time) << json::endl;
 
     if (verify_networks && !networks_equal) { return -1; }
     return 0;

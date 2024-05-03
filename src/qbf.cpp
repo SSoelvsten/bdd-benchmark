@@ -1701,8 +1701,8 @@ solve(Adapter& adapter, qcir& q, const variable_order vo = variable_order::INPUT
 
   const time_point t_prep_after = now();
 
-  std::cout << json::field("max_idx") << json::value(max_q_idx) << json::comma << json::endl;
-  std::cout << json::field("setup_time__ms")
+  std::cout << json::field("max idx") << json::value(max_q_idx) << json::comma << json::endl;
+  std::cout << json::field("setup time (ms)")
             << json::value(duration_ms(t_prep_before, t_prep_after)) << json::comma << json::endl;
 
   // Set-up BDD computation cache
@@ -1765,9 +1765,9 @@ solve(Adapter& adapter, qcir& q, const variable_order vo = variable_order::INPUT
               typename Adapter::dd_t { return g.val ? adapter.top() : adapter.bot(); },
               [&adapter, &vom, &q](const qcir::var_gate& g) -> typename Adapter::dd_t {
 #ifdef BDD_BENCHMARK_STATS
-                std::cout << json::field("dd_var") << json::value(q.var(g.var)) << json::comma
+                std::cout << json::field("dd var") << json::value(q.var(g.var)) << json::comma
                           << json::endl;
-                std::cout << json::field("dd_var") << json::value(vom.dd_var(g.var)) << json::comma
+                std::cout << json::field("var") << json::value(vom.dd_var(g.var)) << json::comma
                           << json::endl;
 #endif
                 return adapter.ithvar(vom.dd_var(g.var));
@@ -1826,7 +1826,7 @@ solve(Adapter& adapter, qcir& q, const variable_order vo = variable_order::INPUT
                 for (const int x : g.vars) { vars.insert(vom.dd_var(x)); }
 
 #ifdef BDD_BENCHMARK_STATS
-                std::cout << json::field("dd_vars");
+                std::cout << json::field("dd vars");
 
                 std::stringstream ss;
                 size_t out_counter = 0;
@@ -1868,8 +1868,8 @@ solve(Adapter& adapter, qcir& q, const variable_order vo = variable_order::INPUT
     }
 
     const time_point t_end = now();
-    std::cout << json::field("size__nodes") << json::value(g_dd_size) << json::comma << json::endl;
-    std::cout << json::field("time__ms") << json::value(duration_ms(t_start, t_end)) << json::endl;
+    std::cout << json::field("size (nodes)") << json::value(g_dd_size) << json::comma << json::endl;
+    std::cout << json::field("time (ms)") << json::value(duration_ms(t_start, t_end)) << json::endl;
     std::cout << json::brace_close;
     if (q_idx != max_q_idx) { std::cout << json::comma; }
     std::cout << json::endl;
@@ -1980,11 +1980,11 @@ run_qbf(int argc, char** argv)
     std::cout << json::field("max_cache") << json::value(stats.cache.max_size) << json::comma
               << json::endl;
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << json::field("largest__nodes") << json::value(stats.dd.max_size) << json::comma
+    std::cout << json::field("largest size (nodes)") << json::value(stats.dd.max_size) << json::comma
               << json::endl;
-    std::cout << json::field("largest_matrix__nodes") << json::value(stats.dd.matrix_max_size)
+    std::cout << json::field("largest[matrix] size (nodes)") << json::value(stats.dd.matrix_max_size)
               << json::comma << json::endl;
-    std::cout << json::field("largest_prenex__nodes") << json::value(stats.dd.prenex_max_size)
+    std::cout << json::field("largest[prenex] size (nodes)") << json::value(stats.dd.prenex_max_size)
               << json::comma << json::endl;
 #endif //  BDD_BENCHMARK_STATS
 
@@ -2003,11 +2003,11 @@ run_qbf(int argc, char** argv)
 
     std::cout << json::endl;
 
-    std::cout << json::field("matrix_time__ms") << json::value(stats.solve_time - stats.prenex_time)
+    std::cout << json::field("matrix time (ms)") << json::value(stats.solve_time - stats.prenex_time)
               << json::comma << json::endl;
-    std::cout << json::field("prenex_time__ms") << json::value(stats.prenex_time) << json::comma
+    std::cout << json::field("prenex time (ms)") << json::value(stats.prenex_time) << json::comma
               << json::endl;
-    std::cout << json::field("total_time__ms") << json::value(stats.solve_time) << json::endl;
+    std::cout << json::field("total time (ms)") << json::value(stats.solve_time) << json::endl;
 
     return 0;
   });
