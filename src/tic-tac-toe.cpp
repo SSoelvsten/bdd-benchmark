@@ -289,9 +289,9 @@ run_tictactoe(int argc, char** argv)
 #ifdef BDD_BENCHMARK_STATS
     total_nodes += initial_bdd;
 #endif // BDD_BENCHMARK_STATS
-    std::cout << json::field("size__nodes") << json::value(initial_bdd) << json::comma
+    std::cout << json::field("size (nodes)") << json::value(initial_bdd) << json::comma
               << json::endl;
-    std::cout << json::field("time__ms") << json::value(init_time) << json::endl;
+    std::cout << json::field("time (ms)") << json::value(init_time) << json::endl;
     std::cout << json::brace_close << json::endl << json::flush;
 
     // =========================================================================
@@ -299,7 +299,7 @@ run_tictactoe(int argc, char** argv)
     std::cout << json::field("apply") << json::brace_open << json::endl << json::flush;
 
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << json::field("intermediate_results") << json::brace_open << json::endl;
+    std::cout << json::field("intermediate results") << json::brace_open << json::endl;
 #endif // BDD_BENCHMARK_STATS
 
     time_point t3 = now();
@@ -330,14 +330,14 @@ run_tictactoe(int argc, char** argv)
     const time_duration constraints_time = duration_ms(t3, t4);
 
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << json::field("total__nodes") << json::value(total_nodes) << json::comma
+    std::cout << json::field("total processed (nodes)") << json::value(total_nodes) << json::comma
               << json::endl;
-    std::cout << json::field("largest__nodes") << json::value(largest_bdd) << json::comma
+    std::cout << json::field("largest size (nodes)") << json::value(largest_bdd) << json::comma
               << json::endl;
 #endif // BDD_BENCHMARK_STATS
-    std::cout << json::field("final__nodes") << json::value(adapter.nodecount(res)) << json::comma
+    std::cout << json::field("final sizse (nodes)") << json::value(adapter.nodecount(res)) << json::comma
               << json::endl;
-    std::cout << json::field("time__ms") << json::value(constraints_time) << json::endl;
+    std::cout << json::field("time (ms)") << json::value(constraints_time) << json::endl;
     std::cout << json::brace_close << json::endl;
 
     // =========================================================================
@@ -352,11 +352,11 @@ run_tictactoe(int argc, char** argv)
 
     // =========================================================================
     std::cout << json::field("result") << json::value(solutions) << json::comma << json::endl;
-    std::cout << json::field("time__ms") << json::value(counting_time) << json::endl;
+    std::cout << json::field("time (ms)") << json::value(counting_time) << json::endl;
     std::cout << json::brace_close << json::endl;
 
     // =========================================================================
-    std::cout << json::field("total_time__ms")
+    std::cout << json::field("total time (ms)")
               << json::value(init_time + constraints_time + counting_time);
     std::cout << json::endl << json::flush;
 

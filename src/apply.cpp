@@ -548,11 +548,11 @@ run_apply(int argc, char** argv)
       std::cout << json::indent << json::brace_open << json::endl;
       std::cout << json::field("path") << json::value(input_files.at(i)) << json::comma
                 << json::endl;
-      std::cout << json::field("size__nodes") << json::value(adapter.nodecount(inputs_dd.at(i)))
+      std::cout << json::field("size (nodes)") << json::value(adapter.nodecount(inputs_dd.at(i)))
                 << json::comma << json::endl;
       std::cout << json::field("satcount") << json::value(adapter.satcount(inputs_dd.at(i)))
                 << json::comma << json::endl;
-      std::cout << json::field("time__ms")
+      std::cout << json::field("time (ms)")
                 << json::value(duration_ms(t_rebuild_before, t_rebuild_after)) << json::endl;
 
       std::cout << json::brace_close;
@@ -580,16 +580,16 @@ run_apply(int argc, char** argv)
 
     std::cout << json::field("operand") << json::value(option_str(oper_opt)) << json::comma
               << json::endl;
-    std::cout << json::field("size__nodes") << adapter.nodecount(result) << json::comma
+    std::cout << json::field("size (nodes)") << adapter.nodecount(result) << json::comma
               << json::endl;
     std::cout << json::field("satcount") << adapter.satcount(result) << json::comma << json::endl;
-    std::cout << json::field("time__ms") << apply_time << json::endl;
+    std::cout << json::field("time (ms)") << apply_time << json::endl;
 
     std::cout << json::brace_close << json::comma << json::endl;
 
     // =========================================================================
 
-    std::cout << json::field("total_time__ms") << json::value(total_time) << json::endl;
+    std::cout << json::field("total time (ms)") << json::value(total_time) << json::endl;
 
     return 0;
   });

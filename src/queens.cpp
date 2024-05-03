@@ -245,7 +245,7 @@ run_queens(int argc, char** argv)
     std::cout << json::field("apply") << json::brace_open << json::endl << json::flush;
 
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << json::field("intermediate_results") << json::brace_open << json::endl;
+    std::cout << json::field("intermediate results") << json::brace_open << json::endl;
 #endif
 
     const time_point t1        = now();
@@ -256,14 +256,14 @@ run_queens(int argc, char** argv)
 
 #ifdef BDD_BENCHMARK_STATS
     std::cout << json::brace_close << json::comma << json::endl;
-    std::cout << json::field("total__nodes") << json::value(total_nodes) << json::comma
+    std::cout << json::field("total processed (nodes)") << json::value(total_nodes) << json::comma
               << json::endl;
-    std::cout << json::field("largest__nodes") << json::value(largest_bdd) << json::comma
+    std::cout << json::field("largest size (nodes)") << json::value(largest_bdd) << json::comma
               << json::endl;
 #endif // BDD_BENCHMARK_STATS
-    std::cout << json::field("final__nodes") << json::value(adapter.nodecount(res)) << json::comma
+    std::cout << json::field("final size (nodes)") << json::value(adapter.nodecount(res)) << json::comma
               << json::endl;
-    std::cout << json::field("time__ms") << json::value(construction_time) << json::endl;
+    std::cout << json::field("time (ms)") << json::value(construction_time) << json::endl;
     std::cout << json::brace_close << json::comma << json::endl << json::flush;
 
     // ========================================================================
@@ -277,11 +277,11 @@ run_queens(int argc, char** argv)
     const time_duration counting_time = duration_ms(t3, t4);
 
     std::cout << json::field("result") << json::value(solutions) << json::comma << json::endl;
-    std::cout << json::field("time__ms") << json::value(counting_time) << json::endl;
+    std::cout << json::field("time (ms)") << json::value(counting_time) << json::endl;
     std::cout << json::brace_close << json::endl << json::flush;
 
     // ========================================================================
-    std::cout << json::field("total_time__ms") << json::value(construction_time + counting_time)
+    std::cout << json::field("total time (ms)") << json::value(construction_time + counting_time)
               << json::endl
               << json::flush;
 
