@@ -29,50 +29,69 @@
 #include "common/input.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-//                              Apply Operand                                 //
+//                              INPUT PARSING                                 //
 ////////////////////////////////////////////////////////////////////////////////
 
-////////////////////////////////////////////////////////////////////////////////
-/// \brief Enum for choosing the desired Apply operation.
-////////////////////////////////////////////////////////////////////////////////
-enum oper_opt
+std::vector<std::string> input_files;
+
+enum operand
 {
   AND,
   OR
 };
 
-template <>
 std::string
-option_help_str<oper_opt>()
+to_string(const operand& oper)
 {
-  return "Desired Boolean Operator for Apply Algorithm";
-}
-
-template <>
-oper_opt
-parse_option(const std::string& arg, bool& should_exit)
-{
-  const std::string lower_arg = ascii_tolower(arg);
-
-  if (lower_arg == "and") { return oper_opt::AND; }
-
-  if (lower_arg == "or") { return oper_opt::OR; }
-
-  std::cerr << "Undefined operand: " << arg << "\n";
-  should_exit = true;
-
-  return oper_opt::AND;
-}
-
-std::string
-option_str(const oper_opt& enc)
-{
-  switch (enc) {
-  case oper_opt::AND: return "and";
-  case oper_opt::OR: return "or";
+  switch (oper) {
+  case operand::AND: return "and";
+  case operand::OR: return "or";
   default: return "?";
   }
 }
+
+operand oper = operand::AND;
+
+class parsing_policy
+{
+public:
+  static constexpr std::string_view name = "Apply";
+  static constexpr std::string_view args = "f:o:";
+
+  static constexpr std::string_view help_text =
+    "        -f PATH              Path to '._dd' files (2+ required)\n"
+    "        -o OPER     [and]    Boolean operator to use (and/or)";
+
+  static inline bool
+  parse_input(const int c, const char* arg)
+  {
+    switch (c) {
+    case 'f': {
+      if (!std::filesystem::exists(arg)) {
+        std::cerr << "File '" << arg << "' does not exist\n";
+        return true;
+      }
+      input_files.push_back(arg);
+      return false;
+    }
+    case 'o': {
+      const std::string lower_arg = ascii_tolower(arg);
+
+      if (lower_arg == "and" || lower_arg == "a") {
+        oper = operand::AND;
+      } else if (lower_arg == "or" || lower_arg == "o") {
+        oper = operand::OR;
+      } else {
+        std::cerr << "Undefined operand: " << arg << "\n";
+        return true;
+      }
+      return false;
+    }
+    default:
+      return true;
+    }
+  }
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 //                      Deserialization from 'lib-bdd'                        //
@@ -464,17 +483,15 @@ template <typename Adapter>
 int
 run_apply(int argc, char** argv)
 {
-  oper_opt oper_opt = oper_opt::AND;
-  bool should_exit  = parse_input(argc, argv, oper_opt);
+  bool should_exit = parse_input<parsing_policy>(argc, argv);
+  if (should_exit) { return -1; }
 
   constexpr size_t inputs = 2u;
 
-  if (input_files.size() != inputs) {
+  if (input_files.size() < inputs) {
     std::cerr << "Incorrect number of files given (2 required)\n";
-    should_exit = true;
+    return -1;
   }
-
-  if (should_exit) { return -1; }
 
   // =========================================================================
   // Load 'lib-bdd' files
@@ -569,16 +586,16 @@ run_apply(int argc, char** argv)
     std::cout << json::field("apply") << json::brace_open << json::endl << json::flush;
 
     const time_point t_apply_before = now();
-    switch (oper_opt) {
-    case oper_opt::AND: result = inputs_dd.at(0) & inputs_dd.at(1); break;
-    case oper_opt::OR: result = inputs_dd.at(0) | inputs_dd.at(1); break;
+    switch (oper) {
+    case operand::AND: result = inputs_dd.at(0) & inputs_dd.at(1); break;
+    case operand::OR: result = inputs_dd.at(0) | inputs_dd.at(1); break;
     }
     const time_point t_apply_after = now();
 
     const size_t apply_time = duration_ms(t_apply_before, t_apply_after);
     total_time += apply_time;
 
-    std::cout << json::field("operand") << json::value(option_str(oper_opt)) << json::comma
+    std::cout << json::field("operand") << json::value(to_string(oper)) << json::comma
               << json::endl;
     std::cout << json::field("size (nodes)") << adapter.nodecount(result) << json::comma
               << json::endl;

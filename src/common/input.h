@@ -38,20 +38,6 @@ extern int threads;
 extern std::string temp_path;
 
 ////////////////////////////////////////////////////////////////////////////////
-/// \brief List of integer input sizes
-///
-/// \details This value is provided with `-N`
-////////////////////////////////////////////////////////////////////////////////
-extern std::vector<int> input_sizes;
-
-////////////////////////////////////////////////////////////////////////////////
-/// \brief   Paths for input files
-///
-/// \details This value is provided with `-f`
-////////////////////////////////////////////////////////////////////////////////
-extern std::vector<std::string> input_files;
-
-////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -77,71 +63,45 @@ ascii_tolower(const std::string& in)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-
+/// \brief Values to be parsed particular to a benchmark.
 ////////////////////////////////////////////////////////////////////////////////
-/// \brief   Parses a given string into an enum. The error code `should_exit` is
-///          made `true` if parsing fails.
-///
-/// \details When using some option ('-o'), specialize this function to convert
-///          the given string to the desired enum value.
-////////////////////////////////////////////////////////////////////////////////
-template <typename option_enum>
-option_enum
-parse_option(const std::string& arg, bool& should_exit);
-
-////////////////////////////////////////////////////////////////////////////////
-/// \brief   String to be printed as part of '--help' (compile-time derived)
-///
-/// \details When using some option ('-o'), specialize this function for a
-///          short description.
-////////////////////////////////////////////////////////////////////////////////
-template <typename option_enum>
 std::string
-option_help_str();
+parse_args();
 
 ////////////////////////////////////////////////////////////////////////////////
-/// \brief Enum type for an empty set of options.
+/// \brief Logic for parsing input values particular to a benchmark.
 ////////////////////////////////////////////////////////////////////////////////
-enum no_options
-{
-  NONE
-};
-
-////////////////////////////////////////////////////////////////////////////////
-/// \brief Option parsing for `no_option` enum
-////////////////////////////////////////////////////////////////////////////////
-template <>
-inline no_options
-parse_option(const std::string&, bool& should_exit)
-{
-  std::cerr << "Options is undefined for this benchmark\n";
-  should_exit = true;
-  return no_options::NONE;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// \brief Option parsing for `no_option` enum
-////////////////////////////////////////////////////////////////////////////////
-template <>
-inline std::string
-option_help_str<no_options>()
-{
-  return "Not part of this benchmark";
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// \brief   Logic for parsing input values.
-////////////////////////////////////////////////////////////////////////////////
-template <typename option_enum = no_options>
 bool
-parse_input(int& argc, char* argv[], option_enum& option)
+parse_input(const int c, const char* arg);
+
+////////////////////////////////////////////////////////////////////////////////
+/// \brief Title to be displayed for benchmark help prompt
+////////////////////////////////////////////////////////////////////////////////
+constexpr std::string_view
+parse_help_title();
+
+////////////////////////////////////////////////////////////////////////////////
+/// \brief Logic for parsing input values particular to a benchmark.
+////////////////////////////////////////////////////////////////////////////////
+constexpr std::string_view
+parse_help_args();
+
+////////////////////////////////////////////////////////////////////////////////
+/// \brief Logic for parsing input values.
+///
+/// \details Implement the above functions to specify parsing of .
+////////////////////////////////////////////////////////////////////////////////
+template <class Policy>
+inline bool
+parse_input(int& argc, char* argv[])
 {
   bool exit = false;
   int c;
 
   opterr = 0; // Squelch errors for non-common command-line arguments
 
-  while ((c = getopt(argc, argv, "M:P:rt:hN:f:o:")) != -1) {
+  const std::string args = std::string("h" "M:P:rt:") + std::string(Policy::args);
+  while ((c = getopt(argc, argv, args.data())) != -1) {
     try {
       switch (c) {
       case 'M': {
@@ -170,43 +130,31 @@ parse_input(int& argc, char* argv[], option_enum& option)
       }
 
       case '?': // All parameters not defined above will be overwritten to be the '?' character
-        std::cerr << "Undefined flag parameter used\n\n";
-        [[fallthrough]]; // Let the compiler know, that we intend to fall through to 'h' case
-
+        [[fallthrough]];
       case 'h': {
         std::cout
-          << "Usage:  -flag      [default]  Description\n"
+          << Policy::name << " Benchmark\n"
+          << "-------------------------------------------------------------------------------\n"
+          << "Usage:  -flag      [default] Description\n"
+          << "-------------------------------------------------------------------------------\n"
+          << "        -h                   Print this information\n"
           << "\n"
-          << "General options:\n"
-          << "        -h                    Print this information\n"
+          << "-------------------------------------------------------------------------------\n"
+          << "BDD Package options:\n"
+          << "        -M MiB      [128]    Amount of memory (MiB)\n"
+          << "        -t TEMP_PTH [/tmp]   Filepath for temporary files on disk\n"
+          << "        -P THREADS  [1]      Worker thread count\n"
+          << "        -r                   Enable dynamic variable reordering\n"
           << "\n"
-          << "BDD package options:\n"
-          << "        -M MiB      [128]     Amount of memory (MiB) to be dedicated to the BDD "
-             "package\n"
-          << "        -P THREADS  [1]       Worker thread count for multithreaded BDD packages\n"
-          << "        -r                    Enable dynamic variable reordering\n"
-          << "        -t TEMP_PTH [/tmp]    Filepath for temporary files on disk\n"
-          << "\n"
+          << "-------------------------------------------------------------------------------\n"
           << "Benchmark options:\n"
-          << "        -f FILENAME           Input file to run (use repeatedly for multiple files)\n"
-          << "        -N SIZE               Size(s) of a problem\n"
-          << "        -o OPTION             " << option_help_str<option_enum>() << "\n"
+          << Policy::help_text << "\n"
           << std::flush;
         return true;
       }
 
-      case 'N': {
-        input_sizes.push_back(std::stoi(optarg));
-        continue;
-      }
-      case 'f': {
-        std::string file = optarg;
-        if (!file.empty()) { input_files.push_back(file); }
-        continue;
-      }
-      case 'o': {
-        option = parse_option<option_enum>(optarg, exit);
-        continue;
+      default: {
+        exit |= Policy::parse_input(c, optarg);
       }
       }
     } catch (const std::invalid_argument& ex) {
@@ -218,8 +166,9 @@ parse_input(int& argc, char* argv[], option_enum& option)
     }
   }
 
-  optind = 0; // Reset getopt, such that it can be used again outside
+  //optind = 0; // Reset getopt, such that it can be used again outside
   return exit;
 }
+
 
 #endif // BDD_BENCHMARK_COMMON_INPUT_H
