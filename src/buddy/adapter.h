@@ -139,7 +139,9 @@ public:
     bdd_gbc_hook(NULL);
 
     // Disable dynamic variable reordering
-    bdd_disable_reorder();
+    if (!enable_reordering) {
+      bdd_disable_reorder();
+    }
 
     _latest_build = bot();
   }

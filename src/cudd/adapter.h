@@ -99,7 +99,9 @@ public:
   cudd_bcdd_adapter(int varcount)
     : cudd_adapter(varcount, 0)
   { // Disable dynamic ordering
-    _mgr.AutodynDisable();
+    if (!enable_reordering) {
+      _mgr.AutodynDisable();
+    }
 
     _latest_build = bot();
   }
@@ -328,7 +330,9 @@ public:
   cudd_zdd_adapter(int varcount)
     : cudd_adapter(0, varcount)
   { // Disable dynamic ordering
-    _mgr.AutodynDisableZdd();
+    if (!enable_reordering) {
+      _mgr.AutodynDisableZdd();
+    }
 
     _leaf0        = _mgr.zddZero();
     _leaf1        = _mgr.zddOne(std::numeric_limits<int>::max());
