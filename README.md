@@ -336,7 +336,7 @@ The benchmark can be configured with the following options:
 
   The size of the sub-game. Use twice for non-quadratic grids.
 
-- **`-o <...>`**
+- **`-s <...>`**
 
   Restrict the search to *symmetrical* Garden of Edens:
 
@@ -380,7 +380,7 @@ The benchmark can be configured with the following options:
 
   The size of the grid; use twice for non-quadratic grids.
 
-- **`-o <...>`** (default: *time*)
+- **`-e <...>`** (default: *time*)
 
   Pick the encoding/algorithm to solve the problem with:
 
