@@ -1023,7 +1023,7 @@ run_picotrav(int argc, char** argv)
     }
 
     // TODO: Fix 'total time' below also measures multiple 'std::flush'.
-    std::cout << json::field("total time (ms)") << json::value(total_time) << json::endl;
+    std::cout << json::field("total time (ms)") << json::value(init_time + total_time) << json::endl;
 
     if (verify_networks && !networks_equal) { return -1; }
     return 0;

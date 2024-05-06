@@ -304,7 +304,7 @@ run_queens(int argc, char** argv)
     std::cout << json::brace_close << json::endl << json::flush;
 
     // ========================================================================
-    std::cout << json::field("total time (ms)") << json::value(construction_time + counting_time)
+    std::cout << json::field("total time (ms)") << json::value(init_time + construction_time + counting_time)
               << json::endl
               << json::flush;
 

@@ -63,7 +63,8 @@ run(const std::string& benchmark_name, const int varcount, const F& f)
 #else
     << json::value(false)
 #endif
-    << json::comma << json::endl
+    << json::comma
+    << json::endl
     << json::endl
     // BDD package substruct
     << json::field("bdd_package") << json::brace_open
@@ -78,9 +79,14 @@ run(const std::string& benchmark_name, const int varcount, const F& f)
   Adapter adapter(varcount);
   const time_point t_after = now();
 
+  const time_duration t_duration = duration_ms(t_before, t_after);
+#ifdef BDD_BENCHMARK_INCL_INIT
+  init_time = t_duration;
+#endif // BDD_BENCHMARK_INCL_INIT
+
   std::cout
     // Initialisation Time
-    << json::field("init_time__ms") << json::value(duration_ms(t_before, t_after)) << json::comma
+    << json::field("init_time__ms") << json::value(t_duration) << json::comma
     << json::endl
     // Memory
     << json::field("memory__MiB") << json::value(M) << json::comma

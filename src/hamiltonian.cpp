@@ -2613,7 +2613,7 @@ run_hamiltonian(int argc, char** argv)
     */
 
     // -------------------------------------------------------------------------
-    std::cout << json::field("total time (ms)") << json::value(paths_time + satcount_time)
+    std::cout << json::field("total time (ms)") << json::value(init_time + paths_time + satcount_time)
               << json::endl
               << json::flush;
 

@@ -2039,7 +2039,7 @@ run_qbf(int argc, char** argv)
               << json::comma << json::endl;
     std::cout << json::field("prenex time (ms)") << json::value(stats.prenex_time) << json::comma
               << json::endl;
-    std::cout << json::field("total time (ms)") << json::value(stats.solve_time) << json::endl;
+    std::cout << json::field("total time (ms)") << json::value(init_time + stats.solve_time) << json::endl;
 
     return 0;
   });
