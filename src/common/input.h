@@ -21,7 +21,7 @@ extern int M;
 ///
 /// \details This value is provided with `-P`
 ////////////////////////////////////////////////////////////////////////////////
-extern unsigned int threads;
+extern int threads;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief Path to temporary files for the BDD package to store data on disk.
@@ -149,7 +149,7 @@ parse_input(int& argc, char* argv[], option_enum& option)
 
       case 'P':
         threads = std::stoi(optarg);
-        if (threads == 0) {
+        if (threads <= 0) {
           std::cerr << "  Must specify a positive thread count (-P)\n";
           exit = true;
         }

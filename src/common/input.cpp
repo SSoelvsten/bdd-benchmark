@@ -2,7 +2,7 @@
 
 int M = 128; /* MiB */
 
-unsigned int threads = 1;
+int threads = 1;
 
 std::string temp_path = "";
 
