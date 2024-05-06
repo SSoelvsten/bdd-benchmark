@@ -164,24 +164,22 @@ parse_input(int& argc, char* argv[], option_enum& option)
 
       case 'h': {
         std::cout
-          << "Usage:  -flag      [default]  Description" << std::endl
-          << std::endl
-          << "General options:" << std::endl
-          << "        -h                    Print this information" << std::endl
-          << std::endl
-          << "BDD package options:" << std::endl
+          << "Usage:  -flag      [default]  Description\n"
+          << "\n"
+          << "General options:\n"
+          << "        -h                    Print this information\n"
+          << "\n"
+          << "BDD package options:\n"
           << "        -M MiB      [128]     Amount of memory (MiB) to be dedicated to the BDD "
-             "package"
-          << std::endl
-          << "        -P THREADS  [1]       Worker thread count for multithreaded BDD packages"
-          << "        -t TEMP_PTH [/tmp]    Filepath for temporary files on disk" << std::endl
-          << std::endl
-          << std::endl
-          << "Benchmark options:" << std::endl
-          << "        -f FILENAME           Input file to run (use repeatedly for multiple files)"
-          << std::endl
-          << "        -N SIZE               Size(s) of a problem" << std::endl
-          << "        -o OPTION             " << option_help_str<option_enum>() << std::endl;
+             "package\n"
+          << "        -P THREADS  [1]       Worker thread count for multithreaded BDD packages\n"
+          << "        -t TEMP_PTH [/tmp]    Filepath for temporary files on disk\n"
+          << "\n"
+          << "Benchmark options:\n"
+          << "        -f FILENAME           Input file to run (use repeatedly for multiple files)\n"
+          << "        -N SIZE               Size(s) of a problem\n"
+          << "        -o OPTION             " << option_help_str<option_enum>() << "\n"
+          << std::flush;
         return true;
       }
 
