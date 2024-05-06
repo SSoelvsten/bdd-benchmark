@@ -20,10 +20,40 @@ size_t total_nodes = 0;
 #endif // BDD_BENCHMARK_STATS
 
 // ========================================================================== //
+int N = 8;
+
+class parsing_policy
+{
+public:
+  static constexpr std::string_view name = "Queens";
+  static constexpr std::string_view args = "N:";
+
+  static constexpr std::string_view help_text =
+    "        -N n        [8]      Size of board";
+
+  static inline bool
+  parse_input(const int c, const char* arg)
+  {
+    switch (c) {
+    case 'N': {
+      N = std::stoi(arg);
+      if (N <= 0) {
+        std::cerr << "  Must specify positive board size (-N)\n";
+        return true;
+      }
+      return false;
+    }
+    default:
+      return true;
+    }
+  }
+};
+
+// ========================================================================== //
 inline int
 rows()
 {
-  return input_sizes.at(0);
+  return N;
 }
 
 inline int
@@ -35,7 +65,7 @@ MAX_ROW()
 inline int
 cols()
 {
-  return input_sizes.at(1);
+  return N;
 }
 
 inline int
@@ -222,22 +252,15 @@ template <typename Adapter>
 int
 run_queens(int argc, char** argv)
 {
-  no_options option = no_options::NONE;
-  bool should_exit  = parse_input(argc, argv, option);
-
-  if (input_sizes.size() == 0) { input_sizes.push_back(8); }
-  if (input_sizes.size() == 1) { input_sizes.push_back(input_sizes.at(0)); }
-
+  bool should_exit = parse_input<parsing_policy>(argc, argv);
   if (should_exit) { return -1; }
 
   // =========================================================================
   // Initialise package manager
-  const int N = rows() * cols();
-
-  return run<Adapter>("queens", N, [&](Adapter& adapter) {
+  return run<Adapter>("queens", N*N, [&](Adapter& adapter) {
     uint64_t solutions;
 
-    std::cout << json::field("N") << json::value(rows()) << json::comma << json::endl;
+    std::cout << json::field("N") << json::value(N) << json::comma << json::endl;
     std::cout << json::endl << json::flush;
 
     // ========================================================================

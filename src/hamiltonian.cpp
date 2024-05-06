@@ -29,9 +29,13 @@ size_t total_nodes = 0;
 #endif // BDD_BENCHMARK_STATS
 
 ////////////////////////////////////////////////////////////////////////////////
-/// \brief Enum for choosing the encoding.
+//                              Input Parsing                                 //
 ////////////////////////////////////////////////////////////////////////////////
-enum enc_opt
+
+int N_rows = -1;
+int N_cols = -1;
+
+enum encoding
 {
   BINARY,
   UNARY,
@@ -39,47 +43,66 @@ enum enc_opt
   TIME
 };
 
-////////////////////////////////////////////////////////////////////////////////
-template <>
 std::string
-option_help_str<enc_opt>()
+to_string(const encoding& e)
 {
-  return "Desired problem encoding";
-}
-
-////////////////////////////////////////////////////////////////////////////////
-template <>
-enc_opt
-parse_option(const std::string& arg, bool& should_exit)
-{
-  const std::string lower_arg = ascii_tolower(arg);
-
-  if (lower_arg == "binary") { return enc_opt::BINARY; }
-
-  if (lower_arg == "unary" || lower_arg == "one-hot") { return enc_opt::UNARY; }
-
-  if (lower_arg == "crt_unary" || lower_arg == "crt_one-hot") { return enc_opt::CRT__UNARY; }
-
-  if (lower_arg == "time" || lower_arg == "t") { return enc_opt::TIME; }
-
-  std::cerr << "Undefined option: " << arg << "\n";
-  should_exit = true;
-
-  return enc_opt::TIME;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-std::string
-option_str(const enc_opt& enc)
-{
-  switch (enc) {
-  case enc_opt::BINARY: return "Binary (Adder)";
-  case enc_opt::UNARY: return "Unary (One-hot)";
-  case enc_opt::CRT__UNARY: return "Chinese Remainder Theorem: Unary (One-hot)";
-  case enc_opt::TIME: return "Time-based";
+  switch (e) {
+  case encoding::BINARY: return "Binary (Adder)";
+  case encoding::UNARY: return "Unary (One-hot)";
+  case encoding::CRT__UNARY: return "Chinese Remainder Theorem: Unary (One-hot)";
+  case encoding::TIME: return "Time-based";
   default: return "Unknown";
   }
 }
+
+encoding enc = encoding::TIME;
+
+class parsing_policy
+{
+public:
+  static constexpr std::string_view name = "Hamiltonian";
+  static constexpr std::string_view args = "N:e:";
+
+  static constexpr std::string_view help_text =
+    "        -N n        [4]      Size of grid\n"
+    "        -e ENC      [time]   Problem encoding";
+
+  static inline bool
+  parse_input(const int c, const char* arg)
+  {
+    switch (c) {
+    case 'N': {
+      const int N = std::stoi(arg);
+      if (N <= 0) {
+        std::cerr << "  Must specify positive board size (-N)\n";
+        return true;
+      }
+      if (N_rows < 0) { N_rows = N; } else { N_cols = N; }
+      return false;
+    }
+    case 'e': {
+      const std::string lower_arg = ascii_tolower(arg);
+
+      if (lower_arg == "binary") {
+        enc = encoding::BINARY;
+      } else if (lower_arg == "unary" || lower_arg == "one-hot") {
+        enc = encoding::UNARY;
+      } else if (lower_arg == "crt_unary" || lower_arg == "crt_one-hot") {
+        enc = encoding::CRT__UNARY;
+      } else if (lower_arg == "time" || lower_arg == "t") {
+        enc = encoding::TIME;
+      } else {
+        std::cerr << "Undefined option: " << arg << "\n";
+        return true;
+      }
+      return false;
+    }
+    default:
+      return true;
+    }
+  }
+};
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //                           Common board logic                               //
@@ -89,7 +112,7 @@ option_str(const enc_opt& enc)
 inline int
 rows()
 {
-  return input_sizes.at(0);
+  return N_rows;
 }
 
 /// \brief Minimum valid row value
@@ -110,7 +133,7 @@ MAX_ROW()
 inline int
 cols()
 {
-  return input_sizes.at(1);
+  return N_cols;
 }
 
 /// \brief Minimum valid column value
@@ -597,7 +620,7 @@ init_cells_descending()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// \brief Gadgets for the `enc_opt::BINARY` and `enc_opt::(CRT__)UNARY`
+/// \brief Gadgets for the `encoding::BINARY` and `encoding::(CRT__)UNARY`
 ///        encodings.
 ///
 /// Simple(ish) encoding with the goal to minimise the number of variables alive
@@ -648,16 +671,16 @@ namespace enc_gadgets
 
   /// \brief Obtain the set of smallest "prime" numbers for gadget
   std::vector<int>
-  gadget_moduli(const enc_opt& opt)
+  gadget_moduli(const encoding& opt)
   {
     switch (opt) {
-    case enc_opt::BINARY: {
+    case encoding::BINARY: {
       return { 1 << log2(cells()) };
     }
-    case enc_opt::UNARY: {
+    case encoding::UNARY: {
       return { cells() };
     }
-    case enc_opt::CRT__UNARY: {
+    case encoding::CRT__UNARY: {
       // Find the smallest number of prime numbers whose least common multiple
       // is larger than half the number of cells.
       const std::vector<int> candidates[5] = { { 7 }, { 3, 5 }, { 3, 7 }, { 5, 7 }, { 3, 5, 7 } };
@@ -672,7 +695,7 @@ namespace enc_gadgets
       }
       throw std::out_of_range("No primes available for a chess board this big!");
     }
-    case enc_opt::TIME:
+    case encoding::TIME:
     default: {
       return {};
     }
@@ -682,14 +705,14 @@ namespace enc_gadgets
   /// \brief Number of bits to represent the (directed) in- or out-going edge to
   ///        a single node in the graph.
   inline int
-  bits_per_edge(const enc_opt& opt)
+  bits_per_edge(const encoding& opt)
   {
-    return opt == enc_opt::BINARY ? log2(cell::max_moves) : cell::max_moves;
+    return opt == encoding::BINARY ? log2(cell::max_moves) : cell::max_moves;
   }
 
   /// \brief Number of total bits used to identify the chosen edges.
   inline int
-  edge_vars(const enc_opt& opt)
+  edge_vars(const encoding& opt)
   {
     // For each cell, we have two set of bit-values: in-going and out-going.
     return cells() * 2 * bits_per_edge(opt);
@@ -697,7 +720,7 @@ namespace enc_gadgets
 
   /// \brief Obtain the dd variable for an in-going or out-going edge at cell `c`.
   inline int
-  edge_var(const cell& c, int bit, bool out_going, [[maybe_unused]] const enc_opt& opt)
+  edge_var(const cell& c, int bit, bool out_going, [[maybe_unused]] const encoding& opt)
   {
     assert(bit < bits_per_edge(opt));
     return (c.dd_var() * 2 * bits_per_edge(opt)) + (2 * bit + out_going);
@@ -705,35 +728,35 @@ namespace enc_gadgets
 
   /// \brief Decision diagram variable for a bit of the in-going edge to cell `c`.
   inline int
-  edge_in_var(const cell& c, int bit, const enc_opt& opt)
+  edge_in_var(const cell& c, int bit, const encoding& opt)
   {
     return edge_var(c, bit, false, opt);
   }
 
   /// \brief Decision diagram variable for a bit of the out-going edge to cell `c`.
   inline int
-  edge_out_var(const cell& c, int bit, const enc_opt& opt)
+  edge_out_var(const cell& c, int bit, const encoding& opt)
   {
     return edge_var(c, bit, true, opt);
   }
 
   /// \brief Obtain the number of bits per gadget given a certain prime.
   inline int
-  bits_per_gadget(const int p, const enc_opt& opt)
+  bits_per_gadget(const int p, const encoding& opt)
   {
-    return opt == enc_opt::BINARY ? log2(p) : p;
+    return opt == encoding::BINARY ? log2(p) : p;
   }
 
   /// \brief Obtain the largest number of bits per gadget over all primes.
   inline int
-  bits_per_gadget(const enc_opt& opt)
+  bits_per_gadget(const encoding& opt)
   {
     return bits_per_gadget(gadget_moduli(opt).back(), opt);
   }
 
   /// \brief Number of total bits used for the gadgets
   inline int
-  gadget_vars(const enc_opt& opt)
+  gadget_vars(const encoding& opt)
   {
     // For each cell, we have a single set of bits for the gadget.
     return cells() * bits_per_gadget(opt);
@@ -741,67 +764,67 @@ namespace enc_gadgets
 
   /// \brief Obtain the dd variable for a bit in a gadget for cell `c`.
   inline int
-  gadget_var(const cell& c, int bit, [[maybe_unused]] const enc_opt& opt)
+  gadget_var(const cell& c, int bit, [[maybe_unused]] const encoding& opt)
   {
     assert(bit < bits_per_gadget(opt));
     return edge_vars(opt) + c.dd_var(cells() * bit);
   }
 
   inline int
-  MIN_CELL_VAR(const enc_opt& /*opt*/)
+  MIN_CELL_VAR(const encoding& /*opt*/)
   {
     return 0;
   }
 
   inline int
-  MAX_CELL_VAR(const enc_opt& opt)
+  MAX_CELL_VAR(const encoding& opt)
   {
     return edge_vars(opt) - 1;
   }
 
   inline int
-  MIN_GADGET_VAR(const enc_opt& opt)
+  MIN_GADGET_VAR(const encoding& opt)
   {
     return edge_vars(opt);
   }
 
   inline int
-  MAX_GADGET_VAR(const enc_opt& opt)
+  MAX_GADGET_VAR(const encoding& opt)
   {
     return edge_vars(opt) + gadget_vars(opt) - 1;
   }
 
   /// \brief Minimum variable
   inline int
-  MIN_VAR(const enc_opt& opt)
+  MIN_VAR(const encoding& opt)
   {
     return MIN_CELL_VAR(opt);
   }
 
   /// \brief Maximum variable
   inline int
-  MAX_VAR(const enc_opt& opt)
+  MAX_VAR(const encoding& opt)
   {
     return MAX_GADGET_VAR(opt);
   }
 
   /// \brief Number of variables used for the encoding.
   inline int
-  vars(const enc_opt& opt)
+  vars(const encoding& opt)
   {
     return MAX_VAR(opt) + 1;
   }
 
   /// \brief Number of variables to use for final model count.
   inline int
-  satcount_vars(const enc_opt& opt)
+  satcount_vars(const encoding& opt)
   {
     return cells() * bits_per_edge(opt);
   }
 
   /// \brief Obtain the cell corresponding to the given DD variable.
   inline cell
-  cell_of_var(const int x, const enc_opt& opt)
+  cell_of_var(const int x, const encoding& opt)
   {
     assert(x < vars(opt));
 
@@ -812,14 +835,14 @@ namespace enc_gadgets
 
   /// \brief The bit-index of a variable for some cell c.
   inline int
-  bit_of_var(int x, const enc_opt& opt)
+  bit_of_var(int x, const encoding& opt)
   {
     return x < edge_vars(opt) ? x % (2 * bits_per_edge(opt)) : x / cells();
   }
 
   /// \brief Obtain the type of a given variable.
   inline var_t
-  type_of_var(int x, const enc_opt& opt)
+  type_of_var(int x, const encoding& opt)
   {
     return x < edge_vars(opt) ? static_cast<var_t>(bit_of_var(x, opt) % 2) : var_t::gadget_bit;
   }
@@ -828,16 +851,16 @@ namespace enc_gadgets
   ///
   /// As a side-effect the value of `x` is changed accordingly.
   inline bool
-  next_fixed_bit(int& x, const enc_opt& opt)
+  next_fixed_bit(int& x, const encoding& opt)
   {
     switch (opt) {
-    case enc_opt::BINARY: {
+    case encoding::BINARY: {
       const bool res = x % 2;
       x /= 2;
       return res;
     }
-    case enc_opt::UNARY:
-    case enc_opt::CRT__UNARY: {
+    case encoding::UNARY:
+    case encoding::CRT__UNARY: {
       const bool res = x == 0;
       x -= 1; // <-- this is intended to potentially become negative.
       return res;
@@ -891,7 +914,7 @@ namespace enc_gadgets
   /// The gadget is constructed such, that the edge-index is big-endian.
   template <typename Adapter>
   typename Adapter::dd_t
-  init_special(Adapter& adapter, const enc_opt& opt)
+  init_special(Adapter& adapter, const encoding& opt)
   {
     std::array<std::tuple<cell, var_t, int>, 4> fixed_bits{ {
       { cell::special_0(), var_t::in_bit, edge(cell::special_0(), cell::special_2()).idx() },
@@ -937,7 +960,7 @@ namespace enc_gadgets
   /// The gadget is constructed such, that the edge-index is big-endian.
   template <typename Adapter>
   typename Adapter::dd_t
-  one_hot_edges(Adapter& adapter, const enc_opt& opt)
+  one_hot_edges(Adapter& adapter, const encoding& opt)
   {
     // TODO: Support for variable orderings that do not have in/out bits
     //       interleaved and each cell being independent.
@@ -1000,7 +1023,7 @@ namespace enc_gadgets
   /// The gadget is constructed such, that the edge-index is big-endian.
   template <typename Adapter>
   typename Adapter::dd_t
-  unmatch_in_out(Adapter& adapter, const enc_opt& opt)
+  unmatch_in_out(Adapter& adapter, const encoding& opt)
   {
     // TODO: Support for variable orderings that do not have in/out bits
     //       interleaved and each cell being independent.
@@ -1059,7 +1082,7 @@ namespace enc_gadgets
   /// The gadget is constructed such, that the edge-index is big-endian.
   template <typename Adapter>
   typename Adapter::dd_t
-  remove_illegal(Adapter& adapter, const int edge_idx, const enc_opt& opt)
+  remove_illegal(Adapter& adapter, const int edge_idx, const encoding& opt)
   {
     // TODO: Support for variable orderings that do not have in/out bits
     //       interleaved and each cell being independent.
@@ -1145,7 +1168,7 @@ namespace enc_gadgets
   /// The gadget is constructed such, that the edge-index is big-endian.
   template <typename Adapter>
   typename Adapter::dd_t
-  match_u_v(Adapter& adapter, const edge& e, const enc_opt& opt)
+  match_u_v(Adapter& adapter, const edge& e, const encoding& opt)
   {
     const int max_bit = bits_per_edge(opt) - 1;
     assert(0 <= max_bit);
@@ -1267,9 +1290,9 @@ namespace enc_gadgets
   binary_gadget_levels(Adapter& adapter,
                        const edge& e,
                        [[maybe_unused]] const int p,
-                       const enc_opt& opt)
+                       const encoding& opt)
   {
-    assert(opt == enc_opt::BINARY);
+    assert(opt == encoding::BINARY);
     assert(is_power_of_two(p));
 
     // Variable for the current level.
@@ -1394,11 +1417,11 @@ namespace enc_gadgets
   /// \remark This is expected to primarily work well with ZDDs.
   template <typename Adapter>
   std::pair<typename Adapter::build_node_t, typename Adapter::build_node_t>
-  unary_gadget_levels(Adapter& adapter, const edge& e, const int p, const enc_opt& opt)
+  unary_gadget_levels(Adapter& adapter, const edge& e, const int p, const encoding& opt)
   {
     throw std::invalid_argument("Unary Encoding not yet supported.");
 
-    assert(opt == enc_opt::UNARY || opt == enc_opt::CRT__UNARY);
+    assert(opt == encoding::UNARY || opt == encoding::CRT__UNARY);
     assert(e.u() != e.v());
 
     // Variable for the current level.
@@ -1555,14 +1578,14 @@ namespace enc_gadgets
   /// The gadget is constructed such, that the counter is big-endian.
   template <typename Adapter>
   typename Adapter::dd_t
-  gadget(Adapter& adapter, const edge& e, const int p, const enc_opt& opt)
+  gadget(Adapter& adapter, const edge& e, const int p, const encoding& opt)
   {
-    assert(opt != enc_opt::TIME);
+    assert(opt != encoding::TIME);
     assert(e.u() != e.v());
 
     // -------------------------------------------------------------------------
     // Gadget bits: defer to helper functions for each encoding
-    auto [root_else, root_then] = opt == enc_opt::BINARY ? binary_gadget_levels(adapter, e, p, opt)
+    auto [root_else, root_then] = opt == encoding::BINARY ? binary_gadget_levels(adapter, e, p, opt)
                                                          : unary_gadget_levels(adapter, e, p, opt);
 
     // -------------------------------------------------------------------------
@@ -1620,7 +1643,7 @@ namespace enc_gadgets
   ///          iteration of the LFSR before creating the circuit.
   template <typename Adapter>
   typename Adapter::dd_t
-  gadget(Adapter& adapter, const cell& c, const int p, int v, const enc_opt& opt)
+  gadget(Adapter& adapter, const cell& c, const int p, int v, const encoding& opt)
   {
     assert(!c.out_of_range());
     assert(p < 1 << bits_per_gadget(p, opt));
@@ -1660,7 +1683,7 @@ namespace enc_gadgets
 
   /// \brief Predicate that is true for a given type of bits.
   auto
-  bit_pred(const var_t& t, const enc_opt& opt)
+  bit_pred(const var_t& t, const encoding& opt)
   {
     return [=](const int x) { return type_of_var(x, opt) == t; };
   }
@@ -1668,7 +1691,7 @@ namespace enc_gadgets
   /// \brief Predicate that is true for a given type of bits for cells on a
   /// specific row.
   auto
-  bit_pred(const int row, const var_t& t, const enc_opt& opt)
+  bit_pred(const int row, const var_t& t, const encoding& opt)
   {
     return
       [=](const int x) { return cell_of_var(x, opt).row() == row && type_of_var(x, opt) == t; };
@@ -1676,7 +1699,7 @@ namespace enc_gadgets
 
   /// \brief Predicate that is true for a cell's specific given type of bits.
   auto
-  bit_pred(const cell& c, const var_t& t, const enc_opt& opt)
+  bit_pred(const cell& c, const var_t& t, const encoding& opt)
   {
     return [=](const int x) { return cell_of_var(x, opt) == c && type_of_var(x, opt) == t; };
   }
@@ -1704,7 +1727,7 @@ namespace enc_gadgets
   /// used rather than the Binary Adder.
   template <typename Adapter>
   typename Adapter::dd_t
-  create(Adapter& adapter, const enc_opt& opt)
+  create(Adapter& adapter, const encoding& opt)
   {
     // -------------------------------------------------------------------------
     // Trivial cases
@@ -1733,7 +1756,7 @@ namespace enc_gadgets
 
     // -------------------------------------------------------------------------
     // Make one-hot for unary
-    if (opt == enc_opt::UNARY || opt == enc_opt::CRT__UNARY) {
+    if (opt == encoding::UNARY || opt == encoding::CRT__UNARY) {
       paths &= one_hot_edges(adapter, opt);
 
 #ifdef BDD_BENCHMARK_STATS
@@ -2045,7 +2068,7 @@ namespace enc_gadgets
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// \brief Algorithms for the `enc_opt::TIME` encoding
+/// \brief Algorithms for the `encoding::TIME` encoding
 ///
 /// A drastically different way to search for Hamiltonian Cycles. Here, a quartic
 /// (N^4) number of variables rather than a quadratic(ish) number. To this end,
@@ -2466,13 +2489,11 @@ template <typename Adapter>
 int
 run_hamiltonian(int argc, char** argv)
 {
-  enc_opt opt      = enc_opt::TIME; // Default strategy
-  bool should_exit = parse_input(argc, argv, opt);
-
-  if (input_sizes.size() == 0) { input_sizes.push_back(4); }
-  if (input_sizes.size() == 1) { input_sizes.push_back(input_sizes.at(0)); }
-
+  const bool should_exit = parse_input<parsing_policy>(argc, argv);
   if (should_exit) { return -1; }
+
+  if (N_rows < 0) { N_rows = 4; }
+  if (N_cols < 0) { N_cols = N_rows; }
 
   // ---------------------------------------------------------------------------
 
@@ -2485,14 +2506,14 @@ run_hamiltonian(int argc, char** argv)
   // Initialise package manager
   int vars = 0;
 
-  switch (opt) {
-  case enc_opt::BINARY:
-  case enc_opt::UNARY:
-  case enc_opt::CRT__UNARY: {
-    vars = enc_gadgets::vars(opt);
+  switch (enc) {
+  case encoding::BINARY:
+  case encoding::UNARY:
+  case encoding::CRT__UNARY: {
+    vars = enc_gadgets::vars(enc);
     break;
   }
-  case enc_opt::TIME: {
+  case encoding::TIME: {
     vars = enc_time::vars();
     break;
   }
@@ -2503,16 +2524,16 @@ run_hamiltonian(int argc, char** argv)
   // -----------------------------------------------------------------------------
   // Initialise cells (i.e. variable ordering)
   if (rows() < cols()) {
-    std::cerr << "  | Note:\n"
-              << "  |   The variable ordering is designed for 'cols <= rows'.\n"
-              << "  |   Maybe restart with the dimensions flipped?\n"
-              << "  |\n";
+    std::cerr << "Note:\n"
+              << "|   The variable ordering is designed for 'cols <= rows'.\n"
+              << "|   Maybe restart with the dimensions flipped?\n"
+              << "\n";
   }
 
   init_cells_descending();
 
   return run<Adapter>("hamiltonian", vars, [&](Adapter& adapter) {
-    std::cout << json::field("encoding") << json::value(option_str(opt)) << json::comma
+    std::cout << json::field("encoding") << json::value(to_string(enc)) << json::comma
               << json::endl;
     std::cout << json::field("rows") << json::value(rows()) << json::comma << json::endl;
     std::cout << json::field("cols") << json::value(cols()) << json::comma << json::endl;
@@ -2522,8 +2543,8 @@ run_hamiltonian(int argc, char** argv)
 
     // ---------------------------------------------------------------------------
     // Construct paths based on chosen encoding
-    std::cout << json::field(opt == enc_opt::TIME ? "apply" : "apply+exists") << json::brace_open
-              << json::endl;
+    std::cout << json::field(enc == encoding::TIME ? "apply" : "apply+exists")
+              << json::brace_open << json::endl;
 
 #ifdef BDD_BENCHMARK_STATS
     std::cout << json::field("intermediate results") << json::brace_open << json::endl;
@@ -2532,14 +2553,14 @@ run_hamiltonian(int argc, char** argv)
     typename Adapter::dd_t paths;
 
     const time_point before_paths = now();
-    switch (opt) {
-    case enc_opt::BINARY:
-    case enc_opt::UNARY:
-    case enc_opt::CRT__UNARY: {
-      paths = enc_gadgets::create(adapter, opt);
+    switch (enc) {
+    case encoding::BINARY:
+    case encoding::UNARY:
+    case encoding::CRT__UNARY: {
+      paths = enc_gadgets::create(adapter, enc);
       break;
     }
-    case enc_opt::TIME:
+    case encoding::TIME:
     default: {
       paths = enc_time::create(adapter);
       break;
@@ -2565,7 +2586,7 @@ run_hamiltonian(int argc, char** argv)
     std::cout << json::field("satcount") << json::brace_open << json::endl << json::flush;
 
     const size_t vc =
-      opt == enc_opt::TIME ? enc_time::satcount_vars() : enc_gadgets::satcount_vars(opt);
+      enc == encoding::TIME ? enc_time::satcount_vars() : enc_gadgets::satcount_vars(enc);
 
     const time_point before_satcount = now();
     solutions                        = adapter.satcount(paths, vc);

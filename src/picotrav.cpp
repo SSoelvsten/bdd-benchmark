@@ -13,13 +13,95 @@
 
 // Parser library for BLIF files
 #include <blifparse.hpp>
+#include <filesystem>
 
 #include "common/adapter.h"
 #include "common/chrono.h"
 #include "common/input.h"
 
 // ========================================================================== //
-// Parsing the input
+// Parsing input parameters
+std::string file_0 = "";
+std::string file_1 = "";
+
+enum variable_order
+  {
+    INPUT,
+    DF,
+    LEVEL,
+    LEVEL_DF,
+    RANDOM
+  };
+
+std::string
+to_string(const variable_order& o)
+{
+  switch (o) {
+  case INPUT:    return "input";
+  case DF:       return "depth-first";
+  case LEVEL:    return "level";
+  case LEVEL_DF: return "level-df";
+  case RANDOM:   return "random";
+  }
+  return "?";
+}
+
+variable_order var_order = variable_order::INPUT;
+
+class parsing_policy
+{
+public:
+  static constexpr std::string_view name = "Picotrav";
+  static constexpr std::string_view args = "f:o:";
+
+  static constexpr std::string_view help_text =
+    "        -f PATH              Path to '.blif' file(s)\n"
+    "        -o ORDER    [input]  Variable order to derive from first circuit";
+
+  static inline bool
+  parse_input(const int c, const char* arg)
+  {
+    switch (c) {
+    case 'f': {
+      if (!std::filesystem::exists(arg)) {
+        std::cerr << "File '" << arg << "' does not exist\n";
+        return true;
+      }
+
+      if (file_0 == "") {
+        file_0 = arg;
+      } else {
+        file_1 = arg;
+      }
+      return false;
+    }
+    case 'o': {
+      const std::string lower_arg = ascii_tolower(arg);
+
+      if (lower_arg == "input" || lower_arg == "i") {
+        var_order = variable_order::INPUT;
+      } else if (lower_arg == "depth-first" || lower_arg == "df") {
+        var_order = variable_order::DF;
+      } else if (lower_arg == "level" || lower_arg == "l") {
+        var_order = variable_order::LEVEL;
+      } else if (lower_arg == "level_depth-first" || lower_arg == "l_df") {
+        var_order = variable_order::LEVEL_DF;
+      } else if (lower_arg == "random" || lower_arg == "r") {
+        var_order = variable_order::RANDOM;
+      } else {
+        std::cerr << "Undefined ordering: " << arg << "\n";
+        return true;
+      }
+      return false;
+    }
+    default:
+      return true;
+    }
+  }
+};
+
+// ========================================================================== //
+// Parsing input .blif file
 enum logic_value
 {
   FALSE,
@@ -507,44 +589,12 @@ update_order(net_t& net, const std::unordered_map<int, int>& new_ordering)
   net.inputs_w_order = new_inputs_w_order;
 }
 
-enum variable_order
-{
-  INPUT,
-  DF,
-  LEVEL,
-  LEVEL_DF,
-  RANDOM
-};
-
-std::string
-to_string(const variable_order& o)
-{
-  switch (o) {
-  case INPUT: {
-    return "input";
-  }
-  case DF: {
-    return "depth-first";
-  }
-  case LEVEL: {
-    return "level";
-  }
-  case LEVEL_DF: {
-    return "level-df";
-  }
-  case RANDOM: {
-    return "random";
-  }
-  }
-  return "?";
-}
-
 void
-apply_variable_order(const variable_order& o, net_t& net_0, net_t& net_1)
+apply_variable_order(const variable_order& vo, net_t& net_0, net_t& net_1)
 {
   std::unordered_map<int, int> new_ordering;
 
-  switch (o) {
+  switch (vo) {
   case INPUT:
     // Keep as is
     return;
@@ -856,91 +906,59 @@ verify_outputs(const net_t& net_0,
 }
 
 // ========================================================================== //
-template <>
-std::string
-option_help_str<variable_order>()
-{
-  return "Desired Variable ordering";
-}
-
-template <>
-variable_order
-parse_option(const std::string& arg, bool& should_exit)
-{
-  const std::string lower_arg = ascii_tolower(arg);
-
-  if (lower_arg == "input") { return variable_order::INPUT; }
-
-  if (lower_arg == "df" || lower_arg == "depth-first") { return variable_order::DF; }
-
-  if (lower_arg == "level") { return variable_order::LEVEL; }
-
-  if (lower_arg == "level_df") { return variable_order::LEVEL_DF; }
-
-  if (lower_arg == "random") { return variable_order::RANDOM; }
-
-  std::cerr << "Undefined variable ordering: " << arg << "\n";
-  should_exit = true;
-
-  return variable_order::INPUT;
-}
-
 template <typename Adapter>
 int
 run_picotrav(int argc, char** argv)
 {
-  variable_order variable_order = variable_order::INPUT;
-  bool should_exit              = parse_input(argc, argv, variable_order);
-
-  if (input_files.size() == 0) {
-    std::cerr << "Input file(s) not specified\n";
-    should_exit = true;
-  }
-
+  const bool should_exit = parse_input<parsing_policy>(argc, argv);
   if (should_exit) { return -1; }
 
-  const bool verify_networks = input_files.size() > 1;
+  if (file_0 == "") {
+    std::cerr << "Input file(s) not specified\n";
+    return -1;
+  }
+  const bool verify_networks = file_1 != "";
 
   // =========================================================================
   // Read file(s) and construct Nets
   net_t net_0;
 
-  const bool parsing_error_0 = construct_net(input_files.at(0), net_0);
+  const bool parsing_error_0 = construct_net(file_0, net_0);
   if (parsing_error_0) {
-    std::cerr << "Parsing error for '" << input_files.at(0) << "'\n";
+    std::cerr << "Parsing error for '" << file_0 << "'\n";
     return -1;
   }
 
   const bool is_acyclic_0 = is_acyclic(net_0);
   if (!is_acyclic_0) {
-    std::cerr << "Input '" << input_files.at(0) << "' is not acyclic!\n";
+    std::cerr << "Input '" << file_0 << "' is not acyclic!\n";
     return -1;
   }
 
   net_t net_1;
   if (verify_networks) {
-    const bool parsing_error_1 = construct_net(input_files.at(1), net_1);
+    const bool parsing_error_1 = construct_net(file_1, net_1);
     if (parsing_error_1) {
-      std::cerr << "Parsing error for '" << input_files.at(1) << "'\n";
+      std::cerr << "Parsing error for '" << file_1 << "'\n";
       return -1;
     }
 
     const bool is_acyclic_1 = is_acyclic(net_1);
     if (!is_acyclic_1) {
-      std::cerr << "Input '" << input_files.at(1) << "' is not acyclic!\n";
+      std::cerr << "Input '" << file_1 << "' is not acyclic!\n";
       return -1;
     }
 
     const bool inputs_match = net_0.inputs_w_order.size() == net_1.inputs_w_order.size();
     if (!inputs_match) {
-      std::cerr << "Number of inputs in '" << input_files.at(0) << "' and '" << input_files.at(1)
+      std::cerr << "Number of inputs in '" << file_0 << "' and '" << file_1
                 << "' do not match!\n";
       return -1;
     }
 
     const bool outputs_match = net_0.outputs_in_order.size() == net_1.outputs_in_order.size();
     if (!outputs_match) {
-      std::cerr << "Number of outputs in '" << input_files.at(0) << "' and '" << input_files.at(1)
+      std::cerr << "Number of outputs in '" << file_0 << "' and '" << file_1
                 << "' do not match!\n";
       return -1;
     }
@@ -953,14 +971,14 @@ run_picotrav(int argc, char** argv)
   // So, well keep it simple by not doing so.
 
   // Derive variable order
-  apply_variable_order(variable_order, net_0, net_1);
+  apply_variable_order(var_order, net_0, net_1);
 
   // ========================================================================
   // Initialise BDD package manager
   const size_t varcount = net_0.inputs_w_order.size();
 
   return run<Adapter>("Picotrav", varcount, [&](Adapter& adapter) {
-    std::cout << json::field("variable order") << json::value(to_string(variable_order))
+    std::cout << json::field("variable order") << json::value(to_string(var_order))
               << json::comma << json::endl;
     std::cout << json::endl;
 
@@ -974,7 +992,7 @@ run_picotrav(int argc, char** argv)
 
     bool networks_equal = true;
 
-    const auto [errcode_0, time_0] = construct_net_bdd(input_files.at(0), net_0, cache_0, adapter);
+    const auto [errcode_0, time_0] = construct_net_bdd(file_0, net_0, cache_0, adapter);
 
     if (errcode_0) { return errcode_0; }
     total_time += time_0;
@@ -987,7 +1005,7 @@ run_picotrav(int argc, char** argv)
       bdd_cache<Adapter> cache_1;
 
       const auto [errcode_1, time_1] =
-        construct_net_bdd(input_files.at(1), net_1, cache_1, adapter);
+        construct_net_bdd(file_1, net_1, cache_1, adapter);
 
       if (errcode_1) { return errcode_1; }
       total_time += time_1;

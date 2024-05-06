@@ -18,7 +18,35 @@ size_t largest_bdd = 0;
 size_t total_nodes = 0;
 #endif // BDD_BENCHMARK_STATS
 
+// ========================================================================== //
 int N = 20;
+
+class parsing_policy
+{
+public:
+  static constexpr std::string_view name = "Tic-Tac-Toe";
+  static constexpr std::string_view args = "N:";
+
+  static constexpr std::string_view help_text =
+    "        -N n        [20]     Number of crosses in cube";
+
+  static inline bool
+  parse_input(const int c, const char* arg)
+  {
+    switch (c) {
+    case 'N': {
+      N = std::stoi(arg);
+      if (N <= 0) {
+        std::cerr << "  Number of crosses must be positive (-N)\n";
+        return true;
+      }
+      return false;
+    }
+    default:
+      return true;
+    }
+  }
+};
 
 // =============================================================================
 // Label index
@@ -259,11 +287,7 @@ template <typename Adapter>
 int
 run_tictactoe(int argc, char** argv)
 {
-  no_options option = no_options::NONE;
-  bool should_exit  = parse_input(argc, argv, option);
-
-  if (!input_sizes.empty()) { N = input_sizes.at(0); };
-
+  bool should_exit = parse_input<parsing_policy>(argc, argv);
   if (should_exit) { return -1; }
 
   // =========================================================================

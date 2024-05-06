@@ -17,6 +17,102 @@
 #include "common/chrono.h"
 #include "common/input.h"
 
+
+// ============================================================================================== //
+//                                             OPTIONS                                            //
+
+int N_rows = -1;
+int N_cols = -1;
+
+/// \brief Enum for choosing the encoding.
+enum symmetry
+{
+  /** No symmetry */
+  none,
+  /** Mirror (vertical) */
+  mirror_vertical,
+  /** Mirror (diagonal) */
+  mirror_diagonal,
+  /** Mirror (double-diagonal) */
+  mirror_double_diagonal,
+  /** Mirror (quadrants) */
+  mirror_quadrant,
+  /** Rotate (90 degrees) */
+  rotate_90,
+  /** Rotate (180 degrees) */
+  rotate_180,
+};
+
+/// \brief Human-Friendly print
+std::string
+to_string(const symmetry& s)
+{
+  switch (s) {
+  case symmetry::none: return "None";
+  case symmetry::mirror_vertical: return "Mirror (Vertical)";
+  case symmetry::mirror_quadrant: return "Mirror (Quadrant)";
+  case symmetry::mirror_diagonal: return "Mirror (Diagonal)";
+  case symmetry::mirror_double_diagonal: return "Mirror (Double Diagonal)";
+  case symmetry::rotate_90: return "Rotate 90°";
+  case symmetry::rotate_180: return "Rotate 180°";
+  default: return "Unknown";
+  }
+}
+
+symmetry sym = symmetry::none;
+
+class parsing_policy
+{
+public:
+  static constexpr std::string_view name = "Game of Life (Garden-of-Eden)";
+  static constexpr std::string_view args = "N:s:";
+
+  static constexpr std::string_view help_text =
+    "        -N n        [4]      Size of grid\n"
+    "        -s SYMM     [none]   Restriction to solutions with a symmetry";
+
+  static inline bool
+  parse_input(const int c, const char* arg)
+  {
+    switch (c) {
+    case 'N': {
+      const int N = std::stoi(arg);
+      if (N <= 0) {
+        std::cerr << "  Must specify positive grid size (-N)\n";
+        return true;
+      }
+      if (N_rows < 0) { N_rows = N; } else { N_cols = N; }
+      return false;
+    }
+    case 's': {
+      const std::string lower_arg = ascii_tolower(arg);
+
+      if (lower_arg == "none") {
+        sym = symmetry::none;
+      } else if (lower_arg == "mirror" || lower_arg == "mirror-vertical") {
+        sym = symmetry::mirror_vertical;
+      } else if (lower_arg == "mirror-quadrant" || lower_arg == "mirror-quad") {
+        sym = symmetry::mirror_quadrant;
+      } else if (lower_arg == "mirror-diagonal" || lower_arg == "mirror-diag") {
+        sym = symmetry::mirror_diagonal;
+      } else if (lower_arg == "mirror-double_diagonal" || lower_arg == "mirror-double_diag") {
+        sym = symmetry::mirror_double_diagonal;
+      } else if (lower_arg == "rotate" || lower_arg == "rotate-90") {
+        sym = symmetry::rotate_90;
+      } else if (lower_arg == "rotate-180") {
+        sym = symmetry::rotate_180;
+      } else {
+        std::cerr << "Undefined symmetry: " << arg << "\n";
+        return true;
+      }
+      return false;
+    }
+    default:
+      return true;
+    }
+  }
+};
+
 // ============================================================================================== //
 //                             PRIMING OF VARIABLES WITH TRANSITIONS                              //
 
@@ -35,7 +131,7 @@ enum prime : bool
 inline int
 rows(bool p = false)
 {
-  return input_sizes.at(0) + 2 * (!p);
+  return N_rows + 2 * (!p);
 }
 
 /// \param p Whether the variable is primed.
@@ -56,7 +152,7 @@ MAX_ROW(bool p = false)
 inline int
 cols(bool p = false)
 {
-  return input_sizes.at(1) + 2 * (!p);
+  return N_cols + 2 * (!p);
 }
 
 /// \param p Whether the variable is primed.
@@ -78,79 +174,6 @@ inline bool
 is_square()
 {
   return rows() == cols();
-}
-
-// ============================================================================================== //
-//                                             OPTION                                             //
-
-/// \brief Enum for choosing the encoding.
-enum symmetry
-{
-  /** No symmetry */
-  none,
-  /** Mirror (vertical) */
-  mirror_vertical,
-  /** Mirror (diagonal) */
-  mirror_diagonal,
-  /** Mirror (double-diagonal) */
-  mirror_double_diagonal,
-  /** Mirror (quadrants) */
-  mirror_quadrant,
-  /** Rotate (90 degrees) */
-  rotate_90,
-  /** Rotate (180 degrees) */
-  rotate_180,
-};
-
-/// \brief Specialization for '--help'
-template <>
-std::string
-option_help_str<symmetry>()
-{
-  return "Restriction to solutions with (some) symmetry";
-}
-
-/// \brief Specialization for parsing the option value
-template <>
-symmetry
-parse_option(const std::string& arg, bool& should_exit)
-{
-  const std::string lower_arg = ascii_tolower(arg);
-
-  if (lower_arg == "none") { return symmetry::none; }
-  if (lower_arg == "mirror" || lower_arg == "mirror-vertical") { return symmetry::mirror_vertical; }
-  if (lower_arg == "mirror-quadrant" || lower_arg == "mirror-quad") {
-    return symmetry::mirror_quadrant;
-  }
-  if (lower_arg == "mirror-diagonal" || lower_arg == "mirror-diag") {
-    return symmetry::mirror_diagonal;
-  }
-  if (lower_arg == "mirror-double_diagonal" || lower_arg == "mirror-double_diag") {
-    return symmetry::mirror_double_diagonal;
-  }
-  if (lower_arg == "rotate" || lower_arg == "rotate-90") { return symmetry::rotate_90; }
-  if (lower_arg == "rotate-180") { return symmetry::rotate_180; }
-
-  std::cerr << "Undefined option: " << arg << "\n";
-  should_exit = true;
-
-  return symmetry::none;
-}
-
-/// \brief Human-Friendly print
-std::string
-option_str(const symmetry& s)
-{
-  switch (s) {
-  case symmetry::none: return "None";
-  case symmetry::mirror_vertical: return "Mirror (Vertical)";
-  case symmetry::mirror_quadrant: return "Mirror (Quadrant)";
-  case symmetry::mirror_diagonal: return "Mirror (Diagonal)";
-  case symmetry::mirror_double_diagonal: return "Mirror (Double Diagonal)";
-  case symmetry::rotate_90: return "Rotate 90°";
-  case symmetry::rotate_180: return "Rotate 180°";
-  default: return "Unknown";
-  }
 }
 
 // ============================================================================================== //
@@ -1275,27 +1298,27 @@ template <typename Adapter>
 int
 run_gameoflife(int argc, char** argv)
 {
-  symmetry option  = symmetry::none;
-  bool should_exit = parse_input(argc, argv, option);
-
-  if (input_sizes.size() == 0) { input_sizes.push_back(4); }
-  if (input_sizes.size() == 1) { input_sizes.push_back(input_sizes.at(0)); }
+  const bool should_exit = parse_input<parsing_policy>(argc, argv);
 
   if (should_exit) { return -1; }
 
+  if (N_rows < 0) { N_rows = 4; }
+  if (N_cols < 0) { N_cols = N_rows; }
+
   if (rows() < cols()) {
-    std::cerr << "  | Note:\n"
-              << "  |   The variable ordering is designed for 'cols <= rows'.\n"
-              << "  |   Maybe restart with the dimensions flipped?\n"
-              << "  |\n";
+    std::cerr << "Note:\n"
+              << "|   The variable ordering is designed for 'cols <= rows'.\n"
+              << "|   Maybe restart with the dimensions flipped?\n"
+              << "\n";
   }
 
   // -----------------------------------------------------------------------------------------------
-  var_map vm(option);
+  var_map vm(sym);
 
   return run<Adapter>("game-of-life", vm.varcount(), [&](Adapter& adapter) {
-    std::cout << json::field("rows") << json::value(rows()) << json::comma << json::endl;
-    std::cout << json::field("cols") << json::value(cols()) << json::comma << json::endl;
+    std::cout << json::field("rows") << json::value(N_rows) << json::comma << json::endl;
+    std::cout << json::field("cols") << json::value(N_cols) << json::comma << json::endl;
+    std::cout << json::field("symmetry") << json::value(to_string(sym)) << json::comma << json::endl;
     std::cout << json::field("variables[prev]") << json::value(vm.varcount(prime::pre))
               << json::comma << json::endl;
     std::cout << json::field("variables[next]") << json::value(vm.varcount(prime::post))

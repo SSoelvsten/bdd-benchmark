@@ -16,10 +16,11 @@
 #include <vector>
 
 // Files
-#include <stdio.h>
+#include <filesystem>
 #include <fstream>
 #include <istream>
 #include <sstream>
+#include <stdio.h>
 
 // Types
 #include <cstdlib>
@@ -1436,6 +1437,18 @@ enum variable_order
   LEVEL
 };
 
+std::string
+to_string(const variable_order& vo)
+{
+  switch (vo) {
+  case variable_order::INPUT:  return "input";
+  case variable_order::DF_LTR: return "depth-first (ltr)";
+  case variable_order::DF_RTL: return "depth-first (rtl)";
+  case variable_order::LEVEL:  return "level";
+  }
+  return "?";
+}
+
 struct var_order_map
 {
 private:
@@ -1921,61 +1934,80 @@ solve(Adapter& adapter, qcir& q, const variable_order vo = variable_order::INPUT
 }
 
 // ========================================================================== //
-template <>
-std::string
-option_help_str<variable_order>()
+std::string file_path    = "";
+variable_order var_order = variable_order::INPUT;
+
+class parsing_policy
 {
-  return "Desired Variable ordering";
-}
+public:
+  static constexpr std::string_view name = "QBF";
+  static constexpr std::string_view args = "f:o:";
 
-template <>
-variable_order
-parse_option(const std::string& ARG, bool& should_exit)
-{
-  const std::string arg = ascii_tolower(ARG);
+  static constexpr std::string_view help_text =
+    "        -f PATH              Path to '.qcir' file\n"
+    "        -o ORDER    [input]  Variable Order to derive from circuit";
 
-  if (arg == "input" || arg == "matrix") { return variable_order::INPUT; }
+  static inline bool
+  parse_input(const int c, const char* arg)
+  {
+    switch (c) {
+    case 'f': {
+      if (!std::filesystem::exists(arg)) {
+        std::cerr << "File '" << arg << "' does not exist\n";
+        return true;
+      }
+      file_path = arg;
+      return false;
+    }
+    case 'o': {
+      const std::string lower_arg = ascii_tolower(arg);
 
-  if (arg == "df" || arg == "df_ltr" || arg == "depth-first" || arg == "depth-first_ltr") {
-    return variable_order::DF_LTR;
+      if (lower_arg == "input" || lower_arg == "i" || lower_arg == "matrix" || lower_arg == "m") {
+        var_order = variable_order::INPUT;
+      } else if (lower_arg == "df" || lower_arg == "df_ltr" || lower_arg == "ltr"
+                 || lower_arg == "depth-first" || lower_arg == "depth-first_ltr") {
+        var_order = variable_order::DF_LTR;
+      } else if (lower_arg == "df_rtl" || lower_arg == "depth-first_rtl" || lower_arg == "rtl") {
+        var_order = variable_order::DF_RTL;
+      } else if (lower_arg == "level" || lower_arg == "level-df" || lower_arg == "l") {
+        var_order = variable_order::LEVEL;
+      } else {
+        std::cerr << "Undefined ordering: " << arg << "\n";
+        return true;
+      }
+      return false;
+    }
+    default:
+      return true;
+    }
   }
-
-  if (arg == "df_rtl" || arg == "depth-first_rtl") { return variable_order::DF_RTL; }
-
-  if (arg == "level" || "level-df") { return variable_order::LEVEL; }
-
-  std::cerr << "Undefined variable/execution ordering: " << arg.c_str() << "\n";
-  should_exit = true;
-
-  return variable_order::INPUT;
-}
+};
 
 template <typename Adapter>
 int
 run_qbf(int argc, char** argv)
 {
-  variable_order variable_order = variable_order::INPUT;
-  bool should_exit              = parse_input(argc, argv, variable_order);
-
-  if (input_files.size() == 0) {
-    std::cerr << "Input file(s) not specified\n";
-    should_exit = true;
-  }
-
+  const bool should_exit = parse_input<parsing_policy>(argc, argv);
   if (should_exit) { return -1; }
+
+  if (file_path == "") {
+    std::cerr << "Input file(s) not specified\n";
+    return -1;
+  }
 
   // =========================================================================
   // Parse QCir Input
-  const std::string input_file = input_files.at(0);
-  qcir q(input_file);
+  qcir q(file_path);
 
   return run<Adapter>("qbf", q.vars(), [&](Adapter& adapter) {
-    std::cout << json::field("path") << json::value(input_file) << json::comma << json::endl;
+    std::cout << json::field("path") << json::value(file_path) << json::comma << json::endl;
     std::cout << json::field("depth") << json::value(q.depth()) << json::comma << json::endl;
     std::cout << json::field("size") << json::value(q.size()) << json::comma << json::endl;
+    std::cout << json::field("variable order") << json::value(to_string(var_order)) << json::comma
+              << json::endl;
     std::cout << json::endl;
 
-    const auto [sat_res, witness, stats] = solve(adapter, q, variable_order);
+    const auto [sat_res, witness, stats] = solve(adapter, q, var_order);
 
     std::cout << json::field("max_cache") << json::value(stats.cache.max_size) << json::comma
               << json::endl;
