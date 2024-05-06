@@ -134,11 +134,9 @@ parse_input(int& argc, char* argv[], option_enum& option)
 
   opterr = 0; // Squelch errors for non-common command-line arguments
 
-  while ((c = getopt(argc, argv, "N:M:P:f:o:t:h")) != -1) {
+  while ((c = getopt(argc, argv, "M:P:t:hN:f:o:")) != -1) {
     try {
       switch (c) {
-      case 'N': input_sizes.push_back(std::stoi(optarg)); continue;
-
       case 'M':
         M = std::stoi(optarg);
         if (M <= 0) {
@@ -155,21 +153,16 @@ parse_input(int& argc, char* argv[], option_enum& option)
         }
         continue;
 
-      case 'f': {
-        std::string file = optarg;
-        if (!file.empty()) { input_files.push_back(file); }
+      case 't': {
+        temp_path = optarg;
         continue;
       }
-
-      case 'o': option = parse_option<option_enum>(optarg, exit); continue;
-
-      case 't': temp_path = optarg; continue;
 
       case '?': // All parameters not defined above will be overwritten to be the '?' character
         std::cerr << "Undefined flag parameter used\n\n";
         [[fallthrough]]; // Let the compiler know, that we intend to fall through to 'h' case
 
-      case 'h':
+      case 'h': {
         std::cout
           << "Usage:  -flag      [default]  Description" << std::endl
           << std::endl
@@ -190,6 +183,23 @@ parse_input(int& argc, char* argv[], option_enum& option)
           << "        -N SIZE               Size(s) of a problem" << std::endl
           << "        -o OPTION             " << option_help_str<option_enum>() << std::endl;
         return true;
+      }
+
+      case 'N': {
+        input_sizes.push_back(std::stoi(optarg));
+        continue;
+      }
+
+      case 'f': {
+        std::string file = optarg;
+        if (!file.empty()) { input_files.push_back(file); }
+        continue;
+      }
+
+      case 'o': {
+        option = parse_option<option_enum>(optarg, exit);
+        continue;
+      }
       }
     } catch (const std::invalid_argument& ex) {
       std::cerr << "Invalid number: " << ex.what() << "\n";
