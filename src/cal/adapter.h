@@ -34,8 +34,9 @@ public:
     : _mgr(bdd_varcount)
     , _varcount(bdd_varcount)
   {
-    // Disable dynamic variable reordering
-    _mgr.DynamicReordering(Cal::ReorderTechnique::NONE);
+    _mgr.DynamicReordering(enable_reordering
+                           ? Cal::ReorderTechnique::SIFT
+                           : Cal::ReorderTechnique::NONE);
 
     _latest_build = bot();
   }

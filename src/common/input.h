@@ -17,6 +17,13 @@
 extern int M;
 
 ////////////////////////////////////////////////////////////////////////////////
+/// \brief Whether *dynamic variable reordering* should be enabled.
+///
+/// \details This value is provided with `-r`
+////////////////////////////////////////////////////////////////////////////////
+extern bool enable_reordering;
+
+////////////////////////////////////////////////////////////////////////////////
 /// \brief Worker thread count for multi-threaded BDD packages
 ///
 /// \details This value is provided with `-P`
@@ -134,25 +141,29 @@ parse_input(int& argc, char* argv[], option_enum& option)
 
   opterr = 0; // Squelch errors for non-common command-line arguments
 
-  while ((c = getopt(argc, argv, "M:P:t:hN:f:o:")) != -1) {
+  while ((c = getopt(argc, argv, "M:P:rt:hN:f:o:")) != -1) {
     try {
       switch (c) {
-      case 'M':
+      case 'M': {
         M = std::stoi(optarg);
         if (M <= 0) {
           std::cerr << "  Must specify positive amount of memory (-M)\n";
           exit = true;
         }
         continue;
-
-      case 'P':
+      }
+      case 'P': {
         threads = std::stoi(optarg);
         if (threads <= 0) {
           std::cerr << "  Must specify a positive thread count (-P)\n";
           exit = true;
         }
         continue;
-
+      }
+      case 'r': {
+        enable_reordering = true;
+        continue;
+      }
       case 't': {
         temp_path = optarg;
         continue;
@@ -173,6 +184,7 @@ parse_input(int& argc, char* argv[], option_enum& option)
           << "        -M MiB      [128]     Amount of memory (MiB) to be dedicated to the BDD "
              "package\n"
           << "        -P THREADS  [1]       Worker thread count for multithreaded BDD packages\n"
+          << "        -r                    Enable dynamic variable reordering\n"
           << "        -t TEMP_PTH [/tmp]    Filepath for temporary files on disk\n"
           << "\n"
           << "Benchmark options:\n"
@@ -187,13 +199,11 @@ parse_input(int& argc, char* argv[], option_enum& option)
         input_sizes.push_back(std::stoi(optarg));
         continue;
       }
-
       case 'f': {
         std::string file = optarg;
         if (!file.empty()) { input_files.push_back(file); }
         continue;
       }
-
       case 'o': {
         option = parse_option<option_enum>(optarg, exit);
         continue;
