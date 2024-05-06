@@ -29,7 +29,14 @@ message(STATUS "  |  CXX Flags:         ${CMAKE_CXX_FLAGS}")
 message(STATUS "  |  EXE Linker Flags:  ${CMAKE_EXE_LINKER_FLAGS}")
 
 message(STATUS "  Options:")
-option(BDD_BENCHMARK_STATS "Build with printing of verbose statistics (ruins time measurements)." OFF)
+
+option(BDD_BENCHMARK_GRENDEL "Build for Grendel cluster" OFF)
+message(STATUS "  |  Grendel:           ${BDD_BENCHMARK_GRENDEL}")
+
+option(BDD_BENCHMARK_INCL_INIT "Include initialisation time in total" OFF)
+message(STATUS "  |  Incl. Init:        ${BDD_BENCHMARK_INCL_INIT}")
+
+option(BDD_BENCHMARK_STATS "Build with printing of verbose statistics (ruins time measurements)" OFF)
 message(STATUS "  |  Statistics:        ${BDD_BENCHMARK_STATS}")
 if (BDD_BENCHMARK_STATS)
   message(WARN " | NOTE: THIS MAKES ANY REPORTED TIME MEASUREMENTS NOT REPRESENTATIVE!")
@@ -38,8 +45,6 @@ endif(BDD_BENCHMARK_STATS)
 option(BDD_BENCHMARK_WAIT "Wait to exit program until enter has been pressed." OFF)
 message(STATUS "  |  Waiting:           ${BDD_BENCHMARK_WAIT}")
 
-option(BDD_BENCHMARK_GRENDEL "Build for Grendel cluster" OFF)
-message(STATUS "  |  Grendel:           ${BDD_BENCHMARK_GRENDEL}")
 message(STATUS "")
 
 # ============================================================================ #
@@ -99,4 +104,3 @@ add_subdirectory (src)
 # Formatting
 # ============================================================================ #
 include(cmake/clang-cxx-dev-tools.cmake)
-

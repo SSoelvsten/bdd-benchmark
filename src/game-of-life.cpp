@@ -1380,7 +1380,7 @@ run_gameoflife(int argc, char** argv)
     // ---------------------------------------------------------------------------------------------
     const time_duration total_time = goe__total_time + flip_time + counting_time;
 
-    std::cout << json::field("total time (ms)") << json::value(total_time) << json::endl;
+    std::cout << json::field("total time (ms)") << json::value(init_time + total_time) << json::endl;
 
     // For all solvable sizes, the number of solutions should be 0.
     return solutions != 0;

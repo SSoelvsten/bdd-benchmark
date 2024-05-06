@@ -7,6 +7,7 @@ set(COMMON_HEADERS
 )
 
 set(COMMON_SOURCES
+  chrono.cpp
   input.cpp
   json.cpp
 )

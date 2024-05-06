@@ -308,14 +308,14 @@ run_tictactoe(int argc, char** argv)
     time_point t2              = now();
 
     const size_t initial_bdd      = adapter.nodecount(res);
-    const time_duration init_time = duration_ms(t1, t2);
+    const time_duration initial_time = duration_ms(t1, t2);
 
 #ifdef BDD_BENCHMARK_STATS
     total_nodes += initial_bdd;
 #endif // BDD_BENCHMARK_STATS
     std::cout << json::field("size (nodes)") << json::value(initial_bdd) << json::comma
               << json::endl;
-    std::cout << json::field("time (ms)") << json::value(init_time) << json::endl;
+    std::cout << json::field("time (ms)") << json::value(initial_time) << json::endl;
     std::cout << json::brace_close << json::endl << json::flush;
 
     // =========================================================================
@@ -381,7 +381,7 @@ run_tictactoe(int argc, char** argv)
 
     // =========================================================================
     std::cout << json::field("total time (ms)")
-              << json::value(init_time + constraints_time + counting_time);
+              << json::value(init_time + initial_time + constraints_time + counting_time);
     std::cout << json::endl << json::flush;
 
     if (N < size(expected) && solutions != expected[N]) { return -1; }

@@ -609,7 +609,7 @@ run_apply(int argc, char** argv)
 
     // =========================================================================
 
-    std::cout << json::field("total time (ms)") << json::value(total_time) << json::endl;
+    std::cout << json::field("total time (ms)") << json::value(init_time + total_time) << json::endl;
 
     return 0;
   });

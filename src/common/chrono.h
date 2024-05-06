@@ -20,4 +20,6 @@ duration_ms(const time_point& begin, const time_point& end)
   return std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
 }
 
+extern time_duration init_time;
+
 #endif // BDD_BENCHMARK_COMMON_CHRONO_H
