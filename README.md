@@ -302,18 +302,18 @@ Section](#benchmarks) for details.
 
 ### Apply
 
-Based on [[Pastva2023](#references)], this benchmark loads two decision diagrams
-stored in a *binary* format (as they are serialized by the
+Based on [[Pastva2023](#references)], this benchmark loads two (or more) decision
+diagrams stored in a *binary* format (as they are serialized by the
 [LibBDD](https://github.com/sybila/biodivine-lib-bdd)) and then combines them
-with a single *Apply* operation.
+with an *Apply* operation (or more).
 
 The benchmark can be configured with the following options:
 
 - **`-f <path>`**
 
-  Path to a *.bdd* / *.zdd* file. Use this twice for the two inputs. You can
-  find some inputs in the *benchmarks/apply* folder together with links to
-  larger and more interesting inputs.
+  Path to a *.bdd* / *.zdd* file. Use this once for each input. You can find
+  some inputs in the *benchmarks/apply* folder together with links to larger
+  and more interesting inputs.
 
 - **`-o <and|or>`**
 

@@ -32,7 +32,7 @@
 //                              INPUT PARSING                                 //
 ////////////////////////////////////////////////////////////////////////////////
 
-std::vector<std::string> input_files;
+std::vector<std::string> inputs_path;
 
 enum operand
 {
@@ -71,7 +71,7 @@ public:
         std::cerr << "File '" << arg << "' does not exist\n";
         return true;
       }
-      input_files.push_back(arg);
+      inputs_path.push_back(arg);
       return false;
     }
     case 'o': {
@@ -388,13 +388,14 @@ using var_map = std::unordered_map<lib_bdd::node::var_type, int>;
 
 /// \brief Derive a compacted remapping of the variable ordering.
 var_map
-remap_vars(const lib_bdd::bdd& f, const lib_bdd::bdd& g)
+remap_vars(const std::vector<lib_bdd::bdd>& fs)
 {
   // Minimum Priority Queue
   std::priority_queue<int, std::vector<int>, std::greater<>> pq;
 
-  for (const auto& n : f) { pq.push(n.level()); }
-  for (const auto& n : g) { pq.push(n.level()); }
+  for (const lib_bdd::bdd& f : fs) {
+    for (const auto& n : f) { pq.push(n.level()); }
+  }
 
   std::unordered_map<lib_bdd::node::var_type, int> out;
   int var = 0;
@@ -411,12 +412,6 @@ remap_vars(const lib_bdd::bdd& f, const lib_bdd::bdd& g)
   }
 
   return out;
-}
-
-var_map
-remap_vars(const std::array<lib_bdd::bdd, 2>& fs)
-{
-  return remap_vars(fs.at(0), fs.at(1));
 }
 
 /// \brief Reconstruct DD from 'lib-bdd' inside of BDD package.
@@ -486,19 +481,18 @@ run_apply(int argc, char** argv)
   bool should_exit = parse_input<parsing_policy>(argc, argv);
   if (should_exit) { return -1; }
 
-  constexpr size_t inputs = 2u;
-
-  if (input_files.size() < inputs) {
-    std::cerr << "Incorrect number of files given (2 required)\n";
+  if (inputs_path.size() < 2) {
+    std::cerr << "Not enough files provided for binary operation (2+ required)\n";
     return -1;
   }
 
   // =========================================================================
   // Load 'lib-bdd' files
-  std::array<lib_bdd::bdd, inputs> inputs_binary;
+  std::vector<lib_bdd::bdd> inputs_binary;
+  inputs_binary.reserve(inputs_path.size());
 
-  for (size_t i = 0; i < inputs; ++i) {
-    inputs_binary.at(i) = lib_bdd::deserialize(input_files.at(i));
+  for (const std::string &path : inputs_path) {
+    inputs_binary.push_back(lib_bdd::deserialize(path));
   }
 
   var_map vm = remap_vars(inputs_binary);
@@ -508,11 +502,13 @@ run_apply(int argc, char** argv)
   return run<Adapter>("apply", vm.size(), [&](Adapter& adapter) {
     std::cout << json::field("inputs") << json::array_open << json::endl;
 
-    for (size_t i = 0; i < inputs; ++i) {
+    for (size_t i = 0; i < inputs_path.size(); ++i) {
+      assert(inputs_binary.size() == i);
+
       std::cout << json::indent << json::brace_open << json::endl;
       const lib_bdd::stats_t stats = lib_bdd::stats(inputs_binary.at(i));
 
-      std::cout << json::field("path") << json::value(input_files.at(i)) << json::comma
+      std::cout << json::field("path") << json::value(inputs_path.at(i)) << json::comma
                 << json::endl;
 
       std::cout << json::field("size") << json::value(stats.size) << json::comma << json::endl;
@@ -541,29 +537,32 @@ run_apply(int argc, char** argv)
       std::cout << json::brace_close << json::endl;
 
       std::cout << json::brace_close;
-      if (!i) { std::cout << json::comma; }
+      if (i < inputs_path.size() - 1) { std::cout << json::comma; }
       std::cout << json::endl;
     }
     std::cout << json::array_close << json::comma << json::endl << json::endl;
 
     // =========================================================================
     // Reconstruct DDs
-    std::array<typename Adapter::dd_t, inputs> inputs_dd;
+    std::vector<typename Adapter::dd_t> inputs_dd;
+    inputs_dd.reserve(inputs_binary.size());
 
     size_t total_time = 0;
 
     std::cout << json::field("rebuild") << json::array_open << json::endl << json::flush;
 
-    for (size_t i = 0; i < inputs; ++i) {
+    for (size_t i = 0; i < inputs_binary.size(); ++i) {
+      assert(inputs_dd.size() == i);
+
       const time_point t_rebuild_before = now();
-      inputs_dd.at(i)                   = reconstruct(adapter, inputs_binary.at(i), vm);
+      inputs_dd.push_back(reconstruct(adapter, inputs_binary.at(i), vm));
       const time_point t_rebuild_after  = now();
 
       const size_t load_time = duration_ms(t_rebuild_before, t_rebuild_after);
       total_time += load_time;
 
       std::cout << json::indent << json::brace_open << json::endl;
-      std::cout << json::field("path") << json::value(input_files.at(i)) << json::comma
+      std::cout << json::field("path") << json::value(inputs_path.at(i)) << json::comma
                 << json::endl;
       std::cout << json::field("size (nodes)") << json::value(adapter.nodecount(inputs_dd.at(i)))
                 << json::comma << json::endl;
@@ -573,7 +572,7 @@ run_apply(int argc, char** argv)
                 << json::value(duration_ms(t_rebuild_before, t_rebuild_after)) << json::endl;
 
       std::cout << json::brace_close;
-      if (!i) { std::cout << json::comma; }
+      if (i < inputs_binary.size() - 1) { std::cout << json::comma; }
       std::cout << json::endl;
     }
 
@@ -581,14 +580,16 @@ run_apply(int argc, char** argv)
 
     // =========================================================================
     // Apply both DDs together
-    typename Adapter::dd_t result;
+    typename Adapter::dd_t result = inputs_dd.at(0);
 
     std::cout << json::field("apply") << json::brace_open << json::endl << json::flush;
 
     const time_point t_apply_before = now();
-    switch (oper) {
-    case operand::AND: result = inputs_dd.at(0) & inputs_dd.at(1); break;
-    case operand::OR: result = inputs_dd.at(0) | inputs_dd.at(1); break;
+    for (size_t i = 0; i < inputs_dd.size(); ++i) {
+      switch (oper) {
+      case operand::AND: result &= inputs_dd.at(i); break;
+      case operand::OR:  result |= inputs_dd.at(i); break;
+      }
     }
     const time_point t_apply_after = now();
 
@@ -596,6 +597,8 @@ run_apply(int argc, char** argv)
     total_time += apply_time;
 
     std::cout << json::field("operand") << json::value(to_string(oper)) << json::comma
+              << json::endl;
+    std::cout << json::field("operations") << json::value(inputs_dd.size() - 1) << json::comma
               << json::endl;
     std::cout << json::field("size (nodes)") << adapter.nodecount(result) << json::comma
               << json::endl;
