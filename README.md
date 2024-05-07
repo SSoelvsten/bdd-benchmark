@@ -241,6 +241,11 @@ Here are the values that might be relevant.
 
 Features of the benchmarks and BDD packages can also be turned on and off as follows
 
+- **`-D BDD_BENCHMARK_INCL_INIT=<OFF|ON>`** (default: *OFF*)
+
+  If `ON`, includes the initialization time of the BDD Package in the total running
+  time.
+
 - **`-D BDD_BENCHMARK_STATS=<OFF|ON>`** (default: *OFF*)
 
   If `ON`, build with statistics. This might affect performance.
