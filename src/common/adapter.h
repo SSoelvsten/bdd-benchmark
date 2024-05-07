@@ -63,8 +63,7 @@ run(const std::string& benchmark_name, const int varcount, const F& f)
 #else
     << json::value(false)
 #endif
-    << json::comma
-    << json::endl
+    << json::comma << json::endl
     << json::endl
     // BDD package substruct
     << json::field("bdd package") << json::brace_open

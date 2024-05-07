@@ -85,6 +85,8 @@ public:
   static constexpr std::string_view dd   = "BCDD";
 
   static constexpr bool needs_extend     = false;
+  static constexpr bool needs_frame_rule = true;
+
   static constexpr bool complement_edges = true;
 
 public:
@@ -94,36 +96,20 @@ public:
 private:
   BDD _latest_build;
 
+  BDD _vars_relnext;
+  std::vector<int> _permute_relnext;
+
+  BDD _vars_relprev;
+  std::vector<int> _permute_relprev;
+
   // Init and Deinit
 public:
   cudd_bcdd_adapter(int varcount)
     : cudd_adapter(varcount, 0)
   { // Disable dynamic ordering
-    if (!enable_reordering) {
-      _mgr.AutodynDisable();
-    }
+    if (!enable_reordering) { _mgr.AutodynDisable(); }
 
     _latest_build = bot();
-  }
-
-private:
-  template <typename IT>
-  inline BDD
-  make_cube(IT rbegin, IT rend)
-  {
-    BDD res = top();
-    while (rbegin != rend) { res = _mgr.bddVar(*(rbegin++)).Ite(res, bot()); }
-    return res;
-  }
-
-  inline BDD
-  make_cube(const std::function<bool(int)>& pred)
-  {
-    BDD res = top();
-    for (int i = _varcount - 1; 0 <= i; --i) {
-      if (pred(i)) { res = _mgr.bddVar(i).Ite(res, bot()); }
-    }
-    return res;
   }
 
   // BDD Operations
@@ -150,6 +136,25 @@ public:
   nithvar(int i)
   {
     return ~_mgr.bddVar(i);
+  }
+
+  template <typename IT>
+  inline BDD
+  cube(IT rbegin, IT rend)
+  {
+    BDD res = top();
+    while (rbegin != rend) { res = _mgr.bddVar(*(rbegin++)).Ite(res, bot()); }
+    return res;
+  }
+
+  inline BDD
+  cube(const std::function<bool(int)>& pred)
+  {
+    BDD res = top();
+    for (int i = _varcount - 1; 0 <= i; --i) {
+      if (pred(i)) { res = _mgr.bddVar(i).Ite(res, bot()); }
+    }
+    return res;
   }
 
   inline BDD
@@ -210,14 +215,14 @@ public:
   inline BDD
   exists(const BDD& f, const std::function<bool(int)>& pred)
   {
-    return f.ExistAbstract(make_cube(pred));
+    return f.ExistAbstract(cube(pred));
   }
 
   template <typename IT>
   inline BDD
   exists(const BDD& f, IT rbegin, IT rend)
   {
-    return f.ExistAbstract(make_cube(rbegin, rend));
+    return f.ExistAbstract(cube(rbegin, rend));
   }
 
   inline BDD
@@ -229,14 +234,40 @@ public:
   inline BDD
   forall(const BDD& f, const std::function<bool(int)>& pred)
   {
-    return f.UnivAbstract(make_cube(pred));
+    return f.UnivAbstract(cube(pred));
   }
 
   template <typename IT>
   inline BDD
   forall(const BDD& f, IT rbegin, IT rend)
   {
-    return f.UnivAbstract(make_cube(rbegin, rend));
+    return f.UnivAbstract(cube(rbegin, rend));
+  }
+
+  inline BDD
+  relnext(const BDD& states, const BDD& rel, const BDD& /*rel_support*/)
+  {
+    if (_permute_relnext.empty()) {
+      _vars_relnext = cube([](int x) { return x % 2 == 0; });
+
+      _permute_relnext.reserve(_varcount);
+      for (int x = 0; x < _varcount; ++x) { _permute_relnext.push_back(x & ~1); }
+    }
+
+    return states.AndAbstract(rel, _vars_relnext).Permute(_permute_relnext.data());
+  }
+
+  inline BDD
+  relprev(const BDD& states, const BDD& rel, const BDD& /*rel_support*/)
+  {
+    if (_permute_relprev.empty()) {
+      _vars_relprev = cube([](int x) { return x % 2 == 1; });
+
+      _permute_relprev.reserve(_varcount);
+      for (int x = 0; x < _varcount; ++x) { _permute_relprev.push_back(x | 1); }
+    }
+
+    return states.Permute(_permute_relprev.data()).AndAbstract(rel, _vars_relprev);
   }
 
   inline uint64_t
@@ -255,6 +286,22 @@ public:
   satcount(const BDD& f, const size_t vc)
   {
     return f.CountMinterm(vc);
+  }
+
+  inline BDD
+  satone(const BDD& f)
+  {
+    return satone(f, f);
+  }
+
+  inline BDD
+  satone(const BDD& f, const BDD& c)
+  {
+    std::vector<unsigned int> support_int = c.SupportIndices();
+    std::vector<BDD> support_bdd;
+    support_bdd.reserve(support_int.size());
+    for (const auto x : support_int) { support_bdd.push_back(this->ithvar(x)); }
+    return f.PickOneMinterm(support_bdd);
   }
 
   inline std::vector<std::pair<int, char>>
@@ -313,6 +360,8 @@ public:
   static constexpr std::string_view dd   = "zdd";
 
   static constexpr bool needs_extend     = true;
+  static constexpr bool needs_frame_rule = true;
+
   static constexpr bool complement_edges = false;
 
 public:
@@ -330,9 +379,7 @@ public:
   cudd_zdd_adapter(int varcount)
     : cudd_adapter(0, varcount)
   { // Disable dynamic ordering
-    if (!enable_reordering) {
-      _mgr.AutodynDisableZdd();
-    }
+    if (!enable_reordering) { _mgr.AutodynDisableZdd(); }
 
     _leaf0        = _mgr.zddZero();
     _leaf1        = _mgr.zddOne(std::numeric_limits<int>::max());

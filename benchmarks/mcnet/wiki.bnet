@@ -1,0 +1,7 @@
+# Recreation of the example on Wikipedia
+# https://en.wikipedia.org/wiki/Boolean_network#/media/File:Hou710_BooleanNetwork.svg
+
+v1,  v3
+v2,  v2
+v3,  v4
+v4,  v3

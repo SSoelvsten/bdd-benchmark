@@ -59,6 +59,8 @@ public:
   static constexpr std::string_view dd   = "BDD";
 
   static constexpr bool needs_extend     = false;
+  static constexpr bool needs_frame_rule = true;
+
   static constexpr bool complement_edges = false;
 
 public:
@@ -100,6 +102,27 @@ public:
   nithvar(int i)
   {
     return adiar::bdd_nithvar(i);
+  }
+
+  template <typename IT>
+  inline adiar::bdd
+  cube(IT rbegin, IT rend)
+  {
+    return adiar::bdd_cube(rbegin, rend);
+  }
+
+  inline adiar::bdd
+  cube(const std::function<bool(int)>& pred)
+  {
+    const auto terminal_bot = this->build_node(false);
+    const auto terminal_top = this->build_node(true);
+
+    build_node_t root = terminal_top;
+    for (int i = _varcount - 1; 0 <= i; --i) {
+      if (pred(i)) { root = this->build_node(i, terminal_bot, root); }
+    }
+
+    return this->build();
   }
 
   inline adiar::bdd
@@ -189,10 +212,49 @@ public:
     return adiar::bdd_forall(f, rbegin, rend);
   }
 
+  inline adiar::bdd
+  relnext(const adiar::bdd& states, const adiar::bdd& rel, const adiar::bdd& /*rel_support*/)
+  {
+    return adiar::bdd_relnext(
+      states,
+      rel,
+      [](const int x) -> adiar::optional<int> {
+        return (x % 2) == 0 ? adiar::make_optional<int>() : adiar::make_optional<int>(x - 1);
+      },
+      adiar::replace_type::Monotone);
+  }
+
+  inline adiar::bdd
+  relprev(const adiar::bdd& states, const adiar::bdd& rel, const adiar::bdd& /*rel_support*/)
+  {
+    return adiar::bdd_relprev(
+      states,
+      rel,
+      [](const int x) -> adiar::optional<int> {
+        return (x % 2) == 1 ? adiar::make_optional<int>() : adiar::make_optional<int>(x + 1);
+      },
+      adiar::replace_type::Monotone);
+  }
+
   inline uint64_t
   nodecount(const adiar::bdd& f)
   {
-    return adiar::bdd_nodecount(f);
+    const uint64_t c = adiar::bdd_nodecount(f);
+    // Adiar does not count terminal nodes. So, we'll compensate to make it consistent with the
+    // numbers from other BDD packages.
+    return c == 0 ? 1 : c + 2;
+  }
+
+  inline adiar::bdd
+  satone(const adiar::bdd& f)
+  {
+    return adiar::bdd_satmin(f);
+  }
+
+  inline adiar::bdd
+  satone(const adiar::bdd& f, const adiar::bdd& c)
+  {
+    return adiar::bdd_satmin(f, c);
   }
 
   inline uint64_t

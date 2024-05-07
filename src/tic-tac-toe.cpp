@@ -42,8 +42,7 @@ public:
       }
       return false;
     }
-    default:
-      return true;
+    default: return true;
     }
   }
 };
@@ -307,7 +306,7 @@ run_tictactoe(int argc, char** argv)
     typename Adapter::dd_t res = construct_init(adapter);
     time_point t2              = now();
 
-    const size_t initial_bdd      = adapter.nodecount(res);
+    const size_t initial_bdd         = adapter.nodecount(res);
     const time_duration initial_time = duration_ms(t1, t2);
 
 #ifdef BDD_BENCHMARK_STATS
@@ -359,8 +358,8 @@ run_tictactoe(int argc, char** argv)
     std::cout << json::field("largest size (nodes)") << json::value(largest_bdd) << json::comma
               << json::endl;
 #endif // BDD_BENCHMARK_STATS
-    std::cout << json::field("final sizse (nodes)") << json::value(adapter.nodecount(res)) << json::comma
-              << json::endl;
+    std::cout << json::field("final sizse (nodes)") << json::value(adapter.nodecount(res))
+              << json::comma << json::endl;
     std::cout << json::field("time (ms)") << json::value(constraints_time) << json::endl;
     std::cout << json::brace_close << json::endl;
 

@@ -33,6 +33,23 @@ compute_init_size(unsigned cache_arity)
   return { std::min(x, ((size_t)1 << 32) - 2), y };
 }
 
+namespace oxidd
+{
+  // TODO: Move into OxiDD (https://github.com/OxiDD/oxidd/issues/15)
+  bdd_function
+  operator-(const bdd_function& f, const bdd_function& g)
+  {
+    return g.imp_strict(f);
+  }
+
+  bdd_function&
+  operator-=(bdd_function& f, const bdd_function& g)
+  {
+    f = f - g;
+    return f;
+  }
+}
+
 class oxidd_bdd_adapter
 {
 public:
@@ -40,6 +57,8 @@ public:
   static constexpr std::string_view dd   = "BDD";
 
   static constexpr bool needs_extend     = false;
+  static constexpr bool needs_frame_rule = true;
+
   static constexpr bool complement_edges = false;
 
   using dd_t         = oxidd::bdd_function;
@@ -50,24 +69,11 @@ private:
   std::vector<oxidd::bdd_function> _vars;
   oxidd::bdd_function _latest_build;
 
-  template <typename IT>
-  inline oxidd::bdd_function
-  make_cube(IT rbegin, IT rend)
-  {
-    oxidd::bdd_function cube = top();
-    while (rbegin != rend) { cube &= _vars[*(rbegin++)]; }
-    return cube;
-  }
+  oxidd::bdd_substitution _relnext_pairs;
+  oxidd::bdd_function _relnext_vars;
 
-  inline oxidd::bdd_function
-  make_cube(const std::function<bool(int)>& pred)
-  {
-    oxidd::bdd_function cube = top();
-    for (size_t i = 0; i < _vars.size(); ++i) {
-      if (pred(i)) cube &= _vars[i];
-    }
-    return cube;
-  }
+  oxidd::bdd_substitution _relprev_pairs;
+  oxidd::bdd_function _relprev_vars;
 
   // Init and Deinit
 public:
@@ -76,6 +82,9 @@ public:
   {
     _vars.reserve(varcount);
     for (uint32_t i = 0; i < varcount; i++) { _vars.emplace_back(_manager.new_var()); }
+
+    _relnext_vars = bot();
+    _relprev_vars = bot();
   }
 
   template <typename F>
@@ -109,6 +118,25 @@ public:
   nithvar(uint32_t label)
   {
     return ~_vars[label];
+  }
+
+  template <typename IT>
+  inline oxidd::bdd_function
+  cube(IT rbegin, IT rend)
+  {
+    oxidd::bdd_function cube = top();
+    while (rbegin != rend) { cube &= _vars[*(rbegin++)]; }
+    return cube;
+  }
+
+  inline oxidd::bdd_function
+  cube(const std::function<bool(int)>& pred)
+  {
+    oxidd::bdd_function cube = top();
+    for (size_t i = 0; i < _vars.size(); ++i) {
+      if (pred(i)) cube &= _vars[i];
+    }
+    return cube;
   }
 
   inline oxidd::bdd_function
@@ -169,14 +197,14 @@ public:
   inline oxidd::bdd_function
   exists(const oxidd::bdd_function& b, const std::function<bool(int)>& pred)
   {
-    return b.exist(make_cube(pred));
+    return b.exist(cube(pred));
   }
 
   template <typename IT>
   inline oxidd::bdd_function
   exists(const oxidd::bdd_function& b, IT rbegin, IT rend)
   {
-    return b.exist(make_cube(rbegin, rend));
+    return b.exist(cube(rbegin, rend));
   }
 
   inline oxidd::bdd_function
@@ -188,7 +216,7 @@ public:
   inline oxidd::bdd_function
   forall(const oxidd::bdd_function& b, const std::function<bool(int)>& pred)
   {
-    return b.forall(make_cube(pred));
+    return b.forall(cube(pred));
   }
 
   template <typename IT>
@@ -196,6 +224,44 @@ public:
   forall(const oxidd::bdd_function& b, IT rbegin, IT rend)
   {
     return b.forall(rbegin, rend);
+  }
+
+  inline oxidd::bdd_function
+  relnext(const oxidd::bdd_function& states,
+          const oxidd::bdd_function& rel,
+          const oxidd::bdd_function& /*rel_support*/)
+  {
+    if (_relnext_vars == bot()) {
+      _relnext_vars = cube([](int x) { return x % 2 == 0; });
+
+      std::vector<std::pair<oxidd::bdd_function, oxidd::bdd_function>> pairs;
+      pairs.reserve((_vars.size() / 2) + 1);
+      for (int i = _vars.size() - 2; 0 <= i; i -= 2) {
+        pairs.push_back({ _vars[i + 1], _vars[i] });
+      }
+      _relnext_pairs = oxidd::bdd_substitution(pairs.begin(), pairs.end());
+    }
+
+    return (states & rel).exist(_relnext_vars).substitute(_relnext_pairs);
+  }
+
+  inline oxidd::bdd_function
+  relprev(const oxidd::bdd_function& states,
+          const oxidd::bdd_function& rel,
+          const oxidd::bdd_function& /*rel_support*/)
+  {
+    if (_relprev_vars == bot()) {
+      _relprev_vars = cube([](int x) { return x % 2 == 1; });
+
+      std::vector<std::pair<oxidd::bdd_function, oxidd::bdd_function>> pairs;
+      pairs.reserve((_vars.size() / 2) + 1);
+      for (int i = _vars.size() - 2; 0 <= i; i -= 2) {
+        pairs.push_back({ _vars[i], _vars[i + 1] });
+      }
+      _relprev_pairs = oxidd::bdd_substitution(pairs.begin(), pairs.end());
+    }
+
+    return (states.substitute(_relprev_pairs) & rel).exist(_relprev_vars);
   }
 
   inline uint64_t
@@ -215,6 +281,37 @@ public:
   {
     assert(vc <= _vars.size());
     return f.sat_count_double(vc);
+  }
+
+  inline oxidd::bdd_function
+  satone(const oxidd::bdd_function& f)
+  {
+    oxidd::util::assignment sat = f.pick_cube();
+
+    oxidd::bdd_function res = top();
+    for (int x = sat.size() - 1; 0 <= x; --x) {
+      const oxidd::util::opt_bool val = sat[x];
+      if (val == oxidd::util::opt_bool::NONE) continue;
+
+      res &= val == oxidd::util::opt_bool::TRUE ? _vars[x] : ~_vars[x];
+    }
+    return res;
+  }
+
+  inline oxidd::bdd_function
+  satone(const oxidd::bdd_function& f, const oxidd::bdd_function& c)
+  {
+    oxidd::util::assignment f_sat = f.pick_cube();
+    oxidd::util::assignment c_sat = f.pick_cube();
+    assert(f_sat.size() == c_sat.size());
+
+    oxidd::bdd_function res = top();
+    for (int x = c_sat.size() - 1; 0 <= x; --x) {
+      if (c_sat[x] == oxidd::util::opt_bool::NONE) continue;
+
+      res &= f_sat[x] == oxidd::util::opt_bool::TRUE ? _vars[x] : ~_vars[x];
+    }
+    return res;
   }
 
   inline std::vector<std::pair<uint32_t, char>>
@@ -281,6 +378,23 @@ public:
   }
 };
 
+namespace oxidd
+{ // TODO: Move into OxiDD (https://github.com/OxiDD/oxidd/issues/15)
+
+  bcdd_function
+  operator-(const bcdd_function& f, const bcdd_function& g)
+  {
+    return g.imp_strict(f);
+  }
+
+  bcdd_function&
+  operator-=(bcdd_function& f, const bcdd_function& g)
+  {
+    f = f - g;
+    return f;
+  }
+}
+
 class oxidd_bcdd_adapter
 {
 public:
@@ -288,6 +402,8 @@ public:
   static constexpr std::string_view dd   = "BCDD";
 
   static constexpr bool needs_extend     = false;
+  static constexpr bool needs_frame_rule = true;
+
   static constexpr bool complement_edges = true;
 
   using dd_t         = oxidd::bcdd_function;
@@ -298,24 +414,11 @@ private:
   std::vector<oxidd::bcdd_function> _vars;
   oxidd::bcdd_function _latest_build;
 
-  template <typename IT>
-  inline oxidd::bcdd_function
-  make_cube(IT rbegin, IT rend)
-  {
-    oxidd::bcdd_function res = top();
-    while (rbegin != rend) { res &= _vars[*(rbegin++)]; }
-    return res;
-  }
+  oxidd::bcdd_substitution _relnext_pairs;
+  oxidd::bcdd_function _relnext_vars;
 
-  inline oxidd::bcdd_function
-  make_cube(const std::function<bool(int)>& pred)
-  {
-    oxidd::bcdd_function cube = top();
-    for (size_t i = 0; i < _vars.size(); ++i) {
-      if (pred(i)) cube &= _vars[i];
-    }
-    return cube;
-  }
+  oxidd::bcdd_substitution _relprev_pairs;
+  oxidd::bcdd_function _relprev_vars;
 
   // Init and Deinit
 public:
@@ -324,6 +427,9 @@ public:
   {
     _vars.reserve(varcount);
     for (uint32_t i = 0; i < varcount; i++) { _vars.emplace_back(_manager.new_var()); }
+
+    _relnext_vars = bot();
+    _relprev_vars = bot();
   }
 
   template <typename F>
@@ -357,6 +463,25 @@ public:
   nithvar(uint32_t label)
   {
     return ~_vars[label];
+  }
+
+  template <typename IT>
+  inline oxidd::bcdd_function
+  cube(IT rbegin, IT rend)
+  {
+    oxidd::bcdd_function res = top();
+    while (rbegin != rend) { res &= _vars[*(rbegin++)]; }
+    return res;
+  }
+
+  inline oxidd::bcdd_function
+  cube(const std::function<bool(int)>& pred)
+  {
+    oxidd::bcdd_function cube = top();
+    for (size_t i = 0; i < _vars.size(); ++i) {
+      if (pred(i)) cube &= _vars[i];
+    }
+    return cube;
   }
 
   inline oxidd::bcdd_function
@@ -417,14 +542,14 @@ public:
   inline oxidd::bcdd_function
   exists(const oxidd::bcdd_function& b, const std::function<bool(int)>& pred)
   {
-    return b.exist(make_cube(pred));
+    return b.exist(cube(pred));
   }
 
   template <typename IT>
   inline oxidd::bcdd_function
   exists(const oxidd::bcdd_function& b, IT rbegin, IT rend)
   {
-    return b.exist(make_cube(rbegin, rend));
+    return b.exist(cube(rbegin, rend));
   }
 
   inline oxidd::bcdd_function
@@ -436,7 +561,7 @@ public:
   inline oxidd::bcdd_function
   forall(const oxidd::bcdd_function& b, const std::function<bool(int)>& pred)
   {
-    return b.forall(make_cube(pred));
+    return b.forall(cube(pred));
   }
 
   template <typename IT>
@@ -444,6 +569,44 @@ public:
   forall(const oxidd::bcdd_function& b, IT rbegin, IT rend)
   {
     return b.forall(rbegin, rend);
+  }
+
+  inline oxidd::bcdd_function
+  relnext(const oxidd::bcdd_function& states,
+          const oxidd::bcdd_function& rel,
+          const oxidd::bcdd_function& /*rel_support*/)
+  {
+    if (_relnext_vars == bot()) {
+      _relnext_vars = cube([](int x) { return x % 2 == 0; });
+
+      std::vector<std::pair<oxidd::bcdd_function, oxidd::bcdd_function>> pairs;
+      pairs.reserve((_vars.size() / 2) + 1);
+      for (int i = _vars.size() - 2; 0 <= i; i -= 2) {
+        pairs.push_back({ _vars[i + 1], _vars[i] });
+      }
+      _relnext_pairs = oxidd::bcdd_substitution(pairs.begin(), pairs.end());
+    }
+
+    return (states & rel).exist(_relnext_vars).substitute(_relnext_pairs);
+  }
+
+  inline oxidd::bcdd_function
+  relprev(const oxidd::bcdd_function& states,
+          const oxidd::bcdd_function& rel,
+          const oxidd::bcdd_function& /*rel_support*/)
+  {
+    if (_relprev_vars == bot()) {
+      _relprev_vars = cube([](int x) { return x % 2 == 1; });
+
+      std::vector<std::pair<oxidd::bcdd_function, oxidd::bcdd_function>> pairs;
+      pairs.reserve((_vars.size() / 2) + 1);
+      for (int i = _vars.size() - 2; 0 <= i; i -= 2) {
+        pairs.push_back({ _vars[i], _vars[i + 1] });
+      }
+      _relprev_pairs = oxidd::bcdd_substitution(pairs.begin(), pairs.end());
+    }
+
+    return (states.substitute(_relprev_pairs) & rel).exist(_relprev_vars);
   }
 
   inline uint64_t
@@ -463,6 +626,37 @@ public:
   {
     assert(vc <= _vars.size());
     return f.sat_count_double(vc);
+  }
+
+  inline oxidd::bcdd_function
+  satone(const oxidd::bcdd_function& f)
+  {
+    oxidd::util::assignment sat = f.pick_cube();
+
+    oxidd::bcdd_function res = top();
+    for (int x = sat.size() - 1; 0 <= x; --x) {
+      const oxidd::util::opt_bool val = sat[x];
+      if (val == oxidd::util::opt_bool::NONE) continue;
+
+      res &= val == oxidd::util::opt_bool::TRUE ? _vars[x] : ~_vars[x];
+    }
+    return res;
+  }
+
+  inline oxidd::bcdd_function
+  satone(const oxidd::bcdd_function& f, const oxidd::bcdd_function& c)
+  {
+    oxidd::util::assignment f_sat = f.pick_cube();
+    oxidd::util::assignment c_sat = f.pick_cube();
+    assert(f_sat.size() == c_sat.size());
+
+    oxidd::bcdd_function res = top();
+    for (int x = c_sat.size() - 1; 0 <= x; --x) {
+      if (c_sat[x] == oxidd::util::opt_bool::NONE) continue;
+
+      res &= f_sat[x] == oxidd::util::opt_bool::TRUE ? _vars[x] : ~_vars[x];
+    }
+    return res;
   }
 
   inline std::vector<std::pair<uint32_t, char>>
@@ -538,6 +732,8 @@ public:
   static constexpr std::string_view dd   = "ZDD";
 
   static constexpr bool needs_extend     = true;
+  static constexpr bool needs_frame_rule = true;
+
   static constexpr bool complement_edges = false;
 
 public:

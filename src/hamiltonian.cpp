@@ -63,9 +63,8 @@ public:
   static constexpr std::string_view name = "Hamiltonian";
   static constexpr std::string_view args = "N:e:";
 
-  static constexpr std::string_view help_text =
-    "        -N n        [4]      Size of grid\n"
-    "        -e ENC      [time]   Problem encoding";
+  static constexpr std::string_view help_text = "        -N n        [4]      Size of grid\n"
+                                                "        -e ENC      [time]   Problem encoding";
 
   static inline bool
   parse_input(const int c, const char* arg)
@@ -77,7 +76,11 @@ public:
         std::cerr << "  Must specify positive board size (-N)\n";
         return true;
       }
-      if (N_rows < 0) { N_rows = N; } else { N_cols = N; }
+      if (N_rows < 0) {
+        N_rows = N;
+      } else {
+        N_cols = N;
+      }
       return false;
     }
     case 'e': {
@@ -97,12 +100,10 @@ public:
       }
       return false;
     }
-    default:
-      return true;
+    default: return true;
     }
   }
 };
-
 
 ////////////////////////////////////////////////////////////////////////////////
 //                           Common board logic                               //
@@ -1586,7 +1587,7 @@ namespace enc_gadgets
     // -------------------------------------------------------------------------
     // Gadget bits: defer to helper functions for each encoding
     auto [root_else, root_then] = opt == encoding::BINARY ? binary_gadget_levels(adapter, e, p, opt)
-                                                         : unary_gadget_levels(adapter, e, p, opt);
+                                                          : unary_gadget_levels(adapter, e, p, opt);
 
     // -------------------------------------------------------------------------
     // Edge bits: check out-bits for `e.u()` has the index.
@@ -1828,8 +1829,8 @@ namespace enc_gadgets
             largest_bdd            = std::max(largest_bdd, nodecount);
             total_nodes += nodecount;
 
-            std::cout << json::field("apply(" + e.to_string() + ")")
-                      << json::value(nodecount) << json::comma << json::endl;
+            std::cout << json::field("apply(" + e.to_string() + ")") << json::value(nodecount)
+                      << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
           }
         }
@@ -1920,7 +1921,8 @@ namespace enc_gadgets
         largest_bdd            = std::max(largest_bdd, nodecount);
         total_nodes += nodecount;
 
-        std::cout << json::field(std::string("extend(1x") + (cell::active_rows > 1 ? ",2x" : "") + ")")
+        std::cout << json::field(std::string("extend(1x") + (cell::active_rows > 1 ? ",2x" : "")
+                                 + ")")
                   << json::value(nodecount) << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
       }
@@ -1944,8 +1946,8 @@ namespace enc_gadgets
             largest_bdd            = std::max(largest_bdd, nodecount);
             total_nodes += nodecount;
 
-            std::cout << json::field("extend(" + new_cell.to_string() + ")") << json::value(nodecount)
-                      << json::comma << json::endl;
+            std::cout << json::field("extend(" + new_cell.to_string() + ")")
+                      << json::value(nodecount) << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
           }
         }
@@ -1971,8 +1973,8 @@ namespace enc_gadgets
               largest_bdd            = std::max(largest_bdd, nodecount);
               total_nodes += nodecount;
 
-              std::cout << json::field("extend(" + new_cell.to_string() + ")") << json::value(nodecount)
-                        << json::comma << json::endl;
+              std::cout << json::field("extend(" + new_cell.to_string() + ")")
+                        << json::value(nodecount) << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
             }
           }
@@ -2004,8 +2006,8 @@ namespace enc_gadgets
               largest_bdd            = std::max(largest_bdd, nodecount);
               total_nodes += nodecount;
 
-              std::cout << json::field("gadget(" + e.to_string() + ")")
-                        << json::value(nodecount) << json::comma << json::endl;
+              std::cout << json::field("gadget(" + e.to_string() + ")") << json::value(nodecount)
+                        << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
             }
 
@@ -2020,8 +2022,8 @@ namespace enc_gadgets
               largest_bdd            = std::max(largest_bdd, nodecount);
               total_nodes += nodecount;
 
-              std::cout << json::field("exists(" + q_cell.to_string() + ")") << json::value(nodecount)
-                        << json::comma << json::endl;
+              std::cout << json::field("exists(" + q_cell.to_string() + ")")
+                        << json::value(nodecount) << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
             }
           }
@@ -2543,8 +2545,8 @@ run_hamiltonian(int argc, char** argv)
 
     // ---------------------------------------------------------------------------
     // Construct paths based on chosen encoding
-    std::cout << json::field(enc == encoding::TIME ? "apply" : "apply+exists")
-              << json::brace_open << json::endl;
+    std::cout << json::field(enc == encoding::TIME ? "apply" : "apply+exists") << json::brace_open
+              << json::endl;
 
 #ifdef BDD_BENCHMARK_STATS
     std::cout << json::field("intermediate results") << json::brace_open << json::endl;
@@ -2576,8 +2578,8 @@ run_hamiltonian(int argc, char** argv)
     std::cout << json::field("largest size (nodes)") << json::value(largest_bdd) << json::comma
               << json::endl;
 #endif // BDD_BENCHMARK_STATS
-    std::cout << json::field("final size (nodes)") << json::value(adapter.nodecount(paths)) << json::comma
-              << json::endl;
+    std::cout << json::field("final size (nodes)") << json::value(adapter.nodecount(paths))
+              << json::comma << json::endl;
     std::cout << json::field("time (ms)") << json::value(paths_time) << json::endl;
     std::cout << json::brace_close << json::comma << json::endl << json::flush;
 
@@ -2613,8 +2615,8 @@ run_hamiltonian(int argc, char** argv)
     */
 
     // -------------------------------------------------------------------------
-    std::cout << json::field("total time (ms)") << json::value(init_time + paths_time + satcount_time)
-              << json::endl
+    std::cout << json::field("total time (ms)")
+              << json::value(init_time + paths_time + satcount_time) << json::endl
               << json::flush;
 
     if (rows() == cols() && rows() < size(expected_grid) && expected_grid[rows()] != UNKNOWN

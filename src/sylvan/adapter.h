@@ -76,6 +76,8 @@ public:
   static constexpr std::string_view dd   = "BCDD";
 
   static constexpr bool needs_extend     = false;
+  static constexpr bool needs_frame_rule = false;
+
   static constexpr bool complement_edges = true;
 
 public:
@@ -119,26 +121,6 @@ public:
     return RUN(lace_lambda, &f);
   }
 
-private:
-  template <typename IT>
-  inline sylvan::Bdd
-  make_cube(IT rbegin, IT rend)
-  {
-    sylvan::Bdd res = top();
-    while (rbegin != rend) { res = sylvan::Bdd::bddVar(*(rbegin++)).Ite(res, bot()); }
-    return res;
-  }
-
-  inline sylvan::Bdd
-  make_cube(const std::function<bool(int)>& pred)
-  {
-    sylvan::Bdd res = top();
-    for (int i = _varcount - 1; 0 <= i; --i) {
-      if (pred(i)) { res = sylvan::Bdd::bddVar(i).Ite(res, bot()); }
-    }
-    return res;
-  }
-
   // BDD Operations
 public:
   inline sylvan::Bdd
@@ -165,6 +147,37 @@ public:
     return ~sylvan::Bdd::bddVar(i);
   }
 
+  template <typename IT>
+  inline sylvan::Bdd
+  cube(IT rbegin, IT rend)
+  {
+    sylvan::Bdd res = top();
+    while (rbegin != rend) { res = sylvan::Bdd::bddVar(*(rbegin++)).Ite(res, bot()); }
+    return res;
+  }
+
+  inline sylvan::Bdd
+  cube(const std::function<bool(int)>& pred)
+  {
+    sylvan::Bdd res = top();
+    for (int i = _varcount - 1; 0 <= i; --i) {
+      if (pred(i)) { res = sylvan::Bdd::bddVar(i).Ite(res, bot()); }
+    }
+    return res;
+  }
+
+  inline sylvan::Bdd
+  apply_and(const sylvan::Bdd& f, const sylvan::Bdd& g)
+  {
+    return f & g;
+  }
+
+  inline sylvan::Bdd
+  apply_or(const sylvan::Bdd& f, const sylvan::Bdd& g)
+  {
+    return f | g;
+  }
+
   inline sylvan::Bdd
   apply_diff(const sylvan::Bdd& f, const sylvan::Bdd& g)
   {
@@ -175,6 +188,12 @@ public:
   apply_imp(const sylvan::Bdd& f, const sylvan::Bdd& g)
   {
     return f.Ite(g, sylvan::Bdd::bddOne());
+  }
+
+  inline sylvan::Bdd
+  apply_xor(const sylvan::Bdd& f, const sylvan::Bdd& g)
+  {
+    return f ^ g;
   }
 
   inline sylvan::Bdd
@@ -205,14 +224,14 @@ public:
   inline sylvan::Bdd
   exists(const sylvan::Bdd& f, const std::function<bool(int)>& pred)
   {
-    return f.ExistAbstract(make_cube(pred));
+    return f.ExistAbstract(cube(pred));
   }
 
   template <typename IT>
   inline sylvan::Bdd
   exists(const sylvan::Bdd& f, IT rbegin, IT rend)
   {
-    return f.ExistAbstract(make_cube(rbegin, rend));
+    return f.ExistAbstract(cube(rbegin, rend));
   }
 
   inline sylvan::Bdd
@@ -224,14 +243,26 @@ public:
   inline sylvan::Bdd
   forall(const sylvan::Bdd& f, const std::function<bool(int)>& pred)
   {
-    return f.UnivAbstract(make_cube(pred));
+    return f.UnivAbstract(cube(pred));
   }
 
   template <typename IT>
   inline sylvan::Bdd
   forall(const sylvan::Bdd& f, IT rbegin, IT rend)
   {
-    return f.UnivAbstract(make_cube(rbegin, rend));
+    return f.UnivAbstract(cube(rbegin, rend));
+  }
+
+  inline sylvan::Bdd
+  relnext(const sylvan::Bdd& states, const sylvan::Bdd& rel, const sylvan::Bdd& rel_support)
+  {
+    return states.RelNext(rel, rel_support);
+  }
+
+  inline sylvan::Bdd
+  relprev(const sylvan::Bdd& states, const sylvan::Bdd& rel, const sylvan::Bdd& rel_support)
+  {
+    return states.RelPrev(rel, rel_support);
   }
 
   inline uint64_t
@@ -250,6 +281,18 @@ public:
   satcount(const sylvan::Bdd& f, const size_t vc)
   {
     return f.SatCount(vc);
+  }
+
+  inline sylvan::Bdd
+  satone(const sylvan::Bdd& f)
+  {
+    return f.PickOneCube();
+  }
+
+  inline sylvan::Bdd
+  satone(const sylvan::Bdd& f, const sylvan::Bdd& c)
+  {
+    return sylvan::Bdd(sylvan::sylvan_sat_single(f.GetBDD(), c.GetBDD()));
   }
 
   inline std::vector<std::pair<int, char>>

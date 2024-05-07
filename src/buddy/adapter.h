@@ -99,6 +99,8 @@ public:
   static constexpr std::string_view dd   = "BDD";
 
   static constexpr bool needs_extend     = false;
+  static constexpr bool needs_frame_rule = true;
+
   static constexpr bool complement_edges = false;
 
 public:
@@ -107,7 +109,13 @@ public:
 
 private:
   const int _varcount;
-  dd_t _latest_build;
+  bdd _latest_build;
+
+  bdd _vars_relnext;
+  bddPair* _pairs_relnext = nullptr;
+
+  bdd _vars_relprev;
+  bddPair* _pairs_relprev = nullptr;
 
   // Init and Deinit
 public:
@@ -139,15 +147,18 @@ public:
     bdd_gbc_hook(NULL);
 
     // Disable dynamic variable reordering
-    if (!enable_reordering) {
-      bdd_disable_reorder();
-    }
+    if (!enable_reordering) { bdd_disable_reorder(); }
 
-    _latest_build = bot();
+    this->_latest_build = bot();
+    this->_vars_relnext = bot();
+    this->_vars_relprev = bot();
   }
 
   ~buddy_bdd_adapter()
   {
+    bdd_freepair(this->_pairs_relnext);
+    bdd_freepair(this->_pairs_relprev);
+
     bdd_done();
   }
 
@@ -157,26 +168,6 @@ public:
   run(const F& f)
   {
     return f();
-  }
-
-private:
-  template <typename IT>
-  inline bdd
-  make_cube(IT rbegin, IT rend)
-  {
-    bdd res = top();
-    while (rbegin != rend) { res = bdd_ite(bdd_ithvar(*(rbegin++)), res, bot()); }
-    return res;
-  }
-
-  inline bdd
-  make_cube(const std::function<bool(int)>& pred)
-  {
-    bdd res = top();
-    for (int i = _varcount - 1; 0 <= i; --i) {
-      if (pred(i)) { res = bdd_ite(bdd_ithvar(i), res, bot()); }
-    }
-    return res;
   }
 
   // BDD Operations
@@ -205,6 +196,25 @@ public:
     return bdd_nithvar(i);
   }
 
+  template <typename IT>
+  inline bdd
+  cube(IT rbegin, IT rend)
+  {
+    bdd res = top();
+    while (rbegin != rend) { res = ite(ithvar(*(rbegin++)), res, bot()); }
+    return res;
+  }
+
+  inline bdd
+  cube(const std::function<bool(int)>& pred)
+  {
+    bdd res = top();
+    for (int i = _varcount - 1; 0 <= i; --i) {
+      if (pred(i)) { res = ite(ithvar(i), res, bot()); }
+    }
+    return res;
+  }
+
   inline bdd
   apply_and(const bdd& f, const bdd& g)
   {
@@ -224,9 +234,21 @@ public:
   }
 
   inline bdd
+  apply_or(const bdd& f, const bdd& g)
+  {
+    return bdd_or(f, g);
+  }
+
+  inline bdd
   apply_xnor(const bdd& f, const bdd& g)
   {
     return bdd_biimp(f, g);
+  }
+
+  inline bdd
+  apply_xor(const bdd& f, const bdd& g)
+  {
+    return bdd_xor(f, g);
   }
 
   inline bdd
@@ -251,14 +273,14 @@ public:
   inline bdd
   exists(const bdd& f, const std::function<bool(int)>& pred)
   {
-    return bdd_exist(f, make_cube(pred));
+    return bdd_exist(f, cube(pred));
   }
 
   template <typename IT>
   inline bdd
   exists(const bdd& f, IT rbegin, IT rend)
   {
-    return bdd_exist(f, make_cube(rbegin, rend));
+    return bdd_exist(f, cube(rbegin, rend));
   }
 
   inline bdd
@@ -270,23 +292,52 @@ public:
   inline bdd
   forall(const bdd& f, const std::function<bool(int)>& pred)
   {
-    return bdd_forall(f, make_cube(pred));
+    return bdd_forall(f, cube(pred));
   }
 
   template <typename IT>
   inline bdd
   forall(const bdd& f, IT rbegin, IT rend)
   {
-    return bdd_forall(f, make_cube(rbegin, rend));
+    return bdd_forall(f, cube(rbegin, rend));
+  }
+
+  inline bdd
+  relnext(const bdd& states, const bdd& rel, const bdd& /*rel_support*/)
+  {
+    if (!_pairs_relnext) {
+      assert(_vars_relnext == bot());
+
+      _vars_relnext = cube([](int x) { return x % 2 == 0; });
+
+      _pairs_relnext = bdd_newpair();
+      for (int i = _varcount - 2; 0 <= i; i -= 2) { bdd_setpair(_pairs_relnext, i + 1, i); }
+    }
+
+    return bdd_replace(bdd_appex(states, rel, bddop_and, _vars_relnext), _pairs_relnext);
+  }
+
+  inline bdd
+  relprev(const bdd& states, const bdd& rel, const bdd& /*rel_support*/)
+  {
+    if (!_pairs_relprev) {
+      assert(_vars_relprev == bot());
+
+      _vars_relprev = cube([](int x) { return x % 2 == 1; });
+
+      _pairs_relprev = bdd_newpair();
+      for (int i = _varcount - 2; 0 <= i; i -= 2) { bdd_setpair(_pairs_relprev, i, i + 1); }
+    }
+
+    return bdd_appex(bdd_replace(states, _pairs_relprev), rel, bddop_and, _vars_relprev);
   }
 
   inline uint64_t
   nodecount(const bdd& f)
   {
-    uint64_t c = bdd_nodecount(f);
-    // BuDDy does not count terminal nodes. If a BDD has no inner nodes, then it
-    // consists of a single terminal node. Otherwise, both terminals are
-    // referenced.
+    const uint64_t c = bdd_nodecount(f);
+    // BuDDy does not count terminal nodes. If a BDD has no inner nodes, then it consists of a
+    // single terminal node. Otherwise, both terminals are referenced.
     return c == 0 ? 1 : c + 2;
   }
 
@@ -302,15 +353,26 @@ public:
     assert(vc <= this->_varcount);
 
     const double excess_variables = static_cast<double>(this->_varcount) - static_cast<double>(vc);
-
     return bdd_satcount(f) / std::pow(2, excess_variables);
+  }
+
+  inline bdd
+  satone(const bdd& f)
+  {
+    return bdd_satone(f);
+  }
+
+  inline bdd
+  satone(const bdd& f, const bdd& c)
+  {
+    return bdd_satoneset(f, c, bot());
   }
 
   inline std::vector<std::pair<int, char>>
   pickcube(const bdd& f)
   {
     std::vector<std::pair<int, char>> res;
-    bdd sat = bdd_satone(f);
+    bdd sat = satone(f);
 
     while (sat != bddfalse && sat != bddtrue) {
       const int var      = bdd_var(sat);

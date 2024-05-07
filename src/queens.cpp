@@ -28,8 +28,7 @@ public:
   static constexpr std::string_view name = "Queens";
   static constexpr std::string_view args = "N:";
 
-  static constexpr std::string_view help_text =
-    "        -N n        [8]      Size of board";
+  static constexpr std::string_view help_text = "        -N n        [8]      Size of board";
 
   static inline bool
   parse_input(const int c, const char* arg)
@@ -43,8 +42,7 @@ public:
       }
       return false;
     }
-    default:
-      return true;
+    default: return true;
     }
   }
 };
@@ -257,7 +255,7 @@ run_queens(int argc, char** argv)
 
   // =========================================================================
   // Initialise package manager
-  return run<Adapter>("queens", N*N, [&](Adapter& adapter) {
+  return run<Adapter>("queens", N * N, [&](Adapter& adapter) {
     uint64_t solutions;
 
     std::cout << json::field("N") << json::value(N) << json::comma << json::endl;
@@ -284,8 +282,8 @@ run_queens(int argc, char** argv)
     std::cout << json::field("largest size (nodes)") << json::value(largest_bdd) << json::comma
               << json::endl;
 #endif // BDD_BENCHMARK_STATS
-    std::cout << json::field("final size (nodes)") << json::value(adapter.nodecount(res)) << json::comma
-              << json::endl;
+    std::cout << json::field("final size (nodes)") << json::value(adapter.nodecount(res))
+              << json::comma << json::endl;
     std::cout << json::field("time (ms)") << json::value(construction_time) << json::endl;
     std::cout << json::brace_close << json::comma << json::endl << json::flush;
 
@@ -304,8 +302,8 @@ run_queens(int argc, char** argv)
     std::cout << json::brace_close << json::endl << json::flush;
 
     // ========================================================================
-    std::cout << json::field("total time (ms)") << json::value(init_time + construction_time + counting_time)
-              << json::endl
+    std::cout << json::field("total time (ms)")
+              << json::value(init_time + construction_time + counting_time) << json::endl
               << json::flush;
 
     if (rows() == cols() && cols() < size(expected) && solutions != expected[cols()]) { return -1; }

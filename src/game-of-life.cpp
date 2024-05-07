@@ -17,7 +17,6 @@
 #include "common/chrono.h"
 #include "common/input.h"
 
-
 // ============================================================================================== //
 //                                             OPTIONS                                            //
 
@@ -81,7 +80,11 @@ public:
         std::cerr << "  Must specify positive grid size (-N)\n";
         return true;
       }
-      if (N_rows < 0) { N_rows = N; } else { N_cols = N; }
+      if (N_rows < 0) {
+        N_rows = N;
+      } else {
+        N_cols = N;
+      }
       return false;
     }
     case 's': {
@@ -107,8 +110,7 @@ public:
       }
       return false;
     }
-    default:
-      return true;
+    default: return true;
     }
   }
 };
@@ -1318,7 +1320,8 @@ run_gameoflife(int argc, char** argv)
   return run<Adapter>("game-of-life", vm.varcount(), [&](Adapter& adapter) {
     std::cout << json::field("rows") << json::value(N_rows) << json::comma << json::endl;
     std::cout << json::field("cols") << json::value(N_cols) << json::comma << json::endl;
-    std::cout << json::field("symmetry") << json::value(to_string(sym)) << json::comma << json::endl;
+    std::cout << json::field("symmetry") << json::value(to_string(sym)) << json::comma
+              << json::endl;
     std::cout << json::field("variables[prev]") << json::value(vm.varcount(prime::pre))
               << json::comma << json::endl;
     std::cout << json::field("variables[next]") << json::value(vm.varcount(prime::post))
@@ -1354,8 +1357,8 @@ run_gameoflife(int argc, char** argv)
 #ifdef BDD_BENCHMARK_STATS
     std::cout << json::field("top (nodes)") << json::value(adapter.nodecount(post_top))
               << json::comma << json::endl;
-    std::cout << json::field("flipped (nodes)") << json::value(adapter.nodecount(res)) << json::comma
-              << json::endl;
+    std::cout << json::field("flipped (nodes)") << json::value(adapter.nodecount(res))
+              << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
     const time_point t4 = now();
 
@@ -1380,7 +1383,8 @@ run_gameoflife(int argc, char** argv)
     // ---------------------------------------------------------------------------------------------
     const time_duration total_time = goe__total_time + flip_time + counting_time;
 
-    std::cout << json::field("total time (ms)") << json::value(init_time + total_time) << json::endl;
+    std::cout << json::field("total time (ms)") << json::value(init_time + total_time)
+              << json::endl;
 
     // For all solvable sizes, the number of solutions should be 0.
     return solutions != 0;

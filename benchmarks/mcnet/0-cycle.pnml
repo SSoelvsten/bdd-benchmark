@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+  <net id="0-cycle" type="http://www.pnml.org/version-2009/grammar/ptnet">
+    <name><text>0-cycle</text></name>
+    <page id="page">
+
+      <!-- places -->
+      <place id="p1">
+		    <initialMarking><text>1</text></initialMarking>
+		    <name><text>p_1</text></name>
+	    </place>
+    </page>
+  </net>
+</pnml>

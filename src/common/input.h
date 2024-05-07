@@ -1,6 +1,7 @@
 #ifndef BDD_BENCHMARK_COMMON_INPUT_H
 #define BDD_BENCHMARK_COMMON_INPUT_H
 
+#include <algorithm> // std::mismatch
 #include <iostream>  // std::cout, std::cerr, ...
 #include <getopt.h>  // getopt
 #include <stdexcept> // std::invalid_argument
@@ -46,6 +47,28 @@ extern std::string temp_path;
 ///
 /// \details Based on https://stackoverflow.com/a/313990/13300643
 ////////////////////////////////////////////////////////////////////////////////
+inline bool
+ascii_isalpha(char x)
+{
+  return ('a' <= x && x <= 'z') || ('A' <= x && x <= 'Z');
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// \brief Lowercase a single ASCII character.
+///
+/// \details Based on https://stackoverflow.com/a/313990/13300643
+////////////////////////////////////////////////////////////////////////////////
+inline bool
+ascii_isnumeric(char x)
+{
+  return '0' <= x && x <= '9';
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// \brief Lowercase a single ASCII character.
+///
+/// \details Based on https://stackoverflow.com/a/313990/13300643
+////////////////////////////////////////////////////////////////////////////////
 inline char
 ascii_tolower(char in)
 {
@@ -63,28 +86,55 @@ ascii_tolower(const std::string& in)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// \brief Values to be parsed particular to a benchmark.
+/// \brief Trim whitespace from the left.
+///
+/// \details Based on https://stackoverflow.com/a/44973498/13300643
 ////////////////////////////////////////////////////////////////////////////////
-std::string
-parse_args();
+inline std::string
+ascii_ltrim(const std::string& s)
+{
+  std::string s_copy = s;
+  const auto first_nonspace =
+    std::find_if(s_copy.begin(), s_copy.end(), [](int c) { return !std::isspace(c); });
+  s_copy.erase(s_copy.begin(), first_nonspace);
+  return s_copy;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
-/// \brief Logic for parsing input values particular to a benchmark.
+/// \brief Trim whitespace from the right.
+///
+/// \details Based on https://stackoverflow.com/a/217605/13300643
 ////////////////////////////////////////////////////////////////////////////////
-bool
-parse_input(const int c, const char* arg);
+inline std::string
+ascii_rtrim(const std::string& s)
+{
+  std::string s_copy = s;
+  const auto last_nonspace =
+    std::find_if(s_copy.rbegin(), s_copy.rend(), [](int c) { return !std::isspace(c); });
+  s_copy.erase(last_nonspace.base(), s_copy.end());
+  return s_copy;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
-/// \brief Title to be displayed for benchmark help prompt
+/// \brief Trim whitespace from both ends.
+///
+/// \details Based on https://stackoverflow.com/a/44973498/13300643
 ////////////////////////////////////////////////////////////////////////////////
-constexpr std::string_view
-parse_help_title();
+inline std::string
+ascii_trim(const std::string& s)
+{
+  return ascii_rtrim(ascii_ltrim(s));
+}
 
 ////////////////////////////////////////////////////////////////////////////////
-/// \brief Logic for parsing input values particular to a benchmark.
+/// \brief Whether `a` is a prefix of `b`.
 ////////////////////////////////////////////////////////////////////////////////
-constexpr std::string_view
-parse_help_args();
+inline bool
+is_prefix(const std::string& a, const std::string& b)
+{
+  if (a.size() > b.size()) return false;
+  return std::mismatch(a.begin(), a.end(), b.begin()).first == a.end();
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief Logic for parsing input values.
@@ -93,14 +143,16 @@ parse_help_args();
 ////////////////////////////////////////////////////////////////////////////////
 template <class Policy>
 inline bool
-parse_input(int& argc, char* argv[])
+parse_input(int argc, char** argv)
 {
   bool exit = false;
   int c;
 
   opterr = 0; // Squelch errors for non-common command-line arguments
 
-  const std::string args = std::string("h" "M:P:rt:") + std::string(Policy::args);
+  const std::string args = std::string("h"
+                                       "M:P:rt:")
+    + std::string(Policy::args);
   while ((c = getopt(argc, argv, args.data())) != -1) {
     try {
       switch (c) {
@@ -166,9 +218,8 @@ parse_input(int& argc, char* argv[])
     }
   }
 
-  //optind = 0; // Reset getopt, such that it can be used again outside
+  // optind = 0; // Reset getopt, such that it can be used again outside
   return exit;
 }
-
 
 #endif // BDD_BENCHMARK_COMMON_INPUT_H
