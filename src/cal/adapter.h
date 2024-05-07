@@ -175,7 +175,7 @@ public:
   inline uint64_t
   nodecount(BDD f)
   {
-    return _mgr.Size(f);
+    return _mgr.Size(f, true);
   }
 
   inline uint64_t
