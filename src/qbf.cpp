@@ -1844,7 +1844,7 @@ solve(Adapter& adapter, qcir& q, const variable_order vo = variable_order::INPUT
                 std::stringstream ss;
                 size_t out_counter = 0;
                 for (auto it = vars.begin(); it != vars.end(); ++it) {
-                  if (++out_counter > max_print) {
+                  if (++out_counter > 10) {
                     ss << "... ";
                     break;
                   }
@@ -1991,7 +1991,7 @@ run_qbf(int argc, char** argv)
   if (should_exit) { return -1; }
 
   if (file_path == "") {
-    std::cerr << "Input file(s) not specified\n";
+    std::cerr << "Input file not specified\n";
     return -1;
   }
 
