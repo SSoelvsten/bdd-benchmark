@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core"
+      level="3"
+      version="1"
+      xmlns:qual="http://www.sbml.org/sbml/level3/version1/qual/version1"
+      qual:required="true">
+  <model id="wiki">
+
+    <listOfCompartments>
+      <compartment id="default" constant="true"/>
+    </listOfCompartments>
+
+    <qual:listOfQualitativeSpecies>
+      <qual:qualitativeSpecies qual:id="v1"
+                               qual:compartment="default"
+                               qual:constant="false" />
+      <qual:qualitativeSpecies qual:id="v2"
+                               qual:compartment="default"
+                               qual:constant="false" />
+      <qual:qualitativeSpecies qual:id="v3"
+                               qual:compartment="default"
+                               qual:constant="false" />
+      <qual:qualitativeSpecies qual:id="v4"
+                               qual:compartment="default"
+                               qual:constant="false" />
+    </qual:listOfQualitativeSpecies>
+
+    <qual:listOfTransitions>
+
+      <qual:transition qual:id="t1">
+        <qual:listOfInputs>
+          <qual:input qual:qualitativeSpecies="v3"
+                      qual:transitionEffect="none" />
+        </qual:listOfInputs>
+        <qual:listOfOutputs>
+          <qual:output qual:qualitativeSpecies="v1"
+                       qual:transitionEffect="assignmentLevel" />
+        </qual:listOfOutputs>
+        <qual:listOfFunctionTerms>
+          <qual:functionTerm qual:resultLevel="1">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <!-- v1 := v3 -->
+              <ci>v3</ci>
+            </math>
+          </qual:functionTerm>
+          <qual:defaultTerm qual:resultLevel="0" />
+        </qual:listOfFunctionTerms>
+      </qual:transition>
+
+      <qual:transition qual:id="t2">
+        <qual:listOfInputs>
+          <qual:input qual:qualitativeSpecies="v2"
+                      qual:transitionEffect="none" />
+        </qual:listOfInputs>
+        <qual:listOfOutputs>
+          <qual:output qual:qualitativeSpecies="v2"
+                       qual:transitionEffect="assignmentLevel" />
+        </qual:listOfOutputs>
+        <qual:listOfFunctionTerms>
+          <qual:functionTerm qual:resultLevel="1">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <!-- v2 := v2 -->
+              <ci>v2</ci>
+            </math>
+          </qual:functionTerm>
+          <qual:defaultTerm qual:resultLevel="0" />
+        </qual:listOfFunctionTerms>
+      </qual:transition>
+
+      <qual:transition qual:id="t3">
+        <qual:listOfInputs>
+          <qual:input qual:qualitativeSpecies="v4"
+                      qual:transitionEffect="none" />
+        </qual:listOfInputs>
+        <qual:listOfOutputs>
+          <qual:output qual:qualitativeSpecies="v3"
+                       qual:transitionEffect="assignmentLevel" />
+        </qual:listOfOutputs>
+        <qual:listOfFunctionTerms>
+          <qual:functionTerm qual:resultLevel="1">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <!-- v3 := v4 -->
+              <ci>v4</ci>
+            </math>
+          </qual:functionTerm>
+          <qual:defaultTerm qual:resultLevel="0" />
+        </qual:listOfFunctionTerms>
+      </qual:transition>
+
+      <qual:transition qual:id="t3">
+        <qual:listOfInputs>
+          <qual:input qual:qualitativeSpecies="v3"
+                      qual:thresholdLevel="1"
+                      qual:transitionEffect="none" />
+        </qual:listOfInputs>
+        <qual:listOfOutputs>
+          <qual:output qual:qualitativeSpecies="v4"
+                       qual:resultLevel="1"
+                       qual:transitionEffect="assignmentLevel" />
+        </qual:listOfOutputs>
+        <qual:listOfFunctionTerms>
+          <qual:functionTerm qual:resultLevel="1">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <!-- v4 := v3 -->
+              <ci>v3</ci>
+            </math>
+          </qual:functionTerm>
+          <qual:defaultTerm qual:resultLevel="0" />
+        </qual:listOfFunctionTerms>
+      </qual:transition>
+
+    </qual:listOfTransitions>
+  </model>
+</sbml>

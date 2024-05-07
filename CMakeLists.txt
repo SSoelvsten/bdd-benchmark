@@ -51,10 +51,6 @@ message(STATUS "")
 # External
 # ============================================================================ #
 
-include(ExternalProject)
-find_program(AUTORECONF_EXE NAMES autoreconf DOC "autoreconf is required to build CUDD")
-find_program(MAKE_EXE NAMES gmake make DOC "make is required to build CUDD")
-
 # ---------------------------------------------------------------------------- #
 # BDD Packages
 # Adiar Package (Steffan Sølvsten - Aarhus University, Denmark)
@@ -94,6 +90,9 @@ add_subdirectory (external/sylvan sylvan EXCLUDE_FROM_ALL)
 # ---------------------------------------------------------------------------- #
 # BLIF parser
 add_subdirectory (external/blifparse libblifparse EXCLUDE_FROM_ALL)
+
+# XML parser
+add_subdirectory (external/pugixml pugixml EXCLUDE_FROM_ALL)
 
 # ============================================================================ #
 # Benchmarks

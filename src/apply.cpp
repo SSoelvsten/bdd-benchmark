@@ -87,8 +87,7 @@ public:
       }
       return false;
     }
-    default:
-      return true;
+    default: return true;
     }
   }
 };
@@ -491,7 +490,7 @@ run_apply(int argc, char** argv)
   std::vector<lib_bdd::bdd> inputs_binary;
   inputs_binary.reserve(inputs_path.size());
 
-  for (const std::string &path : inputs_path) {
+  for (const std::string& path : inputs_path) {
     inputs_binary.push_back(lib_bdd::deserialize(path));
   }
 
@@ -556,7 +555,7 @@ run_apply(int argc, char** argv)
 
       const time_point t_rebuild_before = now();
       inputs_dd.push_back(reconstruct(adapter, inputs_binary.at(i), vm));
-      const time_point t_rebuild_after  = now();
+      const time_point t_rebuild_after = now();
 
       const size_t load_time = duration_ms(t_rebuild_before, t_rebuild_after);
       total_time += load_time;
@@ -588,7 +587,7 @@ run_apply(int argc, char** argv)
     for (size_t i = 0; i < inputs_dd.size(); ++i) {
       switch (oper) {
       case operand::AND: result &= inputs_dd.at(i); break;
-      case operand::OR:  result |= inputs_dd.at(i); break;
+      case operand::OR: result |= inputs_dd.at(i); break;
       }
     }
     const time_point t_apply_after = now();
@@ -609,7 +608,8 @@ run_apply(int argc, char** argv)
 
     // =========================================================================
 
-    std::cout << json::field("total time (ms)") << json::value(init_time + total_time) << json::endl;
+    std::cout << json::field("total time (ms)") << json::value(init_time + total_time)
+              << json::endl;
 
     return 0;
   });

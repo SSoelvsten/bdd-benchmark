@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core"
+      level="3"
+      version="1"
+      xmlns:qual="http://www.sbml.org/sbml/level3/version1/qual/version1"
+      qual:required="true">
+  <model id="complex">
+    <listOfCompartments>
+      <compartment id="default" constant="true"/>
+    </listOfCompartments>
+
+    <qual:listOfQualitativeSpecies>
+      <qual:qualitativeSpecies qual:id="x0"
+                               qual:compartment="default"
+                               qual:constant="false" />
+      <qual:qualitativeSpecies qual:id="x1"
+                               qual:compartment="default"
+                               qual:initialLevel="0"
+                               qual:constant="false" />
+      <qual:qualitativeSpecies qual:id="x2"
+                               qual:compartment="default"
+                               qual:initialLevel="1"
+                               qual:constant="false" />
+      <qual:qualitativeSpecies qual:id="x3"
+                               qual:compartment="default"
+                               qual:constant="false" />
+    </qual:listOfQualitativeSpecies>
+
+    <qual:listOfTransitions>
+
+      <!-- Transition: Both 'production' and 'assignment' outputs -->
+      <qual:transition qual:id="t0">
+        <qual:listOfInputs>
+          <qual:input qual:qualitativeSpecies="x0"
+                      qual:transitionEffect="consumption" />
+          <qual:input qual:qualitativeSpecies="x1"
+                      qual:transitionEffect="consumption" />
+          <qual:input qual:qualitativeSpecies="x3"
+                      qual:transitionEffect="none" />
+        </qual:listOfInputs>
+        <qual:listOfOutputs>
+          <qual:output qual:qualitativeSpecies="x1"
+                       qual:outputLevel="1"
+                       qual:transitionEffect="production" />
+          <qual:output qual:qualitativeSpecies="x2"
+                       qual:outputLevel="1"
+                       qual:transitionEffect="assignmentLevel" />
+        </qual:listOfOutputs>
+
+        <qual:listOfFunctionTerms>
+          <qual:functionTerm qual:resultLevel="1">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <!-- x3 ^ (!x0 = x1) -->
+              <apply>
+                <xor />
+                <ci>x3</ci>
+                <apply>
+                  <eq />
+                  <apply>
+                    <not />
+                    <ci> x0 </ci>
+                  </apply>
+                  <!-- Whitespace -->
+                  <ci> x1 </ci>
+                </apply>
+              </apply>
+            </math>
+          </qual:functionTerm>
+          <qual:defaultTerm qual:resultLevel="0" />
+        </qual:listOfFunctionTerms>
+      </qual:transition>
+
+      <!-- Transition: ResultLevel flips condition -->
+      <qual:transition qual:id="t1">
+        <qual:listOfInputs>
+          <qual:input qual:qualitativeSpecies="x0"
+                      qual:transitionEffect="none" />
+        </qual:listOfInputs>
+        <qual:listOfOutputs>
+          <qual:output qual:qualitativeSpecies="x0"
+                       qual:transitionEffect="assignmentLevel" />
+        </qual:listOfOutputs>
+        <qual:listOfFunctionTerms>
+          <qual:functionTerm qual:resultLevel="0">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <!-- x0 (negated by 'resultLevel') -->
+              <ci>x0</ci>
+            </math>
+          </qual:functionTerm>
+          <qual:defaultTerm qual:resultLevel="1" />
+        </qual:listOfFunctionTerms>
+      </qual:transition>
+
+      <!-- Transition: Consuming assignment -->
+      <qual:transition qual:id="t2">
+        <qual:listOfInputs>
+          <qual:input qual:qualitativeSpecies="x2"
+                      qual:transitionEffect="none" />
+          <qual:input qual:qualitativeSpecies="x3"
+                      qual:transitionEffect="consumption" />
+        </qual:listOfInputs>
+        <qual:listOfOutputs>
+          <qual:output qual:qualitativeSpecies="x0"
+                       qual:outputLevel="1"
+                       qual:transitionEffect="assignmentLevel" />
+        </qual:listOfOutputs>
+
+        <qual:listOfFunctionTerms>
+          <qual:functionTerm qual:resultLevel="1">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <!-- x3 = x2 -->
+              <apply>
+                <eq />
+                <ci>x3</ci>
+                <ci>x2</ci>
+              </apply>
+            </math>
+          </qual:functionTerm>
+          <qual:defaultTerm qual:resultLevel="0" />
+        </qual:listOfFunctionTerms>
+      </qual:transition>
+
+      <!-- Transition: Multiple conditions -->
+      <qual:transition qual:id="t3">
+        <qual:listOfInputs>
+          <qual:input qual:qualitativeSpecies="x0"
+                      qual:transitionEffect="consumption" />
+          <qual:input qual:qualitativeSpecies="x1"
+                      qual:transitionEffect="consumption" />
+        </qual:listOfInputs>
+        <qual:listOfOutputs>
+          <qual:output qual:qualitativeSpecies="x3"
+                       qual:outputLevel="1"
+                       qual:transitionEffect="production" />
+        </qual:listOfOutputs>
+
+        <qual:listOfFunctionTerms>
+          <qual:functionTerm qual:resultLevel="1">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <!-- x0 -->
+              <ci>x0</ci>
+            </math>
+          </qual:functionTerm>
+          <qual:functionTerm qual:resultLevel="1">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <!-- x1 -->
+              <ci>x1</ci>
+            </math>
+          </qual:functionTerm>
+          <qual:defaultTerm qual:resultLevel="0" />
+        </qual:listOfFunctionTerms>
+      </qual:transition>
+
+      <!-- Transition: Inhibiting condition -->
+      <qual:transition qual:id="t4">
+        <qual:listOfInputs>
+          <qual:input qual:qualitativeSpecies="x0"
+                      qual:transitionEffect="none" />
+          <qual:input qual:qualitativeSpecies="x2"
+                      qual:transitionEffect="none" />
+        </qual:listOfInputs>
+        <qual:listOfOutputs>
+          <qual:output qual:qualitativeSpecies="x1"
+                       qual:outputLevel="1"
+                       qual:transitionEffect="production" />
+        </qual:listOfOutputs>
+
+        <qual:listOfFunctionTerms>
+          <qual:functionTerm qual:resultLevel="0">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <!-- x0 & x2 -->
+              <apply>
+                <and />
+                <ci>x0</ci>
+                <ci>x2</ci>
+              </apply>
+            </math>
+          </qual:functionTerm>
+          <qual:defaultTerm qual:resultLevel="1" />
+        </qual:listOfFunctionTerms>
+      </qual:transition>
+
+      <!-- Transition: Multiple Inhibitors condition -->
+      <qual:transition qual:id="t5">
+        <qual:listOfInputs>
+          <qual:input qual:qualitativeSpecies="x0"
+                      qual:transitionEffect="none" />
+          <qual:input qual:qualitativeSpecies="x2"
+                      qual:transitionEffect="none" />
+        </qual:listOfInputs>
+        <qual:listOfOutputs>
+          <qual:output qual:qualitativeSpecies="x0"
+                       qual:outputLevel="1"
+                       qual:transitionEffect="assignmentLevel" />
+        </qual:listOfOutputs>
+
+        <qual:listOfFunctionTerms>
+          <qual:functionTerm qual:resultLevel="0">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <!-- x0 -->
+              <ci>x0</ci>
+            </math>
+          </qual:functionTerm>
+          <qual:functionTerm qual:resultLevel="0">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <!-- x2 -->
+              <ci>x2</ci>
+            </math>
+          </qual:functionTerm>
+          <qual:defaultTerm qual:resultLevel="1" />
+        </qual:listOfFunctionTerms>
+      </qual:transition>
+
+      <!-- Transition: Mix of Activating and inhibiting conditions -->
+      <qual:transition qual:id="t6">
+        <qual:listOfInputs>
+          <qual:input qual:qualitativeSpecies="x0"
+                      qual:transitionEffect="none" />
+          <qual:input qual:qualitativeSpecies="x1"
+                      qual:transitionEffect="none" />
+          <qual:input qual:qualitativeSpecies="x3"
+                      qual:transitionEffect="none" />
+        </qual:listOfInputs>
+        <qual:listOfOutputs>
+          <qual:output qual:qualitativeSpecies="x0"
+                       qual:outputLevel="1"
+                       qual:transitionEffect="assignmentLevel" />
+          <qual:output qual:qualitativeSpecies="x2"
+                       qual:outputLevel="1"
+                       qual:transitionEffect="assignmentLevel" />
+        </qual:listOfOutputs>
+
+        <qual:listOfFunctionTerms>
+          <qual:functionTerm qual:resultLevel="1">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <!-- x0 (activating) -->
+              <ci>x0</ci>
+            </math>
+          </qual:functionTerm>
+          <qual:functionTerm qual:resultLevel="0">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <!-- x1 (inhibiting) -->
+              <ci>x1</ci>
+            </math>
+          </qual:functionTerm>
+          <qual:functionTerm qual:resultLevel="1">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <!-- x3 (activating) -->
+              <ci>x3</ci>
+            </math>
+          </qual:functionTerm>
+          <qual:defaultTerm qual:resultLevel="0" />
+        </qual:listOfFunctionTerms>
+      </qual:transition>
+
+      <!-- Transition: Mix of conditions with flipping defaultTerm -->
+      <qual:transition qual:id="t7">
+        <qual:listOfInputs>
+          <qual:input qual:qualitativeSpecies="x0"
+                      qual:transitionEffect="none" />
+          <qual:input qual:qualitativeSpecies="x1"
+                      qual:transitionEffect="none" />
+          <qual:input qual:qualitativeSpecies="x2"
+                      qual:transitionEffect="none" />
+        </qual:listOfInputs>
+        <qual:listOfOutputs>
+          <qual:output qual:qualitativeSpecies="x1"
+                       qual:outputLevel="1"
+                       qual:transitionEffect="assignmentLevel" />
+          <qual:output qual:qualitativeSpecies="x3"
+                       qual:outputLevel="1"
+                       qual:transitionEffect="assignmentLevel" />
+        </qual:listOfOutputs>
+
+        <qual:listOfFunctionTerms>
+          <qual:functionTerm qual:resultLevel="0">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <!-- x1 (inhibiting) -->
+              <ci>x1</ci>
+            </math>
+          </qual:functionTerm>
+          <qual:functionTerm qual:resultLevel="1">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <!-- x1 = x2 (activating) -->
+              <apply>
+                <eq />
+                <ci>x1</ci>
+                <ci>x2</ci>
+              </apply>
+            </math>
+          </qual:functionTerm>
+          <qual:defaultTerm qual:resultLevel="1" />
+        </qual:listOfFunctionTerms>
+      </qual:transition>
+    </qual:listOfTransitions>
+  </model>
+</sbml>

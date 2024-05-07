@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <functional>
 #include <iostream>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -19,6 +20,8 @@ public:
   static constexpr std::string_view dd   = "BCDD";
 
   static constexpr bool needs_extend     = false;
+  static constexpr bool needs_frame_rule = true;
+
   static constexpr bool complement_edges = true;
 
   // Variable type
@@ -30,6 +33,11 @@ private:
   Cal _mgr;
   const int _varcount;
   BDD _latest_build;
+
+  int _relnext_vars  = -1;
+  int _relnext_pairs = -1;
+  int _relprev_vars  = -1;
+  int _relprev_pairs = -1;
 
 public:
   cal_bcdd_adapter(const int bdd_varcount)
@@ -43,7 +51,11 @@ public:
   }
 
   ~cal_bcdd_adapter()
-  { /* Do nothing */
+  {
+    if (this->_relnext_vars != -1) { this->_mgr.AssociationQuit(this->_relnext_vars); }
+    if (this->_relnext_pairs != -1) { this->_mgr.AssociationQuit(this->_relnext_pairs); }
+    if (this->_relprev_vars != -1) { this->_mgr.AssociationQuit(this->_relprev_vars); }
+    if (this->_relprev_pairs != -1) { this->_mgr.AssociationQuit(this->_relprev_pairs); }
   }
 
 public:
@@ -78,6 +90,25 @@ public:
   nithvar(int i)
   {
     return ~_mgr.Id(i + 1);
+  }
+
+  template <typename IT>
+  inline BDD
+  cube(IT rbegin, IT rend)
+  {
+    BDD res = top();
+    while (rbegin != rend) { res = ite(ithvar(*(rbegin++)), res, bot()); }
+    return res;
+  }
+
+  inline BDD
+  cube(const std::function<bool(int)>& pred)
+  {
+    BDD res = top();
+    for (int i = _varcount - 1; 0 <= i; --i) {
+      if (pred(i)) { res = ite(ithvar(i), res, bot()); }
+    }
+    return res;
   }
 
   inline BDD
@@ -139,7 +170,7 @@ public:
   inline BDD
   exists(const BDD& f, const std::function<bool(int)>& pred)
   {
-    set_temp_association(pred);
+    _mgr.AssociationSetCurrent(new_temp_vars(pred));
     return _mgr.Exists(f);
   }
 
@@ -147,7 +178,7 @@ public:
   inline BDD
   exists(const BDD& f, IT rbegin, IT rend)
   {
-    set_temp_association(rbegin, rend);
+    _mgr.AssociationSetCurrent(new_temp_vars(rbegin, rend));
     return _mgr.Exists(f);
   }
 
@@ -161,7 +192,7 @@ public:
   inline BDD
   forall(const BDD& f, const std::function<bool(int)>& pred)
   {
-    set_temp_association(pred);
+    _mgr.AssociationSetCurrent(new_temp_vars(pred));
     return _mgr.ForAll(f);
   }
 
@@ -169,8 +200,52 @@ public:
   inline BDD
   forall(const BDD& f, IT rbegin, IT rend)
   {
-    set_temp_association(rbegin, rend);
+    _mgr.AssociationSetCurrent(new_temp_vars(rbegin, rend));
     return _mgr.ForAll(f);
+  }
+
+  inline BDD
+  relnext(const BDD& states, const BDD& rel, const BDD& /*rel_support*/)
+  {
+    if (_relnext_vars == -1) {
+      std::vector<int> vars;
+      for (int i = 0; i < this->_varcount; i += 2) { vars.push_back(i); }
+      _relnext_vars = new_assoc_vars(vars.begin(), vars.end());
+    }
+    _mgr.AssociationSetCurrent(_relnext_vars);
+
+    const BDD unshifted_quantified_product = _mgr.RelProd(states, rel);
+
+    if (_relnext_pairs == -1) {
+      std::vector<std::pair<int, int>> pairs;
+      for (int i = 0; i < this->_varcount; i += 2) { pairs.push_back({ i + 1, i }); }
+      _relnext_pairs = new_assoc_pairs(pairs.begin(), pairs.end());
+    }
+    _mgr.AssociationSetCurrent(_relnext_pairs);
+
+    return _mgr.VarSubstitute(std::move(unshifted_quantified_product));
+  }
+
+  inline BDD
+  relprev(const BDD& states, const BDD& rel, const BDD& /*rel_support*/)
+  {
+    if (_relprev_pairs == -1) {
+      std::vector<std::pair<int, int>> pairs;
+      for (int i = 0; i < this->_varcount; i += 2) { pairs.push_back({ i, i + 1 }); }
+      _relprev_pairs = new_assoc_pairs(pairs.begin(), pairs.end());
+    }
+    _mgr.AssociationSetCurrent(_relprev_pairs);
+
+    const BDD shifted_states = _mgr.VarSubstitute(states);
+
+    if (_relprev_vars == -1) {
+      std::vector<int> vars;
+      for (int i = 0; i < this->_varcount; i += 2) { vars.push_back(i + 1); }
+      _relprev_vars = new_assoc_vars(vars.begin(), vars.end());
+    }
+    _mgr.AssociationSetCurrent(_relprev_vars);
+
+    return _mgr.RelProd(std::move(shifted_states), rel);
   }
 
   inline uint64_t
@@ -182,7 +257,7 @@ public:
   inline uint64_t
   satcount(BDD f)
   {
-    return this->satcount(f, this->_varcount);
+    return this->satcount(f, _varcount);
   }
 
   inline uint64_t
@@ -193,19 +268,32 @@ public:
     return std::pow(2, numVars) * satFrac;
   }
 
+  inline BDD
+  satone(const BDD& f)
+  {
+    return f.Satisfy();
+  }
+
+  inline BDD
+  satone(const BDD& f, BDD c)
+  {
+    _mgr.AssociationSetCurrent(new_temp_vars(c));
+    return f.SatisfySupport();
+  }
+
   inline std::vector<std::pair<int, char>>
   pickcube(const BDD& f)
   {
     std::vector<std::pair<int, char>> res;
 
-    BDD sat = _mgr.Satisfy(f);
-    while (sat != _mgr.One() && sat != _mgr.Zero()) {
+    BDD sat = f;
+    while (!sat.IsConst()) {
       const int var = sat.Id() - 1;
 
       const BDD sat_low  = sat.Else();
       const BDD sat_high = sat.Then();
 
-      const bool go_high = sat.Then() != _mgr.Zero();
+      const bool go_high = !sat_high.IsZero();
       res.push_back({ var, '0' + go_high });
 
       sat = go_high ? sat.Then() : sat.Else();
@@ -217,7 +305,7 @@ public:
   void
   print_dot(const BDD&, const std::string&)
   {
-    std::cerr << "CAL::PrintDot does not exist (SSoelvsten/Cal#6)." << std::endl;
+    std::cerr << "'CAL::PrintDot()' does not exist (SSoelvsten/Cal#6)." << std::endl;
   }
 
 private:
@@ -228,8 +316,48 @@ private:
   }
 
   template <typename IT>
-  void
-  set_temp_association(IT begin, IT end)
+  int
+  new_assoc_pairs(IT begin, IT end)
+  {
+    std::vector<BDD> vec;
+    vec.reserve(std::distance(begin, end));
+
+    while (begin != end) {
+      const auto& iter_value = *begin++;
+      vec.push_back(ithvar(iter_value.first));
+      vec.push_back(ithvar(iter_value.second));
+    }
+
+    return _mgr.AssociationInit(vec.begin(), vec.end(), true);
+  }
+
+  template <typename IT>
+  int
+  new_assoc_vars(IT begin, IT end)
+  {
+    std::vector<BDD> vec;
+    vec.reserve(std::distance(begin, end));
+
+    while (begin != end) { vec.push_back(ithvar(*(begin++))); }
+
+    return _mgr.AssociationInit(vec.begin(), vec.end());
+  }
+
+  int
+  new_assoc_vars(const std::function<bool(int)>& pred)
+  {
+    std::vector<BDD> vec;
+
+    for (int i = 0; i < _varcount; ++i) {
+      if (pred(i)) { vec.push_back(ithvar(i)); }
+    }
+
+    return _mgr.AssociationInit(vec.begin(), vec.end());
+  }
+
+  template <typename IT>
+  int
+  new_temp_vars(IT begin, IT end)
   {
     std::vector<BDD> vec;
     vec.reserve(std::distance(begin, end));
@@ -237,10 +365,11 @@ private:
     while (begin != end) { vec.push_back(ithvar(*(begin++))); }
 
     _mgr.TempAssociationInit(vec.begin(), vec.end());
+    return -1;
   }
 
-  void
-  set_temp_association(const std::function<bool(int)>& pred)
+  int
+  new_temp_vars(const std::function<bool(int)>& pred)
   {
     std::vector<BDD> vec;
 
@@ -249,6 +378,24 @@ private:
     }
 
     _mgr.TempAssociationInit(vec.begin(), vec.end());
+    return -1;
+  }
+
+  int
+  new_temp_vars(BDD c)
+  {
+    assert(c.IsCube());
+
+    // TODO: Use CAL's Support function instead!?!
+    std::vector<BDD> vec;
+
+    while (!c.IsConst()) {
+      vec.push_back(_mgr.Id(c.Id()));
+      c = !c.Then().IsZero() ? c.Then() : c.Else();
+    }
+
+    _mgr.TempAssociationInit(vec.begin(), vec.end());
+    return -1;
   }
 
   // BDD Build Operations

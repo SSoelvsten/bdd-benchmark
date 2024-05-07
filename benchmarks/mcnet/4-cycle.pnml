@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+  <net id="4-cycle" type="http://www.pnml.org/version-2009/grammar/ptnet">
+    <name><text>4-cycle</text></name>
+    <page id="page">
+
+      <!-- starting place -->
+      <place id="p1">
+		    <initialMarking><text>1</text></initialMarking>
+		    <name><text>p_1</text></name>
+	    </place>
+
+      <!-- places on cycle -->
+      <place id="p2"><name><text>p_2</text></name></place>
+      <place id="p3"><name><text>p_3</text></name></place>
+      <place id="p4"><name><text>p_4</text></name></place>
+
+      <!-- transitions -->
+      <transition id="t_12"><name><text>t_12</text></name></transition>
+      <arc id="t_12_i" source="p1" target="t_12"/>
+      <arc id="t_12_o" source="t_12" target="p2"/>
+
+      <transition id="t_23"><name><text>t_23</text></name></transition>
+      <arc id="t_23_i" source="p2" target="t_23"/>
+      <arc id="t_23_o" source="t_23" target="p3"/>
+
+      <transition id="t_34"><name><text>t_34</text></name></transition>
+      <arc id="t_34_i" source="p3" target="t_34"/>
+      <arc id="t_34_o" source="t_34" target="p4"/>
+
+      <transition id="t_41"><name><text>t_41</text></name></transition>
+      <arc id="t_41_i" source="p4" target="t_41"/>
+      <arc id="t_41_o" source="t_41" target="p1"/>
+
+    </page>
+  </net>
+</pnml>

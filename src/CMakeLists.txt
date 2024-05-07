@@ -81,6 +81,12 @@ add_benchmark(tic-tac-toe)
 
 # ---------------------------------------------------------------------------- #
 # Verification
+add_bdd_benchmark(mcnet)
+link_bdd_extra(mcnet pugixml)
+
+add_bcdd_benchmark(mcnet)
+link_bcdd_extra(mcnet pugixml)
+
 add_benchmark(picotrav)
 link_extra(picotrav libblifparse)
 

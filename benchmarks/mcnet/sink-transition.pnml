@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+  <net id="split" type="http://www.pnml.org/version-2009/grammar/ptnet">
+    <name><text>split</text></name>
+    <page id="page">
+
+      <!-- starting place -->
+      <place id="p1">
+	      <initialMarking><text>1</text></initialMarking>
+		    <name><text>p_1</text></name>
+	    </place>
+
+      <place id="p2"><name><text>p_2</text></name></place>
+      <place id="p3"><name><text>p_3</text></name></place>
+
+      <!-- transitions -->
+      <transition id="t1"><name><text>t1</text></name></transition>
+      <arc id="t1_i1" source="p1" target="t1"/>
+      <arc id="t1_o1" source="t1" target="p2"/>
+	    <arc id="t1_o2" source="t1" target="p3"/>
+
+      <transition id="t2"><name><text>t2</text></name></transition>
+      <arc id="t2_i1" source="p1" target="t2"/>
+    </page>
+  </net>
+</pnml>

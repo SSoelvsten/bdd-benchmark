@@ -4,21 +4,24 @@
 [submodule "external/buddy"]
 	path = external/buddy
 	url = ../../SSoelvsten/buddy
-[submodule "external/sylvan"]
-	path = external/sylvan
-	url = ../../trolando/sylvan
-[submodule "external/cudd"]
-	path = external/cudd
-	url = ../../SSoelvsten/cudd
-[submodule "external/blifparse"]
-	path = external/blifparse
-	url = ../../SSoelvsten/libblifparse
 [submodule "external/cal"]
 	path = external/cal
 	url = ../../SSoelvsten/cal
+[submodule "external/cudd"]
+	path = external/cudd
+	url = ../../SSoelvsten/cudd
 [submodule "external/lib-bdd-ffi"]
 	path = external/lib-bdd-ffi
 	url = ../../nhusung/lib-bdd-ffi
 [submodule "external/oxidd"]
 	path = external/oxidd
 	url = ../../OxiDD/oxidd
+[submodule "external/sylvan"]
+	path = external/sylvan
+	url = ../../trolando/sylvan
+[submodule "external/blifparse"]
+	path = external/blifparse
+	url = ../../SSoelvsten/libblifparse
+[submodule "external/pugixml"]
+	path = external/pugixml
+	url = ../../zeux/pugixml

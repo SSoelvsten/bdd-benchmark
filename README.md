@@ -23,6 +23,7 @@ This project has been developed at the
     - [Apply](#apply)
     - [Game of Life](#game-of-life)
     - [Hamiltonian Cycle](#hamiltonian-cycle)
+    - [McNet](#mcnet)
     - [Picotrav](#picotrav)
     - [QBF Solver](#qbf-solver)
     - [Queens](#queens)
@@ -427,6 +428,50 @@ The benchmark can be configured with the following options:
 > The gadget for the *unary* encodings is not yet properly implemented. Hence,
 > this variant has been disabled.
 
+
+### McNet
+
+This simple *Model Checker for Nets* (pronounced "*Mac Net*", "*magnet*" or
+maybe "*Monet*"?) provides algorithms for the exploration of various transition
+system formats.
+
+- **`-f <path>`**
+
+  Path to a file with a Petri Net (*.pnml*) or a Boolean Network (*.aeon*,
+  *.bnet*, *.sbml*). You can find multiple inputs in the *benchmarks/mcnet*
+  folder together with links to larger and more interesting inputs.
+
+- **`-a <...>`** (default: *reachable*)
+
+  The algorithm(s) to run. All algorithms depend on having computed the
+  reachable states.
+
+  - `reachable`/`reachability`: Compute the set of reachable states.
+
+  - `deadlocks`: Compute the set of reachable deadlock states.
+
+  - `scc`: Compute each Strongly Connected Component using the Chain
+    algorithm from [[Larsen2023](#references)]
+
+- **`-o <...>`** (default: *input*)
+
+  Each BDD variable represents a location in the net. Hence, the variable
+  ordering can have a major impact on the diagrams' size.
+
+  - `input`: Use the order in which the locations are declared in the file.
+
+  - `random`: A randomized ordering of variables.
+
+- **`-s`**
+
+  If set, then the model is interpreted with *synchronous update* semantics.
+
+
+```bash
+./build/src/${LIB}_mcnet_${KIND} -f benchmarks/mcnet/split.pnml
+```
+
+
 ### Picotrav
 This benchmark is a small recreation of the *Nanotrav* example provided with the
 CUDD library [[Somenzi2015](#references)]. Given a hierarchical circuit in (a
@@ -641,15 +686,21 @@ please cite the initial paper on *Adiar*.
 ## References
 
 - [[Brace1990](https://doi.org/10.1109/DAC.1990.114826)]
-  Brace, K., Rudell, R., Bryant, R.: Efficient implementation of a BDD package.
+  K. Brace, R. Rudell, R. E. Bryant: “*Efficient implementation of a BDD package*”.
   In: 27th ACM/IEEE Design Automation Conference. pp. 40–45 (1990).
 
 - [[Bryant1986](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=1676819)]
-  Randal E. Bryant. “*Graph-Based Algorithms for Boolean Function Manipulation*”.
+  R. E. Bryant. “*Graph-Based Algorithms for Boolean Function Manipulation*”.
   In: *IEEE Transactions on Computers*. (1986)
 
 - [[Bryant2021](https://github.com/rebryant/Cloud-BDD/blob/conjunction_streamlined/hamiltonian/hpath.py)]
-  Bryant, Randal E. “*hpath.py*”. In: *Cloud-BDD* (GitHub). 2021
+  R. E. Bryant. “*hpath.py*”. In: *Cloud-BDD* (GitHub). 2021
+
+- [[Larsen2023](https://link.springer.com/chapter/10.1007/978-3-031-30820-8_22)]
+  C. A. Larsen, S. M. Schmidt, J. Steensgaard, A. B. Jakobsen, J. van de Pol,
+  and A. Pavlogiannis: “*A Truly Symbolic Linear-Time Algorithm for SCC
+  Decomposition*”. In: 27th ACM/IEEE Design Automation Conference. pp. 40–45
+  (1990).
 
 - [[Kunkle2010](https://dl.acm.org/doi/abs/10.1145/1837210.1837222)] Daniel
   Kunkle, Vlad Slavici, Gene Cooperman. “*Parallel Disk-Based Computation for
@@ -661,13 +712,13 @@ please cite the initial paper on *Adiar*.
   *Theory and Applications of Satisfiability Testing*. 2021
 
 - [[Minato1993](https://dl.acm.org/doi/10.1145/157485.164890)]
-  Minato, S. “*Zero-suppressed BDDs for Set Manipulation in Combinatorial
+  S. Minato. “*Zero-suppressed BDDs for Set Manipulation in Combinatorial
   Problems*”. In: *International Design Automation Conference*. 1993
 
-- [[Pastva2023](https://repositum.tuwien.at/bitstream/20.500.12708/188807/1/Pastva-2023-Binary%20decision%20diagrams%20on%20modern%20hardware-vor.pdf)]
-  Samuel Pastva and Thomas Henzinger. “*Binary Decision Diagrams on Modern
-  Hardware*”. In: *Proceedings of the 23rd Conference on Formal Methods in
-  Computer-Aided Design* (2023)
+- [[Pastva2023](https://ieeexplore.ieee.org/document/10329375)]
+  S. Pastva and T. Henzinger. “*Binary Decision Diagrams on Modern Hardware*”.
+  In: *Proceedings of the 23rd Conference on Formal Methods in Computer-Aided
+  Design* (2023)
 
 - [[Somenzi2015](https://github.com/ssoelvsten/cudd)]
   Somenzi, Fabio: *CUDD: CU decision diagram package, 3.0*. University

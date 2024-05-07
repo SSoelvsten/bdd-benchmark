@@ -1441,10 +1441,10 @@ std::string
 to_string(const variable_order& vo)
 {
   switch (vo) {
-  case variable_order::INPUT:  return "input";
+  case variable_order::INPUT: return "input";
   case variable_order::DF_LTR: return "depth-first (ltr)";
   case variable_order::DF_RTL: return "depth-first (rtl)";
-  case variable_order::LEVEL:  return "level";
+  case variable_order::LEVEL: return "level";
   }
   return "?";
 }
@@ -1977,8 +1977,7 @@ public:
       }
       return false;
     }
-    default:
-      return true;
+    default: return true;
     }
   }
 };
@@ -2012,12 +2011,12 @@ run_qbf(int argc, char** argv)
     std::cout << json::field("max_cache") << json::value(stats.cache.max_size) << json::comma
               << json::endl;
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << json::field("largest size (nodes)") << json::value(stats.dd.max_size) << json::comma
-              << json::endl;
-    std::cout << json::field("largest[matrix] size (nodes)") << json::value(stats.dd.matrix_max_size)
+    std::cout << json::field("largest size (nodes)") << json::value(stats.dd.max_size)
               << json::comma << json::endl;
-    std::cout << json::field("largest[prenex] size (nodes)") << json::value(stats.dd.prenex_max_size)
-              << json::comma << json::endl;
+    std::cout << json::field("largest[matrix] size (nodes)")
+              << json::value(stats.dd.matrix_max_size) << json::comma << json::endl;
+    std::cout << json::field("largest[prenex] size (nodes)")
+              << json::value(stats.dd.prenex_max_size) << json::comma << json::endl;
 #endif //  BDD_BENCHMARK_STATS
 
     std::cout << json::endl;
@@ -2035,11 +2034,12 @@ run_qbf(int argc, char** argv)
 
     std::cout << json::endl;
 
-    std::cout << json::field("matrix time (ms)") << json::value(stats.solve_time - stats.prenex_time)
-              << json::comma << json::endl;
+    std::cout << json::field("matrix time (ms)")
+              << json::value(stats.solve_time - stats.prenex_time) << json::comma << json::endl;
     std::cout << json::field("prenex time (ms)") << json::value(stats.prenex_time) << json::comma
               << json::endl;
-    std::cout << json::field("total time (ms)") << json::value(init_time + stats.solve_time) << json::endl;
+    std::cout << json::field("total time (ms)") << json::value(init_time + stats.solve_time)
+              << json::endl;
 
     return 0;
   });

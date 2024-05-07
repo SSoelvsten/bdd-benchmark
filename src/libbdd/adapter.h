@@ -13,8 +13,9 @@
 
 namespace lib_bdd
 {
-
   class bdd_function;
+
+  using var_pair = capi::VarPair;
 
   enum class opt_bool : int8_t
   {
@@ -218,6 +219,13 @@ namespace lib_bdd
     }
 
     bdd_function
+    and_not(const bdd_function& rhs) const noexcept
+    {
+      assert(_func._p && rhs._func._p);
+      return capi::bdd_and_not(_func, rhs._func);
+    }
+
+    bdd_function
     operator~() const noexcept
     {
       return capi::bdd_not(_func);
@@ -263,6 +271,19 @@ namespace lib_bdd
     }
 
     bdd_function
+    operator-(const bdd_function& rhs) const noexcept
+    {
+      assert(_func._p && rhs._func._p);
+      return this->and_not(rhs);
+    }
+
+    bdd_function&
+    operator-=(const bdd_function& rhs) noexcept
+    {
+      return (*this = *this - rhs);
+    }
+
+    bdd_function
     imp(const bdd_function& rhs) const noexcept
     {
       assert(_func._p && rhs._func._p);
@@ -274,13 +295,6 @@ namespace lib_bdd
     {
       assert(_func._p && rhs._func._p);
       return capi::bdd_iff(_func, rhs._func);
-    }
-
-    bdd_function
-    and_not(const bdd_function& rhs) const noexcept
-    {
-      assert(_func._p && rhs._func._p);
-      return capi::bdd_and_not(_func, rhs._func);
     }
 
     bdd_function
@@ -316,6 +330,48 @@ namespace lib_bdd
     {
       assert(_func._p);
       return capi::bdd_exists(_func, vars, num_vars);
+    }
+
+    bdd_function
+    and_exists(const bdd_function& g, const uint16_t* vars, size_t num_vars) const noexcept
+    {
+      assert(_func._p);
+      return capi::bdd_and_exists(_func, g._func, vars, num_vars);
+    }
+
+    bdd_function
+    or_exists(const bdd_function& g, const uint16_t* vars, size_t num_vars) const noexcept
+    {
+      assert(_func._p);
+      return capi::bdd_or_exists(_func, g._func, vars, num_vars);
+    }
+
+    bdd_function
+    and_forall(const bdd_function& g, const uint16_t* vars, size_t num_vars) const noexcept
+    {
+      assert(_func._p);
+      return capi::bdd_and_forall(_func, g._func, vars, num_vars);
+    }
+
+    bdd_function
+    or_forall(const bdd_function& g, const uint16_t* vars, size_t num_vars) const noexcept
+    {
+      assert(_func._p);
+      return capi::bdd_or_forall(_func, g._func, vars, num_vars);
+    }
+
+    bdd_function
+    rename_variable(uint16_t x, uint16_t y) const noexcept
+    {
+      assert(_func._p);
+      return capi::bdd_rename_variable(_func, x, y);
+    }
+
+    bdd_function
+    rename_variables(const var_pair* pairs, size_t num_pairs) const noexcept
+    {
+      assert(_func._p);
+      return capi::bdd_rename_variables(_func, pairs, num_pairs);
     }
 
     uint64_t
@@ -376,6 +432,8 @@ public:
   static constexpr std::string_view dd   = "BDD";
 
   static constexpr bool needs_extend     = false;
+  static constexpr bool needs_frame_rule = true;
+
   static constexpr bool complement_edges = false;
 
   using dd_t         = lib_bdd::bdd_function;
@@ -385,6 +443,12 @@ private:
   const int _varcount;
   lib_bdd::manager _manager;
   lib_bdd::bdd_function _latest_build;
+
+  std::vector<uint16_t> _relnext_vars;
+  std::vector<lib_bdd::var_pair> _relnext_renaming;
+
+  std::vector<uint16_t> _relprev_vars;
+  std::vector<lib_bdd::var_pair> _relprev_renaming;
 
   // Init and Deinit
 public:
@@ -425,6 +489,25 @@ public:
     return _manager.nithvar(label);
   }
 
+  template <typename IT>
+  inline lib_bdd::bdd_function
+  cube(IT rbegin, IT rend)
+  {
+    lib_bdd::bdd_function res = top();
+    while (rbegin != rend) { res = ite(ithvar(*(rbegin++)), std::move(res), bot()); }
+    return res;
+  }
+
+  inline lib_bdd::bdd_function
+  cube(const std::function<bool(int)>& pred)
+  {
+    lib_bdd::bdd_function res = top();
+    for (int i = _varcount - 1; 0 <= i; --i) {
+      if (pred(i)) { res = ite(ithvar(i), std::move(res), bot()); }
+    }
+    return res;
+  }
+
   inline lib_bdd::bdd_function
   apply_and(const lib_bdd::bdd_function& f, const lib_bdd::bdd_function& g)
   {
@@ -440,7 +523,7 @@ public:
   inline lib_bdd::bdd_function
   apply_diff(const lib_bdd::bdd_function& f, const lib_bdd::bdd_function& g)
   {
-    return f.and_not(g);
+    return f - g;
   }
 
   inline lib_bdd::bdd_function
@@ -526,6 +609,50 @@ public:
     return b.forall(vars.data(), vars.size());
   }
 
+  inline lib_bdd::bdd_function
+  relnext(const lib_bdd::bdd_function& states,
+          const lib_bdd::bdd_function& rel,
+          const lib_bdd::bdd_function& /*rel_support*/)
+  {
+    // TODO: This does not seem to work!
+    if (_relnext_vars.empty()) {
+      assert(_relnext_renaming.empty());
+
+      for (uint16_t x = 0; x < _varcount; x += 2) {
+        const uint16_t unprimed = x;
+        const uint16_t primed   = x + 1;
+
+        _relnext_vars.push_back(unprimed);
+        _relnext_renaming.push_back(lib_bdd::var_pair{ primed, unprimed });
+      }
+    }
+
+    return states.and_exists(rel, _relnext_vars.data(), _relnext_vars.size())
+      .rename_variables(_relnext_renaming.data(), _relnext_renaming.size());
+  }
+
+  inline lib_bdd::bdd_function
+  relprev(const lib_bdd::bdd_function& states,
+          const lib_bdd::bdd_function& rel,
+          const lib_bdd::bdd_function& /*rel_support*/)
+  {
+    // TODO: This does not seem to work!
+    if (_relprev_vars.empty()) {
+      assert(_relprev_renaming.empty());
+
+      for (uint16_t x = 0; x < _varcount; x += 2) {
+        const uint16_t unprimed = x;
+        const uint16_t primed   = x + 1;
+
+        _relprev_vars.push_back(primed);
+        _relprev_renaming.push_back(lib_bdd::var_pair{ unprimed, primed });
+      }
+    }
+
+    return states.rename_variables(_relprev_renaming.data(), _relprev_renaming.size())
+      .and_exists(rel, _relprev_vars.data(), _relprev_vars.size());
+  }
+
   inline uint64_t
   nodecount(const lib_bdd::bdd_function& f)
   {
@@ -546,6 +673,39 @@ public:
     const double excess_variables = static_cast<double>(this->_varcount) - static_cast<double>(vc);
 
     return f.sat_count() / std::pow(2, excess_variables);
+  }
+
+  inline lib_bdd::bdd_function
+  satone(const lib_bdd::bdd_function& f)
+  {
+    // TODO: Use LibBDDs 'pick(f, vars)' function instead!
+    lib_bdd::assignment sat = f.pickcube();
+
+    lib_bdd::bdd_function res = top();
+    for (int x = sat.size() - 1; 0 <= x; --x) {
+      const lib_bdd::opt_bool val = sat[x];
+      if (val == lib_bdd::opt_bool::NONE) continue;
+
+      res &= val == lib_bdd::opt_bool::TRUE ? ithvar(x) : nithvar(x);
+    }
+    return res;
+  }
+
+  inline lib_bdd::bdd_function
+  satone(const lib_bdd::bdd_function& f, const lib_bdd::bdd_function& c)
+  {
+    // TODO: Use LibBDDs 'pick(f, vars)' function instead!
+    lib_bdd::assignment f_sat = f.pickcube();
+    lib_bdd::assignment c_sat = c.pickcube();
+    assert(f_sat.size() == c_sat.size());
+
+    lib_bdd::bdd_function res = top();
+    for (int x = f_sat.size() - 1; 0 <= x; --x) {
+      if (c_sat[x] == lib_bdd::opt_bool::NONE) { continue; };
+
+      res &= f_sat[x] == lib_bdd::opt_bool::TRUE ? ithvar(x) : nithvar(x);
+    }
+    return res;
   }
 
   inline std::vector<std::pair<uint32_t, char>>

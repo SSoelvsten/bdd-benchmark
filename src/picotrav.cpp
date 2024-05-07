@@ -27,23 +27,23 @@ std::string file_0 = "";
 std::string file_1 = "";
 
 enum variable_order
-  {
-    INPUT,
-    DF,
-    LEVEL,
-    LEVEL_DF,
-    RANDOM
-  };
+{
+  INPUT,
+  DF,
+  LEVEL,
+  LEVEL_DF,
+  RANDOM
+};
 
 std::string
 to_string(const variable_order& o)
 {
   switch (o) {
-  case INPUT:    return "input";
-  case DF:       return "depth-first";
-  case LEVEL:    return "level";
+  case INPUT: return "input";
+  case DF: return "depth-first";
+  case LEVEL: return "level";
   case LEVEL_DF: return "level-df";
-  case RANDOM:   return "random";
+  case RANDOM: return "random";
   }
   return "?";
 }
@@ -86,7 +86,8 @@ public:
         var_order = variable_order::DF;
       } else if (lower_arg == "level" || lower_arg == "l") {
         var_order = variable_order::LEVEL;
-      } else if (lower_arg == "level_depth-first" || lower_arg == "level_df" || lower_arg == "l_df") {
+      } else if (lower_arg == "level_depth-first" || lower_arg == "level_df"
+                 || lower_arg == "l_df") {
         var_order = variable_order::LEVEL_DF;
       } else if (lower_arg == "random" || lower_arg == "r") {
         var_order = variable_order::RANDOM;
@@ -96,8 +97,7 @@ public:
       }
       return false;
     }
-    default:
-      return true;
+    default: return true;
     }
   }
 };
@@ -839,7 +839,8 @@ construct_net_bdd(const std::string& filename,
 
 #ifdef BDD_BENCHMARK_STATS
   std::cout << json::field("life_time") << json::brace_open << json::endl;
-  std::cout << json::field("total processed (nodes)") << stats.total_processed << json::comma << json::endl;
+  std::cout << json::field("total processed (nodes)") << stats.total_processed << json::comma
+            << json::endl;
   std::cout << json::field("max roots") << json::value(stats.max_roots) << json::comma
             << json::endl;
   std::cout << json::field("size[max] (nodes)") << json::value(stats.max_bdd_size) << json::comma
@@ -953,15 +954,13 @@ run_picotrav(int argc, char** argv)
 
     const bool inputs_match = net_0.inputs_w_order.size() == net_1.inputs_w_order.size();
     if (!inputs_match) {
-      std::cerr << "Number of inputs in '" << file_0 << "' and '" << file_1
-                << "' do not match!\n";
+      std::cerr << "Number of inputs in '" << file_0 << "' and '" << file_1 << "' do not match!\n";
       return -1;
     }
 
     const bool outputs_match = net_0.outputs_in_order.size() == net_1.outputs_in_order.size();
     if (!outputs_match) {
-      std::cerr << "Number of outputs in '" << file_0 << "' and '" << file_1
-                << "' do not match!\n";
+      std::cerr << "Number of outputs in '" << file_0 << "' and '" << file_1 << "' do not match!\n";
       return -1;
     }
   }
@@ -980,8 +979,8 @@ run_picotrav(int argc, char** argv)
   const size_t varcount = net_0.inputs_w_order.size();
 
   return run<Adapter>("Picotrav", varcount, [&](Adapter& adapter) {
-    std::cout << json::field("variable order") << json::value(to_string(var_order))
-              << json::comma << json::endl;
+    std::cout << json::field("variable order") << json::value(to_string(var_order)) << json::comma
+              << json::endl;
     std::cout << json::endl;
 
     // ========================================================================
@@ -1006,8 +1005,7 @@ run_picotrav(int argc, char** argv)
 
       bdd_cache<Adapter> cache_1;
 
-      const auto [errcode_1, time_1] =
-        construct_net_bdd(file_1, net_1, cache_1, adapter);
+      const auto [errcode_1, time_1] = construct_net_bdd(file_1, net_1, cache_1, adapter);
 
       if (errcode_1) { return errcode_1; }
       total_time += time_1;
@@ -1025,7 +1023,8 @@ run_picotrav(int argc, char** argv)
     }
 
     // TODO: Fix 'total time' below also measures multiple 'std::flush'.
-    std::cout << json::field("total time (ms)") << json::value(init_time + total_time) << json::endl;
+    std::cout << json::field("total time (ms)") << json::value(init_time + total_time)
+              << json::endl;
 
     if (verify_networks && !networks_equal) { return -1; }
     return 0;

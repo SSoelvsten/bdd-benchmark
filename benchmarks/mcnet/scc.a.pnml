@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+  <net id="SCC[a]" type="http://www.pnml.org/version-2009/grammar/ptnet">
+    <name><text>2-cycle</text></name>
+    <page id="page">
+
+      <!-- places -->
+      <place id="p1">
+		    <initialMarking><text>1</text></initialMarking>
+		    <name><text>p_1</text></name>
+	    </place>
+
+      <place id="p2"><name><text>p_2</text></name></place>
+      <place id="p3"><name><text>p_3</text></name></place>
+      <place id="p4"><name><text>p_4</text></name></place>
+      <place id="p5"><name><text>p_5</text></name></place>
+      <place id="p6"><name><text>p_6</text></name></place>
+      <place id="p7"><name><text>p_7</text></name></place>
+      <place id="p8"><name><text>p_8</text></name></place>
+      <place id="p9"><name><text>p_9</text></name></place>
+      <place id="p10"><name><text>p_10</text></name></place>
+
+      <!-- transitions -->
+      <transition id="t1"><name><text>t_1</text></name></transition>
+      <arc id="t1_i" source="p1" target="t1"/>
+      <arc id="t1_o" source="t1" target="p2"/>
+
+      <transition id="t2"><name><text>t_2</text></name></transition>
+      <arc id="t2_i" source="p2" target="t2"/>
+      <arc id="t2_o" source="t2" target="p1"/>
+
+      <transition id="t3"><name><text>t_3</text></name></transition>
+      <arc id="t3_i" source="p2" target="t3"/>
+      <arc id="t3_o" source="t3" target="p3"/>
+
+      <transition id="t4"><name><text>t_4</text></name></transition>
+      <arc id="t4_i" source="p3" target="t4"/>
+      <arc id="t4_o" source="t4" target="p4"/>
+
+      <transition id="t5"><name><text>t_5</text></name></transition>
+      <arc id="t5_i" source="p4" target="t5"/>
+      <arc id="t5_o" source="t5" target="p5"/>
+
+      <transition id="t6"><name><text>t_6</text></name></transition>
+      <arc id="t6_i" source="p5" target="t6"/>
+      <arc id="t6_o" source="t6" target="p6"/>
+
+      <transition id="t7"><name><text>t_7</text></name></transition>
+      <arc id="t7_i" source="p6" target="t7"/>
+      <arc id="t7_o" source="t7" target="p5"/>
+
+      <transition id="t8"><name><text>t_8</text></name></transition>
+      <arc id="t8_i" source="p4" target="t8"/>
+      <arc id="t8_o" source="t8" target="p9"/>
+
+      <transition id="t9"><name><text>t_9</text></name></transition>
+      <arc id="t9_i" source="p9" target="t9"/>
+      <arc id="t9_o" source="t9" target="p10"/>
+
+      <transition id="t10"><name><text>t_10</text></name></transition>
+      <arc id="t10_i" source="p10" target="t10"/>
+      <arc id="t10_o" source="t10" target="p9"/>
+
+      <transition id="t11"><name><text>t_11</text></name></transition>
+      <arc id="t11_i" source="p3" target="t11"/>
+      <arc id="t11_o" source="t11" target="p7"/>
+
+      <transition id="t12"><name><text>t_12</text></name></transition>
+      <arc id="t12_i" source="p7" target="t12"/>
+      <arc id="t12_o" source="t12" target="p8"/>
+
+      <transition id="t13"><name><text>t_13</text></name></transition>
+      <arc id="t13_i" source="p8" target="t13"/>
+      <arc id="t13_o" source="t13" target="p7"/>
+
+      <transition id="t14"><name><text>t_14</text></name></transition>
+      <arc id="t14_i" source="p8" target="t14"/>
+      <arc id="t14_o" source="t14" target="p6"/>
+    </page>
+  </net>
+</pnml>

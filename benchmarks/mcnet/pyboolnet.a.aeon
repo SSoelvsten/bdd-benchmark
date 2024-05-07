@@ -1,0 +1,12 @@
+# Translated from
+# https://pyboolnet.readthedocs.io/en/master/quickstart.html
+
+v1 -? v1
+$v1: !v1
+
+$v2: true
+
+v1 -? v3
+v2 -? v3
+v3 -> v3
+$v3: v2 & (!v1 | v3)
