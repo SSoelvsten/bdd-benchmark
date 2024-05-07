@@ -67,7 +67,7 @@ run(const std::string& benchmark_name, const int varcount, const F& f)
     << json::endl
     << json::endl
     // BDD package substruct
-    << json::field("bdd_package") << json::brace_open
+    << json::field("bdd package") << json::brace_open
     << json::endl
     // Name
     << json::field("name") << json::value(Adapter::name) << json::comma
@@ -86,10 +86,10 @@ run(const std::string& benchmark_name, const int varcount, const F& f)
 
   std::cout
     // Initialisation Time
-    << json::field("init_time__ms") << json::value(t_duration) << json::comma
+    << json::field("init time (ms)") << json::value(t_duration) << json::comma
     << json::endl
     // Memory
-    << json::field("memory__MiB") << json::value(M) << json::comma
+    << json::field("memory (MiB)") << json::value(M) << json::comma
     << json::endl
     // Variables
     << json::field("variables") << json::value(varcount)
