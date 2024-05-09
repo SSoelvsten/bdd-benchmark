@@ -84,7 +84,7 @@ public:
         var_order = variable_order::DF;
       } else if (lower_arg == "level" || lower_arg == "l") {
         var_order = variable_order::LEVEL;
-      } else if (lower_arg == "level_depth-first" || lower_arg == "l_df") {
+      } else if (lower_arg == "level_depth-first" || lower_arg == "level_df" || lower_arg == "l_df") {
         var_order = variable_order::LEVEL_DF;
       } else if (lower_arg == "random" || lower_arg == "r") {
         var_order = variable_order::RANDOM;
