@@ -21,4 +21,4 @@
 	url = ../../nhusung/lib-bdd-ffi
 [submodule "external/oxidd"]
 	path = external/oxidd
-	url = https://github.com/OxiDD/oxidd.git
+	url = ../../OxiDD/oxidd

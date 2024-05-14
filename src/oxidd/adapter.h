@@ -72,7 +72,7 @@ private:
   // Init and Deinit
 public:
   oxidd_bdd_adapter(uint32_t varcount)
-    : _manager(compute_init_size(2).first, compute_init_size(2).second, threads)
+    : _manager(compute_init_size(3).first, compute_init_size(3).second, threads)
   {
     _vars.reserve(varcount);
     for (uint32_t i = 0; i < varcount; i++) { _vars.emplace_back(_manager.new_var()); }
@@ -318,7 +318,7 @@ private:
   // Init and Deinit
 public:
   oxidd_bcdd_adapter(uint32_t varcount)
-    : _manager(compute_init_size(2).first, compute_init_size(2).second, threads)
+    : _manager(compute_init_size(3).first, compute_init_size(3).second, threads)
   {
     _vars.reserve(varcount);
     for (uint32_t i = 0; i < varcount; i++) { _vars.emplace_back(_manager.new_var()); }
