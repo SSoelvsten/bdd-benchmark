@@ -8,6 +8,8 @@
 #include <string_view>
 #include <vector>
 
+#include "common/adapter.h"
+
 #include <calObj.hh>
 
 class cal_bcdd_adapter
@@ -34,9 +36,8 @@ public:
     : _mgr(bdd_varcount)
     , _varcount(bdd_varcount)
   {
-    _mgr.DynamicReordering(enable_reordering
-                           ? Cal::ReorderTechnique::SIFT
-                           : Cal::ReorderTechnique::NONE);
+    _mgr.DynamicReordering(enable_reordering ? Cal::ReorderTechnique::Sift
+                                             : Cal::ReorderTechnique::None);
 
     _latest_build = bot();
   }
