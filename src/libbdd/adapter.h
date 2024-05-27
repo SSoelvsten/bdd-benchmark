@@ -577,7 +577,9 @@ public:
   build_node(const bool value)
   {
     const lib_bdd::bdd_function res = value ? top() : bot();
-    if (_latest_build.is_invalid()) { _latest_build = res; }
+    if (_latest_build.is_invalid() || _latest_build == top() || _latest_build == bot()) {
+      _latest_build = res;
+    }
     return res;
   }
 
