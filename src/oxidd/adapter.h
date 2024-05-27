@@ -246,7 +246,9 @@ public:
   build_node(const bool value)
   {
     const oxidd::bdd_function res = value ? top() : bot();
-    if (_latest_build.is_invalid()) { _latest_build = res; }
+    if (_latest_build.is_invalid() || _latest_build == top() || _latest_build == bot()) {
+      _latest_build = res;
+    }
     return res;
   }
 
@@ -492,7 +494,9 @@ public:
   build_node(const bool value)
   {
     const oxidd::bcdd_function res = value ? top() : bot();
-    if (_latest_build.is_invalid()) { _latest_build = res; }
+    if (_latest_build.is_invalid() || _latest_build == top() || _latest_build == bot()) {
+      _latest_build = res;
+    }
     return res;
   }
 
@@ -729,7 +733,9 @@ public:
   build_node(const bool value)
   {
     const oxidd::zbdd_function res = value ? _manager.base() : _manager.empty();
-    if (_latest_build.is_invalid()) { _latest_build = res; }
+    if (_latest_build.is_invalid() || _latest_build == top() || _latest_build == bot()) {
+      _latest_build = res;
+    }
     return res;
   }
 
