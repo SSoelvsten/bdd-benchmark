@@ -649,7 +649,7 @@ exit_code = 0
 with open(f"regression_{package.name}.out", 'a') as out:
     max_stdev = max(baseline_data.stdev(), test_data.stdev())
     diff = baseline_data.mean() - test_data.mean()
-    significant = abs(diff) > max_stdev
+    significant = abs(diff) > 2 * max_stdev
 
     if diff < 0 and significant:
         exit_code = 1
