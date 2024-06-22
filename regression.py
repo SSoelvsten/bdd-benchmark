@@ -654,7 +654,7 @@ with open(f"regression_{package.name}.out", 'a') as out:
     if diff < 0 and significant:
         exit_code = 1
 
-    color = ('red' if significant else 'yellow') if diff < 0 else 'green'
+    color = ('red' if diff < 0 else 'green') if significant else 'yellow'
     headline_txt   = ("# "
                       + f":{color}_circle:"
                       + f" Regression Test ({benchmark_strategy.report_name()})")
