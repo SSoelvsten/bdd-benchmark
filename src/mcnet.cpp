@@ -194,8 +194,6 @@ overload(Ts...) -> overload<Ts...>;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class transition_system
 {
-  // TODO: bool_exp constants for Boolean Networks (needed for backwards)
-
 public:
   //////////////////////////////////////////////////////////////////////////////////////////////////
   /// \brief Container for a Boolean formula (in Reverse Polish Notation).
@@ -733,6 +731,11 @@ private:
   //////////////////////////////////////////////////////////////////////////////////////////////////
   bool_exp _initial;
 
+  ////////////////////////////////////////////////////////////////////////////////////////////////
+  /// \brief Formula for constant variables, i.e. variables that always have a certain value.
+  ////////////////////////////////////////////////////////////////////////////////////////////////
+  bool_exp _invariant;
+
   //////////////////////////////////////////////////////////////////////////////////////////////////
   /// \brief List of transitions in declaration order.
   //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -743,6 +746,9 @@ public:
   {
     // Set initial states to `true` formula by default.
     this->_initial.push(true);
+
+    // Set invariant to `true` formula by default.
+    this->_invariant.push(true);
   }
 
 public:
@@ -800,10 +806,19 @@ public:
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////////////
+  /// \brief Obtain read-only access to initial state(s).
+  //////////////////////////////////////////////////////////////////////////////////////////////////
+  const bool_exp&
+  initial() const
+  {
+    return this->_initial;
+  }
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
   /// \brief Overwrite the initial set of states.
   //////////////////////////////////////////////////////////////////////////////////////////////////
   void
-  set(const bool_exp& initial)
+  initial(const bool_exp& initial)
   {
     if (initial.empty()) { throw std::invalid_argument("Invalid empty initial state formula"); }
     this->_initial = initial;
@@ -813,9 +828,19 @@ public:
   /// \brief Obtain read-only access to initial state(s).
   //////////////////////////////////////////////////////////////////////////////////////////////////
   const bool_exp&
-  initial() const
+  invariant() const
   {
-    return this->_initial;
+    return this->_invariant;
+  }
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
+  /// \brief Overwrite the initial set of states.
+  //////////////////////////////////////////////////////////////////////////////////////////////////
+  void
+  invariant(const bool_exp& invariant)
+  {
+    if (invariant.empty()) { throw std::invalid_argument("Invalid empty invariant state formula"); }
+    this->_invariant = invariant;
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -837,7 +862,8 @@ public:
   {
     std::stringstream ss;
     ss << "transition_system {\n"
-       << "  initial: '" << this->_initial.to_string() << "',\n"
+       << "  initial:     '" << this->_initial.to_string() << "',\n"
+       << "  invariant:   '" << this->_invariant.to_string() << "',\n"
        << "  transitions: [\n";
     for (const auto& t : this->transitions()) { ss << "    { " << t.to_string() << " },\n"; }
     ss << "  ]\n"
@@ -1076,10 +1102,12 @@ parse_file__aeon(const std::filesystem::path& path)
     ts.insert_transition({ pre, transition::Assignment, post });
   }
 
-  // Initial state(s)
+  // Initial state(s) and invariant
   if (initial.empty()) { initial.push(true); }
   initial.flush();
-  ts.set(initial);
+  assert(initial.is_cubic());
+  ts.initial(initial);
+  ts.invariant(initial);
 
   return ts;
 }
@@ -1115,9 +1143,13 @@ parse_file__bnet(const std::filesystem::path& path)
       ts.insert_transition({ pre, transition_system::transition::Assignment, post });
     }
   }
+
+  // Initial state(s) and invariant
   if (initial.empty()) { initial.push(true); }
   initial.flush();
-  ts.set(initial);
+  assert(initial.is_cubic());
+  ts.initial(initial);
+  ts.invariant(initial);
 
   return ts;
 }
@@ -1202,15 +1234,26 @@ parse_file__pnml(const std::filesystem::path& path)
   }
 
   // Convert initial state into Boolean expressions.
-  bool_exp initial;
-  for (int x = 0; x < static_cast<int>(ts.vars().size()); ++x) {
-    if (x > 0) { initial.push(bool_exp::And); }
-    if (initial_marking.find(x) == initial_marking.end()) { initial.push(bool_exp::Not); }
-    initial.push(x);
+  {
+    bool_exp initial;
+    for (int x = 0; x < static_cast<int>(ts.vars().size()); ++x) {
+      if (x > 0) { initial.push(bool_exp::And); }
+      if (initial_marking.find(x) == initial_marking.end()) { initial.push(bool_exp::Not); }
+      initial.push(x);
+    }
+    if (initial.empty()) { initial.push(false); }
+    initial.flush();
+    assert(initial.is_cubic());
+    ts.initial(initial);
   }
-  initial.flush();
-  assert(initial.is_cubic());
-  ts.set(initial);
+
+  // Set invariant to 'true'
+  {
+    bool_exp invariant;
+    invariant.push(true);
+    invariant.flush();
+    ts.invariant(invariant);
+  }
 
   // Convert transitions into Boolean expressions.
   for (const auto& t_iter : transitions) {
@@ -1487,10 +1530,12 @@ parse_file__sbml(const std::filesystem::path& path)
     }
   }
 
+  // Initial state(s) and invariant
   if (initial.empty()) { initial.push(true); }
-  assert(initial.is_cubic());
   initial.flush();
-  ts.set(initial);
+  assert(initial.is_cubic());
+  ts.initial(initial);
+  ts.invariant(initial);
 
   return ts;
 }
@@ -1713,6 +1758,11 @@ private:
   /// \brief Variable permutation (bridge between `_ts` and anything of type `dd_t`).
   //////////////////////////////////////////////////////////////////////////////////////////////////
   const variable_permutation _vp;
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
+  /// \brief Symbolic invariant.
+  //////////////////////////////////////////////////////////////////////////////////////////////////
+  dd_t _all;
 
   //////////////////////////////////////////////////////////////////////////////////////////////////
   /// \brief Symbolic initial state(s).
@@ -1985,6 +2035,7 @@ private:
   void
   convert()
   {
+    this->_all     = this->convert(this->_ts.invariant(), prime::pre);
     this->_initial = this->convert(this->_ts.initial(), prime::pre);
 
     this->_transitions.reserve(this->_ts.transitions().size());
@@ -2049,7 +2100,7 @@ public:
   dd_t
   all() const
   {
-    return this->_adapter.top();
+    return this->_all;
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2437,6 +2488,14 @@ run_mcnet(int argc, char** argv)
 
     std::cout << json::field("initial") << json::brace_open << json::endl;
     std::cout << json::field("size (nodes)") << json::value(adapter.nodecount(sts.initial()))
+              << json::comma << json::endl;
+    std::cout << json::field("satcount (states)")
+              << json::value(adapter.satcount(sts.initial(), sts.varcount(prime_pre)))
+              << json::endl;
+    std::cout << json::brace_close << json::comma << json::endl;
+
+    std::cout << json::field("invariant") << json::brace_open << json::endl;
+    std::cout << json::field("size (nodes)") << json::value(adapter.nodecount(sts.all()))
               << json::comma << json::endl;
     std::cout << json::field("satcount (states)")
               << json::value(adapter.satcount(sts.initial(), sts.varcount(prime_pre)))
