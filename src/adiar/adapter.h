@@ -221,7 +221,7 @@ public:
       [](const int x) -> adiar::optional<int> {
         return (x % 2) == 0 ? adiar::make_optional<int>() : adiar::make_optional<int>(x - 1);
       },
-      adiar::replace_type::Monotone);
+      adiar::replace_type::Shift);
   }
 
   inline adiar::bdd
@@ -233,7 +233,7 @@ public:
       [](const int x) -> adiar::optional<int> {
         return (x % 2) == 1 ? adiar::make_optional<int>() : adiar::make_optional<int>(x + 1);
       },
-      adiar::replace_type::Monotone);
+      adiar::replace_type::Shift);
   }
 
   inline uint64_t
