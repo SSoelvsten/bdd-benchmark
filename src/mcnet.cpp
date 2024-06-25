@@ -472,6 +472,26 @@ public:
       return this->_rpn_stack.cend();
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Iterator to beginning of Boolean expression (in *Reverse* Reverse-Polish Notation).
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    std::vector<value_type>::const_reverse_iterator
+    rbegin() const
+    {
+      // if (!this->_op_stack.empty()) { this->flush(); }
+      return this->_rpn_stack.crbegin();
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Iterator to beginning of Boolean expression (in *Reverse* Reverse-Polish Notation).
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    std::vector<value_type>::const_reverse_iterator
+    rend() const
+    {
+      // if (!this->_op_stack.empty()) { this->flush(); }
+      return this->_rpn_stack.crend();
+    }
+
   public:
     ////////////////////////////////////////////////////////////////////////////////////////////////
     /// \brief Evaluate the constant value (if possible)
@@ -1786,7 +1806,44 @@ private:
     // ------------------------------------------------------------------------------------------
     // Case: 'e' is a cube, build it by hand bottom-up
     if (e.is_cubic()) {
-      // TODO
+      using build_ptr = typename Adapter::build_node_t;
+
+      std::vector<std::pair<int, bool>> cube;
+      {
+        bool negate_next = false;
+        for (auto it = e.rbegin(); it != e.rend(); ++it) {
+          std::visit(overload{
+                       [this, &is_prime, &cube, &negate_next](const int x) -> void {
+                         const int dd_x = this->dd_var(x, is_prime);
+                         cube.push_back({ dd_x, negate_next });
+                         negate_next = false;
+                       },
+                       [&negate_next](const transition_system::bool_exp::unary_operator o) -> void {
+                         switch (o) {
+                         case transition_system::bool_exp::Not: {
+                           negate_next = !negate_next;
+                           return;
+                         }
+                         }
+                       },
+                       [](auto) -> void { /* Do nothing */ },
+                     },
+                     *it);
+        }
+        std::sort(cube.begin(), cube.end(), [](auto a, auto b) { return a.first < b.first; });
+      }
+
+      const build_ptr false_ptr = this->_adapter.build_node(false);
+      const build_ptr true_ptr  = this->_adapter.build_node(true);
+
+      build_ptr root = true_ptr;
+
+      for (auto it = cube.rbegin(); it != cube.rend(); ++it) {
+        root = it->second ? this->_adapter.build_node(it->first, false_ptr, root)
+                          : this->_adapter.build_node(it->first, root, false_ptr);
+      }
+
+      return this->_adapter.build();
     }
 
     // ------------------------------------------------------------------------------------------
