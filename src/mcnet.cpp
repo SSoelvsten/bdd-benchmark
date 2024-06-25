@@ -38,6 +38,13 @@
 #include "common/chrono.h"
 #include "common/input.h"
 
+// Boost
+#include <boost/config.hpp>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/properties.hpp>
+#include <boost/graph/cuthill_mckee_ordering.hpp>
+#include <boost/graph/sloan_ordering.hpp>
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // PARAMETER PARSING
@@ -84,10 +91,14 @@ std::array<bool, 3> analysis_flags = { false, false, false };
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 enum class variable_order : char
 {
+  /** The Cuthill-Mckee algorithm to reduce Bandwidth */
+  CUTHILL_MCKEE,
   /** Use declaration order in file. */
   INPUT,
   /** Permute order randomly. */
-  RANDOM
+  RANDOM,
+  /** Sloan's algorithm to reduce Bandwidth */
+  SLOAN
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -95,8 +106,10 @@ std::string
 to_string(const variable_order& vo)
 {
   switch (vo) {
+  case variable_order::CUTHILL_MCKEE: return "cuthill-mckee";
   case variable_order::INPUT: return "input";
   case variable_order::RANDOM: return "random";
+  case variable_order::SLOAN: return "sloan";
   }
   return "?";
 }
@@ -155,10 +168,14 @@ public:
     case 'o': {
       const std::string lower_arg = ascii_tolower(arg);
 
-      if (is_prefix(lower_arg, "input")) {
+      if (is_prefix(lower_arg, "cuthill-mckee")) {
+        var_order = variable_order::CUTHILL_MCKEE;
+      } else if (is_prefix(lower_arg, "input")) {
         var_order = variable_order::INPUT;
       } else if (is_prefix(lower_arg, "random")) {
         var_order = variable_order::RANDOM;
+      } else if (is_prefix(lower_arg, "sloan")) {
+        var_order = variable_order::SLOAN;
       } else {
         std::cerr << "Undefined ordering: " << arg << "\n";
         return true;
@@ -1555,6 +1572,16 @@ parse_file(const std::filesystem::path& path)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// TODO (variable orders):
+// - [x] Identity
+// - [x] Random
+// - [x] boost::sloan_ordering
+// - [x] boost::cuthill_mckee_ordering
+// - [ ] noack
+
+// TODO:
+// - [ ] Add transition ordering here too!
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// \brief Permutations to match a certain variable order.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1614,7 +1641,68 @@ public:
     return iter != this->_permutation_inv.end() ? iter->second : -1;
   }
 
+private:
+  using boost__vertex_properties = boost::property<
+    boost::vertex_color_t,
+    boost::default_color_type,
+    boost::property<boost::vertex_degree_t, int, boost::property<boost::vertex_priority_t, int>>>;
+
+  using boost__graph_type =
+    boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, boost__vertex_properties>;
+
+  using boost__vertex_type = boost::graph_traits<boost__graph_type>::vertex_descriptor;
+  using boost__size_type   = boost::graph_traits<boost__graph_type>::vertices_size_type;
+
+  static inline boost__graph_type
+  boost__incidence_graph(const transition_system& ts)
+  {
+    boost__graph_type g(ts.vars().size());
+
+    { // For each transition...
+      for (const transition_system::transition& t : ts.transitions()) {
+        const std::set<int> pre_support  = t.pre().support();
+        const std::set<int> post_support = t.post().support();
+
+        // ... add an edge to the graph, for variables that occur in the same transition.
+        for (const int x : pre_support) {
+          for (const int y : pre_support) { boost::add_edge(x, y, g); }
+          for (const int y : post_support) { boost::add_edge(x, y, g); }
+        }
+        for (const int x : post_support) {
+          for (const int y : pre_support) { boost::add_edge(x, y, g); }
+          for (const int y : post_support) { boost::add_edge(x, y, g); }
+        }
+      }
+    }
+
+    return g;
+  }
+
 public:
+  //////////////////////////////////////////////////////////////////////////////////////////////////
+  /// \brief Derive a variable ordering using the Cuthill-Mckee algorithm.
+  //////////////////////////////////////////////////////////////////////////////////////////////////
+  static variable_permutation
+  cuthill_mckee(const transition_system& ts)
+  {
+    auto g              = boost__incidence_graph(ts);
+    const auto g_color  = boost::get(boost::vertex_color, g);
+    const auto g_degree = boost::make_degree_map(g);
+
+    // From Boost Documentation on "Sloan's Ordering":
+    //   "Usually you need the reversed ordering with the Cuthill-McKee algorithm (...)"
+    //
+    // From our preliminary experiments, the opposite is the case for BDDs.
+    std::vector<boost__vertex_type> boost_order(boost::num_vertices(g));
+    boost::cuthill_mckee_ordering(g, boost_order.begin(), g_color, g_degree);
+
+    std::unordered_map<int, int> out;
+    for (auto it = boost_order.begin(); it != boost_order.end(); ++it) {
+      out.insert({ *it, out.size() });
+    }
+    return variable_permutation(std::move(out));
+  }
+
   //////////////////////////////////////////////////////////////////////////////////////////////////
   /// \brief The *identify* variable permutation, i.e. the original input declaration order.
   //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1650,16 +1738,49 @@ public:
     return variable_permutation(std::move(permutation));
   }
 
+  //////////////////////////////////////////////////////////////////////////////////////////////////
+  /// \brief Derive a variable ordering using Sloan's algorithm.
+  //////////////////////////////////////////////////////////////////////////////////////////////////
+  static variable_permutation
+  sloan(const transition_system& ts)
+  {
+    auto g                = boost__incidence_graph(ts);
+    const auto g_color    = boost::get(boost::vertex_color, g);
+    const auto g_degree   = boost::make_degree_map(g);
+    const auto g_priority = boost::get(boost::vertex_priority, g);
+
+    // From Boost Documentation on "Sloan's Ordering":
+    //   "(...) and the direct ordering with the Sloan algorithm."
+    //
+    // From our preliminary experiments, the opposite is the case for BDDs.
+    std::vector<boost__vertex_type> boost_order(boost::num_vertices(g));
+    boost::sloan_ordering(g, boost_order.rbegin(), g_color, g_degree, g_priority);
+
+    std::unordered_map<int, int> out;
+    for (auto it = boost_order.begin(); it != boost_order.end(); ++it) {
+      out.insert({ *it, out.size() });
+    }
+    return variable_permutation(std::move(out));
+  }
+
 public:
   variable_permutation(const transition_system& ts, const variable_order& vo)
   {
     switch (vo) {
+    case variable_order::CUTHILL_MCKEE: {
+      *this = cuthill_mckee(ts);
+      return;
+    }
     case variable_order::INPUT: {
       *this = identity(ts);
       return;
     }
     case variable_order::RANDOM: {
       *this = random(ts);
+      return;
+    }
+    case variable_order::SLOAN: {
+      *this = sloan(ts);
       return;
     }
     }
@@ -1684,7 +1805,7 @@ public:
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // TODO :
-// - [ ] Sort transitions based on pre-condition and positive initial variables/breadth-first order.
+// - [ ] Merge async transitions if requested
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// \brief Symbolic representation of a Transition System.

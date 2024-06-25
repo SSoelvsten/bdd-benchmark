@@ -91,6 +91,9 @@ add_subdirectory (external/sylvan sylvan EXCLUDE_FROM_ALL)
 # BLIF parser
 add_subdirectory (external/blifparse libblifparse EXCLUDE_FROM_ALL)
 
+# Boost
+find_package(Boost REQUIRED)
+
 # XML parser
 add_subdirectory (external/pugixml pugixml EXCLUDE_FROM_ALL)
 

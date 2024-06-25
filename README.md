@@ -165,6 +165,13 @@ installed with.
 apt install bison flex
 ```
 
+The *McNet* benchmark requires the *Boost Library*. On Ubuntu, these can be
+installed as follows
+
+```bash
+apt install libboost-all-dev
+```
+
 **Adiar**
 
 Adiar also has a transitive dependency on the *Boost Library*. On Ubuntu, these
@@ -458,9 +465,16 @@ system formats.
   Each BDD variable represents a location in the net. Hence, the variable
   ordering can have a major impact on the diagrams' size.
 
+  - `cuthill-mckee`: Use the Cuthill-McKee order derived from the incidence
+    graph, i.e. where variables are connected if they occur in together in
+    the same transition.
+
   - `input`: Use the order in which the locations are declared in the file.
 
   - `random`: A randomized ordering of variables.
+
+  - `sloan`: Use Sloan's ordering derived from the incidence graph, where
+    variables are connected if they occur in together in the same transition.
 
 - **`-s`**
 
