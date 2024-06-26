@@ -77,7 +77,6 @@ class ApplyStrategy:
                 if not zip_info.filename.endswith(".bdd"):
                     continue
 
-                print(zip_info)
                 zip_info.filename = os.path.basename(zip_info.filename)
                 print(zip_info)
                 zip_ref.extract(zip_info, path)
@@ -163,6 +162,182 @@ class ApplyStrategy:
 
     def report_name(self):
         return f"Apply({self._1_path.split('/')[-1]}, {self._2_path.split('/')[-1]})"
+
+# ---------------------------------------------------------------------------- #
+# Petri Nets and Boolean Networks for McNet
+
+import os, io, re, tarfile, wget
+
+class McNetStrategy:
+    _paths = []
+    _path = ".."
+
+    MCC_INSTANCES = [
+        ["Anderson",           2023, "https://mcc.lip6.fr/2024/archives/Anderson-pnml.tar.gz"],
+        ["EisenbergMcGuire",   2023, "https://mcc.lip6.fr/2024/archives/EisenbergMcGuire-pnml.tar.gz"],
+        ["AutonomousCar",      2022, "https://mcc.lip6.fr/2024/archives/AutonomousCar-pnml.tar.gz"],
+        ["RERS2020",           2022, "https://mcc.lip6.fr/2024/archives/RERS2020-pnml.tar.gz"],
+        ["StigmergyCommit",    2022, "https://mcc.lip6.fr/2024/archives/StigmergyCommit-pnml.tar.gz"],
+        ["StigmergyElection",  2022, "https://mcc.lip6.fr/2024/archives/StigmergyElection-pnml.tar.gz"],
+        ["GPUForwardProgress", 2021, "https://mcc.lip6.fr/2024/archives/GPUForwardProgress-pnml.tar.gz"],
+        ["HealthRecord",       2021, "https://mcc.lip6.fr/2024/archives/HealthRecord-pnml.tar.gz"],
+        ["ServersAndClients",  2021, "https://mcc.lip6.fr/2024/archives/ServersAndClients-pnml.tar.gz"],
+        ["ShieldIIPs",         2020, "https://mcc.lip6.fr/2024/archives/ShieldIIPs-pnml.tar.gz"],
+        ["ShieldIIPt",         2020, "https://mcc.lip6.fr/2024/archives/ShieldIIPt-pnml.tar.gz"],
+        ["ShieldPPPs",         2020, "https://mcc.lip6.fr/2024/archives/ShieldPPPs-pnml.tar.gz"],
+        ["ShieldPPPt",         2020, "https://mcc.lip6.fr/2024/archives/ShieldPPPt-pnml.tar.gz"],
+        ["SmartHome",          2020, "https://mcc.lip6.fr/2024/archives/SmartHome-pnml.tar.gz"],
+        ["NoC3x3",             2019, "https://mcc.lip6.fr/2024/archives/NoC3x3-pnml.tar.gz"],
+        ["ASLink",             2018, "https://mcc.lip6.fr/2024/archives/ASLink-pnml.tar.gz"],
+        ["BusinessProcesses",  2018, "https://mcc.lip6.fr/2024/archives/BusinessProcesses-pnml.tar.gz"],
+        ["DLCflexbar",         2018, "https://mcc.lip6.fr/2024/archives/DLCflexbar-pnml.tar.gz"],
+        ["DiscoveryGPU",       2018, "https://mcc.lip6.fr/2024/archives/DiscoveryGPU-pnml.tar.gz"],
+        ["EGFr",               2018, "https://mcc.lip6.fr/2024/archives/EGFr-pnml.tar.gz"],
+        ["MAPKbis",            2018, "https://mcc.lip6.fr/2024/archives/MAPKbis-pnml.tar.gz"],
+        ["NQueens",            2018, "https://mcc.lip6.fr/2024/archives/NQueens-pnml.tar.gz"],
+    ]
+
+    MCC_KEY = "mcc"
+    MCC_PATH = f"{_path}/{MCC_KEY}"
+
+    def _mcc_path(self, mcc_instance):
+        return f"{self.MCC_KEY}/{mcc_instance[1]}/{mcc_instance[0]}"
+
+    def _mcc_download(self, path, tar_url):
+        # create directory (if it does not exist)
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        # .tar file with binary encoding of BDDs
+        tar_file = wget.download(tar_url)
+        with tarfile.open(tar_file, 'r') as tar_ref:
+            for tar_info in tar_ref:
+                if tar_info.isdir() or re.search(".*/PT/.*", tar_info.name) == None:
+                    continue
+
+                tar_info.name = os.path.basename(tar_info.name)
+                print(f"  {tar_info.name}")
+                tar_ref.extract(tar_info, path)
+
+        os.remove(tar_file)
+        print("")
+
+    AEON_KEY = "aeon"
+
+    def _aeon_download(self, path):
+        aeon_url = "https://github.com/sybila/biodivine-lib-param-bn/archive/refs/heads/master.zip"
+
+        zip_file = wget.download(aeon_url)
+        with zipfile.ZipFile(zip_file, 'r') as zip_ref:
+            for zip_info in zip_ref.infolist():
+                # Ignore folders, anything not in 'sbml_models/real_world' or ending with '.aeon'
+                if zip_info.is_dir():
+                    continue
+                if not re.search(".*/sbml_models/real_world/.*/.*", zip_info.filename):
+                    continue
+                if not zip_info.filename.endswith(".aeon"):
+                    continue
+
+                zip_info.filename = re.search(".*/sbml_models/real_world/(.*)/.*", zip_info.filename).group(1) + ".aeon"
+                print(f"  {zip_info.filename}")
+                zip_ref.extract(zip_info, path)
+
+        os.remove(zip_file)
+        print("")
+
+    BNET_KEY = "bnet"
+
+    def _bnet_download(self, path):
+        bnet_url = "https://github.com/hklarner/pyboolnet/archive/refs/heads/master.zip"
+
+        zip_file = wget.download(bnet_url)
+        with zipfile.ZipFile(zip_file, 'r') as zip_ref:
+            for zip_info in zip_ref.infolist():
+                # Ignore folders, anything not in 'pyboolnet/repository' or ending with '.bnet'
+                if zip_info.is_dir():
+                    continue
+                if not re.search(".*/pyboolnet/repository/.*/.*", zip_info.filename):
+                    continue
+                if not zip_info.filename.endswith(".bnet"):
+                    continue
+
+                zip_info.filename = re.search(".*/pyboolnet/repository/.*/(.*)", zip_info.filename).group(1)
+                print(f"  {zip_info.filename}")
+                zip_ref.extract(zip_info, path)
+
+        os.remove(zip_file)
+        print("")
+
+    def __init__(self):
+        # Download MCC Competition
+        for mcc_i in self.MCC_INSTANCES:
+            path = f"../{self._mcc_path(mcc_i)}"
+            if not os.path.isdir(path):
+                print(f"MCC {mcc_i[0]} ({mcc_i[1]}) not found.")
+                if input("  | Download? (yes/No): ").strip().lower() in yes_choices:
+                    self._mcc_download(path, mcc_i[2])
+                    self._paths.append(self._mcc_path(mcc_i))
+            else:
+                self._paths.append(self._mcc_path(mcc_i))
+
+        # Download Boolean Networks (AEON)
+        if not os.path.isdir(f"{self._path}/{self.AEON_KEY}"):
+            print(f"AEON Models not found.")
+            if input("  | Download? (yes/No): ").strip().lower() in yes_choices:
+                self._aeon_download(f"{self._path}/{self.BNET_KEY}")
+                self._paths.append(self.AEON_KEY)
+        else:
+            self._paths.append(self.AEON_KEY)
+
+        # Download Boolean Networks (BNET)
+        if not os.path.isdir(f"{self._path}/{self.BNET_KEY}"):
+            print(f"BNET Models not found.")
+            if input("  | Download? (yes/No): ").strip().lower() in yes_choices:
+                self._bnet_download(f"{self._path}/{self.BNET_KEY}")
+                self._paths.append(self.BNET_KEY)
+        else:
+            self._paths.append(self.BNET_KEY)
+
+        # Choose folder
+        print(f"Folder")
+        for f in self._paths:
+            print(f"  | {f}")
+        print(f"  |")
+
+        folder = None
+
+        folder_input = input(f"  | ").strip().lower()
+        if folder_input in [f.lower() for f in self._paths]:
+            self._path = f"{self._path}/{[f for f in self._paths if f.lower() == folder_input][0]}"
+        else:
+            print(f"\nUnknown Folder '{folder_input}'. Aborting...")
+            exit(255)
+
+        print("")
+
+        # Choose input in folder
+        all_files = [f for f in os.listdir(self._path) if os.path.isfile(f"{self._path}/{f}")]
+        print(f"File")
+        for f in all_files:
+            print(f"  | {f}")
+        print(f"  |")
+
+        file = None
+
+        file_input = input(f"  | ").strip().lower()
+        if file_input in [f.lower() for f in all_files]:
+            self._path = f"{self._path}/{[f for f in all_files if f.lower() == file_input][0]}"
+        else:
+            print(f"\nUnknown File '{file_input}'. Aborting...")
+            exit(255)
+
+        print("")
+
+    def args(self):
+        return f"-f {self._path} -o sloan -a reach -a dead"
+
+    def report_name(self):
+        return f"McNet '{self._path[3:]}'"
 
 # ---------------------------------------------------------------------------- #
 # EPFL Circuits for Picotrav
@@ -376,7 +551,7 @@ class QueenStrategy:
 
 from enum import Enum
 
-Benchmarks = Enum('benchmark_t', ['apply', 'picotrav', 'qbf', 'queens'])
+Benchmarks = Enum('benchmark_t', ['apply', 'mcnet', 'picotrav', 'qbf', 'queens'])
 
 benchmark = Benchmarks.apply
 
@@ -393,6 +568,8 @@ print("")
 match benchmark:
     case Benchmarks.apply:
         benchmark_strategy = ApplyStrategy()
+    case Benchmarks.mcnet:
+        benchmark_strategy = McNetStrategy()
     case Benchmarks.picotrav:
         benchmark_strategy = PicotravStrategy()
     case Benchmarks.qbf:
