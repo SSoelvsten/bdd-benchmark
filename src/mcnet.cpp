@@ -1660,17 +1660,12 @@ private:
   {
     boost__graph_type g(ts.vars().size());
 
-    // For each transition...
+    // Add an edge to the graph, for variables that occur in the same transition.
     for (const transition_system::transition& t : ts.transitions()) {
       const std::set<int> pre_support  = t.pre().support();
       const std::set<int> post_support = t.post().support();
 
-      // ... add an edge to the graph, for variables that occur in the same transition.
       for (const int x : pre_support) {
-        for (const int y : pre_support) { boost::add_edge(x, y, g); }
-        for (const int y : post_support) { boost::add_edge(x, y, g); }
-      }
-      for (const int x : post_support) {
         for (const int y : pre_support) { boost::add_edge(x, y, g); }
         for (const int y : post_support) { boost::add_edge(x, y, g); }
       }
