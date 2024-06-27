@@ -438,9 +438,9 @@ BENCHMARKS = {
             [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyCommit/stigcomm09-a.pnml")],
             [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyCommit/stigcomm09-b.pnml")],
             [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyCommit/stigcomm10-a.pnml")],
-          # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyCommit/stigcomm10-b.pnml")], # 435.5 Mib
-          # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyCommit/stigcomm11-a.pnml")], # 486.3 MiB
-          # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyCommit/stigcomm11-b.pnml")], # 1.4 GiB
+            [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyCommit/stigcomm10-b.pnml")], # 435.5 Mib !
+            [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyCommit/stigcomm11-a.pnml")], # 486.3 MiB !
+            [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyCommit/stigcomm11-b.pnml")], # 1.4 GiB   !
 
             # MCC (Petri Net) 2022: StigmergyElection
             [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec02-a.pnml")],
@@ -462,7 +462,7 @@ BENCHMARKS = {
             [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec10-a.pnml")],
             [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec10-b.pnml")],
             [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec11-a.pnml")],
-          # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec11-b.pnml")], # 432.0 MiB
+            [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec11-b.pnml")], # 432.0 MiB !
 
             # MCC (Petri Net) 2021: GPUForwardProgress
             [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_04_a.pnml")],
