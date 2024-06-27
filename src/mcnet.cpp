@@ -1696,8 +1696,8 @@ private:
   static inline boost__graph_type
   boost__rw_graph(const transition_system& ts)
   {
-    const int var_count        = ts.vars().size();
-    const int transition_count = ts.transitions().size();
+    const boost__vertex_type var_count        = ts.vars().size();
+    const boost__vertex_type transition_count = ts.transitions().size();
 
     boost__graph_type g(var_count + transition_count);
 
@@ -1725,7 +1725,7 @@ private:
   static inline variable_permutation
   boost__rw_permutation(const transition_system& ts, const std::vector<boost__vertex_type>& o)
   {
-    const int transition_count = ts.transitions().size();
+    const boost__vertex_type transition_count = ts.transitions().size();
 
     std::unordered_map<int, int> out;
     for (auto it = o.begin(); it != o.end(); ++it) {
