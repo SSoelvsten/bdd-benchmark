@@ -1676,7 +1676,7 @@ private:
 
   /// \brief Converts an ordering from a `boost__incidence_graph(ts)` into a variable permutation.
   static inline variable_permutation
-  boost__incidence_permutation(const transition_system& ts,
+  boost__incidence_permutation(const transition_system&/*ts*/,
                                const std::vector<boost__vertex_type>& o)
   {
     std::unordered_map<int, int> out;
