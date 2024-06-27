@@ -45,8 +45,13 @@ if not package_choice:
     print("\n  At least one Library should be included!")
     exit(1)
 
-bdd_packages = [p for p in package_choice if dd_t.bdd in package_dd[p]] if dd_t.bdd in dd_choice else []
-zdd_packages = [p for p in package_choice if dd_t.zdd in package_dd[p]] if dd_t.zdd in dd_choice else []
+bdd_packages = []
+if dd_t.bdd in dd_choice:
+    bdd_packages = [p for p in package_choice if dd_t.bdd in package_dd[p] or dd_t.bcdd in package_dd[p]]
+
+zdd_packages = []
+if dd_t.zdd in dd_choice:
+    zdd_packages = [p for p in package_choice if dd_t.zdd in package_dd[p]]
 
 print("\nPackages")
 print("  BDD:", [p.name for p in bdd_packages])
@@ -471,6 +476,11 @@ BENCHMARKS = {
         ]
     },
 }
+
+# Copy BDD timings to BCDD timiings
+for b in BENCHMARKS.keys():
+    if dd_t.bdd in BENCHMARKS[b].keys():
+        BENCHMARKS[b][dd_t.bcdd] = BENCHMARKS[b][dd_t.bdd]
 
 print("")
 
