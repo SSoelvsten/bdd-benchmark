@@ -1648,7 +1648,7 @@ private:
     boost::property<boost::vertex_degree_t, int, boost::property<boost::vertex_priority_t, int>>>;
 
   using boost__graph_type =
-    boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, boost__vertex_properties>;
+    boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS, boost__vertex_properties>;
 
   using boost__vertex_type = boost::graph_traits<boost__graph_type>::vertex_descriptor;
   using boost__size_type   = boost::graph_traits<boost__graph_type>::vertices_size_type;
