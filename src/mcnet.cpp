@@ -1653,29 +1653,91 @@ private:
   using boost__vertex_type = boost::graph_traits<boost__graph_type>::vertex_descriptor;
   using boost__size_type   = boost::graph_traits<boost__graph_type>::vertices_size_type;
 
+  /// \brief Creates the incidence graph, i.e. a graph where variables are nodes and are connected
+  ///        if they occur in the same transition together.
   static inline boost__graph_type
   boost__incidence_graph(const transition_system& ts)
   {
     boost__graph_type g(ts.vars().size());
 
-    { // For each transition...
-      for (const transition_system::transition& t : ts.transitions()) {
-        const std::set<int> pre_support  = t.pre().support();
-        const std::set<int> post_support = t.post().support();
+    // For each transition...
+    for (const transition_system::transition& t : ts.transitions()) {
+      const std::set<int> pre_support  = t.pre().support();
+      const std::set<int> post_support = t.post().support();
 
-        // ... add an edge to the graph, for variables that occur in the same transition.
+      // ... add an edge to the graph, for variables that occur in the same transition.
+      for (const int x : pre_support) {
+        for (const int y : pre_support) { boost::add_edge(x, y, g); }
+        for (const int y : post_support) { boost::add_edge(x, y, g); }
+      }
+      for (const int x : post_support) {
+        for (const int y : pre_support) { boost::add_edge(x, y, g); }
+        for (const int y : post_support) { boost::add_edge(x, y, g); }
+      }
+    }
+
+    return g;
+  }
+
+  /// \brief Converts an ordering from a `boost__incidence_graph(ts)` into a variable permutation.
+  static inline variable_permutation
+  boost__incidence_permutation(const transition_system& ts,
+                               const std::vector<boost__vertex_type>& o)
+  {
+    std::unordered_map<int, int> out;
+    for (auto it = o.begin(); it != o.end(); ++it) {
+      out.insert({ *it, out.size() });
+    }
+    return variable_permutation(std::move(out));
+  }
+
+
+  /// \brief Creates the write graph, i.e. a graph where a transition node has edges to the
+  ///        variables that are read from and/or written to.
+  ///
+  /// \details See "Bandwidth and Wavefront Reduction for Static Variable Ordering in Symbolic Model
+  ///          Checking" by Jeroen Meijer and Jaco van de Pol.
+  template <bool IncludeRead, bool IncludeWrite>
+  static inline boost__graph_type
+  boost__rw_graph(const transition_system& ts)
+  {
+    const int var_count        = ts.vars().size();
+    const int transition_count = ts.transitions().size();
+
+    boost__graph_type g(var_count + transition_count);
+
+    for (int t_idx = 0; t_idx < transition_count; ++t_idx) {
+      const transition_system::transition& t = ts.transitions().at(t_idx);
+
+      if constexpr (IncludeRead) {
+        const std::set<int> pre_support = t.pre().support();
         for (const int x : pre_support) {
-          for (const int y : pre_support) { boost::add_edge(x, y, g); }
-          for (const int y : post_support) { boost::add_edge(x, y, g); }
+          boost::add_edge(t_idx, transition_count + x, g);
         }
+      }
+      if constexpr (IncludeWrite) {
+        const std::set<int> post_support = t.post().support();
         for (const int x : post_support) {
-          for (const int y : pre_support) { boost::add_edge(x, y, g); }
-          for (const int y : post_support) { boost::add_edge(x, y, g); }
+          boost::add_edge(t_idx, transition_count + x, g);
         }
       }
     }
 
     return g;
+  }
+
+  /// \brief Converts an ordering from a `boost__write_graph(ts)` into a variable permutation.
+  static inline variable_permutation
+  boost__rw_permutation(const transition_system& ts, const std::vector<boost__vertex_type>& o)
+  {
+    const int transition_count = ts.transitions().size();
+
+    std::unordered_map<int, int> out;
+    for (auto it = o.begin(); it != o.end(); ++it) {
+      if (*it < transition_count) { continue; }
+      out.insert({ *it - transition_count, out.size() });
+    }
+    return variable_permutation(std::move(out));
   }
 
 public:
@@ -1696,11 +1758,7 @@ public:
     std::vector<boost__vertex_type> boost_order(boost::num_vertices(g));
     boost::cuthill_mckee_ordering(g, boost_order.begin(), g_color, g_degree);
 
-    std::unordered_map<int, int> out;
-    for (auto it = boost_order.begin(); it != boost_order.end(); ++it) {
-      out.insert({ *it, out.size() });
-    }
-    return variable_permutation(std::move(out));
+    return boost__incidence_permutation(ts, boost_order);
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1756,11 +1814,7 @@ public:
     std::vector<boost__vertex_type> boost_order(boost::num_vertices(g));
     boost::sloan_ordering(g, boost_order.rbegin(), g_color, g_degree, g_priority);
 
-    std::unordered_map<int, int> out;
-    for (auto it = boost_order.begin(); it != boost_order.end(); ++it) {
-      out.insert({ *it, out.size() });
-    }
-    return variable_permutation(std::move(out));
+    return boost__incidence_permutation(ts, boost_order);
   }
 
 public:
