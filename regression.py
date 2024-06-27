@@ -6,6 +6,13 @@ yes_choices = ['yes', 'y']
 no_choices = ['no', 'n']
 
 # ---------------------------------------------------------------------------- #
+from urllib.request import urlretrieve
+
+def url_download(url):
+    path, headers = urlretrieve(url)
+    return path
+
+# ---------------------------------------------------------------------------- #
 import os, selectors, subprocess, sys
 
 def run_subprocess(subprocess_cmds, subprocess_dir = ".", verbose = False):
@@ -48,7 +55,7 @@ def run_subprocess(subprocess_cmds, subprocess_dir = ".", verbose = False):
 # ---------------------------------------------------------------------------- #
 # Pastva and Henzinger's BDDs (2023) for Apply
 
-import os, io, zipfile, wget
+import os, io, zipfile
 
 class ApplyStrategy:
     _1_path = None
@@ -63,12 +70,12 @@ class ApplyStrategy:
             os.makedirs(path)
 
         # .tsv file with pairs of BDDs
-        tsv_file = wget.download(tsv_url)
+        tsv_file = url_download(tsv_url)
         os.rename(tsv_file, tsv_path(path))
         print("")
 
         # .zip file with binary encoding of BDDs
-        zip_file = wget.download(zip_url)
+        zip_file = url_download(zip_url)
         with zipfile.ZipFile(zip_file, 'r') as zip_ref:
             for zip_info in zip_ref.infolist():
                 if zip_info.is_dir():
@@ -166,7 +173,7 @@ class ApplyStrategy:
 # ---------------------------------------------------------------------------- #
 # Petri Nets and Boolean Networks for McNet
 
-import os, io, re, tarfile, wget
+import os, io, re, tarfile
 
 class McNetStrategy:
     _paths = []
@@ -209,7 +216,7 @@ class McNetStrategy:
             os.makedirs(path)
 
         # .tar file with binary encoding of BDDs
-        tar_file = wget.download(tar_url)
+        tar_file = url_download(tar_url)
         with tarfile.open(tar_file, 'r') as tar_ref:
             for tar_info in tar_ref:
                 if tar_info.isdir() or re.search(".*/PT/.*", tar_info.name) == None:
@@ -227,7 +234,7 @@ class McNetStrategy:
     def _aeon_download(self, path):
         aeon_url = "https://github.com/sybila/biodivine-lib-param-bn/archive/refs/heads/master.zip"
 
-        zip_file = wget.download(aeon_url)
+        zip_file = url_download(aeon_url)
         with zipfile.ZipFile(zip_file, 'r') as zip_ref:
             for zip_info in zip_ref.infolist():
                 # Ignore folders, anything not in 'sbml_models/real_world' or ending with '.aeon'
@@ -250,7 +257,7 @@ class McNetStrategy:
     def _bnet_download(self, path):
         bnet_url = "https://github.com/hklarner/pyboolnet/archive/refs/heads/master.zip"
 
-        zip_file = wget.download(bnet_url)
+        zip_file = url_download(bnet_url)
         with zipfile.ZipFile(zip_file, 'r') as zip_ref:
             for zip_info in zip_ref.infolist():
                 # Ignore folders, anything not in 'pyboolnet/repository' or ending with '.bnet'
@@ -421,7 +428,7 @@ class PicotravStrategy:
 # ---------------------------------------------------------------------------- #
 # QCIR Circuits for QBF
 
-import os, io, zipfile, wget
+import os, io, zipfile
 
 class QbfStrategy:
     _name = None
@@ -429,7 +436,7 @@ class QbfStrategy:
 
     def _download_zip(self, path, zip_url):
         # download and extract .zip file
-        zip_file = wget.download(zip_url)
+        zip_file = url_download(zip_url)
 
         with zipfile.ZipFile(zip_file, 'r') as zip_ref:
             zip_ref.extractall(".")
