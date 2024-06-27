@@ -284,7 +284,7 @@ class McNetStrategy:
         if not os.path.isdir(f"{self._path}/{self.AEON_KEY}"):
             print(f"AEON Models not found.")
             if input("  | Download? (yes/No): ").strip().lower() in yes_choices:
-                self._aeon_download(f"{self._path}/{self.BNET_KEY}")
+                self._aeon_download(f"{self._path}/{self.AEON_KEY}")
                 self._paths.append(self.AEON_KEY)
         else:
             self._paths.append(self.AEON_KEY)
