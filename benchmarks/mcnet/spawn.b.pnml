@@ -1,19 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
-  <net id="spawn" type="http://www.pnml.org/version-2009/grammar/ptnet">
+  <net id="spawn.b" type="http://www.pnml.org/version-2009/grammar/ptnet">
     <name><text>split</text></name>
     <page id="page">
 
       <!-- place -->
-      <place id="p">
-        <name><text>p</text></name>
+      <place id="p1">
+        <name><text>p_1</text></name>
       </place>
+      <place id="p2">
+        <name><text>p_2</text></name>
+      </place>
+
 
       <!-- transitions -->
       <transition id="t">
         <name><text>t</text></name>
       </transition>
-      <arc id="t_o" source="t" target="p" />
+      <arc id="t_o" source="t" target="p1" />
+      <arc id="t_o" source="t" target="p2" />
     </page>
   </net>
 </pnml>

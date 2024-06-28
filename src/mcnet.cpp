@@ -1676,8 +1676,13 @@ private:
     for (const transition_system::transition& t : ts.transitions()) {
       const std::set<int> pre_support  = t.pre().support();
       const std::set<int> post_support = t.post().support();
+      assert(!pre_support.empty() || !post_support.empty());
 
-      for (const int x : pre_support) {
+      const std::set<int>& x_support = !pre_support.empty() && (pre_support.size() < post_support.size())
+        ? pre_support
+        : post_support;
+
+      for (const int x : x_support) {
         for (const int y : pre_support) { boost::add_edge(x, y, g); }
         for (const int y : post_support) { boost::add_edge(x, y, g); }
       }

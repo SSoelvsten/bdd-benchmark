@@ -61,7 +61,8 @@ Minimal (hand-crafted) examples of inputs.
   (needed to find all reachable states).
 - *sink-transition.pnml* : Net with a sink transition, i.e. an outgoing
   transitios without an output.
-- *spawn.pnml* : Net where a token is spawned with no in-going places
+- *spawn.a.pnml* : Net where a token is spawned with no in-going places
+- *spawn.b.pnml* : Net where two tokens are spawned with no in-going places
 - *split.pnml* : Net with a non-deterministic split to two places.
 - *unreachable.1.pnml* : Net with two trivially unreachable place.
   (neither initial and by propagation of not being a target).
