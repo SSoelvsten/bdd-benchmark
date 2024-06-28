@@ -2180,8 +2180,9 @@ private:
     }
 
     // Support Cube
-    std::set<int> support = pre_support;
-    support.insert(post_support.begin(), post_support.end());
+    std::set<int> support;
+    for (const int x : pre_support) { support.insert(this->dd_var(x)); }
+    for (const int x : post_support) { support.insert(this->dd_var(x)); }
 
     dd_t support_dd = this->_adapter.top();
     {
@@ -2190,7 +2191,7 @@ private:
 
       auto root = top;
       for (auto iter = support.rbegin(); iter != support.rend(); ++iter) {
-        root = this->_adapter.build_node(this->dd_var(*iter), bot, root);
+        root = this->_adapter.build_node(*iter, bot, root);
       }
       support_dd = this->_adapter.build();
     }
