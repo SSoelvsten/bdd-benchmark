@@ -1302,7 +1302,7 @@ parse_file__pnml(const std::filesystem::path& path)
       post.push(bool_exp::RParen);
 
       // Source markings (turned off)
-      if (t.first != t.second) {
+      if (!t.first.empty() && t.first != t.second) {
         if (!post.empty()) { post.push(bool_exp::And); }
         post.push(bool_exp::LParen);
 

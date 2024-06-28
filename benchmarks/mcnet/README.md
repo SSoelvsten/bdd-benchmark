@@ -49,25 +49,26 @@ Minimal (hand-crafted) examples of inputs.
 
 ### Petri Nets (*.pnml*)
 
-- *0-cycle.pnml* : A single place with no transitions
-- *1-cycle.pnml* : A simple cycle of length 1
-- *2-cycle.pnml* : A simple cycle of length 2
-- *3-cycle.pnml* : A simple cycle of length 3
-- *4-cycle.pnml* : A simple cycle of length 4
+- *0-cycle.pnml* : A single place with no transitions .
+- *1-cycle.pnml* : A simple cycle of length 1 .
+- *2-cycle.pnml* : A simple cycle of length 2 .
+- *3-cycle.pnml* : A simple cycle of length 3 .
+- *4-cycle.pnml* : A simple cycle of length 4 .
 - *merge.pnml* : Simple merge of two tokens into one.
 - *scc.a.pnml* : The SCC example from Fig. 1 in the TACAS 23 paper "A Truly Symbolic Linear-Time
   Algorithm for SCC Decomposition" by Larsen et al. .
-- *self-loop.pnml* : Net with a self-loop on an initial place
+- *self-loop.pnml* : Net with a self-loop on an initial place.
   (needed to find all reachable states).
 - *sink-transition.pnml* : Net with a sink transition, i.e. an outgoing
   transitios without an output.
+- *spawn.pnml* : Net where a token is spawned with no in-going places
 - *split.pnml* : Net with a non-deterministic split to two places.
-- *unreachable.1.pnml* : Net with two trivially unreachable place
+- *unreachable.1.pnml* : Net with two trivially unreachable place.
   (neither initial and by propagation of not being a target).
 - *unreachable.2.pnml* : Net with a non-trivially unreachable set of places
-  (would require graph traversal to identify)
+  (would require graph traversal to identify).
 - *unreachable.3.pnml* : Net with trivially unreachable set of places
-  (nothing is marked initial)
+  (nothing is marked initial).
 
 ## More Inputs
 
