@@ -18,6 +18,8 @@ Minimal (hand-crafted) examples of inputs.
 
 ### Boolean Networks (*.bnet*)
 
+- *conflict.a.bnet* : A 2-state machine that catches a prior bug in McNet.
+- *conflict.b.bnet* : A 2-state machine that catches a prior bug in McNet.
 - *pyboolnet.a.bnet* : First example in the
   [PyBoolNet Documentation](https://pyboolnet.readthedocs.io/en/master/quickstart.html)
 - *pyboolnet.b.bnet* : Second example in the

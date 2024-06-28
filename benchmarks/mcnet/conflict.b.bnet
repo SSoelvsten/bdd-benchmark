@@ -1,0 +1,3 @@
+# Creates a cube with multiple assignments which are conflicting
+
+v1,   v1 & !v1

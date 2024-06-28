@@ -2045,14 +2045,14 @@ private:
     if (e.is_cubic()) {
       using build_ptr = typename Adapter::build_node_t;
 
-      std::vector<std::pair<int, bool>> cube;
+      std::map<int, bool> cube;
       {
         bool negate_next = false;
         for (auto it = e.rbegin(); it != e.rend(); ++it) {
           std::visit(overload{
                        [this, &is_prime, &cube, &negate_next](const int x) -> void {
                          const int dd_x = this->dd_var(x, is_prime);
-                         cube.push_back({ dd_x, negate_next });
+                         cube.insert({ dd_x, negate_next });
                          negate_next = false;
                        },
                        [&negate_next](const transition_system::bool_exp::unary_operator o) -> void {
@@ -2067,7 +2067,6 @@ private:
                      },
                      *it);
         }
-        std::sort(cube.begin(), cube.end(), [](auto a, auto b) { return a.first < b.first; });
       }
 
       const build_ptr false_ptr = this->_adapter.build_node(false);
