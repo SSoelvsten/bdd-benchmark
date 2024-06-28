@@ -913,7 +913,7 @@ parse_exp(transition_system& ts, const std::string& exp)
 
   for (const char x : exp) {
     // Extend or flush variable buffer
-    if (ascii_isalpha(x) || (var_buffer != "" && ascii_isnumeric(x))) {
+    if (ascii_isalpha(x) || x == '_' || (var_buffer != "" && ascii_isnumeric(x))) {
       var_buffer += x;
       continue;
     }
