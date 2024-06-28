@@ -2071,8 +2071,8 @@ private:
       build_ptr root = true_ptr;
 
       for (auto it = cube.rbegin(); it != cube.rend(); ++it) {
-        root = it->second ? this->_adapter.build_node(it->first, false_ptr, root)
-                          : this->_adapter.build_node(it->first, root, false_ptr);
+        root = it->second ? this->_adapter.build_node(it->first, root, false_ptr)
+                          : this->_adapter.build_node(it->first, false_ptr, root);
       }
 
       return this->_adapter.build();
