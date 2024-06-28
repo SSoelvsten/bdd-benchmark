@@ -2047,11 +2047,16 @@ private:
 
       std::map<int, bool> cube;
       {
+        bool conflict    = false;
         bool negate_next = false;
         for (auto it = e.rbegin(); it != e.rend(); ++it) {
           std::visit(overload{
-                       [this, &is_prime, &cube, &negate_next](const int x) -> void {
+                       [this, &is_prime, &conflict, &cube, &negate_next](const int x) -> void {
                          const int dd_x = this->dd_var(x, is_prime);
+
+                         const auto previous_assignment = cube.find(dd_x);
+                         conflict |= previous_assignment != cube.end() && previous_assignment->second != negate_next;
+
                          cube.insert({ dd_x, negate_next });
                          negate_next = false;
                        },
@@ -2067,6 +2072,8 @@ private:
                      },
                      *it);
         }
+
+        if (conflict) { this->_adapter.bot(); }
       }
 
       const build_ptr false_ptr = this->_adapter.build_node(false);
