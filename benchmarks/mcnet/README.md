@@ -31,14 +31,17 @@ Minimal (hand-crafted) examples of inputs.
 ### Boolean Networks (*.sbml* qual)
 
 - *complex.sbml* : A Boolean network with more multi-term encoding of transitions.
+- *cubic.bnet* : A 3-state machine that catches a prior bug in McNet.
+- *invariant.sbml* : A network where the formula for the invariant and the initial state(s)
+   are different.
+- *merge.sbml* : The *merge.pnml* Petri net translated into an asynchronous Boolean
+  Network.
 - *pyboolnet.a.bnet* : First example in the
   [PyBoolNet Documentation](https://pyboolnet.readthedocs.io/en/master/quickstart.html)
   translated by hand into SBML.
 - *pyboolnet.b.bnet* : Second example in the
   [PyBoolNet Documentation](https://pyboolnet.readthedocs.io/en/master/quickstart.html)
   translated by hand into SBML.
-- *merge.sbml* : The *merge.pnml* Petri net translated into an asynchronous Boolean
-  Network.
 - *split.sbml* : The *split.pnml* Petri net translated into an asynchronous Boolean
   Network. Using synchronous semantics should differ in the number of states.
 - *wiki.sbml* : The example of a Boolean Network on

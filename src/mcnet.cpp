@@ -1348,6 +1348,7 @@ parse_file__sbml(const std::filesystem::path& path)
   using transition = transition_system::transition;
 
   bool_exp initial;
+  bool_exp invariant;
 
   const pugi::xml_node& doc_model = doc.child("sbml").child("model");
   for (const pugi::xml_node& n : doc_model) {
@@ -1372,6 +1373,13 @@ parse_file__sbml(const std::filesystem::path& path)
           if (!initial.empty()) { initial.push(bool_exp::And); }
           if (!initialLevel) { initial.push(bool_exp::Not); }
           initial.push(var);
+
+          const auto& constant_attribute = c.attribute((qual_prefix + "constant").data());
+          if (constant_attribute && constant_attribute.as_bool()) {
+            if (!invariant.empty()) { invariant.push(bool_exp::And); }
+            if (!initialLevel) { invariant.push(bool_exp::Not); }
+            invariant.push(var);
+          }
         }
       }
     } else if (n_name == qual_prefix + "listOfTransitions") {
@@ -1552,7 +1560,11 @@ parse_file__sbml(const std::filesystem::path& path)
   initial.flush();
   assert(initial.is_cubic());
   ts.initial(initial);
-  ts.invariant(initial);
+
+  if (invariant.empty()) { invariant.push(true); }
+  invariant.flush();
+  assert(invariant.is_cubic());
+  ts.invariant(invariant);
 
   return ts;
 }
