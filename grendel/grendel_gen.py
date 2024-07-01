@@ -155,7 +155,6 @@ BENCHMARKS = {
             [ [ 0, 0,10], "-s mirror-double_diagonal -N 4 -N 4" ],
             [ [ 0, 0,10], "-s mirror-double_diagonal -N 5 -N 5" ],
             [ [ 0, 3,00], "-s mirror-double_diagonal -N 6 -N 6" ],
-            [ [15, 0,00], "-s mirror-double_diagonal -N 7 -N 7" ],
             # Rotate 90
             [ [ 0, 0,10], "-s rotate-90 -N 3 -N 3" ],
             [ [ 0, 0,10], "-s rotate-90 -N 4 -N 4" ],
