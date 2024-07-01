@@ -149,7 +149,7 @@ BENCHMARKS = {
             [ [ 0, 0,10], "-s mirror-diagonal -N 4 -N 4" ],
             [ [ 0, 0,30], "-s mirror-diagonal -N 5 -N 5" ],
             [ [ 1, 0,00], "-s mirror-diagonal -N 6 -N 6" ],
-            [ [15, 0,00], "-s mirror-diagonal -N 7 -N 7" ],
+            [ [ 2, 0,00], "-s mirror-diagonal -N 7 -N 7" ],
             # Mirror Double Diagonal
             [ [ 0, 0,10], "-s mirror-double_diagonal -N 3 -N 3" ],
             [ [ 0, 0,10], "-s mirror-double_diagonal -N 4 -N 4" ],
