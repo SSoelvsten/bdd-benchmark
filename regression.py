@@ -439,14 +439,11 @@ class QbfStrategy:
         zip_file = url_download(zip_url)
 
         with zipfile.ZipFile(zip_file, 'r') as zip_ref:
-            zip_ref.extractall(".")
-
-        # move zip file to the desired destination
-        folder_name = zip_file[:-4]
-        os.rename(folder_name, path)
+            zip_ref.extractall("../")
 
         # remove .zip file
         os.remove(zip_file)
+
         print("")
 
     def __init__(self):
