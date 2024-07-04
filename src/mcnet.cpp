@@ -889,6 +889,7 @@ public:
   }
 };
 
+template<bool NumericVariables = false>
 transition_system::bool_exp
 parse_exp(transition_system& ts, const std::string& exp)
 {
@@ -913,7 +914,7 @@ parse_exp(transition_system& ts, const std::string& exp)
 
   for (const char x : exp) {
     // Extend or flush variable buffer
-    if (ascii_isalpha(x) || x == '_' || (var_buffer != "" && ascii_isnumeric(x))) {
+    if (ascii_isalpha(x) || x == '_' || ((NumericVariables || var_buffer != "") && ascii_isnumeric(x))) {
       var_buffer += x;
       continue;
     }
@@ -1048,7 +1049,7 @@ parse_file__aeon(const std::filesystem::path& path)
         ts.find_var(ascii_trim(line.substr(dollar_pos + 1, colon_pos - dollar_pos - 1)));
       customized.insert(var);
 
-      const bool_exp pre = parse_exp(ts, line.substr(colon_pos + 1, line.size()));
+      const bool_exp pre = parse_exp<true>(ts, line.substr(colon_pos + 1, line.size()));
 
       if (pre.is_const()) {
         if (!initial.empty()) { initial.push(bool_exp::And); }
@@ -1147,7 +1148,7 @@ parse_file__bnet(const std::filesystem::path& path)
 
     // Parse remainder of line
     const auto comma_position       = line.find(",");
-    transition_system::bool_exp pre = parse_exp(ts, line.substr(comma_position + 1, line.size()));
+    transition_system::bool_exp pre = parse_exp<false>(ts, line.substr(comma_position + 1, line.size()));
 
     const int var = ts.find_var(ascii_trim(line.substr(0, comma_position)));
     if (pre.is_const()) {
