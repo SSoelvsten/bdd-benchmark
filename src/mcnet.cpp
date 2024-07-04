@@ -1773,7 +1773,7 @@ public:
     //   "Usually you need the reversed ordering with the Cuthill-McKee algorithm (...)"
     //
     // From our preliminary experiments, the opposite is the case for BDDs.
-    std::vector<boost__vertex_type> boost_order(boost::num_vertices(g));
+    std::vector<boost__vertex_type> boost_order(boost::num_vertices(g), -1);
     boost::cuthill_mckee_ordering(g, boost_order.begin(), g_color, g_degree);
 
     return boost__incidence_permutation(ts, boost_order);
@@ -1829,7 +1829,7 @@ public:
     //   "(...) and the direct ordering with the Sloan algorithm."
     //
     // From our preliminary experiments, the opposite is the case for BDDs.
-    std::vector<boost__vertex_type> boost_order(boost::num_vertices(g));
+    std::vector<boost__vertex_type> boost_order(boost::num_vertices(g), -1);
     boost::sloan_ordering(g, boost_order.rbegin(), g_color, g_degree, g_priority);
 
     return boost__incidence_permutation(ts, boost_order);
@@ -2659,21 +2659,22 @@ run_mcnet(int argc, char** argv)
   return run<Adapter>("mcnet", 2 * ts.vars().size(), [&](Adapter& adapter) {
     constexpr auto prime_pre = symbolic_transition_system<Adapter>::prime::pre;
 
-    const time_point sts_before = now();
-    const symbolic_transition_system sts(adapter, std::move(ts), std::move(vp));
-    const time_point sts_after = now();
-
     std::cout << json::field("variable order") << json::value(to_string(var_order)) << json::comma
               << json::endl;
 
     std::cout << json::field("net") << json::brace_open << json::endl;
     std::cout << json::field("path") << json::value(path) << json::comma << json::endl;
-    std::cout << json::field("places") << json::value(sts.varcount() / 2) << json::comma
+    std::cout << json::field("places") << json::value(ts.vars().size()) << json::comma
               << json::endl;
-    std::cout << json::field("transitions") << json::value(sts.transitions().size()) << json::comma
+    std::cout << json::field("transitions") << json::value(ts.transitions().size()) << json::comma
               << json::endl;
-    std::cout << json::field("input size (bytes)") << json::value(sts.bytes()) << json::comma
+    std::cout << json::field("input size (bytes)") << json::value(ts.bytes()) << json::comma
               << json::endl;
+
+    const time_point sts_before = now();
+    const symbolic_transition_system sts(adapter, std::move(ts), std::move(vp));
+    const time_point sts_after = now();
+
     std::cout << json::field("symbolic size (nodes)") << json::value(sts.nodecount()) << json::comma
               << json::endl;
     std::cout << json::field("time (ms)") << json::value(duration_ms(sts_before, sts_after))
