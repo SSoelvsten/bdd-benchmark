@@ -1831,7 +1831,26 @@ public:
     //
     // From our preliminary experiments, the opposite is the case for BDDs.
     std::vector<boost__vertex_type> boost_order(boost::num_vertices(g), -1);
-    boost::sloan_ordering(g, boost_order.rbegin(), g_color, g_degree, g_priority);
+
+    // Cuthill-McKee ensures all components are numbered. Yet, Sloan's algorithm seems to only
+    // provide a relabelling of the single component where the start (end?) vertex is.
+    std::unordered_set<boost__vertex_type> boost_uncovered;
+    for (boost__vertex_type x = 0; x < boost::num_vertices(g); ++x) {
+      boost_uncovered.insert(x);
+    }
+
+    auto rbegin = boost_order.rbegin();
+    while (!boost_uncovered.empty()) {
+      assert(boost_uncovered.size() > 0);
+      const boost__vertex_type x = *boost_uncovered.begin();
+      const auto next_rbegin =
+        boost::sloan_ordering(g, x, x, rbegin, g_color, g_degree, g_priority);
+
+      for (auto x_iter = rbegin; x_iter != next_rbegin; ++x_iter) {
+        boost_uncovered.erase(*x_iter);
+      }
+      rbegin = next_rbegin;
+    }
 
     return boost__incidence_permutation(ts, boost_order);
   }
