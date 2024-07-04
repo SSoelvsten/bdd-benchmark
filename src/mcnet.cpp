@@ -1725,7 +1725,7 @@ private:
 
     boost__graph_type g(var_count + transition_count);
 
-    for (int t_idx = 0; t_idx < transition_count; ++t_idx) {
+    for (size_t t_idx = 0; t_idx < transition_count; ++t_idx) {
       const transition_system::transition& t = ts.transitions().at(t_idx);
 
       if constexpr (IncludeRead) {
