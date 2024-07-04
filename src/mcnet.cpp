@@ -1774,7 +1774,7 @@ public:
     //   "Usually you need the reversed ordering with the Cuthill-McKee algorithm (...)"
     //
     // From our preliminary experiments, the opposite is the case for BDDs.
-    std::vector<boost__vertex_type> boost_order(boost::num_vertices(g));
+    std::vector<boost__vertex_type> boost_order(boost::num_vertices(g), -1);
     boost::cuthill_mckee_ordering(g, boost_order.begin(), g_color, g_degree);
 
     return boost__incidence_permutation(ts, boost_order);
@@ -1830,7 +1830,7 @@ public:
     //   "(...) and the direct ordering with the Sloan algorithm."
     //
     // From our preliminary experiments, the opposite is the case for BDDs.
-    std::vector<boost__vertex_type> boost_order(boost::num_vertices(g));
+    std::vector<boost__vertex_type> boost_order(boost::num_vertices(g), -1);
     boost::sloan_ordering(g, boost_order.rbegin(), g_color, g_degree, g_priority);
 
     return boost__incidence_permutation(ts, boost_order);
