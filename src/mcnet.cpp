@@ -1684,8 +1684,14 @@ private:
         : post_support;
 
       for (const int x : x_support) {
-        for (const int y : pre_support) { boost::add_edge(x, y, g); }
-        for (const int y : post_support) { boost::add_edge(x, y, g); }
+        for (const int y : pre_support) {
+          if (x == y) { continue; }
+          boost::add_edge(x, y, g);
+        }
+        for (const int y : post_support) {
+          if (x == y) { continue; }
+          boost::add_edge(x, y, g);
+        }
       }
     }
 
