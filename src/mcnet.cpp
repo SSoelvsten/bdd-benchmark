@@ -133,9 +133,9 @@ public:
 
   static constexpr std::string_view help_text =
     "        -f PATH              Path to file containing a model\n"
-    "        -a ALGO     [reach]  Analyses to run on the net\n"
+    "        -a ALGO              Analyses to run on the net\n"
     "        -o ORDER    [input]  Variable Order to derive from the model\n"
-    "        -s                   If set, interprets the model with synchronous updates";
+    "        -s                   If set, interprets the model with 'synchronous' updates";
 
   static inline bool
   parse_input(const int c, const char* arg)
