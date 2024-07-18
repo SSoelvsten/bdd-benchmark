@@ -2780,18 +2780,16 @@ run_mcnet(int argc, char** argv)
       const time_duration time = duration_ms(t1, t2);
       total_time += time;
 
-      std::cout << json::field("components") << json::value(number_of_deadlocks + scc_summary.count)
+      std::cout << json::field("components") << json::value(scc_summary.count)
                 << json::comma << json::endl;
 
 #ifdef BDD_BENCHMARK_STATS
-      std::cout << json::field("min SCC (states)")
-                << json::value(number_of_deadlocks > 0 ? 1 : scc_summary.min_states)
+      std::cout << json::field("min SCC (states)") << json::value(scc_summary.min_states)
                 << json::comma << json::endl;
       std::cout << json::field("max SCC (states)") << json::value(scc_summary.max_states)
                 << json::comma << json::endl;
 
-      std::cout << json::field("min SCC (nodes)")
-                << json::value(number_of_deadlocks > 0 ? sts.varcount(prime_pre) : scc_summary.min_dd)
+      std::cout << json::field("min SCC (nodes)") << json::value(scc_summary.min_dd)
                 << json::comma << json::endl;
       std::cout << json::field("max SCC (nodes)") << json::value(scc_summary.max_dd) << json::comma
                 << json::endl;
