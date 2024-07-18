@@ -1193,7 +1193,6 @@ parse_file__pnml(const std::filesystem::path& path)
 
   if (synchronous_update) {
     std::cerr << "Synchronous semantics are not supported by Petri nets.\n";
-    synchronous_update = false;
   }
 
   pugi::xml_document doc;
