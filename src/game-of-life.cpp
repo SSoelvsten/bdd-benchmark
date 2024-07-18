@@ -64,20 +64,20 @@ class parsing_policy
 {
 public:
   static constexpr std::string_view name = "Game of Life (Garden-of-Eden)";
-  static constexpr std::string_view args = "N:s:";
+  static constexpr std::string_view args = "n:s:";
 
   static constexpr std::string_view help_text =
-    "        -N n        [4]      Size of grid\n"
+    "        -n n        [4]      Size of grid\n"
     "        -s SYMM     [none]   Restriction to solutions with a symmetry";
 
   static inline bool
   parse_input(const int c, const char* arg)
   {
     switch (c) {
-    case 'N': {
+    case 'n': {
       const int N = std::stoi(arg);
       if (N <= 0) {
-        std::cerr << "  Must specify positive grid size (-N)\n";
+        std::cerr << "  Must specify positive grid size (-n)\n";
         return true;
       }
       if (N_rows < 0) {

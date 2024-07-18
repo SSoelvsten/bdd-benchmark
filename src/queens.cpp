@@ -26,18 +26,18 @@ class parsing_policy
 {
 public:
   static constexpr std::string_view name = "Queens";
-  static constexpr std::string_view args = "N:";
+  static constexpr std::string_view args = "n:";
 
-  static constexpr std::string_view help_text = "        -N n        [8]      Size of board";
+  static constexpr std::string_view help_text = "        -n n        [8]      Size of board";
 
   static inline bool
   parse_input(const int c, const char* arg)
   {
     switch (c) {
-    case 'N': {
+    case 'n': {
       N = std::stoi(arg);
       if (N <= 0) {
-        std::cerr << "  Must specify positive board size (-N)\n";
+        std::cerr << "  Must specify positive board size (-n)\n";
         return true;
       }
       return false;

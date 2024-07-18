@@ -147,7 +147,7 @@ parse_input(int argc, char** argv)
   opterr = 0; // Squelch errors for non-common command-line arguments
 
   const std::string args = std::string("h"
-                                       "M:P:rt:")
+                                       "M:P:RT:")
     + std::string(Policy::args);
   while ((c = getopt(argc, argv, args.data())) != -1) {
     try {
@@ -168,11 +168,11 @@ parse_input(int argc, char** argv)
         }
         continue;
       }
-      case 'r': {
+      case 'R': {
         enable_reordering = true;
         continue;
       }
-      case 't': {
+      case 'T': {
         temp_path = optarg;
         continue;
       }
@@ -190,9 +190,9 @@ parse_input(int argc, char** argv)
           << "-------------------------------------------------------------------------------\n"
           << "BDD Package options:\n"
           << "        -M MiB      [128]    Amount of memory (MiB)\n"
-          << "        -t TEMP_PTH [/tmp]   Filepath for temporary files on disk\n"
+          << "        -T TEMP_PTH [/tmp]   Filepath for temporary files on disk\n"
           << "        -P THREADS  [1]      Worker thread count\n"
-          << "        -r                   Enable dynamic variable reordering\n"
+          << "        -R                   Enable dynamic variable reordering\n"
           << "\n"
           << "-------------------------------------------------------------------------------\n"
           << "Benchmark options:\n"

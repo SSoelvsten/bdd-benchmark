@@ -545,7 +545,7 @@ class QueenStrategy:
         print("")
 
     def args(self):
-        return f"-N {self.N}"
+        return f"-n {self.N}"
 
     def report_name(self):
         return f"{self.N}-Queens"

@@ -25,10 +25,10 @@ class parsing_policy
 {
 public:
   static constexpr std::string_view name = "Tic-Tac-Toe";
-  static constexpr std::string_view args = "N:";
+  static constexpr std::string_view args = "n:";
 
   static constexpr std::string_view help_text =
-    "        -N n        [20]     Number of crosses in cube";
+    "        -n n        [20]     Number of crosses in cube";
 
   static inline bool
   parse_input(const int c, const char* arg)
@@ -37,7 +37,7 @@ public:
     case 'N': {
       N = std::stoi(arg);
       if (N <= 0) {
-        std::cerr << "  Number of crosses must be positive (-N)\n";
+        std::cerr << "  Number of crosses must be positive (-n)\n";
         return true;
       }
       return false;
