@@ -1080,12 +1080,13 @@ parse_file__aeon(const std::filesystem::path& path)
     }
 
     // Case: 'x -? y'
-    const auto custom_pos = line.find("-?");
-    if (custom_pos != std::string::npos) { continue; }
+    if (line.find("-?") != std::string::npos) { continue; }
 
     // Case: 'x -> y' and 'x -| y'
-    const auto activate_pos = line.find("->");
-    const auto inhibit_pos  = line.find("-|");
+    auto activate_pos = line.find("->");
+    if (activate_pos == std::string::npos) { activate_pos = line.find("->?"); }
+    auto inhibit_pos  = line.find("-|");
+    if (inhibit_pos == std::string::npos) { inhibit_pos = line.find("-|?"); }
     assert(activate_pos == std::string::npos || inhibit_pos == std::string::npos);
 
     const auto relation_pos = activate_pos == std::string::npos ? inhibit_pos : activate_pos;
