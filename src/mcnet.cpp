@@ -196,6 +196,7 @@ public:
         synchronous_update = true;
       } else if (!is_prefix(lower_arg, "asynchronous")) {
         std::cerr << "Semantics '" << arg << "' is not 'asynchronous' nor 'synchronous'\n";
+        return true;
       }
       return false;
     }
