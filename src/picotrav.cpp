@@ -57,8 +57,8 @@ public:
   static constexpr std::string_view args = "f:o:";
 
   static constexpr std::string_view help_text =
-    "        -f PATH              Path to '.blif' file(s)\n"
-    "        -o ORDER    [input]  Variable order to derive from first circuit";
+    "        -f PATH               Path to '.blif' file(s)\n"
+    "        -o ORDER     [input]  Variable order to derive from first circuit";
 
   static inline bool
   parse_input(const int c, const char* arg)

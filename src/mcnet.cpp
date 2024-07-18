@@ -119,6 +119,12 @@ to_string(const variable_order& vo)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 variable_order var_order = variable_order::INPUT;
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// \brief Whether to merge the relation into one.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+bool merged_relation = false;
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// \brief Whether to use Synchronous Update Semantics (asynchronous, otherwise).
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -129,13 +135,13 @@ class parsing_policy
 {
 public:
   static constexpr std::string_view name = "McNet";
-  static constexpr std::string_view args = "a:f:o:s";
+  static constexpr std::string_view args = "a:f:o:s:";
 
   static constexpr std::string_view help_text =
-    "        -f PATH              Path to file containing a model\n"
-    "        -a ALGO              Analyses to run on the net\n"
-    "        -o ORDER    [input]  Variable Order to derive from the model\n"
-    "        -s                   If set, interprets the model with 'synchronous' updates";
+    "        -f PATH               Path to file containing a model\n"
+    "        -a ALGO               Analyses to run on the net\n"
+    "        -o ORDER     [input]  Variable Order to derive from the model\n"
+    "        -s SEMANTICS [async]  Merges the relation as an 'asynchronous' or 'synchronous' update";
 
   static inline bool
   parse_input(const int c, const char* arg)
@@ -183,7 +189,14 @@ public:
       return false;
     }
     case 's': {
-      synchronous_update = true;
+      const std::string lower_arg = ascii_tolower(arg);
+
+      merged_relation = true;
+      if (is_prefix(lower_arg, "synchronous")) {
+        synchronous_update = true;
+      } else if (!is_prefix(lower_arg, "asynchronous")) {
+        std::cerr << "Semantics '" << arg << "' is not 'asynchronous' nor 'synchronous'\n";
+      }
       return false;
     }
     default: return true;
@@ -2263,7 +2276,7 @@ private:
       this->_transitions.push_back(this->convert(t));
     }
 
-    if (synchronous_update) {
+    if (merged_relation) {
       std::queue<typename Adapter::dd_t> work_queue;
 
       const auto begin = this->_transitions.begin();
@@ -2273,16 +2286,19 @@ private:
         if ((t_iter + 1) == end) {
           work_queue.push(t_iter->relation());
         } else {
-          work_queue.push(t_iter->relation() & (t_iter + 1)->relation());
+          const typename Adapter::dd_t r1 = t_iter->relation();
+          const typename Adapter::dd_t r2 = (t_iter + 1)->relation();
+
+          work_queue.push(synchronous_update ? (r1 & r2) : (r1 | r2));
         }
       }
       while (work_queue.size() > 1) {
-        const auto t1 = work_queue.front();
+        const auto r1 = work_queue.front();
         work_queue.pop();
-        const auto t2 = work_queue.front();
+        const auto r2 = work_queue.front();
         work_queue.pop();
 
-        work_queue.push(t1 & t2);
+        work_queue.push(synchronous_update ? (r1 & r2) : (r1 | r2));
       }
       const auto is_prime_pre = [](int x) { return x % 2 == prime::pre; };
       this->_transitions = { transition(work_queue.front(), this->_adapter.cube(is_prime_pre)) };

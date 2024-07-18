@@ -63,8 +63,8 @@ public:
   static constexpr std::string_view name = "Hamiltonian";
   static constexpr std::string_view args = "n:e:";
 
-  static constexpr std::string_view help_text = "        -n n        [4]      Size of grid\n"
-                                                "        -e ENC      [time]   Problem encoding";
+  static constexpr std::string_view help_text = "        -n n         [4]      Size of grid\n"
+                                                "        -e ENCODING  [time]   Problem encoding";
 
   static inline bool
   parse_input(const int c, const char* arg)

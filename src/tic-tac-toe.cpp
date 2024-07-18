@@ -28,7 +28,7 @@ public:
   static constexpr std::string_view args = "n:";
 
   static constexpr std::string_view help_text =
-    "        -n n        [20]     Number of crosses in cube";
+    "        -n n         [20]     Number of crosses in cube";
 
   static inline bool
   parse_input(const int c, const char* arg)

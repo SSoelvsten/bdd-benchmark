@@ -67,8 +67,8 @@ public:
   static constexpr std::string_view args = "n:s:";
 
   static constexpr std::string_view help_text =
-    "        -n n        [4]      Size of grid\n"
-    "        -s SYMM     [none]   Restriction to solutions with a symmetry";
+    "        -n n         [4]      Size of grid\n"
+    "        -s SYMMETRY  [none]   Restriction to solutions with a symmetry";
 
   static inline bool
   parse_input(const int c, const char* arg)

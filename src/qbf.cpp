@@ -1944,8 +1944,8 @@ public:
   static constexpr std::string_view args = "f:o:";
 
   static constexpr std::string_view help_text =
-    "        -f PATH              Path to '.qcir' file\n"
-    "        -o ORDER    [input]  Variable Order to derive from circuit";
+    "        -f PATH               Path to '.qcir' file\n"
+    "        -o ORDER     [input]  Variable Order to derive from circuit";
 
   static inline bool
   parse_input(const int c, const char* arg)
