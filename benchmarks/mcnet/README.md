@@ -4,6 +4,7 @@ Minimal (hand-crafted) examples of inputs.
 
 ### Boolean Networks (*.aeon*)
 
+- *inhibitor.aeon* : Example that exposes previous bugs in the *.aeon* parser.
 - *pyboolnet.a.aeon* : First example in the
   [PyBoolNet Documentation](https://pyboolnet.readthedocs.io/en/master/quickstart.html)
   translated by hand into AEON.
