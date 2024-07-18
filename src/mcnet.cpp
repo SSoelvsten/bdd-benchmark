@@ -2705,8 +2705,6 @@ run_mcnet(int argc, char** argv)
 
     time_duration total_time = 0;
 
-    typename Adapter::dd_t reachable_states = sts.all();
-
     std::cout << json::field("initial") << json::brace_open << json::endl;
     std::cout << json::field("size (nodes)") << json::value(adapter.nodecount(sts.initial()))
               << json::comma << json::endl;
@@ -2723,6 +2721,9 @@ run_mcnet(int argc, char** argv)
               << json::endl;
     std::cout << json::brace_close << json::comma << json::endl;
 
+    // ---------------------------------------------------------------------------------------------
+    typename Adapter::dd_t reachable_states = sts.all();
+    size_t number_of_states = 0;
     if (analysis_flags[analysis::REACHABILITY]) {
       std::cout << json::field(to_string(analysis::REACHABILITY)) << json::brace_open << json::endl;
 
@@ -2733,58 +2734,65 @@ run_mcnet(int argc, char** argv)
       const time_duration time = duration_ms(t1, t2);
       total_time += time;
 
+      number_of_states = adapter.satcount(reachable_states, sts.varcount(prime_pre));
+
       std::cout << json::field("size (nodes)") << json::value(adapter.nodecount(reachable_states))
                 << json::comma << json::endl;
-      std::cout << json::field("satcount (states)")
-                << json::value(adapter.satcount(reachable_states, sts.varcount(prime_pre)))
+      std::cout << json::field("satcount (states)") << json::value(number_of_states)
                 << json::comma << json::endl;
       std::cout << json::field("time (ms)") << json::value(time) << json::endl;
 
       std::cout << json::brace_close << json::comma << json::endl;
     }
+
+    // ---------------------------------------------------------------------------------------------
+    typename Adapter::dd_t deadlock_states  = adapter.bot();
+    size_t number_of_deadlocks = 0;
     if (analysis_flags[analysis::DEADLOCK]) {
       std::cout << json::field(to_string(analysis::DEADLOCK)) << json::brace_open << json::endl;
 
-      const time_point t1                          = now();
-      const typename Adapter::dd_t deadlock_states = deadlock(adapter, sts, reachable_states);
-      const time_point t2                          = now();
+      const time_point t1 = now();
+      deadlock_states     = deadlock(adapter, sts, reachable_states);
+      const time_point t2 = now();
 
       const time_duration time = duration_ms(t1, t2);
       total_time += time;
 
+      number_of_deadlocks = adapter.satcount(deadlock_states, sts.varcount(prime_pre));
+
       std::cout << json::field("size (nodes)") << json::value(adapter.nodecount(deadlock_states))
                 << json::comma << json::endl;
-      std::cout << json::field("satcount (states)")
-                << json::value(adapter.satcount(deadlock_states, sts.varcount(prime_pre)))
+      std::cout << json::field("satcount (states)") << json::value(number_of_deadlocks)
                 << json::comma << json::endl;
       std::cout << json::field("time (ms)") << json::value(time) << json::endl;
 
       std::cout << json::brace_close << json::comma << json::endl;
     }
+
+    // ---------------------------------------------------------------------------------------------
     if (analysis_flags[analysis::SCC]) {
       std::cout << json::field(to_string(analysis::SCC)) << json::brace_open << json::endl;
 
       const time_point t1           = now();
-      const scc_summary scc_summary = scc(adapter, sts, reachable_states);
+      const scc_summary scc_summary = scc(adapter, sts, reachable_states & ~deadlock_states);
       const time_point t2           = now();
 
       const time_duration time = duration_ms(t1, t2);
       total_time += time;
 
-      std::cout << json::field("components") << json::value(scc_summary.count) << json::comma
-                << json::endl;
-      // std::cout << json::field("components (attractors)") <<
-      // json::value(scc_summary.bottom_count)
-      //           << json::comma << json::endl;
+      std::cout << json::field("components") << json::value(number_of_deadlocks + scc_summary.count)
+                << json::comma << json::endl;
 
 #ifdef BDD_BENCHMARK_STATS
-      std::cout << json::field("min SCC (states)") << json::value(scc_summary.min_states)
+      std::cout << json::field("min SCC (states)")
+                << json::value(number_of_deadlocks > 0 ? 1 : scc_summary.min_states)
                 << json::comma << json::endl;
       std::cout << json::field("max SCC (states)") << json::value(scc_summary.max_states)
                 << json::comma << json::endl;
 
-      std::cout << json::field("min SCC (nodes)") << json::value(scc_summary.min_dd) << json::comma
-                << json::endl;
+      std::cout << json::field("min SCC (nodes)")
+                << json::value(number_of_deadlocks > 0 ? sts.varcount(prime_pre) : scc_summary.min_dd)
+                << json::comma << json::endl;
       std::cout << json::field("max SCC (nodes)") << json::value(scc_summary.max_dd) << json::comma
                 << json::endl;
 #endif // BDD_BENCHMARK_STATS
@@ -2794,6 +2802,7 @@ run_mcnet(int argc, char** argv)
       std::cout << json::brace_close << json::comma << json::endl;
     }
 
+    // ---------------------------------------------------------------------------------------------
     std::cout << json::field("total time (ms)") << json::value(init_time + total_time)
               << json::endl;
     return 0;
