@@ -2602,6 +2602,7 @@ scc(Adapter& adapter,
 {
   // Output struct
   scc_summary out;
+  if (reachable == adapter.bot()) { return out; }
 
   // Stack with {vertices, pivots}
   std::vector<std::pair<typename Adapter::dd_t, typename Adapter::dd_t>> call_stack = {
@@ -2800,15 +2801,17 @@ run_mcnet(int argc, char** argv)
                 << json::comma << json::endl;
 
 #ifdef BDD_BENCHMARK_STATS
-      std::cout << json::field("min SCC (states)") << json::value(scc_summary.min_states)
-                << json::comma << json::endl;
-      std::cout << json::field("max SCC (states)") << json::value(scc_summary.max_states)
-                << json::comma << json::endl;
+      if (scc_summary.count > 0) {
+        std::cout << json::field("min SCC (states)") << json::value(scc_summary.min_states)
+                  << json::comma << json::endl;
+        std::cout << json::field("max SCC (states)") << json::value(scc_summary.max_states)
+                  << json::comma << json::endl;
 
-      std::cout << json::field("min SCC (nodes)") << json::value(scc_summary.min_dd)
-                << json::comma << json::endl;
-      std::cout << json::field("max SCC (nodes)") << json::value(scc_summary.max_dd) << json::comma
-                << json::endl;
+        std::cout << json::field("min SCC (nodes)") << json::value(scc_summary.min_dd)
+                  << json::comma << json::endl;
+        std::cout << json::field("max SCC (nodes)") << json::value(scc_summary.max_dd) << json::comma
+                  << json::endl;
+      }
 #endif // BDD_BENCHMARK_STATS
 
       std::cout << json::field("time (ms)") << json::value(time) << json::endl;
