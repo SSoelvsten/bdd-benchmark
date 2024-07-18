@@ -59,8 +59,8 @@ public:
   static constexpr std::string_view args = "f:o:";
 
   static constexpr std::string_view help_text =
-    "        -f PATH              Path to '._dd' files (2+ required)\n"
-    "        -o OPER     [and]    Boolean operator to use (and/or)";
+    "        -f PATH               Path to '._dd' files (2+ required)\n"
+    "        -o OPER      [and]    Boolean operator to use (and/or)";
 
   static inline bool
   parse_input(const int c, const char* arg)

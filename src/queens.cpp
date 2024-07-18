@@ -28,7 +28,7 @@ public:
   static constexpr std::string_view name = "Queens";
   static constexpr std::string_view args = "n:";
 
-  static constexpr std::string_view help_text = "        -n n        [8]      Size of board";
+  static constexpr std::string_view help_text = "        -n n         [8]      Size of board";
 
   static inline bool
   parse_input(const int c, const char* arg)
