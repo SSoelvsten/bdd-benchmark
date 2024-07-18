@@ -297,7 +297,11 @@ interface to configure the BDD library in question:
   (Maximum) worker thread count for multi-threaded BDD libraries, e.g., OxiDD
   and Sylvan.
 
-- **`-t <path>`** (default: */tmp*, */usr/tmp/*, ...)
+- **`-R`**
+
+  Enable dynamic variable reordering (if available with said BDD package).
+
+- **`-T <path>`** (default: */tmp*, */usr/tmp/*, ...)
 
   Filepath for temporary files on disk for external memory libraries, e.g.,
   Adiar.
@@ -345,7 +349,7 @@ Solves the following problem:
 
 The benchmark can be configured with the following options:
 
-- **`-N <int>`**
+- **`-n <int>`**
 
   The size of the sub-game. Use twice for non-quadratic grids.
 
@@ -376,7 +380,7 @@ All symmetries use a variable order where the pre/post variables are zipped and
 and follow a row-major ordering.
 
 ```bash
-./build/src/${LIB}_game-of-life_${KIND} -N 5 -N 4 -o rotate-180
+./build/src/${LIB}_game-of-life_${KIND} -n 5 -n 4 -o rotate-180
 ```
 
 
@@ -389,7 +393,7 @@ Solves the following problem:
 
 The benchmark can be configured with the following options:
 
-- **`-N <int>`**
+- **`-n <int>`**
 
   The size of the grid; use twice for non-quadratic grids.
 
@@ -428,7 +432,7 @@ The benchmark can be configured with the following options:
   encoding with BDDs does not give you great, i.e., small and fast, results.
 
 ```bash
-./build/src/${LIB}_hamiltonian_${KIND} -N 6 -N 5
+./build/src/${LIB}_hamiltonian_${KIND} -n 6 -n 5
 ```
 
 > [!IMPORTANT]
@@ -591,12 +595,12 @@ count the number of satisfying assignments.
 
 The benchmark can be configured with the following options:
 
-- **`-N <int>`**
+- **`-n <int>`**
 
   The size of the chess board.
 
 ```bash
-./build/src/${LIB}_queens_${KIND} -N 8
+./build/src/${LIB}_queens_${KIND} -n 8
 ```
 
 
@@ -616,12 +620,12 @@ The interesting thing about this benchmark is, that even though the BDDs grow
 near-exponentially, the initial BDD size grows polynomially with N, it always
 uses 64 variables number and 76 Apply operations.
 
-- **`-N <int>`**
+- **`-n <int>`**
 
   The number of crosses are placed in the 64 positions.
 
 ```bash
-./build/src/${LIB}_tic-tac-toe_${KIND} -N 20
+./build/src/${LIB}_tic-tac-toe_${KIND} -n 20
 ```
 
 

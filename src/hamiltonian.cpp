@@ -61,19 +61,19 @@ class parsing_policy
 {
 public:
   static constexpr std::string_view name = "Hamiltonian";
-  static constexpr std::string_view args = "N:e:";
+  static constexpr std::string_view args = "n:e:";
 
-  static constexpr std::string_view help_text = "        -N n        [4]      Size of grid\n"
+  static constexpr std::string_view help_text = "        -n n        [4]      Size of grid\n"
                                                 "        -e ENC      [time]   Problem encoding";
 
   static inline bool
   parse_input(const int c, const char* arg)
   {
     switch (c) {
-    case 'N': {
+    case 'n': {
       const int N = std::stoi(arg);
       if (N <= 0) {
-        std::cerr << "  Must specify positive board size (-N)\n";
+        std::cerr << "  Must specify positive board size (-n)\n";
         return true;
       }
       if (N_rows < 0) {
