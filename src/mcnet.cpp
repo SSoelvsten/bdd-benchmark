@@ -2730,6 +2730,18 @@ run_mcnet(int argc, char** argv)
               << json::endl;
     std::cout << json::brace_close << json::comma << json::endl;
 
+    std::cout << json::field("relation(s)") << json::brace_open << json::endl;
+    std::cout << json::field("amount") << json::value(sts.transitions().size())
+              << json::comma << json::endl;
+    {
+      size_t relations_size = 0;
+      for (const auto& t : sts.transitions()) {
+        relations_size += adapter.nodecount(t.relation());
+      }
+      std::cout << json::field("acc. size (nodes)") << json::value(relations_size) << json::endl;
+    }
+    std::cout << json::brace_close << json::comma << json::endl;
+
     std::cout << json::field("invariant") << json::brace_open << json::endl;
     std::cout << json::field("size (nodes)") << json::value(adapter.nodecount(sts.all()))
               << json::comma << json::endl;
@@ -2737,6 +2749,8 @@ run_mcnet(int argc, char** argv)
               << json::value(adapter.satcount(sts.initial(), sts.varcount(prime_pre)))
               << json::endl;
     std::cout << json::brace_close << json::comma << json::endl;
+
+    std::cout << json::endl;
 
     // ---------------------------------------------------------------------------------------------
     typename Adapter::dd_t reachable_states = sts.all();
