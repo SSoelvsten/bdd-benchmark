@@ -1118,7 +1118,8 @@ parse_file__aeon(const std::filesystem::path& path)
       pre.push(bool_exp::RParen);
 
       if (it->second.second.begin() != it->second.second.end()) {
-        pre.push(bool_exp::And).push(bool_exp::Not).push(bool_exp::LParen);
+        if (!pre.empty()) { pre.push(bool_exp::And); }
+        pre.push(bool_exp::Not).push(bool_exp::LParen);
         for (const int inhibiting_var : it->second.second) {
           if (inhibiting_var != *it->second.second.begin()) { pre.push(bool_exp::Or); }
           pre.push(inhibiting_var);
