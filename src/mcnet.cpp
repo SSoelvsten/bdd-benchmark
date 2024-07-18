@@ -881,6 +881,7 @@ public:
   bytes() const
   {
     size_t res = this->_initial.bytes();
+    res += this->_invariant.bytes();
     for (const auto& t : this->_int_to_trans) { res += t.bytes(); }
     return res;
   }
