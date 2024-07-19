@@ -64,7 +64,7 @@ print("  ZDD:", [p.name for p in zdd_packages])
 # --------------------------------------------------------------------------- #
 def mcnet__args(path):
     assert(os.path.exists(f"../../{path}"))
-    return f"-f ../{path} -a reach -a dead -a scc -o sloan"
+    return f"-f ../{path} -a reach -a dead -a scc -o sloan -s async"
 
 # --------------------------------------------------------------------------- #
 # For the Picotrav benchmarks, we need to obtain the 'depth' and 'size'
