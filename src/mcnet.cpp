@@ -2282,16 +2282,18 @@ private:
       const auto begin = this->_transitions.begin();
       const auto end   = this->_transitions.end();
 
-      for (auto t_iter = begin; t_iter != end; t_iter += 2) {
-        if ((t_iter + 1) == end) {
-          work_queue.push(t_iter->relation());
-        } else {
-          const typename Adapter::dd_t r1 = t_iter->relation();
-          const typename Adapter::dd_t r2 = (t_iter + 1)->relation();
+      auto t_iter = begin;
+      while (t_iter != end) {
+        const typename Adapter::dd_t r1 = (t_iter++)->relation();
 
-          work_queue.push(synchronous_update ? (r1 & r2) : (r1 | r2));
+        if (t_iter == end) {
+          work_queue.push(r1);
+          continue;
         }
+        const typename Adapter::dd_t r2 = (t_iter++)->relation();
+        work_queue.push(synchronous_update ? (r1 & r2) : (r1 | r2));
       }
+
       while (work_queue.size() > 1) {
         const auto r1 = work_queue.front();
         work_queue.pop();
