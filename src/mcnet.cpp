@@ -2701,6 +2701,11 @@ run_mcnet(int argc, char** argv)
     std::cout << json::field("variable order") << json::value(to_string(var_order)) << json::comma
               << json::endl;
 
+    std::cout << json::field("semantics")
+              << json::value(std::string(synchronous_update ? "sync" : "async")
+                             + " (" + std::string(merged_relation ? "joint" : "disjoint") + ")")
+              << json::comma << json::endl;
+
     std::cout << json::field("net") << json::brace_open << json::endl;
     std::cout << json::field("path") << json::value(path) << json::comma << json::endl;
     std::cout << json::field("places") << json::value(ts.vars().size()) << json::comma
