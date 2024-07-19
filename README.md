@@ -452,7 +452,7 @@ system formats.
   *.bnet*, *.sbml*). You can find multiple inputs in the *benchmarks/mcnet*
   folder together with links to larger and more interesting inputs.
 
-- **`-a <...>`** (default: *reachable*)
+- **`-a <...>`**
 
   The algorithm(s) to run. All algorithms depend on having computed the
   reachable states.
