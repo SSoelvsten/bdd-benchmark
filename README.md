@@ -442,6 +442,9 @@ The benchmark can be configured with the following options:
 
 ### McNet
 
+> [!IMPORTANT]
+> ZDDs are not supported for this benchmark (yet)!
+
 This simple *Model Checker for Nets* (pronounced "*Mac Net*", "*magnet*" or
 maybe "*Monet*"?) provides algorithms for the exploration of various transition
 system formats.
