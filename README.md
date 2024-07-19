@@ -480,9 +480,17 @@ system formats.
   - `sloan`: Use Sloan's ordering derived from the incidence graph, where
     variables are connected if they occur in together in the same transition.
 
-- **`-s`**
+- **`-s <...>`**
 
-  If set, then the model is interpreted with *synchronous update* semantics.
+  Merges the transition relation together into one with the given semantics.
+  If not set, then the model is explored with *asynchronous* semantics and a
+  *disjoint* relation.
+
+  - `asynchronous`: Explore the model instead with *asynchronous* update
+    semantics and a single *joined* relation.
+    
+  - `synchronous`: Explore the model instead with *synchronous* update
+    semantics.
 
 
 ```bash
