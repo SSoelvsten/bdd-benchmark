@@ -416,6 +416,7 @@ The benchmark can be configured with the following options:
     *log<sub>2</sub>(N<sup>2</sup>)*-bit binary counter gadgets. These encode
     *if u->v then v=u+1 % N<sup>2</sup>*.
 
+<!--
   - `unary`/`one-hot`: Similar to `binary` but the edges and the gadgets of *b*
     values use a one-hot encoding with *b* variables. Only one out of the *b*
     variables are ever set to true at the same time; the value of the gadget is
@@ -426,18 +427,21 @@ The benchmark can be configured with the following options:
     Theorem, we can still be sure, we only have valid cycles at the end. One
     hopes this decreases the size of the diagram, since the number of possible
     values for each gadget are much smaller.
+-->
 
-  The `time` and the `unary`/`crt_unary` encoding are designed with ZDDs in mind
-  whereas the `binary` encoding is designed for BDDs. That is, using the `time`
-  encoding with BDDs does not give you great, i.e., small and fast, results.
+  The `time` <!-- and the `unary`/`crt_unary` --> encoding are designed with ZDDs
+  in mind whereas the `binary` encoding is designed for BDDs. That is, using the
+  `time` encoding with BDDs does not give you great, i.e., small and fast, results.
 
 ```bash
 ./build/src/${LIB}_hamiltonian_${KIND} -n 6 -n 5
 ```
 
+<!--
 > [!IMPORTANT]
 > The gadget for the *unary* encodings is not yet properly implemented. Hence,
 > this variant has been disabled.
+-->
 
 
 ### McNet
@@ -473,15 +477,15 @@ system formats.
   ordering can have a major impact on the diagrams' size.
 
   - `cuthill-mckee`: Use the Cuthill-McKee order derived from the incidence
-    graph, i.e. where variables are connected if they occur in together in
-    the same transition.
+    graph, i.e. where variables are connected if they occur together in the
+    same transition.
 
   - `input`: Use the order in which the locations are declared in the file.
 
   - `random`: A randomized ordering of variables.
 
   - `sloan`: Use Sloan's ordering derived from the incidence graph, where
-    variables are connected if they occur in together in the same transition.
+    variables are connected if they occur together in the same transition.
 
 - **`-s <...>`**
 
@@ -494,7 +498,6 @@ system formats.
     
   - `synchronous`: Explore the model instead with *synchronous* update
     semantics.
-
 
 ```bash
 ./build/src/${LIB}_mcnet_${KIND} -f benchmarks/mcnet/split.pnml
