@@ -207,6 +207,16 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+// STATISTICS
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+size_t symbolic_steps = 0u;
+
+// TODO: largest and accumulated decision diagrams.
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 // TRANSITION SYSTEM PARSING
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2425,6 +2435,7 @@ forwards(Adapter& adapter,
     previous = current;
     for (const auto& t : sts.transitions()) {
       if (current == bound) { break; }
+      symbolic_steps += 1;
       current |= bound & adapter.relnext(current, t.relation(), t.support());
     }
   }
@@ -2475,6 +2486,7 @@ forwards_layer(Adapter& adapter,
 
     current_layer = adapter.bot();
     for (const auto& t : sts.transitions()) {
+      symbolic_steps += 1;
       current_layer |= adapter.relnext(previous_layer, t.relation(), t.support());
     }
     current_layer = (current_layer & bound) - forward_set;
@@ -2521,6 +2533,7 @@ backwards(Adapter& adapter,
 
     for (const auto& t : sts.transitions()) {
       if (current == bound) { break; }
+      symbolic_steps += 1;
       current |= bound & adapter.relprev(current, t.relation(), t.support());
     }
   }
@@ -2556,6 +2569,7 @@ deadlock(Adapter& adapter,
 {
   auto result = states;
   for (const auto& t : sts.transitions()) {
+    symbolic_steps += 1;
     result &= ~adapter.relprev(states, t.relation(), t.support());
   }
   return result;
@@ -2668,6 +2682,7 @@ scc(Adapter& adapter,
 
       typename Adapter::dd_t rest_pivots = bot_dd;
       for (const auto& t : sts.transitions()) {
+        symbolic_steps += 1;
         rest_pivots |= adapter.relprev(pivot_scc, t.relation(), t.support());
       }
       rest_pivots = (rest_pivots - forward_set) & rest_vertices;
@@ -2727,7 +2742,8 @@ run_mcnet(int argc, char** argv)
 
     std::cout << json::endl;
 
-    time_duration total_time = 0;
+    time_duration total_time    = 0;
+    size_t total_symbolic_steps = 0;
 
     std::cout << json::field("initial") << json::brace_open << json::endl;
     std::cout << json::field("size (nodes)") << json::value(adapter.nodecount(sts.initial()))
@@ -2763,6 +2779,8 @@ run_mcnet(int argc, char** argv)
     typename Adapter::dd_t reachable_states = sts.all();
     size_t number_of_states = 0;
     if (analysis_flags[analysis::REACHABILITY]) {
+      symbolic_steps = 0;
+
       std::cout << json::field(to_string(analysis::REACHABILITY)) << json::brace_open << json::endl;
 
       const time_point t1 = now();
@@ -2778,15 +2796,21 @@ run_mcnet(int argc, char** argv)
                 << json::comma << json::endl;
       std::cout << json::field("satcount (states)") << json::value(number_of_states)
                 << json::comma << json::endl;
+      std::cout << json::field("symbolic steps") << json::value(symbolic_steps)
+                << json::comma << json::endl;
       std::cout << json::field("time (ms)") << json::value(time) << json::endl;
 
       std::cout << json::brace_close << json::comma << json::endl;
+
+      total_symbolic_steps += symbolic_steps;
     }
 
     // ---------------------------------------------------------------------------------------------
     typename Adapter::dd_t deadlock_states  = adapter.bot();
     size_t number_of_deadlocks = 0;
     if (analysis_flags[analysis::DEADLOCK]) {
+      symbolic_steps = 0;
+
       std::cout << json::field(to_string(analysis::DEADLOCK)) << json::brace_open << json::endl;
 
       const time_point t1 = now();
@@ -2802,13 +2826,19 @@ run_mcnet(int argc, char** argv)
                 << json::comma << json::endl;
       std::cout << json::field("satcount (states)") << json::value(number_of_deadlocks)
                 << json::comma << json::endl;
+      std::cout << json::field("symbolic steps") << json::value(symbolic_steps)
+                << json::comma << json::endl;
       std::cout << json::field("time (ms)") << json::value(time) << json::endl;
 
       std::cout << json::brace_close << json::comma << json::endl;
+
+      total_symbolic_steps += symbolic_steps;
     }
 
     // ---------------------------------------------------------------------------------------------
     if (analysis_flags[analysis::SCC]) {
+      symbolic_steps = 0;
+
       std::cout << json::field(to_string(analysis::SCC)) << json::brace_open << json::endl;
 
       const time_point t1           = now();
@@ -2835,12 +2865,19 @@ run_mcnet(int argc, char** argv)
       }
 #endif // BDD_BENCHMARK_STATS
 
+      std::cout << json::field("symbolic steps") << json::value(symbolic_steps)
+                << json::comma << json::endl;
       std::cout << json::field("time (ms)") << json::value(time) << json::endl;
 
       std::cout << json::brace_close << json::comma << json::endl;
+
+      total_symbolic_steps += symbolic_steps;
     }
 
     // ---------------------------------------------------------------------------------------------
+    std::cout << json::field("total symbolic steps") << json::value(total_symbolic_steps)
+              << json::comma << json::endl;
+
     std::cout << json::field("total time (ms)") << json::value(init_time + total_time)
               << json::endl;
     return 0;
