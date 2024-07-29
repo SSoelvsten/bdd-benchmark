@@ -122,8 +122,7 @@ BENCHMARKS = {
             [ [ 0, 0,30], "-s none -n 5 -n 5" ],
             [ [ 0, 2,00], "-s none -n 6 -n 5" ],
             [ [ 2, 0,00], "-s none -n 6 -n 6" ],
-            [ [ 8, 0,00], "-s none -n 7 -n 6" ],
-            [ [15, 0,00], "-s none -n 7 -n 7" ],
+            [ [15, 0,00], "-s none -n 7 -n 6" ],
             # Mirror Vertical
             [ [ 0, 0,10], "-s mirror-vertical -n 3 -n 3" ],
             [ [ 0, 0,10], "-s mirror-vertical -n 4 -n 3" ],
