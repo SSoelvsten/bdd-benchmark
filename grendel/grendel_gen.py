@@ -1353,13 +1353,17 @@ def benchmark_str(time, benchmarks):
 
 awk '{awk_array_idx} {{ system("touch {SLURM_ORIGIN}/"$1) }}' {SLURM_ORIGIN}/grendel/{awk_name}
 
-awk '{awk_array_idx} {{ system("echo -e \\"\\n=========  Started `date`  ==========\\n\\" | tee -a {SLURM_ORIGIN}/"$1) }}' {SLURM_ORIGIN}/grendel/{awk_name}
+awk '{awk_array_idx} {{ system("echo -e \\"\\n=========  Started  `date`  ==========\\n\\" | tee -a {SLURM_ORIGIN}/"$1) }}' {SLURM_ORIGIN}/grendel/{awk_name}
 
 awk '{awk_array_idx} {{ system("{SLURM_ORIGIN}/build/src/"$2 {awk_args} " -M {memory} -T /scratch/{SLURM_JOB_ID} 2>&1 | tee -a {SLURM_ORIGIN}/"$1) }}' {SLURM_ORIGIN}/grendel/{awk_name}
 
 awk '{awk_array_idx} {{ system("echo -e \\"\\nexit code: \\"$? | tee -a {SLURM_ORIGIN}/"$1) }}' {SLURM_ORIGIN}/grendel/{awk_name}
 
 awk '{awk_array_idx} {{ system("echo -e \\"\\n=========  Finished `date`  ==========\\n\\" | tee -a {SLURM_ORIGIN}/"$1) }}' {SLURM_ORIGIN}/grendel/{awk_name}
+
+find /scratch/{SLURM_JOB_ID} -delete
+
+awk '{awk_array_idx} {{ system("echo -e \\"\\n=========  Clean-up `date`  ==========\\n\\" | tee -a {SLURM_ORIGIN}/"$1) }}' {SLURM_ORIGIN}/grendel/{awk_name}
 '''
     slurm_name = slurm_job_suffix + ".sh"
 
