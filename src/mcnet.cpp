@@ -119,7 +119,6 @@ to_string(const variable_order& vo)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 variable_order var_order = variable_order::INPUT;
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// \brief Whether to merge the relation into one.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -914,7 +913,7 @@ public:
   }
 };
 
-template<bool NumericVariables = false>
+template <bool NumericVariables = false>
 transition_system::bool_exp
 parse_exp(transition_system& ts, const std::string& exp)
 {
@@ -939,7 +938,8 @@ parse_exp(transition_system& ts, const std::string& exp)
 
   for (const char x : exp) {
     // Extend or flush variable buffer
-    if (ascii_isalpha(x) || x == '_' || ((NumericVariables || var_buffer != "") && ascii_isnumeric(x))) {
+    if (ascii_isalpha(x) || x == '_'
+        || ((NumericVariables || var_buffer != "") && ascii_isnumeric(x))) {
       var_buffer += x;
       continue;
     }
@@ -1095,7 +1095,7 @@ parse_file__aeon(const std::filesystem::path& path)
     // Case: 'x -> y' and 'x -| y'
     auto activate_pos = line.find("->");
     if (activate_pos == std::string::npos) { activate_pos = line.find("->?"); }
-    auto inhibit_pos  = line.find("-|");
+    auto inhibit_pos = line.find("-|");
     if (inhibit_pos == std::string::npos) { inhibit_pos = line.find("-|?"); }
     assert(activate_pos == std::string::npos || inhibit_pos == std::string::npos);
 
@@ -1174,8 +1174,9 @@ parse_file__bnet(const std::filesystem::path& path)
     if (line == "") { continue; }
 
     // Parse remainder of line
-    const auto comma_position       = line.find(",");
-    transition_system::bool_exp pre = parse_exp<false>(ts, line.substr(comma_position + 1, line.size()));
+    const auto comma_position = line.find(",");
+    transition_system::bool_exp pre =
+      parse_exp<false>(ts, line.substr(comma_position + 1, line.size()));
 
     const int var = ts.find_var(ascii_trim(line.substr(0, comma_position)));
     if (pre.is_const()) {
@@ -1705,9 +1706,9 @@ private:
       const std::set<int> post_support = t.post().support();
       assert(!pre_support.empty() || !post_support.empty());
 
-      const std::set<int>& x_support = !pre_support.empty() && (pre_support.size() < post_support.size())
-        ? pre_support
-        : post_support;
+      const std::set<int>& x_support =
+        !pre_support.empty() && (pre_support.size() < post_support.size()) ? pre_support
+                                                                           : post_support;
 
       for (const int x : x_support) {
         for (const int y : pre_support) {
@@ -1726,16 +1727,13 @@ private:
 
   /// \brief Converts an ordering from a `boost__incidence_graph(ts)` into a variable permutation.
   static inline variable_permutation
-  boost__incidence_permutation(const transition_system&/*ts*/,
+  boost__incidence_permutation(const transition_system& /*ts*/,
                                const std::vector<boost__vertex_type>& o)
   {
     std::unordered_map<int, int> out;
-    for (auto it = o.begin(); it != o.end(); ++it) {
-      out.insert({ *it, out.size() });
-    }
+    for (auto it = o.begin(); it != o.end(); ++it) { out.insert({ *it, out.size() }); }
     return variable_permutation(std::move(out));
   }
-
 
   /// \brief Creates the write graph, i.e. a graph where a transition node has edges to the
   ///        variables that are read from and/or written to.
@@ -1756,15 +1754,11 @@ private:
 
       if constexpr (IncludeRead) {
         const std::set<int> pre_support = t.pre().support();
-        for (const int x : pre_support) {
-          boost::add_edge(t_idx, transition_count + x, g);
-        }
+        for (const int x : pre_support) { boost::add_edge(t_idx, transition_count + x, g); }
       }
       if constexpr (IncludeWrite) {
         const std::set<int> post_support = t.post().support();
-        for (const int x : post_support) {
-          boost::add_edge(t_idx, transition_count + x, g);
-        }
+        for (const int x : post_support) { boost::add_edge(t_idx, transition_count + x, g); }
       }
     }
 
@@ -1861,9 +1855,7 @@ public:
     // Cuthill-McKee ensures all components are numbered. Yet, Sloan's algorithm seems to only
     // provide a relabelling of the single component where the start (end?) vertex is.
     std::unordered_set<boost__vertex_type> boost_uncovered;
-    for (boost__vertex_type x = 0; x < boost::num_vertices(g); ++x) {
-      boost_uncovered.insert(x);
-    }
+    for (boost__vertex_type x = 0; x < boost::num_vertices(g); ++x) { boost_uncovered.insert(x); }
 
     auto rbegin = boost_order.rbegin();
     while (!boost_uncovered.empty()) {
@@ -2104,7 +2096,8 @@ private:
                          const int dd_x = this->dd_var(x, is_prime);
 
                          const auto previous_assignment = cube.find(dd_x);
-                         conflict |= previous_assignment != cube.end() && previous_assignment->second != negate_next;
+                         conflict |= previous_assignment != cube.end()
+                           && previous_assignment->second != negate_next;
 
                          cube.insert({ dd_x, negate_next });
                          negate_next = false;
@@ -2727,8 +2720,8 @@ run_mcnet(int argc, char** argv)
               << json::endl;
 
     std::cout << json::field("semantics")
-              << json::value(std::string(synchronous_update ? "sync" : "async")
-                             + " (" + std::string(merged_relation ? "joint" : "disjoint") + ")")
+              << json::value(std::string(synchronous_update ? "sync" : "async") + " ("
+                             + std::string(merged_relation ? "joint" : "disjoint") + ")")
               << json::comma << json::endl;
 
     std::cout << json::field("net") << json::brace_open << json::endl;
@@ -2764,13 +2757,11 @@ run_mcnet(int argc, char** argv)
     std::cout << json::brace_close << json::comma << json::endl;
 
     std::cout << json::field("relation(s)") << json::brace_open << json::endl;
-    std::cout << json::field("amount") << json::value(sts.transitions().size())
-              << json::comma << json::endl;
+    std::cout << json::field("amount") << json::value(sts.transitions().size()) << json::comma
+              << json::endl;
     {
       size_t relations_size = 0;
-      for (const auto& t : sts.transitions()) {
-        relations_size += adapter.nodecount(t.relation());
-      }
+      for (const auto& t : sts.transitions()) { relations_size += adapter.nodecount(t.relation()); }
       std::cout << json::field("acc. size (nodes)") << json::value(relations_size) << json::endl;
     }
     std::cout << json::brace_close << json::comma << json::endl;
@@ -2787,7 +2778,7 @@ run_mcnet(int argc, char** argv)
 
     // ---------------------------------------------------------------------------------------------
     typename Adapter::dd_t reachable_states = sts.all();
-    size_t number_of_states = 0;
+    size_t number_of_states                 = 0;
     if (analysis_flags[analysis::REACHABILITY]) {
       symbolic_steps = 0;
 
@@ -2804,10 +2795,10 @@ run_mcnet(int argc, char** argv)
 
       std::cout << json::field("size (nodes)") << json::value(adapter.nodecount(reachable_states))
                 << json::comma << json::endl;
-      std::cout << json::field("satcount (states)") << json::value(number_of_states)
-                << json::comma << json::endl;
-      std::cout << json::field("symbolic steps") << json::value(symbolic_steps)
-                << json::comma << json::endl;
+      std::cout << json::field("satcount (states)") << json::value(number_of_states) << json::comma
+                << json::endl;
+      std::cout << json::field("symbolic steps") << json::value(symbolic_steps) << json::comma
+                << json::endl;
       std::cout << json::field("time (ms)") << json::value(time) << json::endl;
 
       std::cout << json::brace_close << json::comma << json::endl;
@@ -2816,8 +2807,8 @@ run_mcnet(int argc, char** argv)
     }
 
     // ---------------------------------------------------------------------------------------------
-    typename Adapter::dd_t deadlock_states  = adapter.bot();
-    size_t number_of_deadlocks = 0;
+    typename Adapter::dd_t deadlock_states = adapter.bot();
+    size_t number_of_deadlocks             = 0;
     if (analysis_flags[analysis::DEADLOCK]) {
       symbolic_steps = 0;
 
@@ -2836,8 +2827,8 @@ run_mcnet(int argc, char** argv)
                 << json::comma << json::endl;
       std::cout << json::field("satcount (states)") << json::value(number_of_deadlocks)
                 << json::comma << json::endl;
-      std::cout << json::field("symbolic steps") << json::value(symbolic_steps)
-                << json::comma << json::endl;
+      std::cout << json::field("symbolic steps") << json::value(symbolic_steps) << json::comma
+                << json::endl;
       std::cout << json::field("time (ms)") << json::value(time) << json::endl;
 
       std::cout << json::brace_close << json::comma << json::endl;
@@ -2858,8 +2849,8 @@ run_mcnet(int argc, char** argv)
       const time_duration time = duration_ms(t1, t2);
       total_time += time;
 
-      std::cout << json::field("components") << json::value(scc_summary.count)
-                << json::comma << json::endl;
+      std::cout << json::field("components") << json::value(scc_summary.count) << json::comma
+                << json::endl;
 
 #ifdef BDD_BENCHMARK_STATS
       if (scc_summary.count > 0) {
@@ -2870,13 +2861,13 @@ run_mcnet(int argc, char** argv)
 
         std::cout << json::field("min SCC (nodes)") << json::value(scc_summary.min_dd)
                   << json::comma << json::endl;
-        std::cout << json::field("max SCC (nodes)") << json::value(scc_summary.max_dd) << json::comma
-                  << json::endl;
+        std::cout << json::field("max SCC (nodes)") << json::value(scc_summary.max_dd)
+                  << json::comma << json::endl;
       }
 #endif // BDD_BENCHMARK_STATS
 
-      std::cout << json::field("symbolic steps") << json::value(symbolic_steps)
-                << json::comma << json::endl;
+      std::cout << json::field("symbolic steps") << json::value(symbolic_steps) << json::comma
+                << json::endl;
       std::cout << json::field("time (ms)") << json::value(time) << json::endl;
 
       std::cout << json::brace_close << json::comma << json::endl;
@@ -2890,6 +2881,7 @@ run_mcnet(int argc, char** argv)
 
     std::cout << json::field("total time (ms)") << json::value(init_time + total_time)
               << json::endl;
+
     return 0;
   });
 }
