@@ -2669,17 +2669,22 @@ scc(Adapter& adapter,
     }
 #endif // BDD_BENCHMARK_STATS
 
-    { // "Recursive" call on the forward set
-      const typename Adapter::dd_t forward_vertices = forward_set - pivot_scc;
-      const typename Adapter::dd_t forward_pivots   = latest_layer - pivot_scc;
+    // As noted in the paper, to make the algorithm only use logarithmic space, one should recurse
+    // first on the smallest set of the two.
+    const typename Adapter::dd_t forward_vertices = forward_set - pivot_scc;
+    const typename Adapter::dd_t forward_pivots   = latest_layer - pivot_scc;
+    const size_t forward_size = adapter.satcount(forward_vertices, sts.varcount(prime_pre));
 
-      if (forward_vertices != bot_dd) {
-        call_stack.push_back({ forward_vertices, forward_pivots });
-      }
+    const typename Adapter::dd_t rest_vertices = vertices - forward_set;
+    const size_t rest_size = adapter.satcount(rest_vertices, sts.varcount(prime_pre));
+
+    const bool forward_first = forward_size < rest_size;
+
+    // Place "Recursive" call on the forward set UNDERNEATH, i.e. later
+    if (forward_vertices != bot_dd && !forward_first) {
+      call_stack.push_back({ std::move(forward_vertices), std::move(forward_pivots) });
     }
     { // "Recursive" call on the rest
-      const typename Adapter::dd_t rest_vertices = vertices - forward_set;
-
       typename Adapter::dd_t rest_pivots = bot_dd;
       for (const auto& t : sts.transitions()) {
         symbolic_steps += 1;
@@ -2687,7 +2692,12 @@ scc(Adapter& adapter,
       }
       rest_pivots = (rest_pivots - forward_set) & rest_vertices;
 
-      if (rest_vertices != bot_dd) { call_stack.push_back({ rest_vertices, rest_pivots }); }
+      if (rest_vertices != bot_dd) {
+        call_stack.push_back({ std::move(rest_vertices), rest_pivots });
+      }
+    }
+    if (forward_vertices != bot_dd && forward_first) {
+      call_stack.push_back({ std::move(forward_vertices), std::move(forward_pivots) });
     }
   }
   return out;
