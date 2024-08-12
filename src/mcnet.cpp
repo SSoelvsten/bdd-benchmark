@@ -2791,7 +2791,7 @@ run_mcnet(int argc, char** argv)
               << json::endl;
     std::cout << json::brace_close << json::comma << json::endl;
 
-    std::cout << json::endl;
+    std::cout << json::endl << std::flush;
 
     // ---------------------------------------------------------------------------------------------
     typename Adapter::dd_t reachable_states = sts.all();
@@ -2822,6 +2822,7 @@ run_mcnet(int argc, char** argv)
 
       total_symbolic_steps += symbolic_steps;
     }
+    std::cout << std::flush;
 
     // ---------------------------------------------------------------------------------------------
     typename Adapter::dd_t deadlock_states = adapter.bot();
@@ -2852,6 +2853,7 @@ run_mcnet(int argc, char** argv)
 
       total_symbolic_steps += symbolic_steps;
     }
+    std::cout << std::flush;
 
     // ---------------------------------------------------------------------------------------------
     if (analysis_flags[analysis::SCC]) {
@@ -2891,6 +2893,7 @@ run_mcnet(int argc, char** argv)
 
       total_symbolic_steps += symbolic_steps;
     }
+    std::cout << std::flush;
 
     // ---------------------------------------------------------------------------------------------
     std::cout << json::field("total symbolic steps") << json::value(total_symbolic_steps)
