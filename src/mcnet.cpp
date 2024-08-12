@@ -140,7 +140,8 @@ public:
     "        -f PATH               Path to file containing a model\n"
     "        -a ALGO               Analyses to run on the net\n"
     "        -o ORDER     [input]  Variable Order to derive from the model\n"
-    "        -s SEMANTICS [async]  Merges the relation as an 'asynchronous' or 'synchronous' update";
+    "        -s SEMANTICS [async]  Merges the relation as an 'asynchronous' or 'synchronous' "
+    "update";
 
   static inline bool
   parse_input(const int c, const char* arg)
@@ -2618,6 +2619,16 @@ scc(Adapter& adapter,
     { reachable, adapter.bot() }
   };
 
+  // Cap on the stack's size to (including the ones in the given transition system)
+  const size_t sts_bdds     = 2 + 2 * sts.transitions().size();
+  constexpr size_t max_bdds = 4096;
+  if (max_bdds < sts_bdds) {
+    std::cerr << "Aborting SCC computation...!\n";
+    return {};
+  }
+
+  const size_t call_stack__max = max_bdds - sts_bdds;
+
   // Decision Diagrams that are reused throughout
   constexpr auto prime_pre = symbolic_transition_system<Adapter>::prime::pre;
 
@@ -2626,6 +2637,12 @@ scc(Adapter& adapter,
 
   // Execute call stack
   while (!call_stack.empty()) {
+    // Stop, if call stack grows too large.
+    if (call_stack.size() > call_stack__max) {
+      std::cerr << "Aborting SCC computation...!\n";
+      break;
+    }
+
     // Pop latest from call stack
     const typename Adapter::dd_t vertices = call_stack.back().first;
     assert(vertices != bot_dd);
