@@ -1361,7 +1361,7 @@ awk '{awk_array_idx} {{ system("echo -e \\"\\nexit code: \\"$? | tee -a {SLURM_O
 
 awk '{awk_array_idx} {{ system("echo -e \\"\\n=========  Finished `date`  ==========\\n\\" | tee -a {SLURM_ORIGIN}/"$1) }}' {SLURM_ORIGIN}/grendel/{awk_name}
 
-find /scratch/{SLURM_JOB_ID} -delete
+find /scratch/{SLURM_JOB_ID}/* -delete
 
 awk '{awk_array_idx} {{ system("echo -e \\"\\n=========  Clean-up `date`  ==========\\n\\" | tee -a {SLURM_ORIGIN}/"$1) }}' {SLURM_ORIGIN}/grendel/{awk_name}
 '''
