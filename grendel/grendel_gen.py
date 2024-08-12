@@ -291,18 +291,18 @@ BENCHMARKS = {
           # [ [ 2, 0,00], mcnet__args("aeon/[v20]__[r51]__[MAMMALIAN-CELL-CYCLE-1607]__[cellcollective].aeon", True)],
           # [ [ 2, 0,00], mcnet__args("aeon/[v20]__[r88]__[SUPP-MAT-MOD-NET]__[ginsim].aeon", False)],
           # [ [ 2, 0,00], mcnet__args("aeon/[v20]__[r88]__[SUPP-MAT-MOD-NET]__[ginsim].aeon", True)],
-          # [ [ 2, 0,00], mcnet__args("aeon/[v21]__[r24]__[TGFB-pathway]__[covid-uni-lu].aeon", False)],
-          # [ [ 2, 0,00], mcnet__args("aeon/[v21]__[r24]__[TGFB-pathway]__[covid-uni-lu].aeon", True)],
+            [ [ 2, 0,00], mcnet__args("aeon/[v21]__[r24]__[TGFB-pathway]__[covid-uni-lu].aeon", False)],
+            [ [ 2, 0,00], mcnet__args("aeon/[v21]__[r24]__[TGFB-pathway]__[covid-uni-lu].aeon", True)],
           # [ [ 2, 0,00], mcnet__args("aeon/[v22]__[r39]__[B-CELL-DIFFERENTIATION]__[cellcollective].aeon", False)], # NOTE: >2 days time!
-          # [ [ 2, 0,00], mcnet__args("aeon/[v22]__[r39]__[B-CELL-DIFFERENTIATION]__[cellcollective].aeon", True)],
+            [ [ 2, 0,00], mcnet__args("aeon/[v22]__[r39]__[B-CELL-DIFFERENTIATION]__[cellcollective].aeon", True)],
           # [ [ 2, 0,00], mcnet__args("aeon/[v23]__[r24]__[FGF-PATHWAY-12-06-2013]__[ginsim].aeon", False)],
           # [ [ 2, 0,00], mcnet__args("aeon/[v23]__[r24]__[FGF-PATHWAY-12-06-2013]__[ginsim].aeon", True)], # NOTE: >2 days time!
           # [ [ 2, 0,00], mcnet__args("aeon/[v23]__[r24]__[FGF-PATHWAY-OF-DROSOPHILA]__[cellcollective].aeon", False)],
           # [ [ 2, 0,00], mcnet__args("aeon/[v23]__[r24]__[FGF-PATHWAY-OF-DROSOPHILA]__[cellcollective].aeon", True)],
           # [ [ 2, 0,00], mcnet__args("aeon/[v23]__[r34]__[T-CELL-DIFFERENTIATION]__[cellcollective].aeon", False)],
-          # [ [ 2, 0,00], mcnet__args("aeon/[v23]__[r34]__[T-CELL-DIFFERENTIATION]__[cellcollective].aeon", True)],
-          # [ [ 2, 0,00], mcnet__args("aeon/[v23]__[r43]__[AURORA-KINASE-A-IN-NEUROBLASTOMA]__[cellcollective].aeon", False)], # NOTE: Solveable!
-          # [ [ 2, 0,00], mcnet__args("aeon/[v23]__[r43]__[AURORA-KINASE-A-IN-NEUROBLASTOMA]__[cellcollective].aeon", True)],  # NOTE: Solveable! SegFault ?
+            [ [ 2, 0,00], mcnet__args("aeon/[v23]__[r34]__[T-CELL-DIFFERENTIATION]__[cellcollective].aeon", True)],
+            [ [ 2, 0,00], mcnet__args("aeon/[v23]__[r43]__[AURORA-KINASE-A-IN-NEUROBLASTOMA]__[cellcollective].aeon", False)],
+            [ [ 2, 0,00], mcnet__args("aeon/[v23]__[r43]__[AURORA-KINASE-A-IN-NEUROBLASTOMA]__[cellcollective].aeon", True)], # SegFault ?
           # [ [ 2, 0,00], mcnet__args("aeon/[v24]__[r28]__[PROCESSING-OF-SPZ-NETWORK-FROM-DROSOPHILA]__[cellcollective].aeon", False)],
           # [ [ 2, 0,00], mcnet__args("aeon/[v24]__[r28]__[PROCESSING-OF-SPZ-NETWORK-FROM-DROSOPHILA]__[cellcollective].aeon", True)],
           # [ [ 2, 0,00], mcnet__args("aeon/[v24]__[r28]__[SPZ-PROCESSING-12-06-2013]__[ginsim].aeon", False)],
