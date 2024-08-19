@@ -205,6 +205,24 @@ BENCHMARKS = {
             # TODO: For now, we just set the time-limit to 2 days for our own
             #       experiments. Yet, this is too high for some and too low for
             #       others. We need to update these timings for another time!
+            #
+            # NOTE: Benchmarks come in pairs (ending with 'False' and 'True').
+            #       These are based on us identifying during a preliminary
+            #       experiment whether a small laptop can merge the transition
+            #       relation within 30 minutes. There are multiple sources of
+            #       errors here:
+            #          (1) we have not run MCC instances from 2020 and earlier
+            #          (2) temporary files not cleaned up from one run may have
+            #              forced a later run not having enough space.
+            #
+            # NOTE: Some Petri Nets are marked with '# Skip SCC ?'. These are
+            #       able to solve the 'reachability' and 'deadlock' within a
+            #       2-days time limit.
+            #
+            # NOTE: Some benchmarks are marked with '# Disk out ?'. Here, we
+            #       have seen Adiar run out of space on a 3.4 TiB. Yet, this
+            #       was still while its dependency, TPIE, was writing a (giant)
+            #       log file onto the disk too.
 
             # Boolean Networks: AEON
             [ [ 2, 0,00], mcnet__args("aeon/[v5]__[r14]__[CORTICAL-AREA-DEVELOPMENT]__[cellcollective].aeon", False)],
@@ -546,36 +564,36 @@ BENCHMARKS = {
             # MCC (Petri Net) 2022: AutonomousCar
             [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar01_a.pnml", False)],
             [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar01_a.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar01_b.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar01_b.pnml", True)],
+         ## [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar01_b.pnml", False)], # Skip SCC ?
+         ## [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar01_b.pnml", True)],
             [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar02_a.pnml", False)],
             [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar02_a.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar02_b.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar02_b.pnml", True)],
+         ## [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar02_b.pnml", False)], # Skip SCC ?
+         ## [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar02_b.pnml", True)],
             [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar03_a.pnml", False)],
             [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar03_a.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar03_b.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar03_b.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar04_a.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar04_a.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar04_b.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar04_b.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar05_a.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar05_a.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar05_b.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar05_b.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar06_a.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar06_a.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar06_b.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar06_b.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar07_a.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar07_a.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar07_b.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar07_b.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar08_a.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar08_a.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar08_b.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar08_b.pnml", True)],
+         ## [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar03_b.pnml", False)], # Skip SCC ?
+         ## [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar03_b.pnml", True)],
+            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar04_a.pnml", False)], # NOTE: ~46 h for SCCs
+            [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar04_a.pnml", True)],  # NOTE: ~1.4 h for SCCs
+         ## [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar04_b.pnml", False)], # Skip SCC ?
+         ## [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar04_b.pnml", True)],
+         ## [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar05_a.pnml", False)], # Skip SCC ?
+         ## [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar05_a.pnml", True)],
+         ## [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar05_b.pnml", False)], # Skip SCC ?
+         ## [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar05_b.pnml", True)],
+         ## [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar06_a.pnml", False)], # Skip SCC ?
+         ## [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar06_a.pnml", True)],
+         ## [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar06_b.pnml", False)], # Skip SCC ?
+         ## [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar06_b.pnml", True)],
+         ## [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar07_a.pnml", False)], # Skip SCC ?
+         ## [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar07_a.pnml", True)],
+          # [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar07_b.pnml", False)], # NOTE: >2 days
+          # [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar07_b.pnml", True)],
+          # [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar08_a.pnml", False)],
+          # [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar08_a.pnml", True)],  # NOTE: >2 days
+          # [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar08_b.pnml", False)], # NOTE: >2 days
+          # [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar08_b.pnml", True)],
           # [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar09_a.pnml", False)],
           # [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar09_b.pnml", False)],
           # [ [ 2, 0,00], mcnet__args("mcc/2022/AutonomousCar/autocar10_a.pnml", False)],
@@ -599,8 +617,8 @@ BENCHMARKS = {
             [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyCommit/stigcomm03-a.pnml", False)],
             [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyCommit/stigcomm03-a.pnml", True)],
           # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyCommit/stigcomm03-b.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyCommit/stigcomm04-a.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyCommit/stigcomm04-a.pnml", True)],
+         ## [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyCommit/stigcomm04-a.pnml", False)], # Skip SCC ?
+         ## [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyCommit/stigcomm04-a.pnml", True)],  # NOTE: Disk out ?
           # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyCommit/stigcomm04-b.pnml", False)],
             [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyCommit/stigcomm05-a.pnml", False)],
             [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyCommit/stigcomm05-a.pnml", True)],
@@ -623,21 +641,21 @@ BENCHMARKS = {
             # MCC (Petri Net) 2022: StigmergyElection
             [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec02-a.pnml", False)],
             [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec02-a.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec02-b.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec02-b.pnml", True)],
-          # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec03-a.pnml", False)],
-          # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec03-b.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec04-a.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec04-a.pnml", True)],
+         ## [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec02-b.pnml", False)], # Skip SCC ?
+         ## [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec02-b.pnml", True)],
+          # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec03-a.pnml", False)], # Skip SCC ?
+          # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec03-b.pnml", False)], # NOTE: Unable to build BDDs ...
+          # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec04-a.pnml", False)],
+          # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec04-a.pnml", True)],
           # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec04-b.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec05-a.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec05-a.pnml", True)],
+          # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec05-a.pnml", False)],
+          # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec05-a.pnml", True)],  # ...
           # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec05-b.pnml", False)],
             [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec06-a.pnml", False)],
             [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec06-a.pnml", True)],
-          # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec06-b.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec07-a.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec07-a.pnml", True)],
+          # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec06-b.pnml", False)], # NOTE: >2 days
+          # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec07-a.pnml", False)], # NOTE: Unable to build BDDs ...
+          # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec07-a.pnml", True)],
           # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec07-b.pnml", False)],
           # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec08-a.pnml", False)],
           # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec08-b.pnml", False)],
@@ -646,27 +664,27 @@ BENCHMARKS = {
           # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec10-a.pnml", False)],
           # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec10-b.pnml", False)],
           # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec11-a.pnml", False)],
-          # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec11-b.pnml", False)], # 432.0 MiB !
+          # [ [ 2, 0,00], mcnet__args("mcc/2022/StigmergyElection/stigelec11-b.pnml", False)],
 
             # MCC (Petri Net) 2021: GPUForwardProgress
             [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_04_a.pnml", False)],
             [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_04_a.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_04_b.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_04_b.pnml", True)],
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_04_b.pnml", False)], # NOTE: >2 days
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_04_b.pnml", True)],
             [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_08_a.pnml", False)],
             [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_08_a.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_08_b.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_08_b.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_12_a.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_12_a.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_12_b.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_12_b.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_16_a.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_16_a.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_16_b.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_16_b.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_20_a.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_20_a.pnml", True)],
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_08_b.pnml", False)],
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_08_b.pnml", True)],  # NOTE: Disk out ?
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_12_a.pnml", False)], # NOTE: Disk out ?
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_12_a.pnml", True)],
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_12_b.pnml", False)],
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_12_b.pnml", True)],  # NOTE: Unable to build BDDs...
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_16_a.pnml", False)],
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_16_a.pnml", True)],  # NOTE: Disk out ?
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_16_b.pnml", False)], # NOTE: Disk out ?
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_16_b.pnml", True)],  # NOTE: Disk out ?
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_20_a.pnml", False)], # NOTE: Disk out ?
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_20_a.pnml", True)],  # NOTE: Disk out ?
           # [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_20_b.pnml", False)],
           # [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_24_a.pnml", False)],
           # [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_24_b.pnml", False)],
@@ -680,40 +698,40 @@ BENCHMARKS = {
           # [ [ 2, 0,00], mcnet__args("mcc/2021/GPUForwardProgress/gpufp_40_b.pnml", False)],
 
             # MCC (Petri Net) 2021: HealthRecord
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_01.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_01.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_02.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_02.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_03.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_03.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_04.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_04.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_05.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_05.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_06.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_06.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_07.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_07.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_08.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_08.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_09.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_09.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_10.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_10.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_11.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_11.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_12.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_12.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_13.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_13.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_14.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_14.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_15.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_15.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_16.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_16.pnml", True)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_17.pnml", False)],
-            [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_17.pnml", True)],
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_01.pnml", False)], # NOTE: Unable to build BDDs
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_01.pnml", True)],  # ...
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_02.pnml", False)],
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_02.pnml", True)],
+         ## [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_03.pnml", False)], # Skip SCC ?
+         ## [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_03.pnml", True)],  # ...
+         ## [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_04.pnml", False)], # Skip SCC ?
+         ## [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_04.pnml", True)],  # ...
+         ## [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_05.pnml", False)], # Skip SCC ?
+         ## [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_05.pnml", True)],  # ...
+         ## [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_06.pnml", False)], # Skip SCC ?
+         ## [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_06.pnml", True)],  # ...
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_07.pnml", False)], # Skip SCC ?
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_07.pnml", True)],  # NOTE: Disk out during reachability
+         ## [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_08.pnml", False)], # Skip SCC ?
+         ## [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_08.pnml", True)],  # ...
+         ## [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_09.pnml", False)], # Skip SCC ?
+         ## [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_09.pnml", True)],  # ...
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_10.pnml", False)], # NOTE: Unable to build BDDs
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_10.pnml", True)],  # ...
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_11.pnml", False)], # ..
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_11.pnml", True)],  # .
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_12.pnml", False)],
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_12.pnml", True)],
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_13.pnml", False)],
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_13.pnml", True)],
+         ## [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_14.pnml", False)], # Skip SCC ?
+         ## [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_14.pnml", True)],  # ...
+         ## [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_15.pnml", False)], # Skip SCC ?
+         ## [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_15.pnml", True)],  # ...
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_16.pnml", False)], # ???
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_16.pnml", True)],  # Skip SCC ?
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_17.pnml", False)], # ???
+          # [ [ 2, 0,00], mcnet__args("mcc/2021/HealthRecord/hrec_17.pnml", True)],  # ???
 
             # MCC (Petri Net) 2021: ServersAndClients
           # [ [ 2, 0,00], mcnet__args("mcc/2021/ServersAndClients/ServersAndClients-100-020.pnml", False)],
