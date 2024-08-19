@@ -1379,7 +1379,7 @@ awk '{awk_array_idx} {{ system("echo -e \\"\\nexit code: \\"$? | tee -a {SLURM_O
 
 awk '{awk_array_idx} {{ system("echo -e \\"\\n=========  Finished `date`  ==========\\n\\" | tee -a {SLURM_ORIGIN}/"$1) }}' {SLURM_ORIGIN}/grendel/{awk_name}
 
-rm -f /scratch/{SLURM_JOB_ID}/*
+rm -rf /scratch/{SLURM_JOB_ID}/*
 
 awk '{awk_array_idx} {{ system("echo -e \\"\\n=========  Clean-up `date`  ==========\\n\\" | tee -a {SLURM_ORIGIN}/"$1) }}' {SLURM_ORIGIN}/grendel/{awk_name}
 '''
