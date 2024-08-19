@@ -47,15 +47,20 @@ if not package_choice:
 
 bdd_packages = []
 if dd_t.bdd in dd_choice:
-    bdd_packages = [p for p in package_choice if dd_t.bdd in package_dd[p] or dd_t.bcdd in package_dd[p]]
+    bdd_packages = [p for p in package_choice if dd_t.bdd in package_dd[p]]
+
+bcdd_packages = []
+if dd_t.bcdd in dd_choice:
+    bcdd_packages = [p for p in package_choice if dd_t.bcdd in package_dd[p]]
 
 zdd_packages = []
 if dd_t.zdd in dd_choice:
     zdd_packages = [p for p in package_choice if dd_t.zdd in package_dd[p]]
 
 print("\nPackages")
-print("  BDD:", [p.name for p in bdd_packages])
-print("  ZDD:", [p.name for p in zdd_packages])
+print("  BDD: ", [p.name for p in bdd_packages])
+print("  BCDD:", [p.name for p in bcdd_packages])
+print("  ZDD: ", [p.name for p in zdd_packages])
 
 # =========================================================================== #
 # Benchmark Instances
@@ -1201,11 +1206,13 @@ for b in BENCHMARKS.keys():
         if input(f"Include '{b}' Benchmark? (yes/No): ").lower() in yes_choices:
             benchmark_choice.append(b)
 
-bdd_benchmarks = [b for b in benchmark_choice if dd_t.bdd in BENCHMARKS[b].keys()] if dd_t.bdd in dd_choice else []
-zdd_benchmarks = [b for b in benchmark_choice if dd_t.zdd in BENCHMARKS[b].keys()] if dd_t.zdd in dd_choice else []
+bdd_benchmarks  = [b for b in benchmark_choice if dd_t.bdd  in BENCHMARKS[b].keys()] if dd_t.bdd  in dd_choice else []
+bcdd_benchmarks = [b for b in benchmark_choice if dd_t.bcdd in BENCHMARKS[b].keys()] if dd_t.bcdd in dd_choice else []
+zdd_benchmarks  = [b for b in benchmark_choice if dd_t.zdd  in BENCHMARKS[b].keys()] if dd_t.zdd  in dd_choice else []
 
 print("\nBenchmarks")
 print("  BDD: ", bdd_benchmarks)
+print("  BCDD:", bcdd_benchmarks)
 print("  ZDD: ", zdd_benchmarks)
 
 print("")
@@ -1435,6 +1442,22 @@ for package in {' '.join([p.name for p in bdd_packages])} ; do
 done
 '''
 
+    bcdd_build = ""
+    if bcdd_benchmarks:
+        assert(bcdd_packages)
+        bcdd_build = f'''
+echo ""
+echo "Build BCDD Benchmarks"
+for package in {' '.join([p.name for p in bcdd_packages])} ; do
+		for benchmark in {' '.join([b for b in bcdd_benchmarks])} ; do
+			mkdir -p ../out/$package ; \\
+			mkdir -p ../out/$package/$benchmark ; \\
+			mkdir -p ../out/$package/$benchmark/bcdd ; \\
+			make $package'_'$benchmark'_bcdd' ;
+		done ;
+done
+'''
+
     zdd_build = ""
     if zdd_benchmarks:
         assert(zdd_packages)
@@ -1455,7 +1478,7 @@ done
 echo -e "\\n========= Finished `date` ==========\\n"
 '''
 
-    return prefix + bdd_build + zdd_build + suffix
+    return prefix + bdd_build + bcdd_build + zdd_build + suffix
 
 # =========================================================================== #
 # Run Script Strings and Save to Disk
