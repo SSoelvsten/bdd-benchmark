@@ -1297,7 +1297,16 @@ def executable(package, benchmark, dd):
     return f"{package.name}_{benchmark}_{dd.name}"
 
 def benchmark_uid(package, benchmark, dd, args):
-    args_suffix = '_'.join(args.replace('-', '').replace(' ', '_').split('/')[-1:]).split('.')[0][-32:]
+    # Remove prefixes
+    args_suffix = args.replace('../', '').replace('-', '')
+    # Remove parts of AEON benchmarks
+    args_suffix = args_suffix.replace('__[biomodels]', '').replace('__[cellcollective]', '').replace('__[ginsim]', '')
+    # Remove file endings
+    args_suffix = '_'.join([x.split('.')[0] for x in args_suffix.split(' ')])
+    # Replace special characters with '_'
+    args_suffix = args_suffix.replace(' ', '_').replace('/', '_')
+    # Take the last 128 characters to guarantee a limit on length of file names
+    args_suffix = args_suffix[-128:]
 
     return [package.name, benchmark, dd.name, args_suffix]
 
