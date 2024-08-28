@@ -2230,8 +2230,8 @@ private:
 
     // Support Cube
     std::set<int> support;
-    for (const int x : pre_support) { support.insert(this->dd_var(x)); }
-    for (const int x : post_support) { support.insert(this->dd_var(x)); }
+    for (const int x : pre_support) { support.insert(this->dd_var(x, prime::pre)); }
+    for (const int x : post_support) { support.insert(this->dd_var(x, prime::post)); }
 
     dd_t support_dd = this->_adapter.top();
     {
