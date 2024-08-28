@@ -122,7 +122,7 @@ variable_order var_order = variable_order::INPUT;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// \brief Whether to merge the relation into one.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-bool merged_relation = false;
+bool joint_relation = false;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// \brief Whether to use Synchronous Update Semantics (asynchronous, otherwise).
@@ -191,7 +191,7 @@ public:
     case 's': {
       const std::string lower_arg = ascii_tolower(arg);
 
-      merged_relation = true;
+      joint_relation = true;
       if (is_prefix(lower_arg, "synchronous")) {
         synchronous_update = true;
       } else if (!is_prefix(lower_arg, "asynchronous")) {
@@ -2280,7 +2280,7 @@ private:
       this->_transitions.push_back(this->convert(t));
     }
 
-    if (merged_relation) {
+    if (joint_relation) {
       std::queue<typename Adapter::dd_t> work_queue;
 
       const auto begin = this->_transitions.begin();
@@ -2738,7 +2738,7 @@ run_mcnet(int argc, char** argv)
 
     std::cout << json::field("semantics")
               << json::value(std::string(synchronous_update ? "sync" : "async") + " ("
-                             + std::string(merged_relation ? "joint" : "disjoint") + ")")
+                             + std::string(joint_relation ? "joint" : "disjoint") + ")")
               << json::comma << json::endl;
 
     std::cout << json::field("net") << json::brace_open << json::endl;
