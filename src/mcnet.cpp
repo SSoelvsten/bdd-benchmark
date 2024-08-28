@@ -2212,11 +2212,11 @@ private:
       for (int x = this->varcount() - 2; 0 <= x; x -= 2) {
         assert(x % 2 == 0);
 
-        // Skip variables also mentioned in the Postcondition
+        // Skip variables in the Postcondition
         if (post_support.find(this->ts_var(x)) != post_support.end()) { continue; }
 
-        // Skip variable neither in Precondition, if BDD package does not need it.
-        if constexpr (!Adapter::needs_frame_rule) {
+        // Skip variable neither in the Precondition, if the BDD package can take care of it itself.
+        if (!Adapter::needs_frame_rule && !joint_relation) {
           if (pre_support.find(this->ts_var(x)) == pre_support.end()) { continue; }
         }
 
