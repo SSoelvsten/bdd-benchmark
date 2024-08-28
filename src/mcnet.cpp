@@ -2306,8 +2306,8 @@ private:
 
         work_queue.push(synchronous_update ? (r1 & r2) : (r1 | r2));
       }
-      const auto is_prime_pre = [](int x) { return x % 2 == prime::pre; };
-      this->_transitions = { transition(work_queue.front(), this->_adapter.cube(is_prime_pre)) };
+      const auto total_support = [](int x) { return true; };
+      this->_transitions = { transition(work_queue.front(), this->_adapter.cube(total_support)) };
     }
   }
 
