@@ -268,7 +268,7 @@ public:
   inline uint64_t
   nodecount(const sylvan::Bdd& f)
   {
-    return f.NodeCount() - 1;
+    return f.NodeCount();
   }
 
   inline uint64_t
