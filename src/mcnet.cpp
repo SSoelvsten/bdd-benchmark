@@ -2401,6 +2401,13 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef BDD_BENCHMARK_STATS
+size_t max_nodes   = 0;
+size_t total_nodes = 0;
+#endif // BDD_BENCHMARK_STATS
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // TODO :
 // - [x] Reachability (forwards)
 // - [x] Reachability (backwards)
@@ -2429,10 +2436,25 @@ forwards(Adapter& adapter,
     previous = current;
     for (const auto& t : sts.transitions()) {
       if (current == bound) { break; }
+
       symbolic_steps += 1;
-      current |= bound & adapter.relnext(current, t.relation(), t.support());
+      const typename Adapter::dd_t next = adapter.relnext(current, t.relation(), t.support());
+
+#ifdef BDD_BENCHMARK_STATS
+      {
+        const size_t current_nodes  = adapter.nodecount(current);
+        const size_t relation_nodes = adapter.nodecount(t.relation());
+        const size_t next_nodes     = adapter.nodecount(next);
+
+        total_nodes += current_nodes + relation_nodes + next_nodes;
+        max_nodes    = std::max({ max_nodes, current_nodes, next_nodes });
+      }
+#endif // BDD_BENCHMARK_STATS
+
+      current |= bound & std::move(next);
     }
   }
+
   return current;
 }
 
@@ -2481,7 +2503,21 @@ forwards_layer(Adapter& adapter,
     current_layer = adapter.bot();
     for (const auto& t : sts.transitions()) {
       symbolic_steps += 1;
-      current_layer |= adapter.relnext(previous_layer, t.relation(), t.support());
+      const typename Adapter::dd_t& next =
+        adapter.relnext(previous_layer, t.relation(), t.support());
+
+#ifdef BDD_BENCHMARK_STATS
+      {
+        const size_t previous_nodes = adapter.nodecount(previous_layer);
+        const size_t relation_nodes = adapter.nodecount(t.relation());
+        const size_t next_nodes  = adapter.nodecount(next);
+
+        total_nodes += previous_nodes + relation_nodes + next_nodes;
+        max_nodes    = std::max({ max_nodes, previous_nodes, next_nodes });
+      }
+#endif // BDD_BENCHMARK_STATS
+
+      current_layer |= std::move(next);
     }
     current_layer = (current_layer & bound) - forward_set;
   }
@@ -2527,8 +2563,22 @@ backwards(Adapter& adapter,
 
     for (const auto& t : sts.transitions()) {
       if (current == bound) { break; }
+
       symbolic_steps += 1;
-      current |= bound & adapter.relprev(current, t.relation(), t.support());
+      const typename Adapter::dd_t next = adapter.relprev(current, t.relation(), t.support());
+
+#ifdef BDD_BENCHMARK_STATS
+      {
+        const size_t current_nodes  = adapter.nodecount(current);
+        const size_t relation_nodes = adapter.nodecount(t.relation());
+        const size_t next_nodes     = adapter.nodecount(next);
+
+        total_nodes += current_nodes + relation_nodes + next_nodes;
+        max_nodes    = std::max({ max_nodes, current_nodes, next_nodes });
+      }
+#endif // BDD_BENCHMARK_STATS
+
+      current |= bound & std::move(next);
     }
   }
   return current;
@@ -2564,7 +2614,20 @@ deadlock(Adapter& adapter,
   auto result = states;
   for (const auto& t : sts.transitions()) {
     symbolic_steps += 1;
-    result &= ~adapter.relprev(states, t.relation(), t.support());
+    const typename Adapter::dd_t previous = adapter.relprev(states, t.relation(), t.support());
+
+#ifdef BDD_BENCHMARK_STATS
+    {
+      const size_t states_nodes   = adapter.nodecount(states);
+      const size_t relation_nodes = adapter.nodecount(t.relation());
+      const size_t previous_nodes = adapter.nodecount(previous);
+
+      total_nodes += states_nodes + relation_nodes + previous_nodes;
+      max_nodes    = std::max({ max_nodes, states_nodes, previous_nodes });
+    }
+#endif // BDD_BENCHMARK_STATS
+
+    result &= ~previous;
   }
   return result;
 }
@@ -2697,8 +2760,25 @@ scc(Adapter& adapter,
     { // "Recursive" call on the rest
       typename Adapter::dd_t rest_pivots = bot_dd;
       for (const auto& t : sts.transitions()) {
+        // TODO (Optimisation):
+        //   Break when 'rest_pivots' is non-empty
+
         symbolic_steps += 1;
-        rest_pivots |= adapter.relprev(pivot_scc, t.relation(), t.support());
+        const typename Adapter::dd_t pivot_predecessors =
+          adapter.relprev(pivot_scc, t.relation(), t.support());
+
+#ifdef BDD_BENCHMARK_STATS
+        {
+          const size_t scc_nodes      = adapter.nodecount(pivot_scc);
+          const size_t relation_nodes = adapter.nodecount(t.relation());
+          const size_t result_nodes   = adapter.nodecount(pivot_predecessors);
+
+          total_nodes += scc_nodes + relation_nodes + result_nodes;
+          max_nodes    = std::max({ max_nodes, scc_nodes, result_nodes });
+        }
+#endif // BDD_BENCHMARK_STATS
+
+        rest_pivots |= pivot_predecessors;
       }
       rest_pivots = (rest_pivots - forward_set) & rest_vertices;
 
@@ -2898,6 +2978,14 @@ run_mcnet(int argc, char** argv)
     // ---------------------------------------------------------------------------------------------
     std::cout << json::field("total symbolic steps") << json::value(total_symbolic_steps)
               << json::comma << json::endl;
+
+#ifdef BDD_BENCHMARK_STATS
+    std::cout << json::field("total size (nodes)") << json::value(total_nodes)
+              << json::comma << json::endl;
+
+    std::cout << json::field("max size (nodes)") << json::value(max_nodes)
+              << json::comma << json::endl;
+#endif // BDD_BENCHMARK_STATS
 
     std::cout << json::field("total time (ms)") << json::value(init_time + total_time)
               << json::endl;
