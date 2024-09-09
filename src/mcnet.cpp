@@ -2503,7 +2503,7 @@ forwards_layer(Adapter& adapter,
     current_layer = adapter.bot();
     for (const auto& t : sts.transitions()) {
       symbolic_steps += 1;
-      const typename Adapter::dd_t& next =
+      const typename Adapter::dd_t next =
         adapter.relnext(previous_layer, t.relation(), t.support());
 
 #ifdef BDD_BENCHMARK_STATS
