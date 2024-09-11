@@ -351,8 +351,8 @@ namespace lib_bdd
     std::priority_queue<int, std::vector<int>, std::greater<>> pq;
 
     for (const lib_bdd::bdd& f : fs) {
-      for (const auto& n : f) {
-        if (!n.is_terminal()) { pq.push(n.level()); }
+      for (size_t i = 2; i < f.size(); ++i) {
+        pq.push(f.at(i).level());
       }
     }
 
