@@ -10,6 +10,7 @@
 
 #include "oxidd/bdd.hpp"
 #include "oxidd/bcdd.hpp"
+#include "oxidd/util.hpp"
 #include "oxidd/zbdd.hpp"
 
 inline std::pair<size_t, size_t>
@@ -36,13 +37,13 @@ compute_init_size(unsigned cache_arity)
 namespace oxidd
 {
   // TODO: Move into OxiDD (https://github.com/OxiDD/oxidd/issues/15)
-  bdd_function
+  inline bdd_function
   operator-(const bdd_function& f, const bdd_function& g)
   {
     return g.imp_strict(f);
   }
 
-  bdd_function&
+  inline bdd_function&
   operator-=(bdd_function& f, const bdd_function& g)
   {
     f = f - g;
@@ -242,7 +243,8 @@ public:
       _relnext_pairs = oxidd::bdd_substitution(pairs.begin(), pairs.end());
     }
 
-    return (states & rel).exist(_relnext_vars).substitute(_relnext_pairs);
+    return states.apply_exist(oxidd::util::boolean_operator::AND, rel, _relnext_vars)
+      .substitute(_relnext_pairs);
   }
 
   inline oxidd::bdd_function
@@ -261,7 +263,8 @@ public:
       _relprev_pairs = oxidd::bdd_substitution(pairs.begin(), pairs.end());
     }
 
-    return (states.substitute(_relprev_pairs) & rel).exist(_relprev_vars);
+    return states.substitute(_relprev_pairs)
+      .apply_exist(oxidd::util::boolean_operator::AND, rel, _relprev_vars);
   }
 
   inline uint64_t
@@ -286,32 +289,13 @@ public:
   inline oxidd::bdd_function
   satone(const oxidd::bdd_function& f)
   {
-    oxidd::util::assignment sat = f.pick_cube();
-
-    oxidd::bdd_function res = top();
-    for (int x = sat.size() - 1; 0 <= x; --x) {
-      const oxidd::util::opt_bool val = sat[x];
-      if (val == oxidd::util::opt_bool::NONE) continue;
-
-      res &= val == oxidd::util::opt_bool::TRUE ? _vars[x] : ~_vars[x];
-    }
-    return res;
+    return f.pick_cube_symbolic();
   }
 
   inline oxidd::bdd_function
   satone(const oxidd::bdd_function& f, const oxidd::bdd_function& c)
   {
-    oxidd::util::assignment f_sat = f.pick_cube();
-    oxidd::util::assignment c_sat = f.pick_cube();
-    assert(f_sat.size() == c_sat.size());
-
-    oxidd::bdd_function res = top();
-    for (int x = c_sat.size() - 1; 0 <= x; --x) {
-      if (c_sat[x] == oxidd::util::opt_bool::NONE) continue;
-
-      res &= f_sat[x] == oxidd::util::opt_bool::TRUE ? _vars[x] : ~_vars[x];
-    }
-    return res;
+    return f.pick_cube_symbolic_set(c);
   }
 
   inline std::vector<std::pair<uint32_t, char>>
@@ -387,13 +371,13 @@ public:
 namespace oxidd
 { // TODO: Move into OxiDD (https://github.com/OxiDD/oxidd/issues/15)
 
-  bcdd_function
+  inline bcdd_function
   operator-(const bcdd_function& f, const bcdd_function& g)
   {
     return g.imp_strict(f);
   }
 
-  bcdd_function&
+  inline bcdd_function&
   operator-=(bcdd_function& f, const bcdd_function& g)
   {
     f = f - g;
@@ -593,7 +577,8 @@ public:
       _relnext_pairs = oxidd::bcdd_substitution(pairs.begin(), pairs.end());
     }
 
-    return (states & rel).exist(_relnext_vars).substitute(_relnext_pairs);
+    return states.apply_exist(oxidd::util::boolean_operator::AND, rel, _relnext_vars)
+      .substitute(_relnext_pairs);
   }
 
   inline oxidd::bcdd_function
@@ -612,7 +597,8 @@ public:
       _relprev_pairs = oxidd::bcdd_substitution(pairs.begin(), pairs.end());
     }
 
-    return (states.substitute(_relprev_pairs) & rel).exist(_relprev_vars);
+    return states.substitute(_relprev_pairs)
+      .apply_exist(oxidd::util::boolean_operator::AND, rel, _relprev_vars);
   }
 
   inline uint64_t
@@ -637,32 +623,13 @@ public:
   inline oxidd::bcdd_function
   satone(const oxidd::bcdd_function& f)
   {
-    oxidd::util::assignment sat = f.pick_cube();
-
-    oxidd::bcdd_function res = top();
-    for (int x = sat.size() - 1; 0 <= x; --x) {
-      const oxidd::util::opt_bool val = sat[x];
-      if (val == oxidd::util::opt_bool::NONE) continue;
-
-      res &= val == oxidd::util::opt_bool::TRUE ? _vars[x] : ~_vars[x];
-    }
-    return res;
+    return f.pick_cube_symbolic();
   }
 
   inline oxidd::bcdd_function
   satone(const oxidd::bcdd_function& f, const oxidd::bcdd_function& c)
   {
-    oxidd::util::assignment f_sat = f.pick_cube();
-    oxidd::util::assignment c_sat = f.pick_cube();
-    assert(f_sat.size() == c_sat.size());
-
-    oxidd::bcdd_function res = top();
-    for (int x = c_sat.size() - 1; 0 <= x; --x) {
-      if (c_sat[x] == oxidd::util::opt_bool::NONE) continue;
-
-      res &= f_sat[x] == oxidd::util::opt_bool::TRUE ? _vars[x] : ~_vars[x];
-    }
-    return res;
+    return f.pick_cube_symbolic_set(c);
   }
 
   inline std::vector<std::pair<uint32_t, char>>
