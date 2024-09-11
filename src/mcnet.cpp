@@ -2916,7 +2916,7 @@ run_mcnet(int argc, char** argv)
     // ---------------------------------------------------------------------------------------------
     if (dump_folder != "") {
       if (!std::filesystem::exists(dump_folder)) {
-        std::filesystem::create_directory(dump_folder);
+        std::filesystem::create_directories(dump_folder);
       }
 
       if (joint_relation) {
