@@ -312,6 +312,24 @@ namespace lib_bdd
     return deserialize(is);
   }
 
+  /// \brief Comparator for a level-by-level bottom-up traversal.
+  inline auto
+  levelized_order(const lib_bdd::bdd& f)
+  {
+    return [&f](const int a, const int b) -> bool {
+      assert(f.at(a).is_internal());
+      assert(f.at(b).is_internal());
+
+      const lib_bdd::node& a_node = f.at(a);
+      const lib_bdd::node& b_node = f.at(b);
+
+      // Deepest first (but it is a maximum priority queue)
+      if (a_node.level() != b_node.level()) { return a_node.level() < b_node.level(); }
+      // Break ties on the same level by its index
+      return a > b;
+    };
+  }
+
   /// \brief Struct with various statistics about a deserialized BDD.
   struct stats_t
   {
@@ -346,7 +364,20 @@ namespace lib_bdd
 
     std::vector<int> parent_counts(f.size(), 0);
 
-    for (const auto& n : f) {
+    const auto pq_comp = levelized_order(f);
+
+    std::priority_queue<int, std::vector<int>, decltype(pq_comp)> pq(pq_comp);
+    for (size_t i = 2; i < f.size(); ++i) {
+      assert(i < std::numeric_limits<int>::max());
+      pq.push(static_cast<int>(i));
+    }
+
+    while (!pq.empty()) {
+      const int i = pq.top();
+      pq.pop();
+
+      const auto& n = f.at(i);
+
       if (n.level() != curr_level) {
         out.levels += 1;
         curr_level = n.level();
@@ -431,18 +462,7 @@ reconstruct(Adapter& adapter, const lib_bdd::bdd& in, const var_map& vm)
   out.at(1) = adapter.build_node(true);
 
   // Internal Nodes
-  const auto pq_comp = [&in](const int a, const int b) -> bool {
-    assert(in.at(a).is_internal());
-    assert(in.at(b).is_internal());
-
-    const lib_bdd::node& a_node = in.at(a);
-    const lib_bdd::node& b_node = in.at(b);
-
-    // Deepest first (but it is a maximum priority queue)
-    if (a_node.level() != b_node.level()) { return a_node.level() < b_node.level(); }
-    // Break ties on the same level by its index
-    return a > b;
-  };
+  const auto pq_comp = levelized_order(in);
 
   std::priority_queue<int, std::vector<int>, decltype(pq_comp)> pq(pq_comp);
   for (size_t i = 2; i < in.size(); ++i) {
