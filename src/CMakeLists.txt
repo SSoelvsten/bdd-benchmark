@@ -96,5 +96,8 @@ add_bdd_benchmark(qbf)
 add_bcdd_benchmark(qbf)
 
 # ---------------------------------------------------------------------------- #
-# Other Benchmarks
+# Single Operation Benchmarks
 add_benchmark(apply)
+
+add_bdd_benchmark(relprod)
+add_bcdd_benchmark(relprod)

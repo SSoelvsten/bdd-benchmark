@@ -332,7 +332,7 @@ The benchmark can be configured with the following options:
   some inputs in the *benchmarks/apply* folder together with links to larger
   and more interesting inputs.
 
-- **`-o <and|or>`**
+- **`-o <and|or>`** (default: *and*)
 
   Specify the operator to be used to combine the two decision diagrams.
 
@@ -495,7 +495,7 @@ system formats.
 
   - `asynchronous`: Explore the model instead with *asynchronous* update
     semantics and a single *joined* relation.
-    
+
   - `synchronous`: Explore the model instead with *synchronous* update
     semantics.
 
@@ -615,6 +615,33 @@ The benchmark can be configured with the following options:
 
 ```bash
 ./build/src/${LIB}_queens_${KIND} -n 8
+```
+
+
+### Relational Product
+
+Building on-top of the [Apply](#apply) benchmark, this benchmark loads a *relation* and a set of
+*states* stored in a *binary* format (as they are serialized by the
+[LibBDD](https://github.com/sybila/biodivine-lib-bdd)) and then combines them with a *Relational
+Product* operation in either direction.
+
+The benchmark can be configured with the following options:
+
+- **`-o <next|prev>`** (default: *next*)
+
+  Specify whether the transition relation should be traversed forwards (*next*) or backwards
+  (*prev*).
+
+- **`-r <path>`**
+
+  Path to a *.bdd* / *.zdd* file that contains the relation.
+
+- **`-s <path>`**
+
+  Path to a *.bdd* / *.zdd* file that contains the set of states.
+
+```bash
+./build/src/${LIB}_relprod_${KIND} -r benchmarks/relprod/self-loop/relation.bdd -s benchmarks/relprod/self-loop/states_all.bdd -o next
 ```
 
 
