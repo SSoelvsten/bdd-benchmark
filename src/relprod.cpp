@@ -102,7 +102,7 @@ build_support(Adapter& adapter, const lib_bdd::var_map& vm)
 
   typename Adapter::build_node_t root_ptr  = true_ptr;
 
-  for (int x = vm.size() - 1; x > 0; --x) {
+  for (int x = vm.size() - 1; 0 <= x; --x) {
     root_ptr = adapter.build_node(x, false_ptr, root_ptr);
   }
 
