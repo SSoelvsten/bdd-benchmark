@@ -2495,6 +2495,10 @@ forwards(Adapter& adapter,
     }
   }
 
+  if (dump_folder != "") {
+      const std::string path = dump_folder + "/states_all.bdd";
+      adapter.save(current, path);
+  }
   return current;
 }
 
