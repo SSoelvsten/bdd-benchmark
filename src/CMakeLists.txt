@@ -101,3 +101,5 @@ add_benchmark(apply)
 
 add_bdd_benchmark(relprod)
 add_bcdd_benchmark(relprod)
+
+add_benchmark(cnf)
