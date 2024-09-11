@@ -4,7 +4,6 @@
 #include <cstdlib>
 #include <functional>
 #include <iostream>
-#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
