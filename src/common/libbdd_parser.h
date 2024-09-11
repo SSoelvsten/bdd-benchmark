@@ -78,6 +78,7 @@ namespace lib_bdd
       , _low(low)
       , _high(high)
     {
+      // TODO: The above 'terminal_level' hack breaks for ZDDs with two `true` children.
       if (var == terminal_level) { throw std::overflow_error("BDD variable level too large"); }
       if (low == high && low > true_ptr /*|| high > true_ptr*/) {
         throw std::invalid_argument("Creation of suppressed BDD node");
