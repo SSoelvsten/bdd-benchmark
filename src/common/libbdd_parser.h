@@ -14,11 +14,15 @@
 // Files, Streams, and so on...
 #include <filesystem>
 #include <fstream>
+#include <ostream>
 
 // Types
 #include <cstdint>
 #include <cstdlib>
 #include <limits>
+
+// Common
+#include <common/json.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                Deserialization from 'Lib-BDD'                                  //
@@ -334,6 +338,35 @@ namespace lib_bdd
     }
 
     return out;
+  }
+
+  void
+  print_json(const stats_t& stats, std::ostream& = std::cout)
+  {
+    std::cout << json::field("size") << json::value(stats.size) << json::comma << json::endl;
+    std::cout << json::field("levels") << json::value(stats.levels) << json::comma << json::endl;
+    std::cout << json::field("width") << json::value(stats.width) << json::comma << json::endl;
+
+    std::cout << json::field("terminal_edges") << json::brace_open << json::endl;
+    std::cout << json::field("false") << json::value(stats.terminals[false]) << json::comma
+              << json::endl;
+    std::cout << json::field("true") << json::value(stats.terminals[true]) << json::endl;
+    std::cout << json::brace_close << json::endl;
+
+    std::cout << json::field("parent_counts") << json::brace_open << json::endl;
+    std::cout << json::field("0")
+              << json::value(stats.parent_counts[lib_bdd::stats_t::parent_count_idx::None])
+              << json::comma << json::endl;
+    std::cout << json::field("1")
+              << json::value(stats.parent_counts[lib_bdd::stats_t::parent_count_idx::One])
+              << json::comma << json::endl;
+    std::cout << json::field("2")
+              << json::value(stats.parent_counts[lib_bdd::stats_t::parent_count_idx::Two])
+              << json::comma << json::endl;
+    std::cout << json::field("3+")
+              << json::value(stats.parent_counts[lib_bdd::stats_t::parent_count_idx::More])
+              << json::endl;
+    std::cout << json::brace_close << json::endl;
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////////////
