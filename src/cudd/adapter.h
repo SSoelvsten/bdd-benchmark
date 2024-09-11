@@ -322,9 +322,12 @@ public:
   }
 
   void
-  print_dot(const BDD&, const std::string&)
+  print_dot(const BDD& f, const std::string& filename)
   {
-    std::cerr << "CUDD::PrintDot does not exist" << std::endl;
+    FILE* fp     = fopen(filename.c_str(), "w");
+    DdNode* node = f.getNode();
+    Cudd_DumpDot(f.manager(), 1, &node, NULL, NULL, fp);
+    fclose(fp);
   }
 
   void
@@ -546,9 +549,12 @@ public:
   }
 
   void
-  print_dot(const ZDD&, const std::string&)
+  print_dot(const ZDD& f, const std::string& filename)
   {
-    std::cerr << "CUDD::PrintDot does not exist\n" << std::endl;
+    FILE* fp     = fopen(filename.c_str(), "w");
+    DdNode* node = f.getNode();
+    Cudd_zddDumpDot(f.manager(), 1, &node, NULL, NULL, fp);
+    fclose(fp);
   }
 
   void
