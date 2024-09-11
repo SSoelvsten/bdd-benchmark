@@ -107,9 +107,9 @@ to_string(const variable_order& vo)
 {
   switch (vo) {
   case variable_order::CUTHILL_MCKEE: return "cuthill-mckee";
-  case variable_order::INPUT: return "input";
+  case variable_order::INPUT:  return "input";
   case variable_order::RANDOM: return "random";
-  case variable_order::SLOAN: return "sloan";
+  case variable_order::SLOAN:  return "sloan";
   }
   return "?";
 }
@@ -130,18 +130,24 @@ bool joint_relation = false;
 bool synchronous_update = false;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+/// \brief Path to dump BDDs during reachability analysis.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+std::string dump_folder = "";
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 class parsing_policy
 {
 public:
   static constexpr std::string_view name = "McNet";
-  static constexpr std::string_view args = "a:f:o:s:";
+  static constexpr std::string_view args = "a:d:f:o:s:";
 
   static constexpr std::string_view help_text =
     "        -f PATH               Path to file containing a model\n"
     "        -a ALGO               Analyses to run on the net\n"
+    "        -d PATH               Path to output BDDs during reachability analysis\n"
     "        -o ORDER     [input]  Variable Order to derive from the model\n"
-    "        -s SEMANTICS [async]  Merges the relation as an 'asynchronous' or 'synchronous' "
-    "update";
+    "        -s SEMANTICS [async]  Merge relation as an 'asynchronous' or 'synchronous' update"
+    ;
 
   static inline bool
   parse_input(const int c, const char* arg)
@@ -161,6 +167,15 @@ public:
         std::cerr << "Undefined analysis: " << arg << "\n";
         return true;
       }
+      return false;
+    }
+    case 'd': {
+      if (std::filesystem::exists(arg) && !std::filesystem::is_directory(arg)) {
+        std::cerr << "File '" << arg << "' is an existing non-directory\n";
+        return true;
+      }
+      analysis_flags[analysis::REACHABILITY] = true;
+      dump_folder = arg;
       return false;
     }
     case 'f': {
@@ -2432,6 +2447,20 @@ forwards(Adapter& adapter,
   auto previous = adapter.bot();
   auto current  = initial_set;
 
+  std::vector<bool> is_dumped(32, false);
+  if (dump_folder != "") {
+    if (!std::filesystem::exists(dump_folder)) {
+      std::cerr << "expected folder '" << dump_folder << "' already to have been created\n";
+      return adapter.bot();
+    }
+
+    const size_t bucket = ilog2(adapter.nodecount(current));
+    is_dumped.at(bucket) = true;
+
+    const std::string path = dump_folder + "/states_" + std::to_string(bucket) + ".bdd";
+    adapter.save(current, path);
+  }
+
   while (previous != current) {
     previous = current;
     for (const auto& t : sts.transitions()) {
@@ -2452,6 +2481,17 @@ forwards(Adapter& adapter,
 #endif // BDD_BENCHMARK_STATS
 
       current |= bound & std::move(next);
+
+      if (dump_folder != "") {
+        const size_t bucket = ilog2(adapter.nodecount(current));
+
+        if (!is_dumped.at(bucket)) {
+          is_dumped.at(bucket) = true;
+
+          const std::string path = dump_folder + "/states_" + std::to_string(bucket) + ".bdd";
+          adapter.save(current, path);
+        }
+      }
     }
   }
 
@@ -2872,6 +2912,23 @@ run_mcnet(int argc, char** argv)
     std::cout << json::brace_close << json::comma << json::endl;
 
     std::cout << json::endl << std::flush;
+
+    // ---------------------------------------------------------------------------------------------
+    if (dump_folder != "") {
+      if (!std::filesystem::exists(dump_folder)) {
+        std::filesystem::create_directory(dump_folder);
+      }
+
+      if (joint_relation) {
+        const std::string path = dump_folder + "/" + "relation.bdd";
+        adapter.save(sts.transitions().at(0).relation(), path);
+      } else {
+        for (size_t r_idx = 0; r_idx < sts.transitions().size(); ++r_idx) {
+          const std::string path = dump_folder + "/relation_" + std::to_string(r_idx) + ".bdd";
+          adapter.save(sts.transitions().at(r_idx).relation(), path);
+        }
+      }
+    }
 
     // ---------------------------------------------------------------------------------------------
     typename Adapter::dd_t reachable_states = sts.all();

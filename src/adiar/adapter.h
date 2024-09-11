@@ -293,6 +293,12 @@ public:
     return adiar::bdd_printdot(f, filename);
   }
 
+  void
+  save(const adiar::bdd&, const std::string&)
+  {
+    std::cerr << "No support for storing BDDs" << std::endl;
+  }
+
   // BDD Build Operations
 public:
   inline adiar::bdd_ptr
@@ -499,6 +505,12 @@ public:
   print_dot(const adiar::zdd& z, const std::string& filename)
   {
     return adiar::zdd_printdot(z, filename);
+  }
+
+  void
+  save(const adiar::zdd&, const std::string&)
+  {
+    std::cerr << "No support for storing ZDDs" << std::endl;
   }
 
   // ZDD Build Operations

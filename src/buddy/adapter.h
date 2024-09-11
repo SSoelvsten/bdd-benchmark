@@ -395,6 +395,14 @@ public:
     fclose(p);
   }
 
+  void
+  save(const bdd& f, const std::string& filename)
+  {
+    FILE* p = fopen(filename.data(), "w");
+    bdd_save(p, f);
+    fclose(p);
+  }
+
   // BDD Build Operations
 public:
   inline bdd

@@ -142,7 +142,7 @@ namespace lib_bdd
   public:
     /// \brief Constructor for an internal BDD node.
     node(const var_type& var, const ptr_type& low, const ptr_type& high)
-      : _level((low == false_ptr && low == true_ptr && low == high) ? terminal_level : var)
+      : _level(((low == false_ptr || low == true_ptr) && low == high) ? terminal_level : var)
       , _low(low)
       , _high(high)
     {
