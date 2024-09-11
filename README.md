@@ -341,6 +341,21 @@ The benchmark can be configured with the following options:
 ./build/src/${LIB}_apply_${KIND} -f benchmarks/apply/x0.bdd -f benchmarks/apply/x1.bdd -o and
 ```
 
+
+### CNF Construction
+
+This benchmark loads a DIMACS CNF file, constructs its clauses and conjoins them.
+The benchmark uses the variable order specified in the CNF file and interprets
+the clause list as an approximately balanced tree, e.g.
+(c<sub>0</sub> c<sub>1</sub>) (c<sub>2</sub> (c<sub>3</sub> c<sub>4</sub>)). It
+makes sense to preprocess raw CNF files using external tools and infer good
+variable and clause orders.
+
+```bash
+./build/src/${LIB}_cnf_${KIND} -f benchmarks/cnf/sample.cnf
+```
+
+
 ### Game Of Life
 
 Solves the following problem:
