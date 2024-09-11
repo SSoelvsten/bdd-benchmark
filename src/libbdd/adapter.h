@@ -394,6 +394,13 @@ namespace lib_bdd
       assert(_func._p);
       return capi::bdd_pickcube(_func);
     }
+
+    void
+    save(const std::string &path) const noexcept
+    {
+      assert(_func._p);
+      capi::bdd_writebytes(_func, path.data());
+    }
   };
 
   inline bdd_function
@@ -729,6 +736,12 @@ public:
   print_dot(const lib_bdd::bdd_function&, const std::string&)
   {
     std::cerr << "libbdd_bdd_adapter does not support dot export" << std::endl;
+  }
+
+  void
+  save(const lib_bdd::bdd_function& f, const std::string& path)
+  {
+    f.save(path);
   }
 
   // BDD Build Operations

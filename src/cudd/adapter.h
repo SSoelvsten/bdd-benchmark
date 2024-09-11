@@ -324,7 +324,13 @@ public:
   void
   print_dot(const BDD&, const std::string&)
   {
-    std::cerr << "CUDD::PrintDot does not exist." << std::endl;
+    std::cerr << "CUDD::PrintDot does not exist" << std::endl;
+  }
+
+  void
+  save(const BDD&, const std::string&)
+  {
+    std::cerr << "No support for storing BDDs (?)" << std::endl;
   }
 
   // BDD Build operations
@@ -542,7 +548,13 @@ public:
   void
   print_dot(const ZDD&, const std::string&)
   {
-    std::cerr << "CUDD::PrintDot does not exist." << std::endl;
+    std::cerr << "CUDD::PrintDot does not exist\n" << std::endl;
+  }
+
+  void
+  save(const ZDD&, const std::string&)
+  {
+    std::cerr << "No support for storing ZDDs (?)\n" << std::endl;
   }
 
   // ZDD Build operations

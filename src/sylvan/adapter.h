@@ -322,6 +322,12 @@ public:
     fclose(p);
   }
 
+  void
+  save(const sylvan::Bdd& f, const std::string filename)
+  {
+    std::cerr << "Serializing BDDs not yet supported in Sylvan's C++ interface" << std::endl;
+  }
+
   // BDD Build operations
 public:
   inline sylvan::Bdd

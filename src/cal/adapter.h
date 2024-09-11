@@ -308,6 +308,12 @@ public:
     std::cerr << "'CAL::PrintDot()' does not exist (SSoelvsten/Cal#6)." << std::endl;
   }
 
+  void
+  save(const BDD&, const std::string&)
+  {
+    std::cerr << "'CAL::DumpBdd()' does not exist (SSoelvsten/Cal#8)." << std::endl;
+  }
+
 private:
   bool
   is_complemented(const BDD& f)

@@ -334,7 +334,13 @@ public:
   void
   print_dot(const oxidd::bdd_function&, const std::string&)
   {
-    std::cerr << "oxidd_bdd_adapter does not yet support dot export" << std::endl;
+    std::cerr << "'oxidd_bdd_adapter' does not yet support dot export" << std::endl;
+  }
+
+  void
+  save(const oxidd::bdd_function&, const std::string&)
+  {
+    std::cerr << "'oxidd_bdd_adapter' does not yet support BDD export" << std::endl;
   }
 
   // BDD Build Operations
@@ -679,7 +685,13 @@ public:
   void
   print_dot(const oxidd::bcdd_function&, const std::string&)
   {
-    std::cerr << "oxidd_bdd_adapter does not yet support dot export" << std::endl;
+    std::cerr << "'oxidd_bcdd_adapter' does not yet support dot export" << std::endl;
+  }
+
+  void
+  save(const oxidd::bcdd_function&, const std::string&)
+  {
+    std::cerr << "'oxidd_bcdd_adapter' does not yet support BCDD export" << std::endl;
   }
 
   // BDD Build Operations
@@ -920,7 +932,13 @@ public:
   void
   print_dot(const oxidd::zbdd_function&, const std::string&)
   {
-    std::cerr << "oxidd_zdd_adapter does not yet support dot export" << std::endl;
+    std::cerr << "'oxidd_zdd_adapter' does not yet support dot export" << std::endl;
+  }
+
+  void
+  save(const oxidd::zbdd_function&, const std::string&)
+  {
+    std::cerr << "'oxidd_zdd_adapter' does not yet support ZDD export" << std::endl;
   }
 
   // ZDD Build operations
