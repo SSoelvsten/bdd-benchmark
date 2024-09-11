@@ -4,6 +4,7 @@ set(COMMON_HEADERS
   chrono.h
   input.h
   json.h
+  libbdd_parser.h
 )
 
 set(COMMON_SOURCES
