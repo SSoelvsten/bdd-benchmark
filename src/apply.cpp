@@ -103,7 +103,7 @@ run_apply(int argc, char** argv)
     inputs_binary.push_back(lib_bdd::deserialize(path));
   }
 
-  var_map vm = remap_vars(inputs_binary);
+  lib_bdd::var_map vm = lib_bdd::remap_vars(inputs_binary);
 
   // =============================================================================================
   // Initialize BDD package
@@ -163,7 +163,7 @@ run_apply(int argc, char** argv)
       assert(inputs_dd.size() == i);
 
       const time_point t_rebuild_before = now();
-      inputs_dd.push_back(reconstruct(adapter, inputs_binary.at(i), vm));
+      inputs_dd.push_back(lib_bdd::reconstruct(adapter, inputs_binary.at(i), vm));
       const time_point t_rebuild_after = now();
 
       const size_t load_time = duration_ms(t_rebuild_before, t_rebuild_after);

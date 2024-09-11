@@ -335,89 +335,90 @@ namespace lib_bdd
 
     return out;
   }
-}
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-//                   Reconstruction from 'Lib_BDD' in any BDD package (2023)                      //
-////////////////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////////////////////////
+  //                  Reconstruction from 'Lib_BDD' in any BDD package (2023)                     //
+  //////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// \brief Compacted remapping of lib-bdd variables.
-using var_map = std::unordered_map<lib_bdd::node::var_type, int>;
+  /// \brief Compacted remapping of lib-bdd variables.
+  using var_map = std::unordered_map<lib_bdd::node::var_type, int>;
 
-/// \brief Derive a compacted remapping of the variable ordering.
-var_map
-remap_vars(const std::vector<lib_bdd::bdd>& fs)
-{
-  // Minimum Priority Queue
-  std::priority_queue<int, std::vector<int>, std::greater<>> pq;
+  /// \brief Derive a compacted remapping of the variable ordering.
+  var_map
+  remap_vars(const std::vector<lib_bdd::bdd>& fs)
+  {
+    // Minimum Priority Queue
+    std::priority_queue<int, std::vector<int>, std::greater<>> pq;
 
-  for (const lib_bdd::bdd& f : fs) {
-    for (const auto& n : f) { pq.push(n.level()); }
-  }
-
-  std::unordered_map<lib_bdd::node::var_type, int> out;
-  int var = 0;
-
-  while (!pq.empty()) {
-    // Get next level (in ascending order)
-    const int level = pq.top();
-
-    // Add mapping for all non-terminals
-    if (level != lib_bdd::node::terminal_level) { out.insert({ level, var++ }); }
-
-    // Pop all duplicates
-    while (!pq.empty() && pq.top() == level) { pq.pop(); }
-  }
-
-  // TODO: Remove last level (these are the terminals)
-  return out;
-}
-
-/// \brief Reconstruct DD from 'lib-bdd' inside of BDD package.
-template <typename Adapter>
-typename Adapter::dd_t
-reconstruct(Adapter& adapter, const lib_bdd::bdd& in, const var_map& vm)
-{
-  if (in.size() <= 2) {
-    adapter.build_node(in.size() == 2);
-    return adapter.build();
-  }
-
-  // Vector of converted DD nodes
-  std::vector<typename Adapter::build_node_t> out(in.size(), adapter.build_node(false));
-
-  // Terminal Nodes
-  out.at(0) = adapter.build_node(false);
-  out.at(1) = adapter.build_node(true);
-
-  // Internal Nodes
-  const auto pq_comp = levelized_order(in);
-
-  std::priority_queue<int, std::vector<int>, decltype(pq_comp)> pq(pq_comp);
-  for (size_t i = 2; i < in.size(); ++i) {
-    assert(i < std::numeric_limits<int>::max());
-    pq.push(static_cast<int>(i));
-  }
-
-  while (!pq.empty()) {
-    const int i = pq.top();
-    pq.pop();
-
-    const lib_bdd::node& n = in.at(i);
-
-    const auto var = vm.find(n.level());
-
-    if (var == vm.end()) {
-      std::stringstream ss;
-      ss << "Unmapped variable level: " << n.level();
-      throw std::out_of_range(ss.str());
+    for (const lib_bdd::bdd& f : fs) {
+      for (const auto& n : f) {
+        if (!n.is_terminal()) { pq.push(n.level()); }
+      }
     }
 
-    const auto low  = out.at(n.low());
-    const auto high = out.at(n.high());
+    std::unordered_map<lib_bdd::node::var_type, int> out;
+    int var = 0;
 
-    out.at(i) = adapter.build_node(var->second, low, high);
+    while (!pq.empty()) {
+      // Get next level (in ascending order)
+      const int level = pq.top();
+
+      // Add mapping for all non-terminals
+      if (level != lib_bdd::node::terminal_level) { out.insert({ level, var++ }); }
+
+      // Pop all duplicates
+      while (!pq.empty() && pq.top() == level) { pq.pop(); }
+    }
+
+    return out;
   }
 
-  return adapter.build();
+  /// \brief Reconstruct DD from 'lib-bdd' inside of BDD package.
+  template <typename Adapter>
+  typename Adapter::dd_t
+  reconstruct(Adapter& adapter, const lib_bdd::bdd& in, const var_map& vm)
+  {
+    if (in.size() <= 2) {
+      adapter.build_node(in.size() == 2);
+      return adapter.build();
+    }
+
+    // Vector of converted DD nodes
+    std::vector<typename Adapter::build_node_t> out(in.size(), adapter.build_node(false));
+
+    // Terminal Nodes
+    out.at(0) = adapter.build_node(false);
+    out.at(1) = adapter.build_node(true);
+
+    // Internal Nodes
+    const auto pq_comp = levelized_order(in);
+
+    std::priority_queue<int, std::vector<int>, decltype(pq_comp)> pq(pq_comp);
+    for (size_t i = 2; i < in.size(); ++i) {
+      assert(i < std::numeric_limits<int>::max());
+      pq.push(static_cast<int>(i));
+    }
+
+    while (!pq.empty()) {
+      const int i = pq.top();
+      pq.pop();
+
+      const lib_bdd::node& n = in.at(i);
+
+      const auto var = vm.find(n.level());
+
+      if (var == vm.end()) {
+        std::stringstream ss;
+        ss << "Unmapped variable level: " << n.level();
+        throw std::out_of_range(ss.str());
+      }
+
+      const auto low  = out.at(n.low());
+      const auto high = out.at(n.high());
+
+      out.at(i) = adapter.build_node(var->second, low, high);
+    }
+
+    return adapter.build();
+  }
 }
