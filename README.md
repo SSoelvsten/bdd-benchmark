@@ -627,11 +627,6 @@ serialized by the
 [LibBDD](https://github.com/sybila/biodivine-lib-bdd)) and then combines them
 with a *Relational Product* operation in either direction.
 
-The BDDs are expected to be given with an interleaved variable ordering, i.e.
-even variables encode *current* state variables whereas odd variables are used
-for *next* state variables. It is also assumed, that the given relation includes
-the *frame rule*.
-
 The benchmark can be configured with the following options:
 
 - **`-o <next|prev>`** (default: *next*)
@@ -641,7 +636,8 @@ The benchmark can be configured with the following options:
 
 - **`-r <path>`**
 
-  Path to a *.bdd* / *.zdd* file that contains the relation.
+  Path to a *.bdd* / *.zdd* file that contains the relation. It is also assumed,
+  that this relation includes the *frame rule*.
 
 - **`-s <path>`**
 
