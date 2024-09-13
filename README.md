@@ -27,6 +27,7 @@ This project has been developed at the
     - [Picotrav](#picotrav)
     - [QBF Solver](#qbf-solver)
     - [Queens](#queens)
+    - [RelProd](#relprod)
     - [Tic-Tac-Toe](#tic-tac-toe)
 - [Performance Regression Testing](#performance-regression-testing)
 - [License](#license)
@@ -618,7 +619,7 @@ The benchmark can be configured with the following options:
 ```
 
 
-### Relational Product
+### RelProd
 
 Building on-top of the [Apply](#apply) benchmark, this benchmark loads a
 *relation* and a set of *states* stored in a *binary* format (as they are
