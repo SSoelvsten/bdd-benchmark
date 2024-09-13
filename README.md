@@ -620,17 +620,23 @@ The benchmark can be configured with the following options:
 
 ### Relational Product
 
-Building on-top of the [Apply](#apply) benchmark, this benchmark loads a *relation* and a set of
-*states* stored in a *binary* format (as they are serialized by the
-[LibBDD](https://github.com/sybila/biodivine-lib-bdd)) and then combines them with a *Relational
-Product* operation in either direction.
+Building on-top of the [Apply](#apply) benchmark, this benchmark loads a
+*relation* and a set of *states* stored in a *binary* format (as they are
+serialized by the
+[LibBDD](https://github.com/sybila/biodivine-lib-bdd)) and then combines
+them with a *Relational Product* operation in either direction.
+
+The BDD is expected to be given with an interleaved variable ordering, i.e. 
+even variables encode *current* state variables whereas odd variables are
+used for *next* state variables. It is also assumed, that the given relation
+includes the *frame rule*.
 
 The benchmark can be configured with the following options:
 
 - **`-o <next|prev>`** (default: *next*)
 
-  Specify whether the transition relation should be traversed forwards (*next*) or backwards
-  (*prev*).
+  Specify whether the transition relation should be traversed forwards
+  (*next*) or backwards (*prev*).
 
 - **`-r <path>`**
 
