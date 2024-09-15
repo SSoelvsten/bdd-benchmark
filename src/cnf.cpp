@@ -332,7 +332,7 @@ construct_clauses(Adapter& adapter, const CNF& cnf)
       }
     }
 
-    assert(min_level <= max_var); // holds by the function's precondition
+    assert(min_level <= max_level); // holds by the function's precondition
 
     // ==============================
     // Construct the clause bottom-up
