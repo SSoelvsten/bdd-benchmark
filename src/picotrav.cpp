@@ -2,8 +2,8 @@
 #include <cassert>
 
 // Data Structures
+#include <optional>
 #include <unordered_map>
-#include <unordered_set>
 #include <string>
 #include <vector>
 
@@ -26,7 +26,7 @@
 std::string file_0 = "";
 std::string file_1 = "";
 
-enum variable_order
+enum class variable_order
 {
   INPUT,
   DF,
@@ -36,14 +36,14 @@ enum variable_order
 };
 
 std::string
-to_string(const variable_order& o)
+to_string(const variable_order o)
 {
   switch (o) {
-  case INPUT: return "input";
-  case DF: return "depth-first";
-  case LEVEL: return "level";
-  case LEVEL_DF: return "level-df";
-  case RANDOM: return "random";
+  case variable_order::INPUT: return "input";
+  case variable_order::DF: return "depth-first";
+  case variable_order::LEVEL: return "level";
+  case variable_order::LEVEL_DF: return "level-df";
+  case variable_order::RANDOM: return "random";
   }
   return "?";
 }
@@ -111,51 +111,141 @@ enum logic_value
   DONT_CARE
 };
 
+using node_id_t = unsigned;
+
 struct node_t
 {
 public:
-  // The boolean value set on the output plane
+  /// The node's name
+  std::string name = {};
+
+  /// The boolean value set on the output plane
   bool is_onset = true;
 
-  // Input (dependant) nets
-  std::vector<std::string> nets;
-  std::vector<std::vector<logic_value>> so_cover;
+  /// Only relevant for checking if the net is valid
+  ///
+  /// After parsing the entire input file, all (reachable) nodes should have
+  /// this flag set.
+  bool is_defined = false;
+
+  /// True iff this is an input node
+  bool is_input = false;
+  /// True iff this is an output node
+  bool is_output = false;
+
+  /// Input (dependant) nets
+  std::vector<node_id_t> deps                    = {};
+  std::vector<std::vector<logic_value>> so_cover = {};
+
+  /// Maximal distance from an input node (0 for inputs)
+  unsigned depth     = 0;
+  unsigned ref_count = 0;
 };
 
 struct net_t
 {
 public:
-  std::unordered_map<std::string, int> inputs_w_order;
-  std::unordered_set<std::string> outputs;
-  std::vector<std::string> outputs_in_order;
-  std::unordered_map<std::string, int> level;
-  std::unordered_map<std::string, int> ref_count;
-  std::unordered_map<std::string, node_t> nodes;
+  std::unordered_map<std::string, node_id_t> name_map;
 
-  bool
-  is_input(const std::string& n) const
+  std::unordered_map<node_id_t, unsigned> inputs_w_order;
+  std::vector<node_id_t> outputs_in_order;
+  std::vector<node_t> nodes;
+
+  /// Get the node for `name` (if present) or add `node` to the net
+  ///
+  /// Returns the pair `(id, inserted)`.
+  std::pair<node_id_t, bool>
+  get_or_add_node(const std::string& name, node_t node)
   {
-    const auto lookup_inputs = inputs_w_order.find(n);
-    return lookup_inputs != inputs_w_order.end();
+    const auto [it, inserted] = name_map.try_emplace(name, name_map.size());
+    const node_id_t id        = it->second;
+    if (inserted) {
+      node.name = name;
+      nodes.emplace_back(std::move(node));
+    }
+    assert(name_map.size() == nodes.size());
+    return { id, inserted };
   }
 
+  /// Checks if all reachable nodes are defined and the net is acyclic
+  ///
+  /// Also computes the nodes' depths and reference counts. This method must not
+  /// be called more than once.
+  ///
+  /// Returns true iff the net is valid
   bool
-  is_output(const std::string& n) const
+  validate()
   {
-    const auto lookup_outputs = outputs.find(n);
-    return lookup_outputs != outputs.end();
+    // If a cycle was found, this contains its nodes in reversed order
+    std::vector<node_id_t> cycle;
+
+    for (const node_id_t output : outputs_in_order) {
+      if (!validate_rec(output, cycle)) { return false; }
+    }
+    return true;
+  }
+
+private:
+  /// Returns the node's depth or none if the validation failed
+  std::optional<unsigned>
+  validate_rec(const node_id_t id, std::vector<node_id_t>& cycle)
+  {
+    node_t& node = nodes[id];
+    if (node.ref_count++ != 0) {
+      // The node has already been visited. We use the depth field to detect
+      // cycles: We only set the depth once all children have been visited. So
+      // if the depth is still 0 and the node has children, the node is part of
+      // a cycle.
+      if (node.depth == 0 && !node.deps.empty()) {
+        std::cerr << "Cycle detected: " << node.name;
+        cycle.push_back(id);
+        return {};
+      }
+      return node.depth;
+    }
+
+    if (!node.is_defined) {
+      std::cerr << "Referenced net '" << node.name << "' is undefined." << std::endl;
+      return {};
+    }
+
+    unsigned depth = 0;
+    for (const node_id_t dep : node.deps) {
+      const std::optional<unsigned> dep_depth = validate_rec(dep, cycle);
+
+      if (!dep_depth) { // error
+        if (!cycle.empty()) {
+          // A cycle was detected, we capture all the nodes until the first node
+          // of the cycle we visited while returning. Then we print the cycle.
+          if (cycle[0] != id) {
+            cycle.push_back(id);
+          } else {
+            for (auto it = cycle.rbegin(), end = cycle.rend(); it != end; ++it) {
+              std::cerr << " -> " << nodes[*it].name;
+            }
+            std::cerr << "\n";
+            cycle.clear(); // only print the cycle
+          }
+        }
+        return {};
+      }
+
+      depth = std::max(depth, *dep_depth + 1);
+    }
+
+    // Important: only set `node.depth` after all children have been visited for
+    // the cycle detection.
+    node.depth = depth;
+    return depth;
   }
 };
 
 class construct_net_callback : public blifparse::Callback
 {
 private:
-  int input_idx = 0;
-
   net_t& net;
 
   bool has_error_ = false;
-  bool has_names_ = false;
 
   int line_num;
   std::string fname;
@@ -191,20 +281,47 @@ public:
   void
   inputs(std::vector<std::string> inputs) override
   {
-    if (has_names_) { parse_error(".inputs", "Defining '.inputs' after a '.names'"); }
+    net.name_map.reserve(inputs.size());
+    net.nodes.reserve(inputs.size());
+    net.inputs_w_order.reserve(inputs.size());
 
-    for (const std::string& i : inputs) { net.inputs_w_order.insert({ i, input_idx++ }); }
+    for (const std::string& name : inputs) {
+      const auto [id, inserted] =
+        net.get_or_add_node(name, { .is_defined = true, .is_input = true });
+      if (!inserted) {
+        if (!net.nodes[id].is_defined) {
+          net.nodes[id].is_input   = true;
+          net.nodes[id].is_defined = true;
+        } else {
+          parse_error(".input", "Net '" + name + "' defined multiple times");
+          return;
+        }
+      }
+      net.inputs_w_order.insert({ id, net.inputs_w_order.size() });
+      assert(net.name_map.size() == net.nodes.size());
+    }
   }
 
   // Note down what nets are outputs
   void
   outputs(std::vector<std::string> outputs) override
   {
-    if (has_names_) { parse_error(".outputs", "Defining '.outputs' after a '.names'"); }
+    net.name_map.reserve(outputs.size());
+    net.nodes.reserve(outputs.size());
+    net.outputs_in_order.reserve(outputs.size());
 
-    for (const std::string& o : outputs) {
-      net.outputs.insert(o);
-      net.outputs_in_order.push_back(o);
+    for (const std::string& name : outputs) {
+      const auto [id, inserted] = net.get_or_add_node(name, { .is_output = true });
+      if (!inserted) {
+        if (!net.nodes[id].is_output) {
+          net.nodes[id].is_output = true;
+        } else {
+          parse_error(".output", "Output '" + name + "' given twice");
+          return;
+        }
+      }
+      net.outputs_in_order.push_back(id);
+      assert(net.name_map.size() == net.nodes.size());
     }
   }
 
@@ -213,29 +330,37 @@ public:
   names(std::vector<std::string> nets,
         std::vector<std::vector<blifparse::LogicValue>> so_cover) override
   {
-    has_names_ = true;
-
     if (nets.size() == 0) {
       parse_error(".names", "at least one net name should be given");
       return;
     }
 
     { // Create a new_node for this Net
-      bool has_is_onset = false;
-      bool new_is_onset = false;
+      const std::string new_name = std::move(nets.back());
+      nets.pop_back(); // from now on, `nets` only contains the dependencies
 
-      const std::string new_name = nets[nets.size() - 1];
-
-      if (net.nodes.find(new_name) != net.nodes.end()) {
+      const node_id_t id = net.get_or_add_node(new_name, {}).first;
+      if (net.nodes[id].is_defined) {
         parse_error(".names - " + new_name, "Net '" + new_name + "' defined multiple times");
         return;
       }
+      net.nodes[id].is_defined = true;
 
-      std::vector<std::string> new_nets(nets.begin(), nets.end() - 1);
-      std::vector<std::vector<logic_value>> new_so_cover;
+      net.nodes[id].deps.reserve(nets.size());
+      for (const std::string& name : nets) {
+        const node_id_t dep_id = net.get_or_add_node(name, {}).first;
+        net.nodes[id].deps.push_back(dep_id);
+      }
 
+      // Important: only create the reference here, because
+      // `net.get_or_add_node(..)` may resize the `net.nodes` and thereby
+      // invalidate the reference.
+      node_t& node = net.nodes[id];
+
+      node.so_cover.reserve(so_cover.size());
+      bool has_is_onset = false;
       for (const std::vector<blifparse::LogicValue>& row : so_cover) {
-        if (row.size() != nets.size()) {
+        if (row.size() != nets.size() + 1) {
           parse_error(".names - " + new_name,
                       "Incompatible number of logic values defined on a row");
           return;
@@ -280,40 +405,18 @@ public:
           }
         } while (it != row.end());
 
-        if (has_is_onset && row_is_onset != new_is_onset) {
+        if (has_is_onset && row_is_onset != node.is_onset) {
           parse_error(line_num,
                       ".names - " + new_name,
                       "Cannot handle both on-set and off-set in output plane");
           return;
         }
 
-        has_is_onset = true;
-        new_is_onset = row_is_onset;
+        has_is_onset  = true;
+        node.is_onset = row_is_onset;
 
-        new_so_cover.push_back(new_row);
+        node.so_cover.push_back(new_row);
       }
-
-      const node_t new_node = { new_is_onset, new_nets, new_so_cover };
-      net.nodes.insert({ new_name, new_node });
-    }
-
-    // Update the reference counter on all input nets
-    for (size_t net_idx = 0; net_idx + 1 < nets.size(); net_idx++) {
-      const std::string& dep_name = nets[net_idx];
-
-      if (net.is_input(dep_name)) { continue; }
-      if (net.is_output(dep_name)) { continue; }
-
-      auto lookup_ref_count = net.ref_count.find(dep_name);
-      if (lookup_ref_count == net.ref_count.end()) { // First time referenced
-        net.ref_count.insert({ dep_name, 1 });
-      } else {
-        const int new_ref_count = lookup_ref_count->second + 1;
-        net.ref_count.erase(dep_name);
-        net.ref_count.insert({ dep_name, new_ref_count });
-      }
-
-      net.ref_count.find(dep_name);
     }
   }
 
@@ -343,281 +446,184 @@ public:
   }
 };
 
+/// Parse the net at `filename` and validate it
+///
+/// Returns true on success
 bool
 construct_net(std::string& filename, net_t& net)
 {
   construct_net_callback callback(net);
   blifparse::blif_parse_filename(filename, callback);
-  return callback.has_error();
-}
-
-// ========================================================================== //
-// Cycle detection
-bool
-is_acyclic_rec(const std::string& node_name,
-               const net_t& net,
-               std::unordered_set<std::string>& net_visited,
-               std::vector<std::string>& pth,
-               std::unordered_set<std::string>& pth_visited)
-{
-  if (net.is_input(node_name)) { return true; }
-
-  const auto lookup_pth_visited = pth_visited.find(node_name);
-  if (lookup_pth_visited != pth_visited.end()) {
-    std::cerr << "Cycle detected: ";
-    for (const std::string& n : pth) { std::cerr << n << " -> "; }
-    std::cerr << node_name << "\n";
-
+  if (callback.has_error()) {
+    std::cerr << "Parsing error for '" << filename << "'\n";
     return false;
   }
-
-  const auto lookup_prior_visited = net_visited.find(node_name);
-  if (lookup_prior_visited != pth_visited.end()) { return true; }
-  net_visited.insert(node_name);
-
-  bool result = true;
-
-  pth_visited.insert(node_name);
-  pth.push_back(node_name);
-
-  const auto lookup_node = net.nodes.find(node_name);
-
-  if (lookup_node == net.nodes.end()) {
-    std::cerr << "Referenced net '" << node_name << "' is undefined." << std::endl;
-    exit(-1);
+  if (!net.validate()) {
+    std::cerr << "Validation error for '" << filename << "'\n";
+    return false;
   }
-
-  const node_t n = lookup_node->second;
-
-  for (const std::string& dep_name : n.nets) {
-    if (!result) { break; }
-
-    result &= is_acyclic_rec(dep_name, net, net_visited, pth, pth_visited);
-  }
-
-  pth_visited.erase(node_name);
-  pth.pop_back();
-  return result;
-}
-
-bool
-is_acyclic(const net_t& net)
-{
-  std::unordered_set<std::string> net_visited;
-
-  std::vector<std::string> pth;
-  std::unordered_set<std::string> pth_visited;
-
-  bool result = true;
-  for (const std::string& output : net.outputs_in_order) {
-    if (!result) { break; }
-    result &= is_acyclic_rec(output, net, net_visited, pth, pth_visited);
-  }
-  return result;
+  return true;
 }
 
 // ========================================================================== //
 // Variable Ordering
+constexpr unsigned UNDEF = std::numeric_limits<unsigned>::max();
+
 void
-dfs_variable_order_rec(const std::string& node_name,
-                       std::unordered_map<int, int>& new_ordering,
+dfs_variable_order_rec(const node_id_t id,
+                       std::vector<unsigned>& new_ordering,
+                       unsigned& ordered_count,
                        const net_t& net,
-                       std::unordered_set<std::string>& visited)
+                       std::vector<bool>& visited)
 {
-  if (new_ordering.size() == net.inputs_w_order.size()) { return; }
+  if (ordered_count == net.inputs_w_order.size()) { return; }
 
-  const auto lookup_visited = visited.find(node_name);
-  if (lookup_visited != visited.end()) { return; }
-  visited.insert(node_name);
+  if (visited[id]) { return; }
+  visited[id] = true;
 
-  const node_t n = net.nodes.find(node_name)->second;
+  const node_t& n = net.nodes[id];
 
   // Iterate through for non-input nets (i.e. looking at deeper inputs)
-  for (const std::string& dep_name : n.nets) {
-    if (net.is_input(dep_name)) { continue; }
-    dfs_variable_order_rec(dep_name, new_ordering, net, visited);
+  for (const node_id_t dep_id : n.deps) {
+    if (net.nodes[dep_id].is_input) { continue; }
+    dfs_variable_order_rec(dep_id, new_ordering, ordered_count, net, visited);
   }
 
   // Add yet unseen inputs (i.e. looking at shallow inputs)
-  for (const std::string& dep_name : n.nets) {
-    if (!net.is_input(dep_name)) { continue; }
+  for (const node_id_t dep_id : n.deps) {
+    const node_t& dep = net.nodes[dep_id];
+    if (!dep.is_input || visited[dep_id]) { continue; }
+    visited[dep_id] = true;
 
-    const int old_idx = net.inputs_w_order.find(dep_name)->second;
-
-    const auto lookup_order = new_ordering.find(old_idx);
-    if (lookup_order != new_ordering.end()) { continue; }
-
-    const int new_idx = new_ordering.size();
-    new_ordering.insert({ old_idx, new_idx });
+    const unsigned old_idx = net.inputs_w_order.at(dep_id);
+    new_ordering[old_idx]  = ordered_count++;
   }
 }
 
-std::unordered_map<int, int>
+std::vector<unsigned>
 dfs_variable_order(const net_t& net)
 {
-  std::unordered_set<std::string> visited_nodes;
-  std::unordered_map<int, int> new_ordering;
-  for (const std::string& output : net.outputs_in_order) {
-    dfs_variable_order_rec(output, new_ordering, net, visited_nodes);
+  std::vector<bool> visited_nodes(net.nodes.size());
+  std::vector<unsigned> new_ordering(net.inputs_w_order.size());
+  unsigned ordered_count = 0;
+  for (const node_id_t output : net.outputs_in_order) {
+    dfs_variable_order_rec(output, new_ordering, ordered_count, net, visited_nodes);
   }
   return new_ordering;
 }
 
-// Compute (lazily) the level of a node
-int
-level_of(const std::string& node_name, net_t& net)
-{
-  if (net.is_input(node_name)) { return 0; }
-
-  const auto lookup_level = net.level.find(node_name);
-  if (lookup_level != net.level.end()) { return lookup_level->second; }
-
-  const node_t n = net.nodes.find(node_name)->second;
-
-  int level = -1;
-  for (const std::string& dep_name : n.nets) {
-    level = std::max(level, level_of(dep_name, net) + 1);
-  }
-
-  net.level.insert({ node_name, level });
-  return level;
-}
-
-// For each input, compute the smallest level of a net referencing it
+// For each input, compute the smallest level/depth of a node referencing it
 void
-compute_input_depth(const std::string& node_name,
-                    std::unordered_map<std::string, int>& deepest_reference,
-                    net_t& net,
-                    std::unordered_set<std::string>& visited)
+compute_input_depth(const node_id_t id,
+                    std::unordered_map<node_id_t, unsigned>& deepest_reference,
+                    const net_t& net,
+                    std::vector<bool>& visited)
 {
-  const auto lookup_visited = visited.find(node_name);
-  if (lookup_visited != visited.end()) { return; }
-  visited.insert(node_name);
+  if (visited[id]) { return; }
+  visited[id] = true;
 
-  const int node_level = level_of(node_name, net);
+  const node_t& n = net.nodes[id];
 
-  const auto lookup_node = net.nodes.find(node_name);
-  if (lookup_node == net.nodes.end()) {
-    std::cerr << "Referenced net '" << node_name << "' is undefined." << std::endl;
-    exit(-1);
-  }
-
-  const node_t n = lookup_node->second;
-
-  for (const std::string& dep_name : n.nets) {
-    if (net.is_input(dep_name)) {
-      const auto lookup_depth = deepest_reference.find(dep_name);
-
-      if (lookup_depth != deepest_reference.end()) {
-        if (lookup_depth->second > node_level) {
-          deepest_reference.erase(dep_name);
-          deepest_reference.insert({ dep_name, node_level });
-        }
-      } else {
-        deepest_reference.insert({ dep_name, node_level });
-      }
+  for (const node_id_t dep_id : n.deps) {
+    const node_t& dep = net.nodes[dep_id];
+    if (dep.is_input) {
+      unsigned& lookup_depth = deepest_reference[dep_id];
+      // If dep_id was not in the map, the value is default-constructed, i.e. 0.
+      // All inner nodes have at least depth 1, so we can distinguish this case.
+      if (lookup_depth == 0 || n.depth < lookup_depth) { lookup_depth = n.depth; }
     } else {
-      compute_input_depth(dep_name, deepest_reference, net, visited);
+      compute_input_depth(dep_id, deepest_reference, net, visited);
     }
   }
 }
 
-std::unordered_map<int, int>
-level_variable_order(net_t& net)
+std::vector<unsigned>
+level_variable_order(const net_t& net)
 {
   // Create a std::vector we can sort
-  std::vector<std::string> inputs;
+  std::vector<node_id_t> inputs;
+  inputs.reserve(net.inputs_w_order.size());
   for (auto kv : net.inputs_w_order) { inputs.push_back(kv.first); }
 
-  std::unordered_map<std::string, int> deepest_reference;
-  std::unordered_set<std::string> visited_nodes;
-  for (const std::string& output : net.outputs_in_order) {
+  std::unordered_map<node_id_t, unsigned> deepest_reference;
+  std::vector<bool> visited_nodes(net.nodes.size());
+  deepest_reference.reserve(net.inputs_w_order.size());
+  for (const node_id_t output : net.outputs_in_order) {
     compute_input_depth(output, deepest_reference, net, visited_nodes);
   }
 
   // Sort based on deepest referenced level (break ties by prior ordering)
-  const auto comparator = [&net, &deepest_reference](const std::string& i, const std::string& j) {
-    const int old_i   = net.inputs_w_order.find(i)->second;
-    const int i_level = deepest_reference.find(i)->second;
-    const int old_j   = net.inputs_w_order.find(j)->second;
-    const int j_level = deepest_reference.find(j)->second;
+  const auto comparator = [&net, &deepest_reference](const node_id_t i, const node_id_t j) {
+    const int old_i   = net.inputs_w_order.at(i);
+    const int i_level = deepest_reference.at(i);
+    const int old_j   = net.inputs_w_order.at(j);
+    const int j_level = deepest_reference.at(j);
 
-    return (i_level < j_level) || (i_level == j_level && old_i < old_j);
+    return std::tie(i_level, old_i) < std::tie(j_level, old_j);
   };
 
   std::sort(inputs.begin(), inputs.end(), comparator);
 
   // Map into new ordering
-  std::unordered_map<int, int> new_ordering;
-
+  std::vector<unsigned> new_ordering(inputs.size());
   for (size_t idx = 0; idx < inputs.size(); idx++) {
-    new_ordering.insert({ net.inputs_w_order.find(inputs[idx])->second, idx });
+    new_ordering[net.inputs_w_order.at(inputs[idx])] = idx;
   }
 
   return new_ordering;
 }
 
-std::unordered_map<int, int>
-random_variable_order(net_t& net)
+std::vector<unsigned>
+random_variable_order(const net_t& net)
 {
-  // Create a std::vector we can shuffle
-  std::vector<std::string> inputs;
-  for (auto kv : net.inputs_w_order) { inputs.push_back(kv.first); }
+  // Create a vector we can shuffle
+  std::vector<unsigned> permutation;
+  permutation.reserve(net.inputs_w_order.size());
+  for (unsigned i = 0; i < net.inputs_w_order.size(); ++i) { permutation.push_back(i); }
 
   std::random_device rd;
   std::mt19937 gen(rd());
 
-  std::shuffle(inputs.begin(), inputs.end(), gen);
+  std::shuffle(permutation.begin(), permutation.end(), gen);
 
-  // Map into new ordering
-  std::unordered_map<int, int> new_ordering;
+  return permutation;
+}
 
-  for (size_t idx = 0; idx < inputs.size(); idx++) {
-    new_ordering.insert({ net.inputs_w_order.find(inputs[idx])->second, idx });
-  }
-
-  return new_ordering;
+/// `new_ordering[i]` is the new position of the variable currently at position
+/// `i`
+void
+update_order(net_t& net, const std::vector<unsigned>& new_ordering)
+{
+  for (auto& [key, value] : net.inputs_w_order) { value = new_ordering[value]; }
 }
 
 void
-update_order(net_t& net, const std::unordered_map<int, int>& new_ordering)
+apply_variable_order(const variable_order vo, net_t& net_0, net_t& net_1)
 {
-  std::unordered_map<std::string, int> new_inputs_w_order;
-
-  for (auto kv : net.inputs_w_order) {
-    new_inputs_w_order.insert({ kv.first, new_ordering.find(kv.second)->second });
-  }
-
-  net.inputs_w_order = new_inputs_w_order;
-}
-
-void
-apply_variable_order(const variable_order& vo, net_t& net_0, net_t& net_1)
-{
-  std::unordered_map<int, int> new_ordering;
+  std::vector<unsigned> new_ordering;
 
   switch (vo) {
-  case INPUT:
+  case variable_order::INPUT:
     // Keep as is
     return;
 
-  case DF: {
+  case variable_order::DF: {
     new_ordering = dfs_variable_order(net_0);
     break;
   }
 
-  case LEVEL: {
+  case variable_order::LEVEL: {
     new_ordering = level_variable_order(net_0);
     break;
   }
 
-  case LEVEL_DF: {
+  case variable_order::LEVEL_DF: {
     apply_variable_order(variable_order::DF, net_0, net_1);
     new_ordering = level_variable_order(net_0);
     break;
   }
 
-  case RANDOM: {
+  case variable_order::RANDOM: {
     new_ordering = random_variable_order(net_0);
     break;
   }
@@ -649,62 +655,35 @@ struct bdd_statistics
 };
 
 template <typename Adapter>
-using bdd_cache = std::unordered_map<std::string, typename Adapter::dd_t>;
-
-bool
-decrease_ref_count(net_t& net, const std::string& node_name)
-{
-  if (net.is_input(node_name)) { return false; }
-  if (net.is_output(node_name)) { return false; }
-
-  const auto lookup_ref_count = net.ref_count.find(node_name);
-
-  if (lookup_ref_count == net.ref_count.end()) {
-    std::cerr << "Decreasing reference count on '" << node_name << "' not in reference table"
-              << std::endl;
-    exit(-1);
-  }
-
-  const int ref_count = lookup_ref_count->second;
-  assert(ref_count > 0);
-
-  net.ref_count.erase(node_name);
-
-  if (ref_count == 1) { return true; }
-
-  net.ref_count.insert({ node_name, ref_count - 1 });
-  return false;
-}
+using bdd_cache = std::unordered_map<node_id_t, typename Adapter::dd_t>;
 
 template <typename Adapter>
 typename Adapter::dd_t
 construct_node_bdd(net_t& net,
-                   const std::string& node_name,
+                   const node_id_t node_id,
                    bdd_cache<Adapter>& cache,
                    Adapter& adapter,
                    bdd_statistics& stats)
 {
-  const auto lookup_cache = cache.find(node_name);
+  const auto lookup_cache = cache.find(node_id);
   if (lookup_cache != cache.end()) { return lookup_cache->second; }
 
-  const auto lookup_input = net.inputs_w_order.find(node_name);
-  if (lookup_input != net.inputs_w_order.end()) { return adapter.ithvar(lookup_input->second); }
-
-  assert(net.nodes.find(node_name) != net.nodes.end());
-  const node_t& node_data = net.nodes.find(node_name)->second;
+  const node_t& node_data = net.nodes[node_id];
+  if (node_data.is_input) { return adapter.ithvar(net.inputs_w_order.at(node_id)); }
 
   typename Adapter::dd_t so_cover_bdd = adapter.bot();
 #ifdef BDD_BENCHMARK_STATS
   size_t so_nodecount = adapter.nodecount(so_cover_bdd);
-  assert(so_nodecount == 0);
+  assert(so_nodecount <= 1);
+  stats.curr_bdd_sizes += so_nodecount;
 #endif // BDD_BENCHMARK_STATS
 
   for (size_t row_idx = 0; row_idx < node_data.so_cover.size(); row_idx++) {
     typename Adapter::dd_t tmp = adapter.top();
 
-    for (size_t column_idx = 0; column_idx < node_data.nets.size(); column_idx++) {
-      const std::string& dep_name    = node_data.nets.at(column_idx);
-      typename Adapter::dd_t dep_bdd = construct_node_bdd(net, dep_name, cache, adapter, stats);
+    for (size_t column_idx = 0; column_idx < node_data.deps.size(); column_idx++) {
+      const node_id_t dep_id         = node_data.deps.at(column_idx);
+      typename Adapter::dd_t dep_bdd = construct_node_bdd(net, dep_id, cache, adapter, stats);
 
       // Add to row accumulation in 'tmp'
       const logic_value lval = node_data.so_cover.at(row_idx).at(column_idx);
@@ -744,10 +723,13 @@ construct_node_bdd(net_t& net,
 
       // Decrease reference count on dependency if we are on the last row.
       if (row_idx == node_data.so_cover.size() - 1) {
-        if (decrease_ref_count(net, dep_name)) {
-          cache.erase(dep_name);
+        node_t& dep_node = net.nodes[dep_id];
+        if (!dep_node.is_output && !dep_node.is_input && --dep_node.ref_count == 0) {
+          cache.erase(dep_id);
 #ifdef BDD_BENCHMARK_STATS
-          stats.curr_bdd_sizes -= adapter.nodecount(dep_bdd);
+          const size_t dep_nodecount = adapter.nodecount(dep_bdd);
+          assert(dep_nodecount <= stats.curr_bdd_sizes);
+          stats.curr_bdd_sizes -= dep_nodecount;
 #endif // BDD_BENCHMARK_STATS
         }
       }
@@ -782,7 +764,7 @@ construct_node_bdd(net_t& net,
     // TODO (ZDD): remaining statistics
   }
 
-  cache.insert({ node_name, so_cover_bdd });
+  cache.insert({ node_id, so_cover_bdd });
 #ifdef BDD_BENCHMARK_STATS
   stats.max_roots = std::max(stats.max_roots, cache.size());
 #endif // BDD_BENCHMARK_STATS
@@ -815,7 +797,7 @@ construct_net_bdd(const std::string& filename,
 
   const time_point t_construct_before = now();
   bdd_statistics stats;
-  for (const std::string& output : net.outputs_in_order) {
+  for (const node_id_t output : net.outputs_in_order) {
     construct_node_bdd(net, output, cache, adapter, stats);
   }
   const time_point t_construct_after = now();
@@ -887,14 +869,15 @@ verify_outputs(const net_t& net_0,
   bool ret_value                    = true;
 
   for (size_t out_idx = 0; out_idx < net_0.outputs_in_order.size(); out_idx++) {
-    const std::string& output_0 = net_0.outputs_in_order.at(out_idx);
-    const std::string& output_1 = net_1.outputs_in_order.at(out_idx);
+    const node_id_t output_0 = net_0.outputs_in_order.at(out_idx);
+    const node_id_t output_1 = net_1.outputs_in_order.at(out_idx);
 
     const typename Adapter::dd_t bdd_0 = cache_0.find(output_0)->second;
     const typename Adapter::dd_t bdd_1 = cache_1.find(output_1)->second;
 
     if (bdd_0 != bdd_1) {
-      std::cerr << "Output gates ['" << output_0 << "' / '" << output_1 << "'] differ!\n";
+      std::cerr << "Output gates ['" << net_0.nodes[output_0].name << "' / '"
+                << net_1.nodes[output_1].name << "'] differ!\n";
       ret_value = false;
     }
   }
@@ -923,34 +906,13 @@ run_picotrav(int argc, char** argv)
   const bool verify_networks = file_1 != "";
 
   // =========================================================================
-  // Read file(s) and construct Nets
+  // Read file(s) and construct nets
   net_t net_0;
-
-  const bool parsing_error_0 = construct_net(file_0, net_0);
-  if (parsing_error_0) {
-    std::cerr << "Parsing error for '" << file_0 << "'\n";
-    return -1;
-  }
-
-  const bool is_acyclic_0 = is_acyclic(net_0);
-  if (!is_acyclic_0) {
-    std::cerr << "Input '" << file_0 << "' is not acyclic!\n";
-    return -1;
-  }
+  if (!construct_net(file_0, net_0)) return -1; // error has been printed
 
   net_t net_1;
   if (verify_networks) {
-    const bool parsing_error_1 = construct_net(file_1, net_1);
-    if (parsing_error_1) {
-      std::cerr << "Parsing error for '" << file_1 << "'\n";
-      return -1;
-    }
-
-    const bool is_acyclic_1 = is_acyclic(net_1);
-    if (!is_acyclic_1) {
-      std::cerr << "Input '" << file_1 << "' is not acyclic!\n";
-      return -1;
-    }
+    if (!construct_net(file_1, net_1)) return -1; // error has been printed
 
     const bool inputs_match = net_0.inputs_w_order.size() == net_1.inputs_w_order.size();
     if (!inputs_match) {
@@ -1022,7 +984,6 @@ run_picotrav(int argc, char** argv)
       std::cout << json::array_close << json::comma << json::endl;
     }
 
-    // TODO: Fix 'total time' below also measures multiple 'std::flush'.
     std::cout << json::field("total time (ms)") << json::value(init_time + total_time)
               << json::endl;
 
