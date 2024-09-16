@@ -29,6 +29,7 @@ std::string file_1 = "";
 enum class variable_order
 {
   INPUT,
+  ZIP,
   DF,
   LEVEL,
   LEVEL_DF,
@@ -41,6 +42,7 @@ to_string(const variable_order o)
 {
   switch (o) {
   case variable_order::INPUT: return "input";
+  case variable_order::ZIP: return "zip";
   case variable_order::DF: return "depth-first";
   case variable_order::LEVEL: return "level";
   case variable_order::LEVEL_DF: return "level-df";
@@ -99,6 +101,8 @@ public:
 
       if (lower_arg == "input" || lower_arg == "i") {
         var_order = variable_order::INPUT;
+      } else if (lower_arg == "zip" || lower_arg == "z") {
+        var_order = variable_order::ZIP;
       } else if (lower_arg == "depth-first" || lower_arg == "df") {
         var_order = variable_order::DF;
       } else if (lower_arg == "level" || lower_arg == "l") {
@@ -680,6 +684,25 @@ fanin_variable_order(const net_t& net_0, const net_t& net_1)
   return new_ordering;
 }
 
+/// Assuming the input is given as
+/// `a[0], a[1], ..., a[n-1], b[0], b[1], ..., b[n-1]`, this derives the
+/// ordering ``a[0], b[0], a[1], b[1], ..., a[n-1], b[n-1]``
+std::vector<unsigned>
+zip_variable_order(const net_t& net)
+{
+  unsigned n = net.inputs_w_order.size();
+  std::vector<unsigned> permutation;
+  permutation.reserve(n);
+  // The permutation needs to be `0 2 4 ... 1 3 5 ...`
+  // In case there is an odd number of inputs, the first partition half must be
+  // larger, e.g. we have `0 2 1` for n = 3.
+  unsigned first_half  = (n + 1) / 2;
+  unsigned second_half = n - first_half;
+  for (unsigned i = 0; i < first_half; ++i) { permutation.push_back(2 * i); }
+  for (unsigned i = 0; i < second_half; ++i) { permutation.push_back(2 * i + 1); }
+  return permutation;
+}
+
 std::vector<unsigned>
 random_variable_order(const net_t& net)
 {
@@ -713,6 +736,11 @@ apply_variable_order(const variable_order vo, net_t& net_0, net_t& net_1)
   case variable_order::INPUT:
     // Keep as is
     return;
+
+  case variable_order::ZIP: {
+    new_ordering = zip_variable_order(net_0);
+    break;
+  }
 
   case variable_order::DF: {
     new_ordering = dfs_variable_order(net_0);
