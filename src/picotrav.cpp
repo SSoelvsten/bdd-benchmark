@@ -32,6 +32,7 @@ enum class variable_order
   DF,
   LEVEL,
   LEVEL_DF,
+  FANIN,
   RANDOM
 };
 
@@ -43,6 +44,7 @@ to_string(const variable_order o)
   case variable_order::DF: return "depth-first";
   case variable_order::LEVEL: return "level";
   case variable_order::LEVEL_DF: return "level-df";
+  case variable_order::FANIN: return "fanin";
   case variable_order::RANDOM: return "random";
   }
   return "?";
@@ -104,6 +106,8 @@ public:
       } else if (lower_arg == "level_depth-first" || lower_arg == "level_df"
                  || lower_arg == "l_df") {
         var_order = variable_order::LEVEL_DF;
+      } else if (lower_arg == "fanin" || lower_arg == "fi") {
+        var_order = variable_order::FANIN;
       } else if (lower_arg == "random" || lower_arg == "r") {
         var_order = variable_order::RANDOM;
       } else {
@@ -483,8 +487,6 @@ construct_net(std::string& filename, net_t& net)
 
 // ========================================================================== //
 // Variable Ordering
-constexpr unsigned UNDEF = std::numeric_limits<unsigned>::max();
-
 void
 dfs_variable_order_rec(const node_id_t id,
                        std::vector<unsigned>& new_ordering,
@@ -595,6 +597,89 @@ level_variable_order(const net_t& net_0, const net_t& net_1)
   return new_ordering;
 }
 
+void
+fanin_variable_order_rec(const node_id_t id,
+                         std::vector<unsigned>& new_ordering,
+                         unsigned& ordered_count,
+                         const net_t& net,
+                         std::vector<bool>& visited)
+{
+  if (ordered_count == net.inputs_w_order.size()) { return; }
+
+  if (visited[id]) { return; }
+  visited[id] = true;
+
+  const node_t& n = net.nodes[id];
+
+  if (n.is_input) {
+    const unsigned old_idx = net.inputs_w_order.at(id);
+    new_ordering[old_idx]  = ordered_count++;
+    return;
+  }
+
+  // Sort dependencies descending by depth
+  std::vector<node_id_t> deps(n.deps);
+  std::sort(deps.begin(), deps.end(), [&net](const node_id_t a, const node_id_t b) {
+    return net.nodes[a].depth > net.nodes[b].depth;
+  });
+
+  for (const node_id_t dep_id : deps) {
+    fanin_variable_order_rec(dep_id, new_ordering, ordered_count, net, visited);
+  }
+}
+
+std::vector<unsigned>
+fanin_variable_order(const net_t& net_0, const net_t& net_1)
+{
+  assert(&net_0.nodes == &net_1.nodes); // pointer equality
+  const std::vector<node_t>& nodes = net_0.nodes;
+
+  std::vector<bool> visited(nodes.size());
+  std::vector<unsigned> new_ordering(net_0.inputs_w_order.size());
+  unsigned ordered_count = 0;
+
+  unsigned output_count = net_0.outputs_in_order.size();
+  if (net_1.outputs_in_order.size() != output_count) { // Only consider `net_0`
+    // Sort dependencies descending by depth
+    std::vector<node_id_t> outputs(net_0.outputs_in_order);
+    std::sort(outputs.begin(), outputs.end(), [&nodes](const node_id_t a, const node_id_t b) {
+      return nodes[a].depth > nodes[b].depth;
+    });
+
+    for (const node_id_t output : outputs) {
+      fanin_variable_order_rec(output, new_ordering, ordered_count, net_0, visited);
+    }
+  } else {
+    // Consider both `net_0` and `net_1`. First, group the output pairs together
+    std::vector<std::pair<node_id_t, node_id_t>> outputs;
+    outputs.reserve(output_count);
+    for (unsigned i = 0; i < output_count; ++i) {
+      outputs.emplace_back(net_0.outputs_in_order[i], net_1.outputs_in_order[i]);
+    }
+    // Sort these pairs descending by their depth (lexicographically maximum, then minimum)
+    std::sort(outputs.begin(), outputs.end(), [&nodes](const auto a, const auto b) {
+      const unsigned a_max = std::max(nodes[a.first].depth, nodes[a.second].depth);
+      const unsigned a_min = std::min(nodes[a.first].depth, nodes[a.second].depth);
+      const unsigned b_max = std::max(nodes[b.first].depth, nodes[b.second].depth);
+      const unsigned b_min = std::min(nodes[b.first].depth, nodes[b.second].depth);
+      return std::tie(a_max, a_min) > std::tie(b_max, b_min);
+    });
+
+    // Recursively visit the children, starting with the deeper node of the pair
+    for (const auto [output_0, output_1] : outputs) {
+      if (nodes[output_0].depth >= nodes[output_1].depth) {
+        fanin_variable_order_rec(output_0, new_ordering, ordered_count, net_0, visited);
+        fanin_variable_order_rec(output_1, new_ordering, ordered_count, net_1, visited);
+      } else {
+        fanin_variable_order_rec(output_1, new_ordering, ordered_count, net_1, visited);
+        fanin_variable_order_rec(output_0, new_ordering, ordered_count, net_0, visited);
+      }
+    }
+  }
+
+  return new_ordering;
+}
+
 std::vector<unsigned>
 random_variable_order(const net_t& net)
 {
@@ -642,6 +727,11 @@ apply_variable_order(const variable_order vo, net_t& net_0, net_t& net_1)
   case variable_order::LEVEL_DF: {
     apply_variable_order(variable_order::DF, net_0, net_1);
     new_ordering = level_variable_order(net_0, net_1);
+    break;
+  }
+
+  case variable_order::FANIN: {
+    new_ordering = fanin_variable_order(net_0, net_1);
     break;
   }
 
