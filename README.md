@@ -563,6 +563,10 @@ The benchmark can be configured with the following options:
   - `level_df`: Similar to `level` but ties are broken based on the ordering in
     `df` rather than `input`.
 
+  - `fanin`: Similar to `depth-first`, but before recursing, all child nodes are
+    sorted by their depth. Recursive calls are done from the deepest to the most
+    shallow node in order.
+
   - `random`: A randomized ordering of variables.
 
 ```bash
