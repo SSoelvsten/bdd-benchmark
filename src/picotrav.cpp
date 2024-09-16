@@ -49,15 +49,17 @@ to_string(const variable_order o)
 }
 
 variable_order var_order = variable_order::INPUT;
+bool match_io_names      = false;
 
 class parsing_policy
 {
 public:
   static constexpr std::string_view name = "Picotrav";
-  static constexpr std::string_view args = "f:o:";
+  static constexpr std::string_view args = "f:o:m:";
 
   static constexpr std::string_view help_text =
     "        -f PATH               Path to '.blif' file(s)\n"
+    "        -m MATCH     [order]  Matching of circuit inputs and outputs\n"
     "        -o ORDER     [input]  Variable order to derive from first circuit";
 
   static inline bool
@@ -74,6 +76,19 @@ public:
         file_0 = arg;
       } else {
         file_1 = arg;
+      }
+      return false;
+    }
+    case 'm': {
+      const std::string lower_arg = ascii_tolower(arg);
+
+      if (is_prefix(lower_arg, "order")) {
+        match_io_names = false;
+      } else if (is_prefix(lower_arg, "name")) {
+        match_io_names = true;
+      } else {
+        std::cerr << "Unknown input/output matching: " << arg << "\n";
+        return true;
       }
       return false;
     }
@@ -883,8 +898,13 @@ verify_outputs(const net_t& net_0,
     const typename Adapter::dd_t bdd_1 = cache_1.find(output_1)->second;
 
     if (bdd_0 != bdd_1) {
-      std::cerr << "Output gates ['" << net_0.nodes[output_0].name << "' / '"
-                << net_1.nodes[output_1].name << "'] differ!\n";
+      if (match_io_names) {
+        assert(net_0.nodes[output_0].name == net_1.nodes[output_1].name);
+        std::cerr << "Output gate '" << net_0.nodes[output_0].name << "' differs!\n";
+      } else {
+        std::cerr << "Output gate ['" << net_0.nodes[output_0].name << "'/'"
+                  << net_1.nodes[output_1].name << "'] differs!\n";
+      }
       ret_value = false;
     }
   }
@@ -896,6 +916,53 @@ verify_outputs(const net_t& net_0,
 
   std::cout << json::brace_close << json::comma << json::endl;
   return { ret_value, time };
+}
+
+// ========================================================================== //
+
+/// Perform name-based matching of inputs and outputs
+///
+/// This permutes the inputs and outputs of `net_1` accordingly.
+///
+/// Returns true on success
+bool
+do_match_io_names(net_t& net_0, net_t& net_1)
+{
+  // inputs
+  for (auto& [id_0, pos_0] : net_0.inputs_w_order) {
+    const std::string& name = net_0.nodes[id_0].name;
+    const auto name_map_it  = net_1.name_map.find(name);
+    if (name_map_it != net_1.name_map.end()) {
+      const auto order_it = net_1.inputs_w_order.find(name_map_it->second);
+      if (order_it != net_1.inputs_w_order.end()) {
+        order_it->second = pos_0;
+        continue; // success, continue with the next input
+      }
+    }
+
+    std::cerr << "Input '" << name << "' is present in '" << file_0 << "' but not in '" << file_1
+              << "'\n";
+    return false;
+  }
+
+  // outputs
+  for (unsigned i = 0; i < net_0.outputs_in_order.size(); ++i) {
+    const std::string& name = net_0.nodes[net_0.outputs_in_order[i]].name;
+    const auto name_map_it  = net_1.name_map.find(name);
+    if (name_map_it != net_1.name_map.end()) {
+      const node_id_t id_1 = name_map_it->second;
+      if (net_1.nodes[id_1].is_output) {
+        net_1.outputs_in_order[i] = id_1;
+        continue; // success, continue with the next input
+      }
+    }
+
+    std::cerr << "Output '" << name << "' is present in '" << file_0 << "' but not in '" << file_1
+              << "'\n";
+    return false;
+  }
+
+  return true;
 }
 
 // ========================================================================== //
@@ -933,6 +1000,10 @@ run_picotrav(int argc, char** argv)
     if (!outputs_match) {
       std::cerr << "Number of outputs in '" << file_0 << "' and '" << file_1 << "' do not match!\n";
       return -1;
+    }
+
+    if (match_io_names) {
+      if (!do_match_io_names(net_0, net_1)) return -1;
     }
   }
 

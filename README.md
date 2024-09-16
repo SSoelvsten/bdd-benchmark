@@ -540,6 +540,12 @@ The benchmark can be configured with the following options:
   If used twice, the BDDs for both circuits' output gates are constructed and
   checked for logical equality.
 
+- **`-m order|name`** (default: *order*)
+
+  In case two circuits are given as inputs to verify their equivalence, match
+  the inputs and outputs of these circuits by the *order* in which they occur in
+  the input files or by their *names*.
+
 - **`-o <...>`** (default: *input*)
 
   BDD variables represent the value of inputs. Hence, a good variable ordering
