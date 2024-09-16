@@ -554,6 +554,10 @@ The benchmark can be configured with the following options:
 
   - `input`: Use the order in which they are declared in the input *.blif* file.
 
+  - `zip`: Assuming that the input variable order is `a[0]`, `a[1]`, …,
+    `a[n-1]`, `b[0]`, `b[1]`, …, `b[n-1]` in the input *.blif* file, use the
+    order `a[0]`, `b[0]`, `a[1]`, `b[1]`, …, `a[n-1]`, `b[n-1]`.
+
   - `df`/`depth-first`: Variables are ordered based on a depth-first traversal
     where non-input gates are recursed to first; thereby favouring deeper nodes.
 
