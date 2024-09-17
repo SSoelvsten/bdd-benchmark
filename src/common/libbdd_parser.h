@@ -278,10 +278,12 @@ namespace lib_bdd
   public:
     enum parent_count_idx : int
     {
-      None = 0,
-      One  = 1,
-      Two  = 2,
-      More = 3
+      None  = 0,
+      One   = 1,
+      Two   = 2,
+      Three = 3,
+      Four  = 4,
+      More  = 5
     };
 
   public:
@@ -289,7 +291,7 @@ namespace lib_bdd
     node::var_type levels           = 0u;
     node::ptr_type width            = 0u;
     node::ptr_type terminals[2]     = { 0u, 0u };
-    node::ptr_type parent_counts[4] = { 0u, 0u, 0u, 0u };
+    node::ptr_type parent_counts[6] = { 0u, 0u, 0u, 0u, 0u, 0u };
   };
 
   /// \brief Extract statistics from a BDD.
@@ -340,7 +342,9 @@ namespace lib_bdd
       if (pc == 0) { out.parent_counts[stats_t::parent_count_idx::None] += 1; }
       if (pc == 1) { out.parent_counts[stats_t::parent_count_idx::One] += 1; }
       if (pc == 2) { out.parent_counts[stats_t::parent_count_idx::Two] += 1; }
-      if (pc > 2) { out.parent_counts[stats_t::parent_count_idx::More] += 1; }
+      if (pc == 3) { out.parent_counts[stats_t::parent_count_idx::Three] += 1; }
+      if (pc == 4) { out.parent_counts[stats_t::parent_count_idx::Four] += 1; }
+      if (pc > 4) { out.parent_counts[stats_t::parent_count_idx::More] += 1; }
     }
 
     return out;
@@ -369,7 +373,13 @@ namespace lib_bdd
     std::cout << json::field("2")
               << json::value(stats.parent_counts[lib_bdd::stats_t::parent_count_idx::Two])
               << json::comma << json::endl;
-    std::cout << json::field("3+")
+    std::cout << json::field("3")
+              << json::value(stats.parent_counts[lib_bdd::stats_t::parent_count_idx::Three])
+              << json::comma << json::endl;
+    std::cout << json::field("4")
+              << json::value(stats.parent_counts[lib_bdd::stats_t::parent_count_idx::Four])
+              << json::comma << json::endl;
+    std::cout << json::field("5+")
               << json::value(stats.parent_counts[lib_bdd::stats_t::parent_count_idx::More])
               << json::endl;
     std::cout << json::brace_close << json::endl;
