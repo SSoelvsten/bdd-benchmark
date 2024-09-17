@@ -213,13 +213,13 @@ namespace lib_bdd
       // Sanity checks on node
       if (out.size() <= n.low()) {
         std::stringstream ss;
-        ss << "Low index ( " << n.low() << " ) is out-of-bounds";
+        ss << "Low index ( " << n.low() << " ) is out-of-bounds ( size: " << out.size() << " )";
 
         throw std::out_of_range(ss.str());
       }
       if (out.size() <= n.high()) {
         std::stringstream ss;
-        ss << "High index ( " << n.high() << " ) is out-of-bounds";
+        ss << "High index ( " << n.high() << " ) is out-of-bounds ( size: " << out.size() << " )";
 
         throw std::out_of_range(ss.str());
       }
