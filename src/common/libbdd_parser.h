@@ -245,9 +245,9 @@ namespace lib_bdd
     return deserialize(is);
   }
 
-  /// \brief Comparator for a level-by-level bottom-up traversal.
+  /// \brief Comparator for a level-by-level top-down traversal.
   inline auto
-  levelized_order(const lib_bdd::bdd& f)
+  levelized_min_order(const lib_bdd::bdd& f)
   {
     return [&f](const int a, const int b) -> bool {
       assert(f.at(a).is_internal());
@@ -260,6 +260,15 @@ namespace lib_bdd
       if (a_node.level() != b_node.level()) { return a_node.level() < b_node.level(); }
       // Break ties on the same level by its index
       return a > b;
+    };
+  }
+
+  /// \brief Comparator for a level-by-level bottom-up traversal.
+  inline auto
+  levelized_max_order(const lib_bdd::bdd& f)
+  {
+    return [td_comp = levelized_min_order(f)](const int a, const int b) -> bool {
+      return td_comp(b, a);
     };
   }
 
@@ -297,19 +306,15 @@ namespace lib_bdd
 
     std::vector<int> parent_counts(f.size(), 0);
 
-    const auto pq_comp = levelized_order(f);
+    std::vector<int> work_order;
+    work_order.reserve(f.size());
 
-    std::priority_queue<int, std::vector<int>, decltype(pq_comp)> pq(pq_comp);
-    for (size_t i = 2; i < f.size(); ++i) {
-      assert(i < std::numeric_limits<int>::max());
-      pq.push(static_cast<int>(i));
-    }
+    assert(f.size() < std::numeric_limits<int>::max());
+    for (size_t i = 2; i < f.size(); ++i) { work_order.push_back(i); }
+    std::sort(work_order.begin(), work_order.end(), levelized_max_order(f));
 
-    while (!pq.empty()) {
-      const int i = pq.top();
-      pq.pop();
-
-      const auto& n = f.at(i);
+    for (auto iter = work_order.begin(); iter != work_order.end(); ++iter) {
+      const node& n = f.at(*iter);
 
       if (n.level() != curr_level) {
         out.levels += 1;
@@ -425,20 +430,15 @@ namespace lib_bdd
     out.at(1) = adapter.build_node(true);
 
     // Internal Nodes
-    const auto pq_comp = levelized_order(in);
+    std::vector<int> work_order;
+    work_order.reserve(in.size());
 
-    std::priority_queue<int, std::vector<int>, decltype(pq_comp)> pq(pq_comp);
-    for (size_t i = 2; i < in.size(); ++i) {
-      assert(i < std::numeric_limits<int>::max());
-      pq.push(static_cast<int>(i));
-    }
+    assert(in.size() < std::numeric_limits<int>::max());
+    for (size_t i = 2; i < in.size(); ++i) { work_order.push_back(i); }
+    std::sort(work_order.begin(), work_order.end(), levelized_max_order(in));
 
-    while (!pq.empty()) {
-      const int i = pq.top();
-      pq.pop();
-
-      const lib_bdd::node& n = in.at(i);
-
+    for (auto iter = work_order.begin(); iter != work_order.end(); ++iter) {
+      const lib_bdd::node& n = in.at(*iter);
       const auto var = vm.find(n.level());
 
       if (var == vm.end()) {
@@ -450,7 +450,7 @@ namespace lib_bdd
       const auto low  = out.at(n.low());
       const auto high = out.at(n.high());
 
-      out.at(i) = adapter.build_node(var->second, low, high);
+      out.at(*iter) = adapter.build_node(var->second, low, high);
     }
 
     return adapter.build();
