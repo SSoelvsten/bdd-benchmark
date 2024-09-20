@@ -108,8 +108,7 @@ namespace lib_bdd
     }
 
   public:
-    /// \brief The variable level. Assuming the identity order this is
-    /// equivalent to its 'level'.
+    /// \brief The variable level. Assuming the identity order this is equivalent to its 'level'.
     var_type
     level() const
     {
