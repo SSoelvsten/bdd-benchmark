@@ -38,7 +38,7 @@ namespace lib_bdd
     for (size_t byte = 0; byte < bytes.size(); ++byte) {
       // HACK: Reinterpret 'char' as an 'unsigned char' without changing any of
       //       the bit values (see also 'fast inverse square root' algorithm).
-      unsigned char unsigned_byte = *((unsigned char*)(&bytes.at(byte)));
+      const unsigned char unsigned_byte = *((unsigned char*)(&bytes.at(byte)));
 
       res |= static_cast<UInt>(unsigned_byte) << (8 * byte);
     }
