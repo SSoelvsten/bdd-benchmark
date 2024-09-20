@@ -636,6 +636,9 @@ The benchmark can be configured with the following options:
 
 ### RelProd
 
+> [!IMPORTANT]
+> ZDDs are not supported for this benchmark (yet)!
+
 Building on-top of the [Apply](#apply) benchmark, this benchmark loads a
 *relation* and a set of *states* stored in a *binary* format (as they are
 serialized by the
