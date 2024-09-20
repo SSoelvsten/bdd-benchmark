@@ -25,6 +25,7 @@ Furthermore, there are also minimal (hand-encoded) binary ZDDs in the same forma
 - *000_100.zdd* : { Ø, {0} }
 - *100_010.zdd* : { {0}, {1} }
 - *110.zdd* : { {0,1} }
+- *powerset.zdd* : { Ø, {0}, {1}, {0,1} }
 
 ## More Inputs
 
