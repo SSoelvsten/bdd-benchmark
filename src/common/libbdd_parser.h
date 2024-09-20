@@ -173,16 +173,17 @@ namespace lib_bdd
   deserialize(std::ifstream& in)
   {
     bdd out;
+    size_t pos = 0;
 
     // 10 byte buffer (matching a single lib-bdd::node)
-    constexpr size_t node_size = node::size();
-    std::array<char, node_size> buffer{};
+    std::array<char, node::size()> buffer{};
 
     // Read and Push `false` terminal
     in.read(buffer.data(), buffer.size());
 
     if (!in.good()) { throw std::runtime_error("Error while parsing `false` terminal."); }
 
+    pos += 10;
     out.push_back(node(buffer.begin(), buffer.end()));
 
     if (in.eof()) { return out; }
@@ -193,6 +194,7 @@ namespace lib_bdd
     if (in.eof()) { return out; }
     if (!in.good()) { throw std::runtime_error("Error while parsing `true` terminal"); }
 
+    pos += 10;
     out.push_back(node(buffer.begin(), buffer.end()));
 
     // Read and Push remaining nodes
@@ -213,18 +215,19 @@ namespace lib_bdd
       // Sanity checks on node
       if (out.size() <= n.low()) {
         std::stringstream ss;
-        ss << "Low index ( " << n.low() << " ) is out-of-bounds ( size: " << out.size() << " )";
+        ss << "Low index ( " << n.low() << " ) is out-of-bounds ( pos: " << pos << " )";
 
         throw std::out_of_range(ss.str());
       }
       if (out.size() <= n.high()) {
         std::stringstream ss;
-        ss << "High index ( " << n.high() << " ) is out-of-bounds ( size: " << out.size() << " )";
+        ss << "High index ( " << n.high() << " ) is out-of-bounds ( pos: " << pos << " )";
 
         throw std::out_of_range(ss.str());
       }
 
       // Push node to output
+      pos += 10;
       out.push_back(n);
     }
   }
