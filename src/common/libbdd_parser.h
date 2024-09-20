@@ -74,15 +74,11 @@ namespace lib_bdd
   public:
     /// \brief Constructor for an internal BDD node.
     node(const var_type& var, const ptr_type& low, const ptr_type& high)
-      : _level(((low == false_ptr || low == true_ptr) && low == high) ? terminal_level : var)
+      : _level(var)
       , _low(low)
       , _high(high)
     {
-      // TODO: The above 'terminal_level' hack breaks for ZDDs with two `true` children.
-      if (var == terminal_level) { throw std::overflow_error("BDD variable level too large"); }
-      if (low == high && low > true_ptr /*|| high > true_ptr*/) {
-        throw std::invalid_argument("Creation of suppressed BDD node");
-      }
+      if (var == terminal_level) { throw std::overflow_error("Variable level too large"); }
     }
 
     /// \brief Constructor for a Boolean BDD terminal.
