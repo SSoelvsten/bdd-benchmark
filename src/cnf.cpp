@@ -4,6 +4,7 @@
 
 // Data structures
 #include <cstddef>
+#include <iostream>
 #include <limits>
 #include <optional>
 #include <string>
@@ -142,8 +143,10 @@ public:
     // Parse the variable order
     std::vector<unsigned> var_order;
     std::string tok;
-    while (true) {
+    unsigned line = 0;
+    while (input.good()) {
       const int c = input.get();
+      ++line;
       if (c == 'c') {
         input >> tok;
         if (std::all_of(tok.begin(), tok.end(), ::isdigit)) {
@@ -161,7 +164,8 @@ public:
       } else if (c == 'p') {
         break;
       } else {
-        std::cerr << "error: unexpected character '" << static_cast<char>(c) << "'\n";
+        std::cerr << "error: unexpected character '" << static_cast<char>(c)
+                  << "' at beginning of line" << line << "\n";
         return {};
       }
     }
@@ -171,6 +175,10 @@ public:
     unsigned nvars;
     input >> problem_type >> nvars >> nclauses;
 
+    if (input.fail()) {
+      std::cerr << "error: expected `p cnf #vars #clauses` (line " << line << ")\n";
+      return {};
+    }
     if (problem_type != "cnf") {
       std::cerr << "error: can only handle 'cnf' files\n";
       return {};
@@ -209,9 +217,15 @@ public:
     size_t clause_offset = 0;
     cnf._clause_data.reserve(nclauses * 4);
     cnf._clause_offsets.reserve(nclauses);
-    while (!input.eof()) {
+    while (input.good()) {
       int literal;
       input >> literal;
+      if (input.fail()) {
+        if (input.eof())
+          break; // this branch is taken if there is whitespace at the end of the file
+        std::cerr << "error: expected an integer\n";
+        return {};
+      }
       if (literal == 0) {
         cnf._clause_offsets.push_back(clause_offset);
         clause_offset = cnf._clause_data.size();
@@ -238,10 +252,6 @@ public:
 
     if (input.bad()) {
       std::cerr << "error: reading from the input file failed\n";
-      return {};
-    }
-    if (input.fail()) {
-      std::cerr << "error: parsing failed. Is the input file valid DIMACS CNF?\n";
       return {};
     }
 
