@@ -145,11 +145,14 @@ public:
 struct net_t
 {
 public:
-  std::unordered_map<std::string, node_id_t> name_map;
+  std::unordered_map<std::string, node_id_t> name_map = {};
 
-  std::unordered_map<node_id_t, unsigned> inputs_w_order;
-  std::vector<node_id_t> outputs_in_order;
-  std::vector<node_t> nodes;
+  std::unordered_map<node_id_t, unsigned> inputs_w_order = {};
+  std::vector<node_id_t> outputs_in_order                = {};
+  /// Node store shared across nets
+  ///
+  /// Enables us to compute variable orders on the "union" net
+  std::vector<node_t>& nodes;
 
   /// Get the node for `name` (if present) or add `node` to the net
   ///
@@ -157,13 +160,13 @@ public:
   std::pair<node_id_t, bool>
   get_or_add_node(const std::string& name, node_t node)
   {
-    const auto [it, inserted] = name_map.try_emplace(name, name_map.size());
+    const auto [it, inserted] = name_map.try_emplace(name, nodes.size());
     const node_id_t id        = it->second;
     if (inserted) {
       node.name = name;
       nodes.emplace_back(std::move(node));
     }
-    assert(name_map.size() == nodes.size());
+    assert(name_map.size() <= nodes.size()); // `name_map` is net-local, `nodes` is shared
     return { id, inserted };
   }
 
@@ -298,7 +301,6 @@ public:
         }
       }
       net.inputs_w_order.insert({ id, net.inputs_w_order.size() });
-      assert(net.name_map.size() == net.nodes.size());
     }
   }
 
@@ -321,7 +323,6 @@ public:
         }
       }
       net.outputs_in_order.push_back(id);
-      assert(net.name_map.size() == net.nodes.size());
     }
   }
 
@@ -516,47 +517,53 @@ dfs_variable_order(const net_t& net)
 void
 compute_input_depth(const node_id_t id,
                     std::unordered_map<node_id_t, unsigned>& deepest_reference,
-                    const net_t& net,
+                    const std::vector<node_t>& nodes,
                     std::vector<bool>& visited)
 {
   if (visited[id]) { return; }
   visited[id] = true;
 
-  const node_t& n = net.nodes[id];
+  const node_t& n = nodes[id];
 
   for (const node_id_t dep_id : n.deps) {
-    const node_t& dep = net.nodes[dep_id];
+    const node_t& dep = nodes[dep_id];
     if (dep.is_input) {
       unsigned& lookup_depth = deepest_reference[dep_id];
       // If dep_id was not in the map, the value is default-constructed, i.e. 0.
       // All inner nodes have at least depth 1, so we can distinguish this case.
       if (lookup_depth == 0 || n.depth < lookup_depth) { lookup_depth = n.depth; }
     } else {
-      compute_input_depth(dep_id, deepest_reference, net, visited);
+      compute_input_depth(dep_id, deepest_reference, nodes, visited);
     }
   }
 }
 
 std::vector<unsigned>
-level_variable_order(const net_t& net)
+level_variable_order(const net_t& net_0, const net_t& net_1)
 {
-  // Create a std::vector we can sort
+  assert(&net_0.nodes == &net_1.nodes); // pointer equality
+  const std::vector<node_t>& nodes = net_0.nodes;
+
+  // Create a `std::vector` we can sort
   std::vector<node_id_t> inputs;
-  inputs.reserve(net.inputs_w_order.size());
-  for (auto kv : net.inputs_w_order) { inputs.push_back(kv.first); }
+  inputs.reserve(net_0.inputs_w_order.size());
+  for (auto kv : net_0.inputs_w_order) { inputs.push_back(kv.first); }
 
   std::unordered_map<node_id_t, unsigned> deepest_reference;
-  std::vector<bool> visited_nodes(net.nodes.size());
-  deepest_reference.reserve(net.inputs_w_order.size());
-  for (const node_id_t output : net.outputs_in_order) {
-    compute_input_depth(output, deepest_reference, net, visited_nodes);
+  std::vector<bool> visited_nodes(nodes.size());
+  deepest_reference.reserve(net_0.inputs_w_order.size());
+  for (const node_id_t output : net_0.outputs_in_order) {
+    compute_input_depth(output, deepest_reference, nodes, visited_nodes);
+  }
+  for (const node_id_t output : net_1.outputs_in_order) {
+    compute_input_depth(output, deepest_reference, nodes, visited_nodes);
   }
 
   // Sort based on deepest referenced level (break ties by prior ordering)
-  const auto comparator = [&net, &deepest_reference](const node_id_t i, const node_id_t j) {
-    const int old_i   = net.inputs_w_order.at(i);
+  const auto comparator = [&net_0, &deepest_reference](const node_id_t i, const node_id_t j) {
+    const int old_i   = net_0.inputs_w_order.at(i);
     const int i_level = deepest_reference.at(i);
-    const int old_j   = net.inputs_w_order.at(j);
+    const int old_j   = net_0.inputs_w_order.at(j);
     const int j_level = deepest_reference.at(j);
 
     return std::tie(i_level, old_i) < std::tie(j_level, old_j);
@@ -567,7 +574,7 @@ level_variable_order(const net_t& net)
   // Map into new ordering
   std::vector<unsigned> new_ordering(inputs.size());
   for (size_t idx = 0; idx < inputs.size(); idx++) {
-    new_ordering[net.inputs_w_order.at(inputs[idx])] = idx;
+    new_ordering[net_0.inputs_w_order.at(inputs[idx])] = idx;
   }
 
   return new_ordering;
@@ -613,13 +620,13 @@ apply_variable_order(const variable_order vo, net_t& net_0, net_t& net_1)
   }
 
   case variable_order::LEVEL: {
-    new_ordering = level_variable_order(net_0);
+    new_ordering = level_variable_order(net_0, net_1);
     break;
   }
 
   case variable_order::LEVEL_DF: {
     apply_variable_order(variable_order::DF, net_0, net_1);
-    new_ordering = level_variable_order(net_0);
+    new_ordering = level_variable_order(net_0, net_1);
     break;
   }
 
@@ -907,10 +914,12 @@ run_picotrav(int argc, char** argv)
 
   // =========================================================================
   // Read file(s) and construct nets
-  net_t net_0;
+  std::vector<node_t> nodes;
+
+  net_t net_0 = { .nodes = nodes };
   if (!construct_net(file_0, net_0)) return -1; // error has been printed
 
-  net_t net_1;
+  net_t net_1 = { .nodes = nodes };
   if (verify_networks) {
     if (!construct_net(file_1, net_1)) return -1; // error has been printed
 
