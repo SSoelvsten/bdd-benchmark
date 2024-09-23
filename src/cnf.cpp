@@ -29,14 +29,16 @@ size_t total_nodes = 0;
 
 // ========================================================================== //
 std::string file;
+bool satcount = false;
 
 class parsing_policy
 {
 public:
   static constexpr std::string_view name = "CNF";
-  static constexpr std::string_view args = "f:";
+  static constexpr std::string_view args = "f:c";
 
   static constexpr std::string_view help_text =
+    "        -c                    Count satisfying assignments\n"
     "        -f PATH               Path to '.cnf'/'.dimacs' file";
 
   // NOTE: One could add more options to this benchmark, e.g., to influence the
@@ -80,6 +82,10 @@ public:
       }
 
       file = arg;
+      return false;
+    }
+    case 'c': {
+      satcount = true;
       return false;
     }
     default: return true;
@@ -463,7 +469,7 @@ run_cnf(int argc, char** argv)
 
 #ifdef BDD_BENCHMARK_STATS
     std::cout << json::field("intermediate results") << json::brace_open << json::endl;
-#endif
+#endif // BDD_BENCHMARK_STATS
 
     const time_point t3        = now();
     typename Adapter::dd_t res = conjoin(adapter, clauses.cbegin(), clauses.cend());
@@ -472,11 +478,11 @@ run_cnf(int argc, char** argv)
     const time_duration apply_time = duration_ms(t3, t4);
 
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << json::brace_close << json::comma << json::endl;
     std::cout << json::field("total processed (nodes)") << json::value(total_nodes) << json::comma
               << json::endl;
     std::cout << json::field("largest size (nodes)") << json::value(largest_bdd) << json::comma
               << json::endl;
+    std::cout << json::brace_close << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
     std::cout << json::field("final size (nodes)") << json::value(adapter.nodecount(res))
               << json::comma << json::endl;
@@ -485,17 +491,20 @@ run_cnf(int argc, char** argv)
 
     // ========================================================================
     // Count number of solutions
-    std::cout << json::field("satcount") << json::brace_open << json::endl << json::flush;
+    time_duration counting_time = 0;
+    if (satcount) {
+      std::cout << json::field("satcount") << json::brace_open << json::endl << json::flush;
 
-    const time_point t5 = now();
-    solutions           = adapter.satcount(res);
-    const time_point t6 = now();
+      const time_point t5 = now();
+      solutions           = adapter.satcount(res);
+      const time_point t6 = now();
 
-    const time_duration counting_time = duration_ms(t5, t6);
+      counting_time = duration_ms(t5, t6);
 
-    std::cout << json::field("result") << json::value(solutions) << json::comma << json::endl;
-    std::cout << json::field("time (ms)") << json::value(counting_time) << json::endl;
-    std::cout << json::brace_close << json::endl << json::flush;
+      std::cout << json::field("result") << json::value(solutions) << json::comma << json::endl;
+      std::cout << json::field("time (ms)") << json::value(counting_time) << json::endl;
+      std::cout << json::brace_close << json::endl << json::flush;
+    }
 
     // ========================================================================
     std::cout << json::field("total time (ms)")
