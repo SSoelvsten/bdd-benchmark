@@ -322,8 +322,8 @@ Section](#benchmarks) for details.
 
 Based on [[Pastva2023](#references)], this benchmark loads two (or more) decision
 diagrams stored in a *binary* format (as they are serialized by the
-[LibBDD](https://github.com/sybila/biodivine-lib-bdd)) and then combines them
-with an *Apply* operation (or more).
+[LibBDD](https://github.com/sybila/biodivine-lib-bdd) library) and then combines
+them with an *Apply* operation (or more).
 
 The benchmark can be configured with the following options:
 
@@ -642,7 +642,7 @@ The benchmark can be configured with the following options:
 Building on-top of the [Apply](#apply) benchmark, this benchmark loads a
 *relation* and a set of *states* stored in a *binary* format (as they are
 serialized by the
-[Lib-BDD](https://github.com/sybila/biodivine-lib-bdd) library) and then
+[LibBDD](https://github.com/sybila/biodivine-lib-bdd) library) and then
 combines them with a *Relational Product* operation in either direction.
 
 The benchmark can be configured with the following options:
