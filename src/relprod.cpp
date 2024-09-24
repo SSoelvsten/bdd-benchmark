@@ -58,7 +58,7 @@ public:
 
       if (is_prefix(lower_arg, "next") || is_prefix(lower_arg, "relnext")) {
         oper = operand::NEXT;
-      } if (is_prefix(lower_arg, "prev") || is_prefix(lower_arg, "relprev")) {
+      } else if (is_prefix(lower_arg, "prev") || is_prefix(lower_arg, "relprev")) {
         oper = operand::PREV;
       } else {
         std::cerr << "Undefined operation " << arg << "\n";
