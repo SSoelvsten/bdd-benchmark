@@ -642,8 +642,8 @@ The benchmark can be configured with the following options:
 Building on-top of the [Apply](#apply) benchmark, this benchmark loads a
 *relation* and a set of *states* stored in a *binary* format (as they are
 serialized by the
-[LibBDD](https://github.com/sybila/biodivine-lib-bdd)) and then combines them
-with a *Relational Product* operation in either direction.
+[Lib-BDD](https://github.com/sybila/biodivine-lib-bdd) library) and then
+combines them with a *Relational Product* operation in either direction.
 
 The benchmark can be configured with the following options:
 
