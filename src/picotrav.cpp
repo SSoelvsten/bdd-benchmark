@@ -994,13 +994,22 @@ construct_net_bdd(const std::string& filename,
 // Test equivalence of every output gate (in-order they were given)
 template <typename Adapter>
 std::pair<bool, time_duration>
-verify_outputs(const net_t& net_0,
+verify_outputs(Adapter& adapter,
+               const net_t& net_0,
                const bdd_cache<Adapter>& cache_0,
                const net_t& net_1,
                const bdd_cache<Adapter>& cache_1)
 {
-  assert(net_0.outputs_in_order.size() == cache_0.size());
-  assert(net_1.outputs_in_order.size() == cache_1.size());
+  // The cache should have exactly as many entries as there are outputs that are
+  // not inputs as well.
+  assert(cache_0.size()
+         == size_t(std::count_if(net_0.outputs_in_order.begin(),
+                                 net_0.outputs_in_order.end(),
+                                 [&net_0](node_id_t id) { return !net_0.nodes[id].is_input; })));
+  assert(cache_1.size()
+         == size_t(std::count_if(net_1.outputs_in_order.begin(),
+                                 net_1.outputs_in_order.end(),
+                                 [&net_1](node_id_t id) { return !net_1.nodes[id].is_input; })));
   assert(net_0.outputs_in_order.size() == net_1.outputs_in_order.size());
 
   std::cout << json::field("equal") << json::brace_open << json::endl;
@@ -1012,8 +1021,12 @@ verify_outputs(const net_t& net_0,
     const node_id_t output_0 = net_0.outputs_in_order.at(out_idx);
     const node_id_t output_1 = net_1.outputs_in_order.at(out_idx);
 
-    const typename Adapter::dd_t bdd_0 = cache_0.find(output_0)->second;
-    const typename Adapter::dd_t bdd_1 = cache_1.find(output_1)->second;
+    const typename Adapter::dd_t bdd_0 = net_0.nodes[output_0].is_input
+      ? adapter.ithvar(net_0.inputs_w_order.at(output_0))
+      : cache_0.at(output_0);
+    const typename Adapter::dd_t bdd_1 = net_1.nodes[output_1].is_input
+      ? adapter.ithvar(net_1.inputs_w_order.at(output_1))
+      : cache_1.at(output_1);
 
     if (bdd_0 != bdd_1) {
       if (match_io_names) {
@@ -1173,7 +1186,8 @@ run_picotrav(int argc, char** argv)
       std::cout << json::endl;
       std::cout << json::array_close << json::comma << json::endl;
 
-      const auto [verified, time_eq] = verify_outputs<Adapter>(net_0, cache_0, net_1, cache_1);
+      const auto [verified, time_eq] =
+        verify_outputs<Adapter>(adapter, net_0, cache_0, net_1, cache_1);
 
       networks_equal = verified;
       total_time += time_eq;
