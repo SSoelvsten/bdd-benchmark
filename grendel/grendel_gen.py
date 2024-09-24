@@ -99,6 +99,12 @@ def qbf__args(circuit_name):
     return f"-o df -f ../SAT2023_GDDL/QBF_instances/{circuit_name}.qcir"
 
 # --------------------------------------------------------------------------- #
+relprod_dir_t = Enum('relprod_dir_t', ['NEXT', 'PREV'])
+
+def relnext__args(path, magnitude, dir_t):
+    return f"-r ../mcnet/mcc/{path}/relation.bdd -s ../mcnet/mcc/{path}/states_{magnitude}.bdd -o {dir_t.name}"
+
+# --------------------------------------------------------------------------- #
 # Since we are testing BDD packages over such a wide spectrum, we have some
 # instances that require several days of computaiton time (closing into the 15
 # days time limit of the q48 nodes). Yet, the SLURM scheduler does (for good
@@ -1148,6 +1154,55 @@ BENCHMARKS = {
             [ [ 0,20, 0], "-n 16" ],
             [ [ 3, 0, 0], "-n 17" ],
             [ [15, 0, 0], "-n 18" ],
+        ]
+    },
+    # --------------------------------------------------------------------------
+    "relprod": {
+        dd_t.bdd: [
+            # TODO: This list only includes the three models we had time to run
+            #       experiments on. This list needs to be extended with other
+            #       models.
+            #
+            # TODO: For now, we just set the time-limit to 12 hours for our own
+            #       experiments. Yet, this is too high for some.
+
+            # 2021 : GPU ForwardProgress
+            [ [ 0,12, 0], relnext__args("2021/GPUForwardProgress/gpufp_20_a.pnml", 22, relprod_dir_t.NEXT) ],
+            [ [ 0,12, 0], relnext__args("2021/GPUForwardProgress/gpufp_20_a.pnml", 22, relprod_dir_t.PREV) ],
+            [ [ 0,12, 0], relnext__args("2021/GPUForwardProgress/gpufp_20_a.pnml", 23, relprod_dir_t.NEXT) ],
+            [ [ 0,12, 0], relnext__args("2021/GPUForwardProgress/gpufp_20_a.pnml", 23, relprod_dir_t.PREV) ],
+            [ [ 0,12, 0], relnext__args("2021/GPUForwardProgress/gpufp_20_a.pnml", 24, relprod_dir_t.NEXT) ],
+            [ [ 0,12, 0], relnext__args("2021/GPUForwardProgress/gpufp_20_a.pnml", 24, relprod_dir_t.PREV) ],
+            [ [ 0,12, 0], relnext__args("2021/GPUForwardProgress/gpufp_20_a.pnml", 25, relprod_dir_t.NEXT) ],
+            [ [ 0,12, 0], relnext__args("2021/GPUForwardProgress/gpufp_20_a.pnml", 25, relprod_dir_t.PREV) ],
+            # 2020 : SmartHome 16
+            [ [ 0,12, 0], relnext__args("2020/SmartHome/smhome_16.pnml", 22, relprod_dir_t.NEXT) ],
+            [ [ 0,12, 0], relnext__args("2020/SmartHome/smhome_16.pnml", 22, relprod_dir_t.PREV) ],
+            [ [ 0,12, 0], relnext__args("2020/SmartHome/smhome_16.pnml", 23, relprod_dir_t.NEXT) ],
+            [ [ 0,12, 0], relnext__args("2020/SmartHome/smhome_16.pnml", 23, relprod_dir_t.PREV) ],
+            [ [ 0,12, 0], relnext__args("2020/SmartHome/smhome_16.pnml", 24, relprod_dir_t.NEXT) ],
+            [ [ 0,12, 0], relnext__args("2020/SmartHome/smhome_16.pnml", 24, relprod_dir_t.PREV) ],
+            [ [ 0,12, 0], relnext__args("2020/SmartHome/smhome_16.pnml", 25, relprod_dir_t.NEXT) ],
+            [ [ 0,12, 0], relnext__args("2020/SmartHome/smhome_16.pnml", 25, relprod_dir_t.PREV) ],
+            # 2020 : SmartHome 17
+            # NOTE: Relation file is corrupt
+          # [ [ 0,12, 0], relnext__args("2020/SmartHome/smhome_17.pnml", 22, relprod_dir_t.NEXT) ],
+          # [ [ 0,12, 0], relnext__args("2020/SmartHome/smhome_17.pnml", 22, relprod_dir_t.PREV) ],
+          # [ [ 0,12, 0], relnext__args("2020/SmartHome/smhome_17.pnml", 23, relprod_dir_t.NEXT) ],
+          # [ [ 0,12, 0], relnext__args("2020/SmartHome/smhome_17.pnml", 23, relprod_dir_t.PREV) ],
+          # [ [ 0,12, 0], relnext__args("2020/SmartHome/smhome_17.pnml", 24, relprod_dir_t.NEXT) ],
+          # [ [ 0,12, 0], relnext__args("2020/SmartHome/smhome_17.pnml", 24, relprod_dir_t.PREV) ],
+          # [ [ 0,12, 0], relnext__args("2020/SmartHome/smhome_17.pnml", 25, relprod_dir_t.NEXT) ],
+          # [ [ 0,12, 0], relnext__args("2020/SmartHome/smhome_17.pnml", 25, relprod_dir_t.PREV) ],
+            # 2020 : ShieldPPPs 10a
+            [ [ 0,12, 0], relnext__args("2020/ShieldPPPs/shield_s_ppp_010_a.pnml", 22, relprod_dir_t.NEXT) ],
+            [ [ 0,12, 0], relnext__args("2020/ShieldPPPs/shield_s_ppp_010_a.pnml", 22, relprod_dir_t.PREV) ],
+            [ [ 0,12, 0], relnext__args("2020/ShieldPPPs/shield_s_ppp_010_a.pnml", 23, relprod_dir_t.NEXT) ],
+            [ [ 0,12, 0], relnext__args("2020/ShieldPPPs/shield_s_ppp_010_a.pnml", 23, relprod_dir_t.PREV) ],
+            [ [ 0,12, 0], relnext__args("2020/ShieldPPPs/shield_s_ppp_010_a.pnml", 24, relprod_dir_t.NEXT) ],
+            [ [ 0,12, 0], relnext__args("2020/ShieldPPPs/shield_s_ppp_010_a.pnml", 24, relprod_dir_t.PREV) ],
+            [ [ 0,12, 0], relnext__args("2020/ShieldPPPs/shield_s_ppp_010_a.pnml", 25, relprod_dir_t.NEXT) ],
+            [ [ 0,12, 0], relnext__args("2020/ShieldPPPs/shield_s_ppp_010_a.pnml", 25, relprod_dir_t.PREV) ],
         ]
     },
     # --------------------------------------------------------------------------
