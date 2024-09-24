@@ -21,6 +21,7 @@ This project has been developed at the
     - [Run](#run)
 - [Benchmarks](#benchmarks)
     - [Apply](#apply)
+    - [CNF Solver](#cnf-solver)
     - [Game of Life](#game-of-life)
     - [Hamiltonian Cycle](#hamiltonian-cycle)
     - [McNet](#mcnet)
@@ -352,7 +353,7 @@ The benchmark can be configured with the following options:
 ```
 
 
-### CNF Construction
+### CNF Solver
 
 This benchmark loads a DIMACS CNF file, constructs its clauses and conjoins them.
 The benchmark uses the variable order specified in the CNF file and interprets
