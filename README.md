@@ -59,15 +59,19 @@ BDD package used. To do so, each implementation has an *adapter* in-between
 which is fully inlined at compile time. Currently, we support the following BDD
 packages.
 
-- [**Adiar**](https://github.com/ssoelvsten/adiar):
+- [**Adiar**](https://github.com/ssoelvsten/adiar)
+  [[Sølvsten2022](#references)]:
 
-  An I/O-efficient implementation with iterative algorithms using time-forward
-  processing to exploit a special sorting of BDD nodes streamed from and to the
-  disk. These algorithms have no need for memoization or garbage collection.
-  But, on the other hand, nodes are also not shareable between BDDs.
+  An I/O-efficient implementation based on [[Arge1995](#references)] with
+  iterative algorithms that use time-forward processing
+  [[Arge1996](#references), [Chiang1995](#references)] to exploit a special
+  sorting of BDD nodes streamed from and to the disk. These algorithms have no
+  need for memoization or garbage collection. But, on the other hand, nodes are
+  also not shareable between BDDs.
 
 
-- [**BuDDy**](https://buddy.sourceforge.net/manual/main.html):
+- [**BuDDy**](https://buddy.sourceforge.net/manual/main.html)
+  [[Lind-Nielsen1999](#references)]:
 
   An easy-to-use yet extensive implementation of shared BDDs with depth-first
   algorithms using a unique node table and memoization.
@@ -76,18 +80,21 @@ packages.
   updated and builds using CMake.
 
 
-- [**CAL**](https://github.com/SSoelvsten/cal):
+- [**CAL**](https://github.com/SSoelvsten/cal)
+  [[Sanghavi1996](#references)]:
 
-  A breadth-first implementation that exploits a specific level-by-level
-  locality of nodes on disk to improve performance when dealing with large BDDs.
-  Unlike Adiar it also supports sharing of nodes between BDDs at the cost of
+  A breadth-first implementation based on [[Ochi1993](#references),
+  [Ashar1994](#references)] that exploits a specific level-by-level locality of
+  nodes on disk to improve performance when dealing with large BDDs. Unlike
+  Adiar it also supports sharing of nodes between BDDs at the cost of
   memoization and garbage collection.
 
   We use the [revived version](https://github.com/SSoelvsten/cal) with an
   extended C API, CMake support and a C++ API.
 
 
-- **CUDD**:
+- **CUDD**
+  [[Somenzi2015](#references)]:
 
   Probably the most popular BDD package of all. It uses depth-first algorithms
   and a unique node table and memoization.
@@ -96,7 +103,8 @@ packages.
   support and an extended C++ API.
 
 
-- [**LibBDD**](https://github.com/sybila/biodivine-lib-bdd):
+- [**LibBDD**](https://github.com/sybila/biodivine-lib-bdd)
+  [[Beneš2020](#references)]:
 
   A thread-safe implementation with depth-first algorithms and memoization. Yet
   unlike others, it does not implement *shared* BDDs, i.e., two diagrams do not
@@ -106,14 +114,16 @@ packages.
   We use [this unofficial Rust-to-C FFI](https://github.com/nhusung/lib-bdd-ffi).
 
 
-- [**OxiDD**](https://github.com/OxiDD/oxidd):
+- [**OxiDD**](https://github.com/OxiDD/oxidd)
+  [[Husung2024](#references)]:
 
   A multi-threaded (and thread-safe) framework for the implementation of
   decision diagrams and their algorithms. Currently, its algorithms are
   depth-first on a unique node table and memoization.
 
 
-- [**Sylvan**](https://github.com/trolando/sylvan):
+- [**Sylvan**](https://github.com/trolando/sylvan)
+  [[Dijk2016](#references)]:
 
   A multi-threaded (and thread-safe) implementation with depth-first algorithms
   using a unique node table and memoization.
@@ -574,7 +584,7 @@ This benchmark is a small recreation of Jaco van de Pol's
 Formula (QBF) in the [*qcir*](https://www.qbflib.org/qcir.pdf) format, the
 decision diagram representing each gate is computed bottom-up. The outermost
 quantifier in the *prenex* is not resolved with BDD operations. Instead, if the
-decision diagram has not already collapsed to a terminal, a witness or a 
+decision diagram has not already collapsed to a terminal, a witness or a
 counter-example is obtained from the diagram.
 
 - **`-f <path>`**
@@ -738,8 +748,8 @@ The software files in this repository are provided under the
 
 ## Citation
 If you use this repository in your work, we sadly do not yet have written a
-paper on this repository alone (this will be done though). In the meantime,
-please cite the initial paper on *Adiar*.
+paper on this repository alone (but is planned). In the meantime, please cite
+the initial paper on *Adiar*.
 
 ```bibtex
 @InProceedings{soelvsten2022:TACAS,
@@ -765,41 +775,96 @@ please cite the initial paper on *Adiar*.
 
 ## References
 
+- [[Arge1995](https://link.springer.com/chapter/10.1007/BFb0015411)]
+  Lars Arge. “*The I/O-complexity of Ordered Binary-decision Diagram
+  Manipulation*”. In: *Proceedings of International Symposium on Algorithms and
+  Computations*. (1995)
+
+- [[Arge1996](https://www.brics.dk/RS/96/28/)]
+  Lars Arge. “*The Buffer Tree: A new technique for optimal I/O-algorithms*”.
+  In: *Algorithms and Data Structures*. (1995)
+
+- [[Ashar1994](https://ieeexplore.ieee.org/document/629886)]
+  Pranav Ashar and Matthew Cheong: “*Efficient Breadth-first Manipulation of
+  Binary Decision Diagrams*”. In: *IEEE/ACM International Conference on
+  Computer-Aided Design*. (1994)
+
+- [[Beneš2020](https://link.springer.com/chapter/10.1007/978-3-030-53288-8_28)]
+  Nikola Beneš, Luboš Brim, Jakub Kadlecaj, Samuel Pastva, and David Šafránek:
+  “*AEON: Attractor Bifurcation Aanalysis of Parametrised Boolean Networks*”. In
+  *Computer Aided Verification*. (2020)
+
 - [[Brace1990](https://doi.org/10.1109/DAC.1990.114826)]
   K. Brace, R. Rudell, R. E. Bryant: “*Efficient implementation of a BDD package*”.
-  In: 27th ACM/IEEE Design Automation Conference. pp. 40–45 (1990).
+  In: *27th ACM/IEEE Design Automation Conference*. (1990)
 
 - [[Bryant1986](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=1676819)]
   R. E. Bryant. “*Graph-Based Algorithms for Boolean Function Manipulation*”.
   In: *IEEE Transactions on Computers*. (1986)
 
 - [[Bryant2021](https://github.com/rebryant/Cloud-BDD/blob/conjunction_streamlined/hamiltonian/hpath.py)]
-  R. E. Bryant. “*hpath.py*”. In: *Cloud-BDD* (GitHub). 2021
+  R. E. Bryant. “*hpath.py*”. In: *GitHub/Cloud-BDD*. (2021)
+
+- [[Chaing1995](https://dl.acm.org/doi/10.5555/313651.313681)]
+  Yi-Jen Chiang, Michael T. Goodrich, Edward F. Grove, Roberto Tamassia, Darren
+  Erik Vengroff, and Jeffrey Scott Vitter. “*External-memory Graph Algorithm*”.
+  In: *Proceedings of the Sixth Annual ACM-SIAM Symposium on Discrete
+  Algorithms*. (1995)
+
+- [[Husung2024](https://link.springer.com/chapter/10.1007/978-3-031-57256-2_13)]
+  Nils Husung, Clemens Dubslaff, Holger Hermanns, and Maximilian A. Köhl:
+  “*OxiDD: A Safe, Concurrent, Modular, and Performant Decision Diagram
+  Framework in Rust*”. In: *Tools and Algorithms for the Construction and
+  Analysis of Systems*. (2024)
 
 - [[Larsen2023](https://link.springer.com/chapter/10.1007/978-3-031-30820-8_22)]
   C. A. Larsen, S. M. Schmidt, J. Steensgaard, A. B. Jakobsen, J. van de Pol,
   and A. Pavlogiannis: “*A Truly Symbolic Linear-Time Algorithm for SCC
-  Decomposition*”. In: 27th ACM/IEEE Design Automation Conference. pp. 40–45
-  (1990).
+  Decomposition*”. In: *27th ACM/IEEE Design Automation Conference*.
+  (1990)
+
+- [[Lind-Nielsen1999](https://www.itu.dk/research/buddy/)]
+  Jørn Lind-Nielsen: “*BuDDy: A Binary Decision Diagram Package*”. Department of
+  Information Technology, Technical University of Denmark. (1999)
 
 - [[Kunkle2010](https://dl.acm.org/doi/abs/10.1145/1837210.1837222)] Daniel
   Kunkle, Vlad Slavici, Gene Cooperman. “*Parallel Disk-Based Computation for
   Large, Monolithic Binary Decision Diagrams*”. In: *PASCO '10: Proceedings of
-  the 4th International Workshop on Parallel and Symbolic Computation*. 2010
+  the 4th International Workshop on Parallel and Symbolic Computation*. (2010)
 
 - [[Marijn2021](https://link.springer.com/chapter/10.1007/978-3-030-80223-3_15)]
   Heule, Marijn J. H. “*Chinese Remainder Encoding for Hamiltonian Cycles*”. In:
-  *Theory and Applications of Satisfiability Testing*. 2021
+  *Theory and Applications of Satisfiability Testing*. (2021)
 
 - [[Minato1993](https://dl.acm.org/doi/10.1145/157485.164890)]
   S. Minato. “*Zero-suppressed BDDs for Set Manipulation in Combinatorial
-  Problems*”. In: *International Design Automation Conference*. 1993
+  Problems*”. In: *International Design Automation Conference*. (1993)
+
+- [[Ochi1993](https://dl.acm.org/doi/10.5555/259794.259803)]
+  Hiroyuki Ochi, Koichi Yasuoka, and Shuzo Yajima: “*Breadth-first Manipulation
+  of very Large Binary-Decision Diagrams*”. In: *International Conference on
+  Computer Aided Design*. (1993)
 
 - [[Pastva2023](https://ieeexplore.ieee.org/document/10329375)]
   S. Pastva and T. Henzinger. “*Binary Decision Diagrams on Modern Hardware*”.
   In: *Proceedings of the 23rd Conference on Formal Methods in Computer-Aided
-  Design* (2023)
+  Design*. (2023)
+
+- [[Sanghavi1996](https://dl.acm.org/doi/10.1145/240518.240638)]
+  Jagesh V. Sanghavi, Rajeev K. Ranjan, Robert K. Brayton, and Alberto
+  Sangiovanni-Vincentelli: “*High performance BDD package by Exploiting Memory
+  Hierarchy*”. In: *33rd Design Automation Conference*. (1996)
 
 - [[Somenzi2015](https://github.com/ssoelvsten/cudd)]
-  Somenzi, Fabio: *CUDD: CU decision diagram package, 3.0*. University
-  of Colorado at Boulder. 2015
+  Somenzi, Fabio: *CUDD: CU Decision Diagram Package, 3.0*. University
+  of Colorado at Boulder (2015)
+
+- [[Sølvsten2022](https://link.springer.com/chapter/10.1007/978-3-030-99527-0_16)]
+  Steffan Christ Sølvsten, Jaco van de Pol, Anna Blume Jakobsen, and Mathias
+  Weller Berg Thomasen. “*Adiar: Binary Decision Diagrams in External Memory*”. In:
+  *Tools and Algorithms for the Construction and Analysis of Systems*. (2022)
+
+- [[Dijk2016](https://link.springer.com/article/10.1007/s10009-016-0433-2)]
+  Tom van Dijk and Jaco van de Pol: “*Sylvan: Multi-core Framework for Decision
+  Diagrams*”. In: *International Journal on Software Tools for Technology
+  Transfer* (2016)
