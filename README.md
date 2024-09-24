@@ -569,13 +569,13 @@ The benchmark can be configured with the following options:
 > [!IMPORTANT]
 > ZDDs are not supported for this benchmark (yet)!
 
-Based on Jaco van de Pol's Christmas holiday hobbyproject, this is an
-implementation of a QBF solver. Given an input in the
-[*qcir*](https://www.qbflib.org/qcir.pdf) format, the decision diagram
-representing each gate is computed bottom-up. The outermost quantifier in the
-*prenex* is not resolved with BDD operations. Instead, if the decision diagram
-has not already collapsed to a terminal, a witness/counter-example is obtained
-from the diagram.
+This benchmark is a small recreation of Jaco van de Pol's
+[Qubi](https://github.com/jacopol/qubi) project. Given a Quantified Boolean
+Formula (QBF) in the [*qcir*](https://www.qbflib.org/qcir.pdf) format, the
+decision diagram representing each gate is computed bottom-up. The outermost
+quantifier in the *prenex* is not resolved with BDD operations. Instead, if the
+decision diagram has not already collapsed to a terminal, a witness or a 
+counter-example is obtained from the diagram.
 
 - **`-f <path>`**
 
