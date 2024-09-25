@@ -141,11 +141,15 @@ run_apply(int argc, char** argv)
       assert(inputs_dd.size() == i);
 
       const time_point t_rebuild_before = now();
-      inputs_dd.push_back(lib_bdd::reconstruct(adapter, inputs_binary.at(i), vm));
+      inputs_dd.push_back(lib_bdd::reconstruct(adapter, std::move(inputs_binary.at(i)), vm));
       const time_point t_rebuild_after = now();
 
       const size_t load_time = duration_ms(t_rebuild_before, t_rebuild_after);
       total_time += load_time;
+
+      // Free up memory
+      inputs_binary.at(i).clear();
+      inputs_binary.at(i).shrink_to_fit();
 
       std::cout << json::indent << json::brace_open << json::endl;
       std::cout << json::field("path") << json::value(inputs_path.at(i)) << json::comma
@@ -162,10 +166,14 @@ run_apply(int argc, char** argv)
       std::cout << json::endl;
     }
 
+    // Free up memory
+    inputs_binary.clear();
+    inputs_binary.shrink_to_fit();
+
     std::cout << json::array_close << json::comma << json::endl;
 
     // =============================================================================================
-    // Apply both DDs together
+    // Apply DDs together
     typename Adapter::dd_t result = inputs_dd.at(0);
 
     std::cout << json::field("apply") << json::brace_open << json::endl << json::flush;

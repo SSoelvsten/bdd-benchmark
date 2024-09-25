@@ -127,8 +127,8 @@ run_relprod(int argc, char** argv)
 
   // =============================================================================================
   // Load 'lib-bdd' files
-  const lib_bdd::bdd libbdd_relation = lib_bdd::deserialize(relation_path);
-  const lib_bdd::bdd libbdd_states = lib_bdd::deserialize(states_path);
+  lib_bdd::bdd libbdd_relation = lib_bdd::deserialize(relation_path);
+  lib_bdd::bdd libbdd_states = lib_bdd::deserialize(states_path);
 
   lib_bdd::var_map vm = lib_bdd::remap_vars({libbdd_relation, libbdd_states});
 
@@ -148,11 +148,15 @@ run_relprod(int argc, char** argv)
       lib_bdd::print_json(lib_bdd::stats(libbdd_relation), std::cout);
 
       const time_point t_rebuild_before = now();
-      relation = reconstruct(adapter, libbdd_relation, vm);
+      relation = reconstruct(adapter, std::move(libbdd_relation), vm);
       const time_point t_rebuild_after = now();
 
       const size_t rebuild_time = duration_ms(t_rebuild_before, t_rebuild_after);
       total_time += rebuild_time;
+
+      // Free up memory
+      libbdd_relation.clear();
+      libbdd_relation.shrink_to_fit();
 
       std::cout << json::field("satcount") << json::value(adapter.satcount(relation))
                 << json::comma << json::endl;
@@ -171,11 +175,15 @@ run_relprod(int argc, char** argv)
       lib_bdd::print_json(lib_bdd::stats(libbdd_states), std::cout);
 
       const time_point t_rebuild_before = now();
-      states = reconstruct(adapter, libbdd_states, vm);
+      states = reconstruct(adapter, std::move(libbdd_states), vm);
       const time_point t_rebuild_after = now();
 
       const size_t rebuild_time = duration_ms(t_rebuild_before, t_rebuild_after);
       total_time += rebuild_time;
+
+      // Free up memory
+      libbdd_states.clear();
+      libbdd_states.shrink_to_fit();
 
       std::cout << json::field("satcount") << json::value(adapter.satcount(states, vm.size() / 2))
                 << json::comma << json::endl;
