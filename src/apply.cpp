@@ -86,7 +86,7 @@ template <typename Adapter>
 int
 run_apply(int argc, char** argv)
 {
-  bool should_exit = parse_input<parsing_policy>(argc, argv);
+  const bool should_exit = parse_input<parsing_policy>(argc, argv);
   if (should_exit) { return -1; }
 
   if (inputs_path.size() < 2) {

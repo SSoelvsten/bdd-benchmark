@@ -94,26 +94,17 @@ public:
 
 template <typename Adapter>
 typename Adapter::dd_t
-build_support(Adapter& adapter, const lib_bdd::var_map& vm)
+build_support(Adapter& adapter, const int varcount)
 {
   // TODO: We currently assume the relation includes the frame rule and/or touches all variables.
-  const typename Adapter::build_node_t false_ptr = adapter.build_node(false);
-  const typename Adapter::build_node_t true_ptr  = adapter.build_node(true);
-
-  typename Adapter::build_node_t root_ptr  = true_ptr;
-
-  for (int x = vm.size() - 1; 0 <= x; --x) {
-    root_ptr = adapter.build_node(x, false_ptr, root_ptr);
-  }
-
-  return adapter.build();
+  return adapter.cube([](int) { return true;} );
 }
 
 template <typename Adapter>
 int
 run_relprod(int argc, char** argv)
 {
-  bool should_exit = parse_input<parsing_policy>(argc, argv);
+  const bool should_exit = parse_input<parsing_policy>(argc, argv);
   if (should_exit) { return -1; }
 
   if (relation_path == "") {
@@ -200,7 +191,7 @@ run_relprod(int argc, char** argv)
       std::cout << json::field("support") << json::brace_open << json::endl;
 
       const time_point t_build_before = now();
-      support = build_support(adapter, vm);
+      support = build_support(adapter, vm.size());
       const time_point t_build_after = now();
 
       const size_t build_time = duration_ms(t_build_before, t_build_after);
