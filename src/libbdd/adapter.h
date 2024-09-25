@@ -147,6 +147,8 @@ namespace lib_bdd
     top() const noexcept;
     bdd_function
     bot() const noexcept;
+    bdd_function
+    load(const std::string &path) const noexcept;
   };
 
   class bdd_function
@@ -399,7 +401,7 @@ namespace lib_bdd
     save(const std::string &path) const noexcept
     {
       assert(_func._p);
-      capi::bdd_writebytes(_func, path.data());
+      capi::bdd_save(_func, path.data());
     }
   };
 
@@ -429,6 +431,13 @@ namespace lib_bdd
   {
     assert(_manager._p);
     return capi::manager_false(_manager);
+  }
+
+  inline bdd_function
+  manager::load(const std::string &path) const noexcept
+  {
+    assert(_manager._p);
+    return capi::bdd_load(_manager, path.data());
   }
 } // namespace lib_bdd
 
@@ -742,6 +751,12 @@ public:
   save(const lib_bdd::bdd_function& f, const std::string& path)
   {
     f.save(path);
+  }
+
+  lib_bdd::bdd_function
+  load(const std::string& path)
+  {
+    return _manager.load(path);
   }
 
   // BDD Build Operations
