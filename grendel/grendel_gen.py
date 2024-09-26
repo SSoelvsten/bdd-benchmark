@@ -1383,8 +1383,7 @@ def output_path(package, benchmark, dd, args):
 MODULE_LOAD = '''module load gcc/10.1.0
 module load rust/1.77.1
 module load cmake/3.23.5 autoconf/2.71 automake/1.16.1
-module load boost/1.68.0
-module load gmp/6.2.1'''
+module load boost/1.68.0'''
 
 ENV_SETUP = '''export CC=/comm/swstack/core/gcc/10.1.0/bin/gcc
 export CXX=/comm/swstack/core/gcc/10.1.0/bin/c++
