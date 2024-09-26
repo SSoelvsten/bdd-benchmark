@@ -1380,7 +1380,7 @@ def output_path(package, benchmark, dd, args):
 # Script Strings
 # =========================================================================== #
 
-MODULE_LOAD = '''module load gcc/10.1.0
+MODULE_LOAD = '''module load gcc/13.2.0
 module load rust/1.77.1
 module load cmake/3.23.5 autoconf/2.71 automake/1.16.1
 module load boost/1.68.0'''
