@@ -1202,7 +1202,7 @@ BENCHMARKS = {
             [ [ 0,12, 0], relnext__args("2020/ShieldPPPs/shield_s_ppp_010_a.pnml", 24, relprod_dir_t.NEXT) ],
             [ [ 0,12, 0], relnext__args("2020/ShieldPPPs/shield_s_ppp_010_a.pnml", 24, relprod_dir_t.PREV) ],
             [ [ 0,12, 0], relnext__args("2020/ShieldPPPs/shield_s_ppp_010_a.pnml", 25, relprod_dir_t.NEXT) ],
-            [ [ 0,12, 0], relnext__args("2020/ShieldPPPs/shield_s_ppp_010_a.pnml", 25, relprod_dir_t.PREV) ],
+          # [ [ 0,12, 0], relnext__args("2020/ShieldPPPs/shield_s_ppp_010_a.pnml", 25, relprod_dir_t.PREV) ],
         ]
     },
     # --------------------------------------------------------------------------
