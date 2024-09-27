@@ -137,6 +137,7 @@ run_relprod(int argc, char** argv)
       std::cout << json::field("path") << json::value(relation_path) << json::comma
                 << json::endl;
       lib_bdd::print_json(lib_bdd::stats(libbdd_relation), std::cout);
+      std::cout << json::comma << json::endl;
 
       const time_point t_rebuild_before = now();
       relation = reconstruct(adapter, std::move(libbdd_relation), vm);
@@ -164,6 +165,7 @@ run_relprod(int argc, char** argv)
       std::cout << json::field("path") << json::value(states_path) << json::comma
                 << json::endl;
       lib_bdd::print_json(lib_bdd::stats(libbdd_states), std::cout);
+      std::cout << json::comma << json::endl;
 
       const time_point t_rebuild_before = now();
       states = reconstruct(adapter, std::move(libbdd_states), vm);

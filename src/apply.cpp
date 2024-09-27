@@ -119,6 +119,7 @@ run_apply(int argc, char** argv)
       std::cout << json::field("path") << json::value(inputs_path.at(i)) << json::comma
                 << json::endl;
       lib_bdd::print_json(stats, std::cout);
+      std::cout << json::comma << json::endl;
 
       std::cout << json::brace_close << json::endl;
 
