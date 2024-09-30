@@ -121,8 +121,6 @@ run_apply(int argc, char** argv)
       lib_bdd::print_json(stats, std::cout);
       std::cout << json::comma << json::endl;
 
-      std::cout << json::brace_close << json::endl;
-
       std::cout << json::brace_close;
       if (i < inputs_path.size() - 1) { std::cout << json::comma; }
       std::cout << json::endl;
