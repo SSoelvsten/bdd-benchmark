@@ -415,8 +415,16 @@ conjoin(Adapter& adapter, const IT begin, const IT end)
   auto d = std::distance(begin, end);
   if (d == 1) return *begin;
 
-  const IT mid = begin + d / 2;
-  return conjoin(adapter, begin, mid) & conjoin(adapter, mid, end);
+  const IT mid               = begin + d / 2;
+  typename Adapter::dd_t res = conjoin(adapter, begin, mid) & conjoin(adapter, mid, end);
+
+#ifdef BDD_BENCHMARK_STATS
+  const size_t nodecount = adapter.nodecount(res);
+  largest_bdd            = std::max(largest_bdd, nodecount);
+  total_nodes += nodecount;
+#endif // BDD_BENCHMARK_STATS
+
+  return res;
 }
 
 // ========================================================================== //
