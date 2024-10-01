@@ -1,0 +1,6 @@
+.model false_b
+.inputs a
+.outputs b
+.names b
+ 0
+.end
