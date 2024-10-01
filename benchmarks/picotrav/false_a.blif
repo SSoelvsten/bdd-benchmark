@@ -1,0 +1,5 @@
+.model false_a
+.inputs a
+.outputs b
+.names b
+.end

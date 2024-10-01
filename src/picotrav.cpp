@@ -391,7 +391,8 @@ public:
         }
 
         std::vector<logic_value> new_row;
-        bool row_is_onset = false;
+        new_row.reserve(row.size() - 1);
+        bool row_is_onset = true;
 
         auto it = row.begin();
         do {
@@ -402,17 +403,17 @@ public:
           switch (v) {
           case blifparse::LogicValue::FALSE:
             if (is_out_plane) {
-              row_is_onset = true;
+              row_is_onset = false;
             } else {
-              new_row.push_back(logic_value::TRUE);
+              new_row.push_back(logic_value::FALSE);
             }
             break;
 
           case blifparse::LogicValue::TRUE:
             if (is_out_plane) {
-              row_is_onset = false;
+              row_is_onset = true;
             } else {
-              new_row.push_back(logic_value::FALSE);
+              new_row.push_back(logic_value::TRUE);
             }
             break;
 
