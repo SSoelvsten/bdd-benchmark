@@ -721,6 +721,7 @@ public:
 
 private:
   oxidd::zbdd_manager _manager;
+  std::vector<oxidd::zbdd_function> _singletons;
   std::vector<oxidd::zbdd_function> _vars;
   oxidd::zbdd_function _latest_build;
 
@@ -729,8 +730,12 @@ public:
   oxidd_zdd_adapter(uint32_t varcount)
     : _manager(compute_init_size(3).first, compute_init_size(3).second, threads)
   {
+    _singletons.reserve(varcount);
+    for (uint32_t i = 0; i < varcount; i++) { _singletons.emplace_back(_manager.new_singleton()); }
     _vars.reserve(varcount);
-    for (uint32_t i = 0; i < varcount; i++) { _vars.emplace_back(_manager.new_singleton()); }
+    for (uint32_t i = 0; i < varcount; i++) {
+      _vars.emplace_back(_singletons[i].var_boolean_function());
+    }
   }
 
   template <typename F>
@@ -924,7 +929,7 @@ public:
   build_node(const int label, const oxidd::zbdd_function& low, const oxidd::zbdd_function& high)
   {
     return _latest_build =
-             _vars[label].make_node(oxidd::zbdd_function(high), oxidd::zbdd_function(low));
+             _singletons[label].make_node(oxidd::zbdd_function(high), oxidd::zbdd_function(low));
   }
 
   inline oxidd::zbdd_function
