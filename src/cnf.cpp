@@ -458,8 +458,7 @@ run_cnf(int argc, char** argv)
 
     const time_duration clause_cons_time = duration_ms(t1, t2);
     std::cout << json::field("amount") << json::value(clauses.size()) << json::comma << json::endl;
-    std::cout << json::field("time (ms)") << json::value(clause_cons_time) << json::comma
-              << json::endl;
+    std::cout << json::field("time (ms)") << json::value(clause_cons_time) << json::endl;
 
     std::cout << json::brace_close << json::comma << json::endl;
 
@@ -480,8 +479,7 @@ run_cnf(int argc, char** argv)
 #ifdef BDD_BENCHMARK_STATS
     std::cout << json::field("total processed (nodes)") << json::value(total_nodes) << json::comma
               << json::endl;
-    std::cout << json::field("largest size (nodes)") << json::value(largest_bdd) << json::comma
-              << json::endl;
+    std::cout << json::field("largest size (nodes)") << json::value(largest_bdd) << json::endl;
     std::cout << json::brace_close << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
     std::cout << json::field("final size (nodes)") << json::value(adapter.nodecount(res))
