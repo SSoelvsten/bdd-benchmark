@@ -442,7 +442,7 @@ public:
   inline ZDD
   apply_imp(const ZDD& f, const ZDD& g)
   {
-    return f.Complement().Union(g);
+    return (~f).Union(g);
   }
 
   inline ZDD
@@ -454,7 +454,7 @@ public:
   inline ZDD
   apply_xnor(const ZDD& f, const ZDD& g)
   {
-    return this->apply_xor(f, g).Complement();
+    return ~this->apply_xor(f, g);
   }
 
   inline ZDD
