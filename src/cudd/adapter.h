@@ -78,6 +78,289 @@ public:
   }
 };
 
+class cudd_bdd_adapter : public cudd_adapter
+{
+public:
+  static constexpr std::string_view name = "CUDD";
+  static constexpr std::string_view dd   = "BDD";
+
+  static constexpr bool needs_extend     = false;
+  static constexpr bool needs_frame_rule = true;
+
+  static constexpr bool complement_edges = true;
+
+public:
+  typedef ADD dd_t;
+  typedef ADD build_node_t;
+
+private:
+  ADD _latest_build;
+
+  ADD _vars_relnext;
+  std::vector<int> _permute_relnext;
+
+  ADD _vars_relprev;
+  std::vector<int> _permute_relprev;
+
+  // Init and Deinit
+public:
+  cudd_bdd_adapter(int varcount)
+    : cudd_adapter(varcount, 0)
+  { // Disable dynamic ordering
+    if (!enable_reordering) { _mgr.AutodynDisable(); }
+
+    _latest_build = bot();
+  }
+
+  // BDD Operations
+public:
+  inline ADD
+  top()
+  {
+    return _mgr.addOne();
+  }
+
+  inline ADD
+  bot()
+  {
+    return _mgr.addZero();
+  }
+
+  inline ADD
+  ithvar(int i)
+  {
+    return _mgr.addVar(i);
+  }
+
+  inline ADD
+  nithvar(int i)
+  {
+    return ~_mgr.addVar(i);
+  }
+
+  template <typename IT>
+  inline ADD
+  cube(IT rbegin, IT rend)
+  {
+    ADD res = top();
+    while (rbegin != rend) { res = _mgr.addVar(*(rbegin++)).Ite(res, bot()); }
+    return res;
+  }
+
+  inline ADD
+  cube(const std::function<bool(int)>& pred)
+  {
+    ADD res = top();
+    for (int i = _varcount - 1; 0 <= i; --i) {
+      if (pred(i)) { res = _mgr.addVar(i).Ite(res, bot()); }
+    }
+    return res;
+  }
+
+  inline ADD
+  apply_and(const ADD& f, const ADD& g)
+  {
+    return f & g;
+  }
+
+  inline ADD
+  apply_or(const ADD& f, const ADD& g)
+  {
+    return f.Or(g);
+  }
+
+  inline ADD
+  apply_diff(const ADD& f, const ADD& g)
+  {
+    return f.Diff(g);
+  }
+
+  inline ADD
+  apply_imp(const ADD& f, const ADD& g)
+  {
+    return (~f).Or(g);
+  }
+
+  inline ADD
+  apply_xor(const ADD& f, const ADD& g)
+  {
+    return f.Xor(g);
+  }
+
+  inline ADD
+  apply_xnor(const ADD& f, const ADD& g)
+  {
+    return f.Xnor(g);
+  }
+
+  inline ADD
+  ite(const ADD& f, const ADD& g, const ADD& h)
+  {
+    return f.Ite(g, h);
+  }
+
+  template <typename IT>
+  inline ADD
+  extend(const ADD& f, IT /*begin*/, IT /*end*/)
+  {
+    return f;
+  }
+
+  inline ADD
+  exists(const ADD& f, int i)
+  {
+    return f.ExistAbstract(_mgr.addVar(i));
+  }
+
+  inline ADD
+  exists(const ADD& f, const std::function<bool(int)>& pred)
+  {
+    return f.ExistAbstract(cube(pred));
+  }
+
+  template <typename IT>
+  inline ADD
+  exists(const ADD& f, IT rbegin, IT rend)
+  {
+    return f.ExistAbstract(cube(rbegin, rend));
+  }
+
+  inline ADD
+  forall(const ADD& f, int i)
+  {
+    return f.UnivAbstract(_mgr.addVar(i));
+  }
+
+  inline ADD
+  forall(const ADD& f, const std::function<bool(int)>& pred)
+  {
+    return f.UnivAbstract(cube(pred));
+  }
+
+  template <typename IT>
+  inline ADD
+  forall(const ADD& f, IT rbegin, IT rend)
+  {
+    return f.UnivAbstract(cube(rbegin, rend));
+  }
+
+  inline ADD
+  relnext(const ADD& states, const ADD& rel, const ADD& /*rel_support*/)
+  {
+
+    if (_permute_relnext.empty()) {
+      _vars_relnext = cube([](int x) { return x % 2 == 0; });
+
+      _permute_relnext.reserve(_varcount);
+      for (int x = 0; x < _varcount; ++x) { _permute_relnext.push_back(x & ~1); }
+    }
+
+    // FIXME: there is no specialized `ADD::AndAbstract` in CUDD yet
+    return (states & rel).ExistAbstract(_vars_relnext).Permute(_permute_relnext.data());
+  }
+
+  inline ADD
+  relprev(const ADD& states, const ADD& rel, const ADD& /*rel_support*/)
+  {
+    if (_permute_relprev.empty()) {
+      _vars_relprev = cube([](int x) { return x % 2 == 1; });
+
+      _permute_relprev.reserve(_varcount);
+      for (int x = 0; x < _varcount; ++x) { _permute_relprev.push_back(x | 1); }
+    }
+
+    // FIXME: there is no specialized `ADD::AndAbstract` in CUDD yet
+    return (states.Permute(_permute_relprev.data()) & rel).ExistAbstract(_vars_relprev);
+  }
+
+  inline uint64_t
+  nodecount(const ADD& f)
+  {
+    return f.nodeCount();
+  }
+
+  inline uint64_t
+  satcount(const ADD& f)
+  {
+    return this->satcount(f, _varcount);
+  }
+
+  inline uint64_t
+  satcount(const ADD& f, const size_t vc)
+  {
+    return f.CountMinterm(vc);
+  }
+
+  inline ADD
+  satone(const ADD& f)
+  {
+    return satone(f, f);
+  }
+
+  inline ADD
+  satone(const ADD& f, const ADD& c)
+  {
+    return f.PickOneMintermSet(c);
+  }
+
+  inline std::vector<std::pair<int, char>>
+  pickcube(const ADD& f)
+  {
+    std::string cudd_res(_varcount, '_');
+    f.PickOneCube(cudd_res.data());
+
+    std::vector<std::pair<int, char>> res;
+    for (int x = 0; x < _varcount; ++x) {
+      const char cudd_val = cudd_res.at(x);
+      if (cudd_val == '_' || cudd_val == 2) { continue; }
+
+      res.push_back({ x, '0' + cudd_val });
+    }
+
+    return res;
+  }
+
+  void
+  print_dot(const ADD& f, const std::string& filename)
+  {
+    FILE* fp     = fopen(filename.c_str(), "w");
+    DdNode* node = f.getNode();
+    Cudd_DumpDot(f.manager(), 1, &node, NULL, NULL, fp);
+    fclose(fp);
+  }
+
+  void
+  save(const ADD&, const std::string&)
+  {
+    std::cerr << "No support for storing BDDs (?)" << std::endl;
+  }
+
+  // BDD Build operations
+public:
+  inline ADD
+  build_node(const bool value)
+  {
+    const ADD res = value ? top() : bot();
+    if (_latest_build == bot()) { _latest_build = res; }
+    return res;
+  }
+
+  inline ADD
+  build_node(const int label, const ADD& low, const ADD& high)
+  {
+    _latest_build = _mgr.makeAddNode(label, high, low);
+    return _latest_build;
+  }
+
+  inline ADD
+  build()
+  {
+    const ADD res = _latest_build;
+    _latest_build = bot(); // <-- Reset and free builder reference
+    return res;
+  }
+};
+
 class cudd_bcdd_adapter : public cudd_adapter
 {
 public:
