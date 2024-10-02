@@ -34,7 +34,7 @@ public:
   parse_input(const int c, const char* arg)
   {
     switch (c) {
-    case 'N': {
+    case 'n': {
       N = std::stoi(arg);
       if (N <= 0) {
         std::cerr << "  Number of crosses must be positive (-n)\n";
