@@ -21,6 +21,13 @@ group at [Aarhus University](https://cs.au.dk).
 ## Acknowledgements
 
 - **[Jaco van de Pol](https://cs.au.dk/~jaco/)**:
-  [jaco@cs.au.dk](mailto:jaco@cs.au.dk)
 
   PhD Supervisor
+
+- **[Randal E. Bryant](https://www.cs.cmu.edu/~bryant/)**:
+
+  Research Visit Mentor
+
+- **[Marijn Heule](https://www.cs.cmu.edu/~mheule/)**:
+
+  Research Visit Mentor
