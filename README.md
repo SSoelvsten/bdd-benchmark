@@ -1,4 +1,4 @@
-# BDD Benchmark
+# BDD Benchmarking Suite
 
 This is a collection of benchmarks for Binary Decision Diagrams (BDDs)
 [[Bryant1986](#references)] and some of its variants. These are useful to survey
