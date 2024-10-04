@@ -94,7 +94,7 @@ public:
 
 template <typename Adapter>
 typename Adapter::dd_t
-build_support(Adapter& adapter, const int varcount)
+build_support(Adapter& adapter, const int/*varcount*/)
 {
   // TODO: We currently assume the relation includes the frame rule and/or touches all variables.
   return adapter.cube([](int) { return true;} );
