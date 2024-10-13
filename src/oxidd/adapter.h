@@ -18,8 +18,8 @@ compute_init_size(unsigned cache_arity)
 {
   // TODO: We should export these numbers in OxiDD, they are dependent on the
   // manager, apply cache implementation, and the maximum arity in use. Here, we
-  // assume the index-based manager, direct-mapped apply cache, and an operator
-  // arity of 2.
+  // assume the index-based manager, direct-mapped apply cache, and the operator
+  // arity given in `cache_arity`.
   constexpr double bytes_per_node = 16 + 8 / 0.75;
   double bytes_per_cache_entry    = 4 + 4 * cache_arity;
   constexpr double cache_ratio    = 64;
@@ -289,13 +289,13 @@ public:
   inline oxidd::bdd_function
   satone(const oxidd::bdd_function& f)
   {
-    return f.pick_cube_symbolic();
+    return f.pick_cube_dd();
   }
 
   inline oxidd::bdd_function
   satone(const oxidd::bdd_function& f, const oxidd::bdd_function& c)
   {
-    return f.pick_cube_symbolic_set(c);
+    return f.pick_cube_dd_set(c);
   }
 
   inline std::vector<std::pair<uint32_t, char>>
@@ -623,13 +623,13 @@ public:
   inline oxidd::bcdd_function
   satone(const oxidd::bcdd_function& f)
   {
-    return f.pick_cube_symbolic();
+    return f.pick_cube_dd();
   }
 
   inline oxidd::bcdd_function
   satone(const oxidd::bcdd_function& f, const oxidd::bcdd_function& c)
   {
-    return f.pick_cube_symbolic_set(c);
+    return f.pick_cube_dd_set(c);
   }
 
   inline std::vector<std::pair<uint32_t, char>>
