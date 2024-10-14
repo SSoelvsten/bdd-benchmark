@@ -979,8 +979,7 @@ construct_net_bdd(const std::string& filename,
 
   std::cout << json::field("operation count") << json::brace_open << json::endl;
   std::cout << json::field("apply") << json::value(stats.total_applys) << json::comma << json::endl;
-  std::cout << json::field("not") << json::value(stats.total_negations) << json::comma
-            << json::endl;
+  std::cout << json::field("not") << json::value(stats.total_negations) << json::endl;
   std::cout << json::brace_close << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
 

@@ -2572,7 +2572,7 @@ run_hamiltonian(int argc, char** argv)
     const time_duration paths_time = duration_ms(before_paths, after_paths);
 
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << json::brace_close << json::endl;
+    std::cout << json::brace_close << json::comma << json::endl;
     std::cout << json::field("total processed (nodes)") << json::value(total_nodes) << json::comma
               << json::endl;
     std::cout << json::field("largest size (nodes)") << json::value(largest_bdd) << json::comma
@@ -2598,7 +2598,7 @@ run_hamiltonian(int argc, char** argv)
 
     std::cout << json::field("result") << json::value(solutions) << json::comma << json::endl;
     std::cout << json::field("time (ms)") << json::value(satcount_time) << json::endl;
-    std::cout << json::brace_close << json::endl << json::flush;
+    std::cout << json::brace_close << json::comma << json::endl << json::flush;
 
     // -------------------------------------------------------------------------
     // Print out a solution
