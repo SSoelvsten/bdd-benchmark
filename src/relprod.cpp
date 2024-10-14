@@ -18,7 +18,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::string relation_path = "";
-std::string states_path = "";
+std::string states_path   = "";
 
 enum operand
 {
@@ -87,7 +87,6 @@ public:
   }
 };
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                         Benchmark as per Pastva and Henzinger (2023)                           //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,7 +96,7 @@ typename Adapter::dd_t
 build_support(Adapter& adapter, const int/*varcount*/)
 {
   // TODO: We currently assume the relation includes the frame rule and/or touches all variables.
-  return adapter.cube([](int) { return true;} );
+  return adapter.cube([](int) { return true; });
 }
 
 template <typename Adapter>
@@ -119,9 +118,9 @@ run_relprod(int argc, char** argv)
   // =============================================================================================
   // Load 'lib-bdd' files
   lib_bdd::bdd libbdd_relation = lib_bdd::deserialize(relation_path);
-  lib_bdd::bdd libbdd_states = lib_bdd::deserialize(states_path);
+  lib_bdd::bdd libbdd_states   = lib_bdd::deserialize(states_path);
 
-  lib_bdd::var_map vm = lib_bdd::remap_vars({libbdd_relation, libbdd_states});
+  lib_bdd::var_map vm = lib_bdd::remap_vars({ libbdd_relation, libbdd_states });
 
   // =============================================================================================
   // Initialize BDD package
@@ -134,14 +133,13 @@ run_relprod(int argc, char** argv)
     {
       std::cout << json::field("relation") << json::brace_open << json::endl;
 
-      std::cout << json::field("path") << json::value(relation_path) << json::comma
-                << json::endl;
+      std::cout << json::field("path") << json::value(relation_path) << json::comma << json::endl;
       lib_bdd::print_json(lib_bdd::stats(libbdd_relation), std::cout);
       std::cout << json::comma << json::endl;
 
       const time_point t_rebuild_before = now();
-      relation = reconstruct(adapter, std::move(libbdd_relation), vm);
-      const time_point t_rebuild_after = now();
+      relation                          = reconstruct(adapter, std::move(libbdd_relation), vm);
+      const time_point t_rebuild_after  = now();
 
       const size_t rebuild_time = duration_ms(t_rebuild_before, t_rebuild_after);
       total_time += rebuild_time;
@@ -150,10 +148,9 @@ run_relprod(int argc, char** argv)
       libbdd_relation.clear();
       libbdd_relation.shrink_to_fit();
 
-      std::cout << json::field("satcount") << json::value(adapter.satcount(relation))
-                << json::comma << json::endl;
-      std::cout << json::field("time (ms)")
-                << json::value(rebuild_time) << json::endl;
+      std::cout << json::field("satcount") << json::value(adapter.satcount(relation)) << json::comma
+                << json::endl;
+      std::cout << json::field("time (ms)") << json::value(rebuild_time) << json::endl;
 
       std::cout << json::brace_close << json::comma << json::endl;
     }
@@ -162,14 +159,13 @@ run_relprod(int argc, char** argv)
     {
       std::cout << json::field("states") << json::brace_open << json::endl;
 
-      std::cout << json::field("path") << json::value(states_path) << json::comma
-                << json::endl;
+      std::cout << json::field("path") << json::value(states_path) << json::comma << json::endl;
       lib_bdd::print_json(lib_bdd::stats(libbdd_states), std::cout);
       std::cout << json::comma << json::endl;
 
       const time_point t_rebuild_before = now();
-      states = reconstruct(adapter, std::move(libbdd_states), vm);
-      const time_point t_rebuild_after = now();
+      states                            = reconstruct(adapter, std::move(libbdd_states), vm);
+      const time_point t_rebuild_after  = now();
 
       const size_t rebuild_time = duration_ms(t_rebuild_before, t_rebuild_after);
       total_time += rebuild_time;
@@ -180,8 +176,7 @@ run_relprod(int argc, char** argv)
 
       std::cout << json::field("satcount") << json::value(adapter.satcount(states, vm.size() / 2))
                 << json::comma << json::endl;
-      std::cout << json::field("time (ms)")
-                << json::value(rebuild_time) << json::endl;
+      std::cout << json::field("time (ms)") << json::value(rebuild_time) << json::endl;
 
       std::cout << json::brace_close << json::comma << json::endl;
     }
@@ -193,18 +188,17 @@ run_relprod(int argc, char** argv)
       std::cout << json::field("support") << json::brace_open << json::endl;
 
       const time_point t_build_before = now();
-      support = build_support(adapter, vm.size());
-      const time_point t_build_after = now();
+      support                         = build_support(adapter, vm.size());
+      const time_point t_build_after  = now();
 
       const size_t build_time = duration_ms(t_build_before, t_build_after);
       total_time += build_time;
 
       std::cout << json::field("size (nodes)") << json::value(adapter.nodecount(support))
                 << json::comma << json::endl;
-      std::cout << json::field("satcount") << json::value(adapter.satcount(support))
-                << json::comma << json::endl;
-      std::cout << json::field("time (ms)")
-                << json::value(build_time) << json::endl;
+      std::cout << json::field("satcount") << json::value(adapter.satcount(support)) << json::comma
+                << json::endl;
+      std::cout << json::field("time (ms)") << json::value(build_time) << json::endl;
 
       std::cout << json::brace_close << json::comma << json::endl;
     }
@@ -231,7 +225,8 @@ run_relprod(int argc, char** argv)
               << json::endl;
     std::cout << json::field("size (nodes)") << adapter.nodecount(result) << json::comma
               << json::endl;
-    std::cout << json::field("satcount") << adapter.satcount(result, vm.size()/2) << json::comma << json::endl;
+    std::cout << json::field("satcount") << adapter.satcount(result, vm.size() / 2) << json::comma
+              << json::endl;
     std::cout << json::field("time (ms)") << relprod_time << json::endl;
 
     std::cout << json::brace_close << json::comma << json::endl;
