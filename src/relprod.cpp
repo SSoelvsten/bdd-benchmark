@@ -45,7 +45,7 @@ public:
   static constexpr std::string_view args = "o:r:s:";
 
   static constexpr std::string_view help_text =
-    "        -o OPER     [next]    Relational Product to use (next/prev)"
+    "        -o OPER     [next]    Relational Product to use (next/prev)\n"
     "        -r PATH               Path to '._dd' file for relation\n"
     "        -s PATH               Path to '._dd' file for states\n";
 
