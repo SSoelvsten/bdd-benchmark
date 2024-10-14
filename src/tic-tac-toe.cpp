@@ -315,7 +315,7 @@ run_tictactoe(int argc, char** argv)
     std::cout << json::field("size (nodes)") << json::value(initial_bdd) << json::comma
               << json::endl;
     std::cout << json::field("time (ms)") << json::value(initial_time) << json::endl;
-    std::cout << json::brace_close << json::endl << json::flush;
+    std::cout << json::brace_close << json::comma << json::endl << json::flush;
 
     // =========================================================================
     // Add constraints lines
@@ -347,7 +347,7 @@ run_tictactoe(int argc, char** argv)
     time_point t4 = now();
 
 #ifdef BDD_BENCHMARK_STATS
-    std::cout << json::brace_close << json::endl;
+    std::cout << json::brace_close << json::comma << json::endl;
 #endif // BDD_BENCHMARK_STATS
 
     const time_duration constraints_time = duration_ms(t3, t4);
@@ -361,7 +361,7 @@ run_tictactoe(int argc, char** argv)
     std::cout << json::field("final sizse (nodes)") << json::value(adapter.nodecount(res))
               << json::comma << json::endl;
     std::cout << json::field("time (ms)") << json::value(constraints_time) << json::endl;
-    std::cout << json::brace_close << json::endl;
+    std::cout << json::brace_close << json::comma << json::endl;
 
     // =========================================================================
     // Count number of solutions
@@ -376,7 +376,7 @@ run_tictactoe(int argc, char** argv)
     // =========================================================================
     std::cout << json::field("result") << json::value(solutions) << json::comma << json::endl;
     std::cout << json::field("time (ms)") << json::value(counting_time) << json::endl;
-    std::cout << json::brace_close << json::endl;
+    std::cout << json::brace_close << json::comma << json::endl;
 
     // =========================================================================
     std::cout << json::field("total time (ms)")
