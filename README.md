@@ -33,6 +33,7 @@ This project has been developed at the
 - [Performance Regression Testing](#performance-regression-testing)
 - [License](#license)
 - [Citation](#citation)
+- [Publications](#publications)
 - [References](#references)
 
 <!-- markdown-toc end -->
@@ -768,7 +769,7 @@ the initial paper on *Adiar*.
 
 ```bibtex
 @InProceedings{soelvsten2022:TACAS,
-  title         = {Adiar: Binary Decision Diagrams in External Memory},
+  title         = {{Adiar}: Binary Decision Diagrams in External Memory},
   author        = {S{\o}lvsten, Steffan Christ
                and van de Pol, Jaco
                and Jakobsen, Anna Blume
@@ -787,6 +788,44 @@ the initial paper on *Adiar*.
 }
 ```
 
+## Publications
+
+The following list of publications (given in order of publication date) have
+used this benchmarking suite for their evaluation:
+
+- Steffan Christ Sølvsten, Jaco van de Pol, Anna Blume Jakobsen, and Mathias
+  Weller Berg Thomasen. “*Adiar: Binary Decision Diagrams in External Memory*”.
+
+  [arXiv](https://arxiv.org/abs/2104.12101),
+  [TACAS 2022](https://link.springer.com/chapter/10.1007/978-3-030-99527-0_16)
+
+- Steffan Christ Sølvsten and Jaco van de Pol.
+  “*Adiar 1.1: Zero-suppressed Decision Diagrams in External Memory*”.
+
+  [NFM 2023](https://link.springer.com/chapter/10.1007/978-3-031-33170-1_28)
+
+- Steffan Christ Sølvsten and Jaco van de Pol.
+  “*Predicting Memory Demands of BDD Operations using Maximum Graph Cuts*”.
+
+  [arXiv](https://arxiv.org/abs/2307.04488),
+  [ATVA 2023](https://link.springer.com/chapter/10.1007/978-3-031-45332-8_4)
+
+- Nils Husung, Clemens Dubslaff, Holger Hermanns, and Maximilian A. Köhl.
+  “*OxiDD: A Safe, Concurrent, Modular, and Performant Decision Diagram
+  Framework in Rust*”.
+
+  [TACAS 2024](https://link.springer.com/chapter/10.1007/978-3-031-57256-2_13)
+
+- Steffan Christ Sølvsten, Casper Moldrup Rysgaard, and Jaco van de Pol.
+  “*Random Access on Narrow Decision Diagrams in External Memory*”.
+
+  [SPIN 2024](https://link.springer.com/chapter/10.1007/978-3-031-66149-5_7)
+
+- Steffan Christ Sølvsten and Jaco van de Pol.
+  “*Multi-variable Quantification of BDDs in External Memory using Nested
+  Sweeping*”.
+
+  [arXiv](https://arxiv.org/abs/2408.14216)
 
 ## References
 
