@@ -671,7 +671,7 @@ fanin_variable_order(const net_t& net_0, const net_t& net_1)
     });
 
     // Recursively visit the children, starting with the deeper node of the pair
-    for (const auto [output_0, output_1] : outputs) {
+    for (const auto& [output_0, output_1] : outputs) {
       if (nodes[output_0].depth >= nodes[output_1].depth) {
         fanin_variable_order_rec(output_0, new_ordering, ordered_count, net_0, visited);
         fanin_variable_order_rec(output_1, new_ordering, ordered_count, net_1, visited);
