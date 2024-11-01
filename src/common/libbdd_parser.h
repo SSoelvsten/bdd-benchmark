@@ -431,11 +431,11 @@ namespace lib_bdd
     }
 
     // Vector of converted DD nodes
-    std::vector<typename Adapter::build_node_t> out(in.size(), adapter.build_node(false));
+    std::unordered_map<int, typename Adapter::build_node_t> out;
 
     // Terminal Nodes
-    out.at(0) = adapter.build_node(false);
-    out.at(1) = adapter.build_node(true);
+    out[0] = adapter.build_node(false);
+    out[1] = adapter.build_node(true);
 
     // Internal Nodes
     std::vector<int> work_order;
@@ -455,10 +455,13 @@ namespace lib_bdd
         throw std::out_of_range(ss.str());
       }
 
-      const auto low  = out.at(n.low());
-      const auto high = out.at(n.high());
+      assert(out.find(n.low()) != out.end());
+      const auto low  = out[n.low()];
 
-      out.at(*iter) = adapter.build_node(var->second, low, high);
+      assert(out.find(n.high()) != out.end());
+      const auto high = out[n.high()];
+
+      out[*iter] = adapter.build_node(var->second, low, high);
     }
 
     return adapter.build();
