@@ -430,6 +430,13 @@ namespace lib_bdd
       return adapter.build();
     }
 
+    // Reference count
+    std::vector<int> ref_count(in.size(), 0);
+    for (const auto& n : in) {
+      ref_count[n.low()]  += 1;
+      ref_count[n.high()] += 1;
+    }
+
     // Vector of converted DD nodes
     std::unordered_map<int, typename Adapter::build_node_t> out;
 
@@ -457,9 +464,11 @@ namespace lib_bdd
 
       assert(out.find(n.low()) != out.end());
       const auto low  = out[n.low()];
+      if (--ref_count[n.low()] == 0) { out.erase(n.low()); }
 
       assert(out.find(n.high()) != out.end());
       const auto high = out[n.high()];
+      if (--ref_count[n.high()] == 0) { out.erase(n.high()); }
 
       out[*iter] = adapter.build_node(var->second, low, high);
     }
