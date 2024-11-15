@@ -494,7 +494,7 @@ construct_net(std::string& filename, net_t& net)
 // ========================================================================== //
 // Variable Ordering
 void
-dfs_variable_order_rec(const node_id_t id,
+df_variable_order_rec(const node_id_t id,
                        std::vector<unsigned>& new_ordering,
                        unsigned& ordered_count,
                        const net_t& net,
@@ -510,7 +510,7 @@ dfs_variable_order_rec(const node_id_t id,
   // Iterate through for non-input nets (i.e. looking at deeper inputs)
   for (const node_id_t dep_id : n.deps) {
     if (net.nodes[dep_id].is_input) { continue; }
-    dfs_variable_order_rec(dep_id, new_ordering, ordered_count, net, visited);
+    df_variable_order_rec(dep_id, new_ordering, ordered_count, net, visited);
   }
 
   // Add yet unseen inputs (i.e. looking at shallow inputs)
@@ -525,13 +525,13 @@ dfs_variable_order_rec(const node_id_t id,
 }
 
 std::vector<unsigned>
-dfs_variable_order(const net_t& net)
+df_variable_order(const net_t& net)
 {
   std::vector<bool> visited_nodes(net.nodes.size());
   std::vector<unsigned> new_ordering(net.inputs_w_order.size());
   unsigned ordered_count = 0;
   for (const node_id_t output : net.outputs_in_order) {
-    dfs_variable_order_rec(output, new_ordering, ordered_count, net, visited_nodes);
+    df_variable_order_rec(output, new_ordering, ordered_count, net, visited_nodes);
   }
   return new_ordering;
 }
@@ -745,7 +745,7 @@ apply_variable_order(const variable_order vo, net_t& net_0, net_t& net_1)
   }
 
   case variable_order::DF: {
-    new_ordering = dfs_variable_order(net_0);
+    new_ordering = df_variable_order(net_0);
     break;
   }
 
