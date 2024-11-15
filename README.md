@@ -601,7 +601,7 @@ The benchmark can be configured with the following options:
     order `a[0]`, `b[0]`, `a[1]`, `b[1]`, …, `a[n-1]`, `b[n-1]`.
 
 ```bash
-./build/src/${LIB}_picotrav_${KIND} -f benchmarks/picotrav/not_a.blif -f benchmarks/picotrav/not_b.blif -o level_df
+./build/src/${LIB}_picotrav_${KIND} -f benchmarks/picotrav/not_a.blif -f benchmarks/picotrav/not_b.blif -o df_level
 ```
 
 
