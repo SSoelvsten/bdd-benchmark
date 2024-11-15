@@ -32,6 +32,7 @@ enum class variable_order
   ZIP,
   DF,
   DF_LEVEL,
+  FUJITA,
   LEVEL,
   LEVEL_DF,
   RANDOM
@@ -45,6 +46,7 @@ to_string(const variable_order o)
   case variable_order::ZIP: return "zip";
   case variable_order::DF: return "depth-first";
   case variable_order::DF_LEVEL: return "df-level";
+  case variable_order::FUJITA: return "fujita";
   case variable_order::LEVEL: return "level";
   case variable_order::LEVEL_DF: return "level-df";
   case variable_order::RANDOM: return "random";
@@ -108,6 +110,8 @@ public:
       } else if (is_prefix(lower_arg, "depth-first_level") || lower_arg == "df_level"
                  || lower_arg == "df_l") {
         var_order = variable_order::DF_LEVEL;
+      } else if (is_prefix(lower_arg, "fujita")) {
+        var_order = variable_order::FUJITA;
       } else if (is_prefix(lower_arg, "level")) {
         var_order = variable_order::LEVEL;
       } else if (is_prefix(lower_arg, "level_depth-first") || lower_arg == "level_df"
@@ -587,6 +591,68 @@ struct df_level_policy
   }
 };
 
+/// \brief Depth-first policy for `df_variable_order` that obtains dependencies based on their
+///        'fanin' as in the paper "Evaluation and Improvements of Boolean Comparison Methods Based
+///        on Binary Decision Diagarms" by Fujita et al.
+struct df_fujita_policy
+{
+  static std::vector<node_id_t>
+  sort(const std::vector<node_id_t>& deps, const net_t& net)
+  {
+    std::vector<node_id_t> deps_copy(deps);
+    std::sort(deps_copy.begin(), deps_copy.end(), [&net](const node_id_t a, const node_id_t b) {
+      // If both are non-inputs, then recurse on them based on depth.
+      if (!net.nodes[a].is_input && !net.nodes[b].is_input) {
+        return net.nodes[a].depth > net.nodes[b].depth;
+      }
+
+      // If both are inputs, then sort them based on their ref count (secondly their depth)
+      if (net.nodes[a].is_input && net.nodes[b].is_input) {
+        const auto a_cmp = std::tie(net.nodes[a].ref_count, net.nodes[a].depth);
+        const auto b_cmp = std::tie(net.nodes[b].ref_count, net.nodes[b].depth);
+        return a_cmp > b_cmp;
+      }
+
+      // Input gates with a single reference should be processed after all other gates. On the other
+      // hand, the paper follows the (arbitrary) order of the input. Yet, that is for all purposes
+      // non-deterministic.
+      //
+      // Uncommenting the code below makes input gates with 2+ references be processed prior to any
+      // recursions. In practice, recursing first seems to create the best inputs.
+      /*
+      if (net.nodes[a].ref_count > 1 && !net.nodes[b].is_input) {
+        return true;
+      }
+      if (net.nodes[b].ref_count > 1 && !net.nodes[a].is_input) {
+        return false;
+      }
+      */
+
+      // Inputs with only 1 input should be processed after recursions. Due to the above
+      // conditionals, this boils down to whether 'a' is the non-input gate.
+      return !net.nodes[a].is_input;
+    });
+    return deps_copy;
+  }
+
+  static std::vector<node_id_t>
+  sort_outputs(const net_t& net)
+  {
+    std::vector<node_id_t> outputs(net.outputs_in_order);
+    std::sort(outputs.begin(), outputs.end(), [&net](const node_id_t a, const node_id_t b) {
+      if (net.nodes[a].is_input != net.nodes[b].is_input) {
+        return net.nodes[a].is_input > net.nodes[b].is_input;
+      }
+
+      const auto a_cmp = std::tie(net.nodes[a].ref_count, net.nodes[a].depth);
+      const auto b_cmp = std::tie(net.nodes[b].ref_count, net.nodes[b].depth);
+      return a_cmp > b_cmp;
+    });
+
+    return outputs;
+  }
+};
+
 // For each input, compute the smallest level/depth of a node referencing it
 void
 compute_input_depth(const node_id_t id,
@@ -719,6 +785,11 @@ apply_variable_order(const variable_order vo, net_t& net_0, net_t& net_1)
 
   case variable_order::DF_LEVEL: {
     new_ordering = df_variable_order<df_level_policy>(net_0, net_1);
+    break;
+  }
+
+  case variable_order::FUJITA: {
+    new_ordering = df_variable_order<df_fujita_policy>(net_0, net_1);
     break;
   }
 
