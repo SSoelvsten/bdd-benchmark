@@ -576,13 +576,10 @@ The benchmark can be configured with the following options:
   - `fanin`: Order variables based on the fanin of the input gates. That is, the
     "most referenced" variables come first.
 
-  - `fanin_df`: Order variables based on the fanin of the input gates. That is,
-    the "most referenced" variables come first. Ties are broken based on a `df`
-    order.
+  - `fanin_df`: Similar to `fanin` but ties are broken based on a `df` order.
 
-  - `fanin_df_level`: Order variables based on the fanin of the input gates.
-    That is, the "most referenced" variables come first. Ties are broken based
-    on a `df_level` order.
+  - `fanin_df_level`: Similar to `fanin` but ties are broken with the `df_level`
+    order.
 
   - `fujita`: The variable ordering from [[Fujita1998](#references)]. It is
     similar to `df_level`, but input gates are sorted based on their fanin, i.e.
