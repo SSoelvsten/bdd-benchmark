@@ -566,10 +566,6 @@ The benchmark can be configured with the following options:
 
   - `input`: Use the order in which they are declared in the input *.blif* file.
 
-  - `zip`: Assuming that the input variable order is `a[0]`, `a[1]`, …,
-    `a[n-1]`, `b[0]`, `b[1]`, …, `b[n-1]` in the input *.blif* file, use the
-    order `a[0]`, `b[0]`, `a[1]`, `b[1]`, …, `a[n-1]`, `b[n-1]`.
-
   - `df`/`depth-first`: Variables are ordered based on a depth-first traversal
     where non-input gates are recursed to first; thereby favouring deeper nodes.
 
@@ -580,11 +576,11 @@ The benchmark can be configured with the following options:
   - `fanin`: Order variables based on the fanin of the input gates. That is, the
     "most referenced" variables come first.
 
-  - `df_fanin`: Order variables based on the fanin of the input gates. That is,
+  - `fanin_df`: Order variables based on the fanin of the input gates. That is,
     the "most referenced" variables come first. Ties are broken based on a `df`
     order.
 
-  - `df_level_fanin`: Order variables based on the fanin of the input gates.
+  - `fanin_df_level`: Order variables based on the fanin of the input gates.
     That is, the "most referenced" variables come first. Ties are broken based
     on a `df_level` order.
 
@@ -599,6 +595,10 @@ The benchmark can be configured with the following options:
     on the ordering in `df` rather than `input`.
 
   - `random`: A randomized ordering of variables.
+
+  - `zip`: Assuming that the input variable order is `a[0]`, `a[1]`, …,
+    `a[n-1]`, `b[0]`, `b[1]`, …, `b[n-1]` in the input *.blif* file, use the
+    order `a[0]`, `b[0]`, `a[1]`, `b[1]`, …, `a[n-1]`, `b[n-1]`.
 
 ```bash
 ./build/src/${LIB}_picotrav_${KIND} -f benchmarks/picotrav/not_a.blif -f benchmarks/picotrav/not_b.blif -o level_df

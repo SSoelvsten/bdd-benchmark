@@ -29,16 +29,16 @@ std::string file_1 = "";
 enum class variable_order
 {
   INPUT,
-  ZIP,
   DF,
   DF_LEVEL,
   FANIN,
-  DF_FANIN,
-  DF_LEVEL_FANIN,
+  FANIN_DF,
+  FANIN_DF_LEVEL,
   LEVEL,
   LEVEL_DF,
   FUJITA,
-  RANDOM
+  RANDOM,
+  ZIP
 };
 
 std::string
@@ -46,16 +46,16 @@ to_string(const variable_order o)
 {
   switch (o) {
   case variable_order::INPUT:          return "input";
-  case variable_order::ZIP:            return "zip";
   case variable_order::DF:             return "depth-first";
   case variable_order::DF_LEVEL:       return "df_level";
   case variable_order::FANIN:          return "fanin";
-  case variable_order::DF_FANIN:       return "df_fanin";
-  case variable_order::DF_LEVEL_FANIN: return "df_level_fanin";
+  case variable_order::FANIN_DF:       return "fanin_df";
+  case variable_order::FANIN_DF_LEVEL: return "fanin_df_level";
   case variable_order::LEVEL:          return "level";
   case variable_order::LEVEL_DF:       return "level_df";
   case variable_order::FUJITA:         return "fujita";
   case variable_order::RANDOM:         return "random";
+  case variable_order::ZIP:            return "zip";
   }
   return "?";
 }
@@ -109,8 +109,6 @@ public:
 
       if (is_prefix(lower_arg, "input")) {
         var_order = variable_order::INPUT;
-      } else if (is_prefix(lower_arg, "zip")) {
-        var_order = variable_order::ZIP;
       } else if (is_prefix(lower_arg, "depth-first") || lower_arg == "df") {
         var_order = variable_order::DF;
       } else if (is_prefix(lower_arg, "depth-first_level") || lower_arg == "df_level"
@@ -118,10 +116,10 @@ public:
         var_order = variable_order::DF_LEVEL;
       } else if (is_prefix(lower_arg, "fanin")) {
         var_order = variable_order::FANIN;
-      } else if (is_prefix(lower_arg, "depth-first_fanin") || lower_arg == "df_fanin") {
-        var_order = variable_order::DF_FANIN;
-      } else if (is_prefix(lower_arg, "depth-first_level_fanin") || lower_arg == "df_level_fanin") {
-        var_order = variable_order::DF_LEVEL_FANIN;
+      } else if (is_prefix(lower_arg, "fanin_depth-first") || lower_arg == "fanin_df") {
+        var_order = variable_order::FANIN_DF;
+      } else if (is_prefix(lower_arg, "fanin_depth-first_level") || lower_arg == "fanin_df_level") {
+        var_order = variable_order::FANIN_DF_LEVEL;
       } else if (is_prefix(lower_arg, "level")) {
         var_order = variable_order::LEVEL;
       } else if (is_prefix(lower_arg, "level_depth-first") || lower_arg == "level_df"
@@ -131,6 +129,8 @@ public:
         var_order = variable_order::FUJITA;
       } else if (is_prefix(lower_arg, "random")) {
         var_order = variable_order::RANDOM;
+      } else if (is_prefix(lower_arg, "zip")) {
+        var_order = variable_order::ZIP;
       } else {
         std::cerr << "Undefined ordering: " << arg << "\n";
         return true;
@@ -814,11 +814,6 @@ apply_variable_order(const variable_order vo, net_t& net_0, net_t& net_1)
     // Keep as is
     return;
 
-  case variable_order::ZIP: {
-    new_ordering = zip_variable_order(net_0);
-    break;
-  }
-
   case variable_order::DF: {
     new_ordering = df_variable_order<df_policy>(net_0, net_1);
     break;
@@ -829,19 +824,19 @@ apply_variable_order(const variable_order vo, net_t& net_0, net_t& net_1)
     break;
   }
 
-  case variable_order::DF_FANIN: {
+  case variable_order::FANIN: {
+    new_ordering = fanin_variable_order(net_0, net_1);
+    break;
+  }
+
+  case variable_order::FANIN_DF: {
     apply_variable_order(variable_order::DF, net_0, net_1);
     new_ordering = fanin_variable_order(net_0, net_1);
     break;
   }
 
-  case variable_order::DF_LEVEL_FANIN: {
+  case variable_order::FANIN_DF_LEVEL: {
     apply_variable_order(variable_order::DF_LEVEL, net_0, net_1);
-    new_ordering = fanin_variable_order(net_0, net_1);
-    break;
-  }
-
-  case variable_order::FANIN: {
     new_ordering = fanin_variable_order(net_0, net_1);
     break;
   }
@@ -864,6 +859,11 @@ apply_variable_order(const variable_order vo, net_t& net_0, net_t& net_1)
 
   case variable_order::RANDOM: {
     new_ordering = random_variable_order(net_0);
+    break;
+  }
+
+  case variable_order::ZIP: {
+    new_ordering = zip_variable_order(net_0);
     break;
   }
   }
