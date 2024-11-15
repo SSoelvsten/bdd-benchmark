@@ -577,6 +577,17 @@ The benchmark can be configured with the following options:
     recursing, all child nodes are sorted by their depth. Recursive calls are
     done from the deepest to the most shallow node in order.
 
+  - `fanin`: Order variables based on the fanin of the input gates. That is, the
+    "most referenced" variables come first.
+
+  - `df_fanin`: Order variables based on the fanin of the input gates. That is,
+    the "most referenced" variables come first. Ties are broken based on a `df`
+    order.
+
+  - `df_level_fanin`: Order variables based on the fanin of the input gates.
+    That is, the "most referenced" variables come first. Ties are broken based
+    on a `df_level` order.
+
   - `fujita`: The variable ordering from [[Fujita1998](#references)]. It is
     similar to `df_level`, but input gates are sorted based on their fanin, i.e.
     the number of references to the gate.

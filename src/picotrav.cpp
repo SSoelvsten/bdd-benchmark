@@ -32,9 +32,12 @@ enum class variable_order
   ZIP,
   DF,
   DF_LEVEL,
-  FUJITA,
+  FANIN,
+  DF_FANIN,
+  DF_LEVEL_FANIN,
   LEVEL,
   LEVEL_DF,
+  FUJITA,
   RANDOM
 };
 
@@ -42,14 +45,17 @@ std::string
 to_string(const variable_order o)
 {
   switch (o) {
-  case variable_order::INPUT: return "input";
-  case variable_order::ZIP: return "zip";
-  case variable_order::DF: return "depth-first";
-  case variable_order::DF_LEVEL: return "df-level";
-  case variable_order::FUJITA: return "fujita";
-  case variable_order::LEVEL: return "level";
-  case variable_order::LEVEL_DF: return "level-df";
-  case variable_order::RANDOM: return "random";
+  case variable_order::INPUT:          return "input";
+  case variable_order::ZIP:            return "zip";
+  case variable_order::DF:             return "depth-first";
+  case variable_order::DF_LEVEL:       return "df_level";
+  case variable_order::FANIN:          return "fanin";
+  case variable_order::DF_FANIN:       return "df_fanin";
+  case variable_order::DF_LEVEL_FANIN: return "df_level_fanin";
+  case variable_order::LEVEL:          return "level";
+  case variable_order::LEVEL_DF:       return "level_df";
+  case variable_order::FUJITA:         return "fujita";
+  case variable_order::RANDOM:         return "random";
   }
   return "?";
 }
@@ -110,13 +116,19 @@ public:
       } else if (is_prefix(lower_arg, "depth-first_level") || lower_arg == "df_level"
                  || lower_arg == "df_l") {
         var_order = variable_order::DF_LEVEL;
-      } else if (is_prefix(lower_arg, "fujita")) {
-        var_order = variable_order::FUJITA;
+      } else if (is_prefix(lower_arg, "fanin")) {
+        var_order = variable_order::FANIN;
+      } else if (is_prefix(lower_arg, "depth-first_fanin") || lower_arg == "df_fanin") {
+        var_order = variable_order::DF_FANIN;
+      } else if (is_prefix(lower_arg, "depth-first_level_fanin") || lower_arg == "df_level_fanin") {
+        var_order = variable_order::DF_LEVEL_FANIN;
       } else if (is_prefix(lower_arg, "level")) {
         var_order = variable_order::LEVEL;
       } else if (is_prefix(lower_arg, "level_depth-first") || lower_arg == "level_df"
                  || lower_arg == "l_df") {
         var_order = variable_order::LEVEL_DF;
+      } else if (is_prefix(lower_arg, "fujita")) {
+        var_order = variable_order::FUJITA;
       } else if (is_prefix(lower_arg, "random")) {
         var_order = variable_order::RANDOM;
       } else {
@@ -650,6 +662,35 @@ struct df_fujita_policy
   }
 };
 
+std::vector<unsigned>
+fanin_variable_order(const net_t& net_0, const net_t& net_1)
+{
+  assert(&net_0.nodes == &net_1.nodes); // pointer equality
+  const std::vector<node_t>& nodes = net_0.nodes;
+
+  // Create a `std::vector` we can sort
+  std::vector<node_id_t> inputs;
+  inputs.reserve(net_0.inputs_w_order.size());
+  for (auto kv : net_0.inputs_w_order) { inputs.push_back(kv.first); }
+
+  // Sort based on fanin (reference count) and secondly, keep the original order
+  const auto comparator = [&net_0, &net_1](const node_id_t a, const node_id_t b) {
+    if (net_0.nodes[a].ref_count != net_0.nodes[b].ref_count) {
+      return net_0.nodes[a].ref_count > net_0.nodes[b].ref_count;
+    }
+    return net_0.inputs_w_order.at(a) < net_0.inputs_w_order.at(b);
+  };
+
+  std::sort(inputs.begin(), inputs.end(), comparator);
+
+  // Map into new ordering
+  std::vector<unsigned> new_ordering(inputs.size());
+  for (size_t idx = 0; idx < inputs.size(); idx++) {
+    new_ordering[net_0.inputs_w_order.at(inputs[idx])] = idx;
+  }
+  return new_ordering;
+}
+
 // For each input, compute the smallest level/depth of a node referencing it
 void
 compute_input_depth(const node_id_t id,
@@ -687,23 +728,27 @@ level_variable_order(const net_t& net_0, const net_t& net_1)
   for (auto kv : net_0.inputs_w_order) { inputs.push_back(kv.first); }
 
   std::unordered_map<node_id_t, unsigned> deepest_reference;
-  std::vector<bool> visited_nodes(nodes.size());
   deepest_reference.reserve(net_0.inputs_w_order.size());
+
+  std::vector<bool> visited_nodes(nodes.size(), false);
+
   for (const node_id_t output : net_0.outputs_in_order) {
     compute_input_depth(output, deepest_reference, nodes, visited_nodes);
   }
+  // We could also derive the depth from 'net_1'. But, the other orderings are only based on 'net_0'
+  // which itself also is the specification and hence most likely best preserves the structure of
+  // the problem.
+  /*
   for (const node_id_t output : net_1.outputs_in_order) {
     compute_input_depth(output, deepest_reference, nodes, visited_nodes);
   }
+  */
 
   // Sort based on deepest referenced level (break ties by prior ordering)
-  const auto comparator = [&net_0, &deepest_reference](const node_id_t i, const node_id_t j) {
-    const int old_i   = net_0.inputs_w_order.at(i);
-    const int i_level = deepest_reference.at(i);
-    const int old_j   = net_0.inputs_w_order.at(j);
-    const int j_level = deepest_reference.at(j);
-
-    return std::tie(i_level, old_i) < std::tie(j_level, old_j);
+  const auto comparator = [&net_0, &deepest_reference](const node_id_t a, const node_id_t b) {
+    const auto a_cmp = std::tie(deepest_reference.at(a), net_0.inputs_w_order.at(a));
+    const auto b_cmp = std::tie(deepest_reference.at(b), net_0.inputs_w_order.at(b));
+    return a_cmp < b_cmp;
   };
 
   std::sort(inputs.begin(), inputs.end(), comparator);
@@ -713,7 +758,6 @@ level_variable_order(const net_t& net_0, const net_t& net_1)
   for (size_t idx = 0; idx < inputs.size(); idx++) {
     new_ordering[net_0.inputs_w_order.at(inputs[idx])] = idx;
   }
-
   return new_ordering;
 }
 
@@ -782,6 +826,23 @@ apply_variable_order(const variable_order vo, net_t& net_0, net_t& net_1)
 
   case variable_order::DF_LEVEL: {
     new_ordering = df_variable_order<df_level_policy>(net_0, net_1);
+    break;
+  }
+
+  case variable_order::DF_FANIN: {
+    apply_variable_order(variable_order::DF, net_0, net_1);
+    new_ordering = fanin_variable_order(net_0, net_1);
+    break;
+  }
+
+  case variable_order::DF_LEVEL_FANIN: {
+    apply_variable_order(variable_order::DF_LEVEL, net_0, net_1);
+    new_ordering = fanin_variable_order(net_0, net_1);
+    break;
+  }
+
+  case variable_order::FANIN: {
+    new_ordering = fanin_variable_order(net_0, net_1);
     break;
   }
 
