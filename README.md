@@ -577,6 +577,10 @@ The benchmark can be configured with the following options:
     recursing, all child nodes are sorted by their depth. Recursive calls are
     done from the deepest to the most shallow node in order.
 
+  - `fujita`: The variable ordering from [[Fujita1998](#references)]. It is
+    similar to `df_level`, but input gates are sorted based on their fanin, i.e.
+    the number of references to the gate.
+
   - `level`: Variables are ordered based on the deepest reference by another
     net. Ties are broken based on the declaration order in the input (`input`).
 
@@ -864,6 +868,11 @@ used this benchmarking suite for their evaluation:
   Erik Vengroff, and Jeffrey Scott Vitter. “*External-memory Graph Algorithm*”.
   In: *Proceedings of the Sixth Annual ACM-SIAM Symposium on Discrete
   Algorithms*. (1995)
+
+- [[Fujita1998](https://ieeexplore.ieee.org/document/122450)]
+  Fujita, H. Fujisawa, and N. Kawato. “*Evaluation and improvement of Boolean
+  comparison method based on Binary Decision Diagrams*”. In: *International
+  Conference on Computer-Aided Design *. (1998)
 
 - [[Husung2024](https://link.springer.com/chapter/10.1007/978-3-031-57256-2_13)]
   Nils Husung, Clemens Dubslaff, Holger Hermanns, and Maximilian A. Köhl:
