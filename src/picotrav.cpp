@@ -152,8 +152,7 @@ public:
 
   /// Only relevant for checking if the net is valid
   ///
-  /// After parsing the entire input file, all (reachable) nodes should have
-  /// this flag set.
+  /// After parsing the entire input file, all (reachable) nodes should have this flag set.
   bool is_defined = false;
 
   /// True iff this is an input node
@@ -200,8 +199,8 @@ public:
 
   /// Checks if all reachable nodes are defined and the net is acyclic
   ///
-  /// Also computes the nodes' depths and reference counts. This method must not
-  /// be called more than once.
+  /// Also computes the nodes' depths and reference counts. This method must not be called more than
+  /// once.
   ///
   /// Returns true iff the net is valid
   bool
@@ -223,10 +222,9 @@ private:
   {
     node_t& node = nodes[id];
     if (node.ref_count++ != 0) {
-      // The node has already been visited. We use the depth field to detect
-      // cycles: We only set the depth once all children have been visited. So
-      // if the depth is still 0 and the node has children, the node is part of
-      // a cycle.
+      // The node has already been visited. We use the depth field to detect cycles: We only set the
+      // depth once all children have been visited. So if the depth is still 0 and the node has
+      // children, the node is part of a cycle.
       if (node.depth == 0 && !node.deps.empty()) {
         std::cerr << "Cycle detected: " << node.name;
         cycle.push_back(id);
@@ -246,8 +244,8 @@ private:
 
       if (!dep_depth) { // error
         if (!cycle.empty()) {
-          // A cycle was detected, we capture all the nodes until the first node
-          // of the cycle we visited while returning. Then we print the cycle.
+          // A cycle was detected, we capture all the nodes until the first node of the cycle we
+          // visited while returning. Then we print the cycle.
           if (cycle[0] != id) {
             cycle.push_back(id);
           } else {
@@ -381,9 +379,8 @@ public:
         net.nodes[id].deps.push_back(dep_id);
       }
 
-      // Important: only create the reference here, because
-      // `net.get_or_add_node(..)` may resize the `net.nodes` and thereby
-      // invalidate the reference.
+      // Important: only create the reference here, because `net.get_or_add_node(..)` may resize the
+      // `net.nodes` and thereby invalidate the reference.
       node_t& node = net.nodes[id];
 
       node.so_cover.reserve(so_cover.size());
@@ -495,7 +492,7 @@ construct_net(std::string& filename, net_t& net)
   return true;
 }
 
-// ========================================================================== //
+// ============================================================================================== //
 // Variable Ordering
 template<typename RecursionOrder>
 void
@@ -669,8 +666,8 @@ compute_input_depth(const node_id_t id,
     const node_t& dep = nodes[dep_id];
     if (dep.is_input) {
       unsigned& lookup_depth = deepest_reference[dep_id];
-      // If dep_id was not in the map, the value is default-constructed, i.e. 0.
-      // All inner nodes have at least depth 1, so we can distinguish this case.
+      // If dep_id was not in the map, the value is default-constructed, i.e. 0. All inner nodes
+      // have at least depth 1, so we can distinguish this case.
       if (lookup_depth == 0 || n.depth < lookup_depth) { lookup_depth = n.depth; }
     } else {
       compute_input_depth(dep_id, deepest_reference, nodes, visited);
@@ -816,8 +813,8 @@ apply_variable_order(const variable_order vo, net_t& net_0, net_t& net_1)
   }
 }
 
-// ========================================================================== //
-// Depth-first BDD construction of net gate
+// ============================================================================================== //
+// BDD construction of net gate
 
 struct bdd_statistics
 {
@@ -952,7 +949,7 @@ construct_node_bdd(net_t& net,
   return so_cover_bdd;
 }
 
-// ========================================================================== //
+// ============================================================================================== //
 // Construct the BDD for each output gate
 template <typename Adapter>
 std::pair<int, time_duration>
@@ -1030,7 +1027,7 @@ construct_net_bdd(const std::string& filename,
   return { 0, total_time };
 }
 
-// ========================================================================== //
+// ============================================================================================== //
 // Test equivalence of every output gate (in-order they were given)
 template <typename Adapter>
 std::pair<bool, time_duration>
@@ -1040,6 +1037,9 @@ verify_outputs(Adapter& adapter,
                const net_t& net_1,
                const bdd_cache<Adapter>& cache_1)
 {
+  // The number of outputs need to match - otherwise, what gate(s) ought to be compared to which?
+  assert(net_0.outputs_in_order.size() == net_1.outputs_in_order.size());
+
   // The cache should have exactly as many entries as there are outputs that are
   // not inputs as well.
   assert(cache_0.size()
@@ -1050,7 +1050,6 @@ verify_outputs(Adapter& adapter,
          == size_t(std::count_if(net_1.outputs_in_order.begin(),
                                  net_1.outputs_in_order.end(),
                                  [&net_1](node_id_t id) { return !net_1.nodes[id].is_input; })));
-  assert(net_0.outputs_in_order.size() == net_1.outputs_in_order.size());
 
   std::cout << json::field("equal") << json::brace_open << json::endl;
 
@@ -1089,7 +1088,7 @@ verify_outputs(Adapter& adapter,
   return { ret_value, time };
 }
 
-// ========================================================================== //
+// ============================================================================================== //
 
 /// Perform name-based matching of inputs and outputs
 ///
@@ -1136,7 +1135,7 @@ do_match_io_names(net_t& net_0, net_t& net_1)
   return true;
 }
 
-// ========================================================================== //
+// ============================================================================================== //
 template <typename Adapter>
 int
 run_picotrav(int argc, char** argv)
@@ -1150,7 +1149,7 @@ run_picotrav(int argc, char** argv)
   }
   const bool verify_networks = file_1 != "";
 
-  // =========================================================================
+  // =============================================================================================
   // Read file(s) and construct nets
   std::vector<node_t> nodes;
 
@@ -1158,6 +1157,7 @@ run_picotrav(int argc, char** argv)
   if (!construct_net(file_0, net_0)) return -1; // error has been printed
 
   net_t net_1 = { .nodes = nodes };
+
   if (verify_networks) {
     if (!construct_net(file_1, net_1)) return -1; // error has been printed
 
@@ -1174,20 +1174,19 @@ run_picotrav(int argc, char** argv)
     }
 
     if (match_io_names) {
-      if (!do_match_io_names(net_0, net_1)) return -1;
+      if (!do_match_io_names(net_0, net_1)) { return -1; };
     }
   }
 
-  // Nanotrav sorts the output in ascending order by their level. The same is
-  // possible here, but experiments show this at times decreases and other
-  // times increases the running time.
+  // Nanotrav sorts the output in ascending order by their level. The same is possible here, but
+  // experiments show this at times decreases and other times increases the running time.
   //
   // So, well keep it simple by not doing so.
 
   // Derive variable order
   apply_variable_order(var_order, net_0, net_1);
 
-  // ========================================================================
+  // ============================================================================================
   // Initialise BDD package manager
   const size_t varcount = net_0.inputs_w_order.size();
 
@@ -1196,7 +1195,7 @@ run_picotrav(int argc, char** argv)
               << json::endl;
     std::cout << json::endl;
 
-    // ========================================================================
+    // ============================================================================================
     // Construct BDD for first net
     time_duration total_time = 0;
 
@@ -1211,7 +1210,7 @@ run_picotrav(int argc, char** argv)
     if (errcode_0) { return errcode_0; }
     total_time += time_0;
 
-    // ========================================================================
+    // ============================================================================================
     // Construct BDD for second net (if any) and compare them
     if (verify_networks) {
       std::cout << json::comma << json::endl;
