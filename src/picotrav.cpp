@@ -99,20 +99,20 @@ public:
     case 'o': {
       const std::string lower_arg = ascii_tolower(arg);
 
-      if (lower_arg == "input" || lower_arg == "i") {
+      if (is_prefix(lower_arg, "input")) {
         var_order = variable_order::INPUT;
-      } else if (lower_arg == "zip" || lower_arg == "z") {
+      } else if (is_prefix(lower_arg, "zip")) {
         var_order = variable_order::ZIP;
-      } else if (lower_arg == "depth-first" || lower_arg == "df") {
+      } else if (is_prefix(lower_arg, "depth-first") || lower_arg == "df") {
         var_order = variable_order::DF;
-      } else if (lower_arg == "level" || lower_arg == "l") {
+      } else if (is_prefix(lower_arg, "level")) {
         var_order = variable_order::LEVEL;
-      } else if (lower_arg == "level_depth-first" || lower_arg == "level_df"
+      } else if (is_prefix(lower_arg, "level_depth-first") || lower_arg == "level_df"
                  || lower_arg == "l_df") {
         var_order = variable_order::LEVEL_DF;
-      } else if (lower_arg == "fanin" || lower_arg == "fi") {
+      } else if (is_prefix(lower_arg, "fanin") || lower_arg == "fi") {
         var_order = variable_order::FANIN;
-      } else if (lower_arg == "random" || lower_arg == "r") {
+      } else if (is_prefix(lower_arg, "random")) {
         var_order = variable_order::RANDOM;
       } else {
         std::cerr << "Undefined ordering: " << arg << "\n";
