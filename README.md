@@ -573,15 +573,15 @@ The benchmark can be configured with the following options:
   - `df`/`depth-first`: Variables are ordered based on a depth-first traversal
     where non-input gates are recursed to first; thereby favouring deeper nodes.
 
+  - `df_level`/`depth-first_level`: Similar to `depth-first`, but before
+    recursing, all child nodes are sorted by their depth. Recursive calls are
+    done from the deepest to the most shallow node in order.
+
   - `level`: Variables are ordered based on the deepest reference by another
     net. Ties are broken based on the declaration order in the input (`input`).
 
   - `level_df`/`level_depth-first`: Similar to `level` but ties are broken based
     on the ordering in `df` rather than `input`.
-
-  - `df_level`/`depth-first_level`: Similar to `depth-first`, but before
-    recursing, all child nodes are sorted by their depth. Recursive calls are
-    done from the deepest to the most shallow node in order.
 
   - `random`: A randomized ordering of variables.
 

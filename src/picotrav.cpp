@@ -105,14 +105,14 @@ public:
         var_order = variable_order::ZIP;
       } else if (is_prefix(lower_arg, "depth-first") || lower_arg == "df") {
         var_order = variable_order::DF;
+      } else if (is_prefix(lower_arg, "depth-first_level") || lower_arg == "df_level"
+                 || lower_arg == "df_l") {
+        var_order = variable_order::DF_LEVEL;
       } else if (is_prefix(lower_arg, "level")) {
         var_order = variable_order::LEVEL;
       } else if (is_prefix(lower_arg, "level_depth-first") || lower_arg == "level_df"
                  || lower_arg == "l_df") {
         var_order = variable_order::LEVEL_DF;
-      } else if (is_prefix(lower_arg, "depth-first_level") || lower_arg == "df_level"
-                 || lower_arg == "df_l") {
-        var_order = variable_order::DF_LEVEL;
       } else if (is_prefix(lower_arg, "random")) {
         var_order = variable_order::RANDOM;
       } else {
@@ -493,12 +493,13 @@ construct_net(std::string& filename, net_t& net)
 
 // ========================================================================== //
 // Variable Ordering
+template<typename RecursionOrder>
 void
 df_variable_order_rec(const node_id_t id,
-                       std::vector<unsigned>& new_ordering,
-                       unsigned& ordered_count,
-                       const net_t& net,
-                       std::vector<bool>& visited)
+                      std::vector<unsigned>& new_ordering,
+                      unsigned& ordered_count,
+                      const net_t& net,
+                      std::vector<bool>& visited)
 {
   if (ordered_count == net.inputs_w_order.size()) { return; }
 
@@ -507,35 +508,84 @@ df_variable_order_rec(const node_id_t id,
 
   const node_t& n = net.nodes[id];
 
-  // Iterate through for non-input nets (i.e. looking at deeper inputs)
-  for (const node_id_t dep_id : n.deps) {
-    if (net.nodes[dep_id].is_input) { continue; }
-    df_variable_order_rec(dep_id, new_ordering, ordered_count, net, visited);
+  // Case: input gate
+  if (n.is_input) {
+    const unsigned old_idx = net.inputs_w_order.at(id);
+    new_ordering[old_idx]  = ordered_count++;
+    return;
   }
 
-  // Add yet unseen inputs (i.e. looking at shallow inputs)
-  for (const node_id_t dep_id : n.deps) {
-    const node_t& dep = net.nodes[dep_id];
-    if (!dep.is_input || visited[dep_id]) { continue; }
-    visited[dep_id] = true;
-
-    const unsigned old_idx = net.inputs_w_order.at(dep_id);
-    new_ordering[old_idx]  = ordered_count++;
+  // Case: non-input gates
+  for (const node_id_t dep_id : RecursionOrder::sort(n.deps, net)) {
+    df_variable_order_rec<RecursionOrder>(dep_id, new_ordering, ordered_count, net, visited);
   }
 }
 
+template<typename RecursionOrder>
 std::vector<unsigned>
-df_variable_order(const net_t& net)
+df_variable_order(const net_t& net_0, const net_t& net_1)
 {
-  // TODO: Make ordering depend on both net_0 and net_1
-  std::vector<bool> visited_nodes(net.nodes.size());
-  std::vector<unsigned> new_ordering(net.inputs_w_order.size());
-  unsigned ordered_count = 0;
-  for (const node_id_t output : net.outputs_in_order) {
-    df_variable_order_rec(output, new_ordering, ordered_count, net, visited_nodes);
+  assert(&net_0.nodes == &net_1.nodes); // pointer equality
+
+  // TODO: Break ties based on previous ordering.
+  // TODO: Derive variable ordering from the structure of 'net_1' too?
+
+  // Output value
+  assert(net_0.inputs_w_order.size() == net_1.inputs_w_order.size());
+  std::vector<unsigned> new_ordering(net_0.inputs_w_order.size());
+
+  // Data structures for a depth-first traversal (of net_0 only).
+  std::vector<bool> visited(net_0.nodes.size());
+  unsigned int ordered_count = 0;
+
+  // Derive a variable order from net_0, i.e.\ the specification.
+  for (const node_id_t output : RecursionOrder::sort_outputs(net_0)) {
+    df_variable_order_rec<RecursionOrder>(output, new_ordering, ordered_count, net_0, visited);
   }
+
   return new_ordering;
 }
+
+/// \brief Simple depth-first policy for `df_variable_order`.
+struct df_policy
+{
+  static std::vector<node_id_t>
+  sort(const std::vector<node_id_t>& deps, const net_t&/*net*/)
+  {
+    return deps;
+  }
+
+  static std::vector<node_id_t>
+  sort_outputs(const net_t& net)
+  {
+    return net.outputs_in_order;
+  }
+};
+
+/// \brief Depth-first policy for `df_variable_order` that sorts dependencies on their 'depth'.
+struct df_level_policy
+{
+  static std::vector<node_id_t>
+  sort(const std::vector<node_id_t>& deps, const net_t& net)
+  {
+    std::vector<node_id_t> deps_copy(deps);
+    std::sort(deps_copy.begin(), deps_copy.end(), [&net](const node_id_t a, const node_id_t b) {
+      return net.nodes[a].depth > net.nodes[b].depth;
+    });
+    return deps_copy;
+  }
+
+  static std::vector<node_id_t>
+  sort_outputs(const net_t& net)
+  {
+    std::vector<node_id_t> outputs(net.outputs_in_order);
+    std::sort(outputs.begin(), outputs.end(), [&net](const node_id_t a, const node_id_t b) {
+      return net.nodes[a].depth > net.nodes[b].depth;
+    });
+
+    return outputs;
+  }
+};
 
 // For each input, compute the smallest level/depth of a node referencing it
 void
@@ -604,89 +654,6 @@ level_variable_order(const net_t& net_0, const net_t& net_1)
   return new_ordering;
 }
 
-void
-df_level_variable_order_rec(const node_id_t id,
-                            std::vector<unsigned>& new_ordering,
-                            unsigned& ordered_count,
-                            const net_t& net,
-                            std::vector<bool>& visited)
-{
-  if (ordered_count == net.inputs_w_order.size()) { return; }
-
-  if (visited[id]) { return; }
-  visited[id] = true;
-
-  const node_t& n = net.nodes[id];
-
-  if (n.is_input) {
-    const unsigned old_idx = net.inputs_w_order.at(id);
-    new_ordering[old_idx]  = ordered_count++;
-    return;
-  }
-
-  // Sort dependencies descending by depth
-  std::vector<node_id_t> deps(n.deps);
-  std::sort(deps.begin(), deps.end(), [&net](const node_id_t a, const node_id_t b) {
-    return net.nodes[a].depth > net.nodes[b].depth;
-  });
-
-  for (const node_id_t dep_id : deps) {
-    df_level_variable_order_rec(dep_id, new_ordering, ordered_count, net, visited);
-  }
-}
-
-std::vector<unsigned>
-df_level_variable_order(const net_t& net_0, const net_t& net_1)
-{
-  assert(&net_0.nodes == &net_1.nodes); // pointer equality
-  const std::vector<node_t>& nodes = net_0.nodes;
-
-  std::vector<bool> visited(nodes.size());
-  std::vector<unsigned> new_ordering(net_0.inputs_w_order.size());
-  unsigned ordered_count = 0;
-
-  unsigned output_count = net_0.outputs_in_order.size();
-  if (net_1.outputs_in_order.size() != output_count) { // Only consider `net_0`
-    // Sort dependencies descending by depth
-    std::vector<node_id_t> outputs(net_0.outputs_in_order);
-    std::sort(outputs.begin(), outputs.end(), [&nodes](const node_id_t a, const node_id_t b) {
-      return nodes[a].depth > nodes[b].depth;
-    });
-
-    for (const node_id_t output : outputs) {
-      df_level_variable_order_rec(output, new_ordering, ordered_count, net_0, visited);
-    }
-  } else {
-    // Consider both `net_0` and `net_1`. First, group the output pairs together
-    std::vector<std::pair<node_id_t, node_id_t>> outputs;
-    outputs.reserve(output_count);
-    for (unsigned i = 0; i < output_count; ++i) {
-      outputs.emplace_back(net_0.outputs_in_order[i], net_1.outputs_in_order[i]);
-    }
-    // Sort these pairs descending by their depth (lexicographically maximum, then minimum)
-    std::sort(outputs.begin(), outputs.end(), [&nodes](const auto a, const auto b) {
-      const unsigned a_max = std::max(nodes[a.first].depth, nodes[a.second].depth);
-      const unsigned a_min = std::min(nodes[a.first].depth, nodes[a.second].depth);
-      const unsigned b_max = std::max(nodes[b.first].depth, nodes[b.second].depth);
-      const unsigned b_min = std::min(nodes[b.first].depth, nodes[b.second].depth);
-      return std::tie(a_max, a_min) > std::tie(b_max, b_min);
-    });
-
-    // Recursively visit the children, starting with the deeper node of the pair
-    for (const auto& [output_0, output_1] : outputs) {
-      if (nodes[output_0].depth >= nodes[output_1].depth) {
-        df_level_variable_order_rec(output_0, new_ordering, ordered_count, net_0, visited);
-        df_level_variable_order_rec(output_1, new_ordering, ordered_count, net_1, visited);
-      } else {
-        df_level_variable_order_rec(output_1, new_ordering, ordered_count, net_1, visited);
-        df_level_variable_order_rec(output_0, new_ordering, ordered_count, net_0, visited);
-      }
-    }
-  }
-
-  return new_ordering;
-}
-
 /// Assuming the input is given as
 /// `a[0], a[1], ..., a[n-1], b[0], b[1], ..., b[n-1]`, this derives the
 /// ordering ``a[0], b[0], a[1], b[1], ..., a[n-1], b[n-1]``
@@ -746,7 +713,12 @@ apply_variable_order(const variable_order vo, net_t& net_0, net_t& net_1)
   }
 
   case variable_order::DF: {
-    new_ordering = df_variable_order(net_0);
+    new_ordering = df_variable_order<df_policy>(net_0, net_1);
+    break;
+  }
+
+  case variable_order::DF_LEVEL: {
+    new_ordering = df_variable_order<df_level_policy>(net_0, net_1);
     break;
   }
 
@@ -758,11 +730,6 @@ apply_variable_order(const variable_order vo, net_t& net_0, net_t& net_1)
   case variable_order::LEVEL_DF: {
     apply_variable_order(variable_order::DF, net_0, net_1);
     new_ordering = level_variable_order(net_0, net_1);
-    break;
-  }
-
-  case variable_order::DF_LEVEL: {
-    new_ordering = df_level_variable_order(net_0, net_1);
     break;
   }
 
