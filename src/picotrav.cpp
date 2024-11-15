@@ -527,6 +527,7 @@ df_variable_order_rec(const node_id_t id,
 std::vector<unsigned>
 df_variable_order(const net_t& net)
 {
+  // TODO: Make ordering depend on both net_0 and net_1
   std::vector<bool> visited_nodes(net.nodes.size());
   std::vector<unsigned> new_ordering(net.inputs_w_order.size());
   unsigned ordered_count = 0;
