@@ -323,7 +323,7 @@ public:
   inputs(std::vector<std::string> inputs) override
   {
     net.name_map.reserve(inputs.size());
-    net.nodes.reserve(inputs.size());
+    net.nodes.reserve(net.nodes.size() + inputs.size());
     net.inputs_w_order.reserve(inputs.size());
 
     for (const std::string& name : inputs) {
@@ -347,7 +347,7 @@ public:
   outputs(std::vector<std::string> outputs) override
   {
     net.name_map.reserve(outputs.size());
-    net.nodes.reserve(outputs.size());
+    net.nodes.reserve(net.nodes.size() + outputs.size());
     net.outputs_in_order.reserve(outputs.size());
 
     for (const std::string& name : outputs) {
