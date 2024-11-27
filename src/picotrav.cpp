@@ -506,6 +506,15 @@ construct_net(std::string& filename, net_t& net)
 
 // ============================================================================================== //
 // Variable Ordering
+//
+// As stated in "Verification of Arithmetic and Datapath Circuits with Symbolic Simulation" by
+// Roope Kaivola and John O’Leary:
+//
+//   "a variable ordering that is good for an abstract specification is
+//    almost universally also good for any of its implementations"
+//
+// Hence, variable orderings should only depend on the specification circuit, i.e. `net_0`.
+
 template<typename RecursionOrder>
 void
 df_variable_order_rec(const node_id_t id,
@@ -536,15 +545,11 @@ df_variable_order_rec(const node_id_t id,
 
 template<typename RecursionOrder>
 std::vector<unsigned>
-df_variable_order(const net_t& net_0, const net_t& net_1)
+df_variable_order(const net_t& net_0)
 {
-  assert(&net_0.nodes == &net_1.nodes); // pointer equality
-
   // TODO: Break ties based on previous ordering.
-  // TODO: Derive variable ordering from the structure of 'net_1' too?
 
   // Output value
-  assert(net_0.inputs_w_order.size() == net_1.inputs_w_order.size());
   std::vector<unsigned> new_ordering(net_0.inputs_w_order.size());
 
   // Data structures for a depth-first traversal (of net_0 only).
@@ -663,9 +668,8 @@ struct df_fujita_policy
 };
 
 std::vector<unsigned>
-fanin_variable_order(const net_t& net_0, const net_t& net_1)
+fanin_variable_order(const net_t& net_0)
 {
-  assert(&net_0.nodes == &net_1.nodes); // pointer equality
   const std::vector<node_t>& nodes = net_0.nodes;
 
   // Create a `std::vector` we can sort
@@ -674,7 +678,7 @@ fanin_variable_order(const net_t& net_0, const net_t& net_1)
   for (auto kv : net_0.inputs_w_order) { inputs.push_back(kv.first); }
 
   // Sort based on fanin (reference count) and secondly, keep the original order
-  const auto comparator = [&net_0, &net_1](const node_id_t a, const node_id_t b) {
+  const auto comparator = [&net_0](const node_id_t a, const node_id_t b) {
     if (net_0.nodes[a].ref_count != net_0.nodes[b].ref_count) {
       return net_0.nodes[a].ref_count > net_0.nodes[b].ref_count;
     }
@@ -717,9 +721,8 @@ compute_input_depth(const node_id_t id,
 }
 
 std::vector<unsigned>
-level_variable_order(const net_t& net_0, const net_t& net_1)
+level_variable_order(const net_t& net_0)
 {
-  assert(&net_0.nodes == &net_1.nodes); // pointer equality
   const std::vector<node_t>& nodes = net_0.nodes;
 
   // Create a `std::vector` we can sort
@@ -735,14 +738,6 @@ level_variable_order(const net_t& net_0, const net_t& net_1)
   for (const node_id_t output : net_0.outputs_in_order) {
     compute_input_depth(output, deepest_reference, nodes, visited_nodes);
   }
-  // We could also derive the depth from 'net_1'. But, the other orderings are only based on 'net_0'
-  // which itself also is the specification and hence most likely best preserves the structure of
-  // the problem.
-  /*
-  for (const node_id_t output : net_1.outputs_in_order) {
-    compute_input_depth(output, deepest_reference, nodes, visited_nodes);
-  }
-  */
 
   // Sort based on deepest referenced level (break ties by prior ordering)
   const auto comparator = [&net_0, &deepest_reference](const node_id_t a, const node_id_t b) {
@@ -815,45 +810,45 @@ apply_variable_order(const variable_order vo, net_t& net_0, net_t& net_1)
     return;
 
   case variable_order::DF: {
-    new_ordering = df_variable_order<df_policy>(net_0, net_1);
+    new_ordering = df_variable_order<df_policy>(net_0);
     break;
   }
 
   case variable_order::DF_LEVEL: {
-    new_ordering = df_variable_order<df_level_policy>(net_0, net_1);
+    new_ordering = df_variable_order<df_level_policy>(net_0);
     break;
   }
 
   case variable_order::FANIN: {
-    new_ordering = fanin_variable_order(net_0, net_1);
+    new_ordering = fanin_variable_order(net_0);
     break;
   }
 
   case variable_order::FANIN_DF: {
     apply_variable_order(variable_order::DF, net_0, net_1);
-    new_ordering = fanin_variable_order(net_0, net_1);
+    new_ordering = fanin_variable_order(net_0);
     break;
   }
 
   case variable_order::FANIN_DF_LEVEL: {
     apply_variable_order(variable_order::DF_LEVEL, net_0, net_1);
-    new_ordering = fanin_variable_order(net_0, net_1);
+    new_ordering = fanin_variable_order(net_0);
     break;
   }
 
   case variable_order::FUJITA: {
-    new_ordering = df_variable_order<df_fujita_policy>(net_0, net_1);
+    new_ordering = df_variable_order<df_fujita_policy>(net_0);
     break;
   }
 
   case variable_order::LEVEL: {
-    new_ordering = level_variable_order(net_0, net_1);
+    new_ordering = level_variable_order(net_0);
     break;
   }
 
   case variable_order::LEVEL_DF: {
     apply_variable_order(variable_order::DF, net_0, net_1);
-    new_ordering = level_variable_order(net_0, net_1);
+    new_ordering = level_variable_order(net_0);
     break;
   }
 
