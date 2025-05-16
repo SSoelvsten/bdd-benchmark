@@ -1011,7 +1011,7 @@ BENCHMARKS = {
             [ [ 0, 0,10], qbf__args("B/2x4_13_bwnib") ],
             [ [ 0, 0,10], qbf__args("B/2x5_17_bwnib") ],
             [ [ 0, 0,10], qbf__args("B/2x6_15_bwnib") ],
-            [ [ 1, 0,00], qbf__args("B/3x4_19_bwnib") ],
+            [ [ 0, 1,00], qbf__args("B/3x4_19_bwnib") ],
             [ [ 0, 0,10], qbf__args("B/3x5_11_bwnib") ],
             [ [ 0, 0,10], qbf__args("B/3x6_9_bwnib") ],
             # BSP/ (Breakthrough 2nd Player)
@@ -1073,8 +1073,8 @@ BENCHMARKS = {
             # hex/ (Hex)
             [ [ 0, 0,10], qbf__args("hex/browne_5x5_07_bwnib") ],
             [ [ 0, 0,10], qbf__args("hex/browne_5x5_09_bwnib") ],
-            [ [ 0,12,00], qbf__args("hex/hein_02_5x5-11_bwnib") ],
-            [ [ 1, 0,00], qbf__args("hex/hein_02_5x5-13_bwnib") ],
+            [ [ 0, 1,00], qbf__args("hex/hein_02_5x5-11_bwnib") ],
+            [ [ 0, 2,00], qbf__args("hex/hein_02_5x5-13_bwnib") ],
             [ [ 0, 0,10], qbf__args("hex/hein_04_3x3-03_bwnib") ],
             [ [ 0, 0,10], qbf__args("hex/hein_04_3x3-05_bwnib") ],
             [ [ 0, 0,10], qbf__args("hex/hein_06_4x4-11_bwnib") ],
