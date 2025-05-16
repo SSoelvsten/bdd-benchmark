@@ -1088,7 +1088,7 @@ BENCHMARKS = {
             [ [ 0, 1,00], qbf__args("hex/hein_10_5x5-11_bwnib") ],
             [ [ 0, 2,00], qbf__args("hex/hein_10_5x5-13_bwnib") ],
             [ [ 0, 0,10], qbf__args("hex/hein_11_5x5-09_bwnib") ],
-            [ [ 2, 0,00], qbf__args("hex/hein_11_5x5-11_bwnib") ],
+            [ [ 0, 1,00], qbf__args("hex/hein_11_5x5-11_bwnib") ],
             [ [ 0, 0,10], qbf__args("hex/hein_12_4x4-05_bwnib") ],
             [ [ 0, 0,10], qbf__args("hex/hein_12_4x4-07_bwnib") ],
             [ [ 0, 0,10], qbf__args("hex/hein_13_5x5-07_bwnib") ],
